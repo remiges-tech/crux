@@ -10,4 +10,8 @@ tern:
 generate:
 	cd db; sqlc generate
 
+# start an etcd server
+etcd:
+	cd; cd etcd/bin; ./etcd
+
 .PHONY: newSchema

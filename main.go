@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -35,7 +36,7 @@ func main() {
 	l.LogActivity("Creates a new instance of EtcdStorage with endpoints", "localhost:2379")
 
 	// Create a new Rigel instance
-	rigelClient := rigel.New(etcdStorage, "crux", "testmodule", 1, "testconfig")
+	rigelClient := rigel.New(etcdStorage, "crux", "WFE", 1, "devConfig")
 	l.LogActivity("Creates a new instance of rigel", rigelClient)
 
 	// Create a context with a timeout
@@ -63,7 +64,7 @@ func main() {
 	wscutils.LoadErrorTypes(file)
 
 	// Database connection
-	connURL := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", config.DBHost, config.DBPort, config.DBUser, config.DBPassword, config.DBName)
+	connURL := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", config.DBHost, config.DBPort, config.DBUser, config.DBPassword, config.DBName)
 	conn, err := pg.Connect(config.DriverName, connURL)
 	if err != nil {
 		l.LogActivity("Error while establishes a connection with database", err)
@@ -81,5 +82,12 @@ func main() {
 		WithRigelConfig(rigelClient)
 
 	schemaSvc.RegisterRoute(http.MethodGet, "/WFschemaList", schema.SchemaList)
+
+	appServerPort := strconv.Itoa(config.AppServerPort)
+	r.Run(":" + appServerPort)
+	if err != nil {
+		l.LogActivity("Failed to start server", err)
+		log.Fatalf("Failed to start server: %v", err)
+	}
 
 }
