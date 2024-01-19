@@ -4,7 +4,7 @@ CREATE TABLE realm (
   shortnamelc varchar(255) UNIQUE NOT NULL,
   longname varchar(255) NOT NULL,
   setby varchar(255) NOT NULL,
-  setat timestamp NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+  setat TIMESTAMPTZ NOT NULL DEFAULT (CURRENT_TIMESTAMPTZ),
   payload jsonb NOT NULL
 );
 
@@ -35,7 +35,7 @@ CREATE TABLE config (
     val VARCHAR(255),
     ver SERIAL ,
     setby VARCHAR(255) NOT NULL,
-    setat TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    setat TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMPTZ,
     UNIQUE (realm, slice, name)
 );
 
@@ -70,9 +70,9 @@ CREATE TABLE schema (
     class VARCHAR(255) CHECK(class ~ '^[a-z_]+$') NOT NULL,
     patternschema JSONB NOT NULL,
     actionschema JSONB NOT NULL,
-    createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ NOT NULL,
     createdby VARCHAR(255) NOT NULL,
-    editedat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    editedat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ NOT NULL,
     editedby VARCHAR(255) NOT NULL,
     UNIQUE (realm,slice,app,class)
 );
@@ -89,9 +89,9 @@ CREATE TABLE ruleset (
     is_active BOOLEAN DEFAULT false,
     is_internal BOOLEAN NOT NULL,
     ruleset JSONB NOT NULL,
-    createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ NOT NULL,
     createdby VARCHAR(255) NOT NULL,
-    editedat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    editedat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ NOT NULL,
     editedby VARCHAR(255) NOT NULL
 );
 
@@ -104,7 +104,7 @@ CREATE TABLE wfinstance (
     class VARCHAR(255) CHECK(class ~ '^[a-z_]+$') NOT NULL,
     workflow VARCHAR(255) CHECK(workflow ~ '^[a-z_]+$') NOT NULL,
     step VARCHAR(255) NOT NULL,
-    loggedat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    loggedat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ NOT NULL,
     doneat TIMESTAMPTZ,
     nextstep VARCHAR(255) NOT NULL,
     parent INTEGER

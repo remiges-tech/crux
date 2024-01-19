@@ -4,7 +4,7 @@ INSERT INTO schema (
     realm, slice, app, brwf, class, patternschema, actionschema, createdby, editedby
 ) VALUES (
     1, $1, $2, W, $3, $4, $5, $6, $7
-) RETURNING *;
+) RETURNING id;
 
 -- name: SchemaUpdate :one
 -- :one
@@ -19,14 +19,14 @@ SET
     editedby = $7
 WHERE
     id = $1
-RETURNING *;
+RETURNING id;
 
 -- name: SchemaDelete :one
 -- :one
 DELETE FROM schema
 WHERE
     id = $1
-RETURNING *;
+RETURNING id;
 
 -- name: SchemaGet :one
 -- :one

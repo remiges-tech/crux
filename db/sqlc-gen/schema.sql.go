@@ -14,28 +14,14 @@ const schemaDelete = `-- name: SchemaDelete :one
 DELETE FROM schema
 WHERE
     id = $1
-RETURNING id, realm, slice, app, brwf, class, patternschema, actionschema, createdat, createdby, editedat, editedby
+RETURNING id
 `
 
 // :one
-func (q *Queries) SchemaDelete(ctx context.Context, id int32) (Schema, error) {
+func (q *Queries) SchemaDelete(ctx context.Context, id int32) (int32, error) {
 	row := q.db.QueryRowContext(ctx, schemaDelete, id)
-	var i Schema
-	err := row.Scan(
-		&i.ID,
-		&i.Realm,
-		&i.Slice,
-		&i.App,
-		&i.Brwf,
-		&i.Class,
-		&i.Patternschema,
-		&i.Actionschema,
-		&i.Createdat,
-		&i.Createdby,
-		&i.Editedat,
-		&i.Editedby,
-	)
-	return i, err
+	err := row.Scan(&id)
+	return id, err
 }
 
 const schemaGet = `-- name: SchemaGet :one
@@ -122,7 +108,7 @@ INSERT INTO schema (
     realm, slice, app, brwf, class, patternschema, actionschema, createdby, editedby
 ) VALUES (
     1, $1, $2, W, $3, $4, $5, $6, $7
-) RETURNING id, realm, slice, app, brwf, class, patternschema, actionschema, createdat, createdby, editedat, editedby
+) RETURNING id
 `
 
 type SchemaNewParams struct {
@@ -136,7 +122,7 @@ type SchemaNewParams struct {
 }
 
 // :one
-func (q *Queries) SchemaNew(ctx context.Context, arg SchemaNewParams) (Schema, error) {
+func (q *Queries) SchemaNew(ctx context.Context, arg SchemaNewParams) (int32, error) {
 	row := q.db.QueryRowContext(ctx, schemaNew,
 		arg.Slice,
 		arg.App,
@@ -146,22 +132,9 @@ func (q *Queries) SchemaNew(ctx context.Context, arg SchemaNewParams) (Schema, e
 		arg.Createdby,
 		arg.Editedby,
 	)
-	var i Schema
-	err := row.Scan(
-		&i.ID,
-		&i.Realm,
-		&i.Slice,
-		&i.App,
-		&i.Brwf,
-		&i.Class,
-		&i.Patternschema,
-		&i.Actionschema,
-		&i.Createdat,
-		&i.Createdby,
-		&i.Editedat,
-		&i.Editedby,
-	)
-	return i, err
+	var id int32
+	err := row.Scan(&id)
+	return id, err
 }
 
 const schemaUpdate = `-- name: SchemaUpdate :one
@@ -176,7 +149,7 @@ SET
     editedby = $7
 WHERE
     id = $1
-RETURNING id, realm, slice, app, brwf, class, patternschema, actionschema, createdat, createdby, editedat, editedby
+RETURNING id
 `
 
 type SchemaUpdateParams struct {
@@ -190,7 +163,7 @@ type SchemaUpdateParams struct {
 }
 
 // :one
-func (q *Queries) SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) (Schema, error) {
+func (q *Queries) SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) (int32, error) {
 	row := q.db.QueryRowContext(ctx, schemaUpdate,
 		arg.ID,
 		arg.App,
@@ -200,20 +173,7 @@ func (q *Queries) SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) (Sch
 		arg.Actionschema,
 		arg.Editedby,
 	)
-	var i Schema
-	err := row.Scan(
-		&i.ID,
-		&i.Realm,
-		&i.Slice,
-		&i.App,
-		&i.Brwf,
-		&i.Class,
-		&i.Patternschema,
-		&i.Actionschema,
-		&i.Createdat,
-		&i.Createdby,
-		&i.Editedat,
-		&i.Editedby,
-	)
-	return i, err
+	var id int32
+	err := row.Scan(&id)
+	return id, err
 }

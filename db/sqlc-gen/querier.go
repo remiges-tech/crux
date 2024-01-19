@@ -10,14 +10,14 @@ import (
 
 type Querier interface {
 	// :one
-	SchemaDelete(ctx context.Context, id int32) (Schema, error)
+	SchemaDelete(ctx context.Context, id int32) (int32, error)
 	// :one
 	SchemaGet(ctx context.Context, id int32) (Schema, error)
 	SchemaList(ctx context.Context, arg SchemaListParams) ([]Schema, error)
 	// :one
-	SchemaNew(ctx context.Context, arg SchemaNewParams) (Schema, error)
+	SchemaNew(ctx context.Context, arg SchemaNewParams) (int32, error)
 	// :one
-	SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) (Schema, error)
+	SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) (int32, error)
 }
 
 var _ Querier = (*Queries)(nil)
