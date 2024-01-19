@@ -6,6 +6,7 @@ type AppConfig struct {
 	DBUser        string   `json:"user"`
 	DBPassword    string   `json:"db_password"`
 	DBName        string   `json:"db_name"`
+	DriverName    string   `json:"driver_name"`
 	AppServerPort string   `json:"app_server_port"`
 	EtcdEndPoints []string `json:"etcd_endpoints"`
 	ErrorTypeFile string   `json:"error_type_file"`

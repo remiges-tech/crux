@@ -4,11 +4,16 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"time"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/gin-gonic/gin"
+	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
+	pg "github.com/remiges-tech/crux/db"
+	"github.com/remiges-tech/crux/db/sqlc-gen"
+	"github.com/remiges-tech/crux/server/schema"
 	"github.com/remiges-tech/crux/types"
 	"github.com/remiges-tech/logharbour/logharbour"
 	"github.com/remiges-tech/rigel"
@@ -58,12 +63,23 @@ func main() {
 	wscutils.LoadErrorTypes(file)
 
 	// Database connection
-	connString := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", config.DBHost, config.DBPort, config.DBUser, config.DBPassword, config.DBName)
-	conn, err := pgx.Connect(ctx, connString)
+	connURL := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", config.DBHost, config.DBPort, config.DBUser, config.DBPassword, config.DBName)
+	conn, err := pg.Connect(config.DriverName, connURL)
 	if err != nil {
 		l.LogActivity("Error while establishes a connection with database", err)
 		log.Fatalln("Failed to establishes a connection with database", err)
 	}
-	defer conn.Close(ctx)
+	queries := sqlc.New(conn)
+
+	// router
+	r := gin.Default()
+
+	// schema services
+	schemaSvc := service.NewService(r).
+		WithLogHarbour(l).
+		WithDatabase(queries).
+		WithRigelConfig(rigelClient)
+
+	schemaSvc.RegisterRoute(http.MethodGet, "/WFschemaList", schema.SchemaList)
 
 }
