@@ -1,12 +1,14 @@
 -- name: SchemaNew :one
 -- :one
 INSERT INTO
-    schema(
+    schema (
         realm, slice, app, brwf, class, patternschema, actionschema, createdby, editedby
     )
 VALUES (
         1, $1, $2, W, $3, $4, $5, $6, $7
-    ) RETURNING id;
+    )
+RETURNING
+    id;
 
 -- name: SchemaUpdate :one
 -- :one
@@ -20,31 +22,63 @@ SET
     editedat = CURRENT_TIMESTAMP,
     editedby = $7
 WHERE
-    id = $1 RETURNING id;
+    id = $1
+RETURNING
+    id;
 
 -- name: SchemaDelete :one
 -- :one
 DELETE FROM schema WHERE id = $1 RETURNING id;
 
 -- name: SchemaList :many
-SELECT slice,app,class,createdby,createdat,editedby,editedat FROM schema;
+SELECT schema.slice, realmslice.descr, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
+FROM schema
+    JOIN app ON schema.app = app.shortname
+    JOIN realmslice on schema.slice = realmslice.id;
+
 -- name: SchemaListByApp :many
-SELECT slice,app,class,createdby,createdat,editedby,editedat  FROM schema WHERE app = $1;
+SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
+FROM schema
+    JOIN app ON schema.app = app.shortname
+    JOIN realmslice on schema.slice = realmslice.id
+WHERE app = $1;
 
 -- name: SchemaListByClass :many
-SELECT slice,app,class,createdby,createdat,editedby,editedat  FROM schema WHERE class = $1;
+SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
+FROM schema
+    JOIN app ON schema.app = app.shortname
+    JOIN realmslice on schema.slice = realmslice.id
+WHERE class = $1;
 
 -- name: SchemaListBySlice :many
-SELECT slice,app,class,createdby,createdat,editedby,editedat  FROM schema WHERE slice = $1;
+SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
+FROM schema
+    JOIN app ON schema.app = app.shortname
+    JOIN realmslice on schema.slice = realmslice.id
+WHERE slice = $1;
 
 -- name: SchemaListByAppAndClass :many
-SELECT slice,app,class,createdby,createdat,editedby,editedat  FROM schema WHERE app = $1 AND class = $2;
+SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
+FROM schema
+    JOIN app ON schema.app = app.shortname
+    JOIN realmslice on schema.slice = realmslice.id
+WHERE app = $1 AND class = $2;
 
 -- name: SchemaListByAppAndSlice :many
-SELECT slice,app,class,createdby,createdat,editedby,editedat  FROM schema WHERE app = $1 AND slice = $2;
+SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
+FROM schema
+    JOIN app ON schema.app = app.shortname
+    JOIN realmslice on schema.slice = realmslice.id
+WHERE app = $1 AND slice = $2;
 
 -- name: SchemaListByClassAndSlice :many
-SELECT slice,app,class,createdby,createdat,editedby,editedat  FROM schema WHERE class = $1 AND slice = $2;
+SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
+FROM schema
+    JOIN app ON schema.app = app.shortname
+    JOIN realmslice on schema.slice = realmslice.id
+WHERE
+    class = $1
+    AND slice = $2;
 
 -- name: SchemaGet :many
 SELECT *

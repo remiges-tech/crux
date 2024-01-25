@@ -43,7 +43,7 @@ CREATE TABLE capgrant (
     id SERIAL PRIMARY KEY,
     realm INTEGER REFERENCES realm(id) NOT NULL,
     "user" VARCHAR(255) NOT NULL, -- "user" is a reserved keyword in SQL, so it is enclosed in double quotes
-    app VARCHAR(255),
+    app VARCHAR(255) REFERENCES app(shortname),
     cap VARCHAR(255) NOT NULL,
     "from" TIMESTAMP,
     "to" TIMESTAMP,
@@ -65,7 +65,7 @@ CREATE TABLE schema (
     id SERIAL PRIMARY KEY,
     realm INTEGER REFERENCES realm(id) NOT NULL,
     slice INTEGER REFERENCES realmslice(id) NOT NULL,
-    app VARCHAR(255) NOT NULL,
+    app VARCHAR(255) REFERENCES app(shortname) NOT NULL,
     brwf CHAR(1) CHECK(brwf IN ('B', 'W')) NOT NULL,
     class VARCHAR(255) CHECK(class ~ '^[a-z_]+$') NOT NULL,
     patternschema JSONB NOT NULL,
@@ -81,7 +81,7 @@ CREATE TABLE ruleset (
     id SERIAL PRIMARY KEY,
     realm INTEGER REFERENCES realm(id) NOT NULL,
     slice INTEGER REFERENCES realmslice(id) NOT NULL,
-    app VARCHAR(255) NOT NULL,
+    app VARCHAR(255) REFERENCES app(shortname),
     brwf CHAR(1) CHECK(brwf IN ('B', 'W')) NOT NULL,
     class VARCHAR(255) CHECK(class ~ '^[a-z_]+$') NOT NULL,
     setname VARCHAR(255) CHECK(setname ~ '^[a-z_]+$') NOT NULL,
@@ -100,7 +100,7 @@ CREATE TABLE wfinstance (
     id SERIAL PRIMARY KEY,
     entityid INTEGER NOT NULL,
     slice INTEGER REFERENCES realmslice(id) NOT NULL,
-    app VARCHAR(255) NOT NULL,
+    app VARCHAR(255) REFERENCES app(shortname),
     class VARCHAR(255) CHECK(class ~ '^[a-z_]+$') NOT NULL,
     workflow VARCHAR(255) CHECK(workflow ~ '^[a-z_]+$') NOT NULL,
     step VARCHAR(255) NOT NULL,
@@ -111,8 +111,8 @@ CREATE TABLE wfinstance (
 );
 
 CREATE TABLE stepworkflow (
-  slice int NOT NULL,
-  app varchar(255),
+  slice INTEGER REFERENCES realmslice(id) NOT NULL,
+  app VARCHAR(255) REFERENCES app(shortname),
   step varchar(255) NOT NULL,
   workflow varchar(255) NOT NULL
 );

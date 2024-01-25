@@ -81,7 +81,7 @@ func main() {
 		WithDatabase(query).
 		WithRigelConfig(rigelClient)
 
-	schemaSvc.RegisterRoute(http.MethodGet, "/schemaList", schema.SchemaList)
+	schemaSvc.RegisterRoute(http.MethodGet, "/WFschemaList", schema.SchemaList)
 
 	appServerPort := strconv.Itoa(config.AppServerPort)
 	r.Run(":" + appServerPort)

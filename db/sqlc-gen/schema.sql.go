@@ -74,12 +74,17 @@ func (q *Queries) SchemaGet(ctx context.Context, arg SchemaGetParams) ([]Schema,
 }
 
 const schemaList = `-- name: SchemaList :many
-SELECT slice,app,class,createdby,createdat,editedby,editedat FROM schema
+SELECT schema.slice, realmslice.descr, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
+FROM schema
+    JOIN app ON schema.app = app.shortname
+    JOIN realmslice on schema.slice = realmslice.id
 `
 
 type SchemaListRow struct {
 	Slice     int32     `json:"slice"`
+	Descr     string    `json:"descr"`
 	App       string    `json:"app"`
+	Longname  string    `json:"longname"`
 	Class     string    `json:"class"`
 	Createdby string    `json:"createdby"`
 	Createdat time.Time `json:"createdat"`
@@ -98,7 +103,9 @@ func (q *Queries) SchemaList(ctx context.Context) ([]SchemaListRow, error) {
 		var i SchemaListRow
 		if err := rows.Scan(
 			&i.Slice,
+			&i.Descr,
 			&i.App,
+			&i.Longname,
 			&i.Class,
 			&i.Createdby,
 			&i.Createdat,
@@ -119,12 +126,17 @@ func (q *Queries) SchemaList(ctx context.Context) ([]SchemaListRow, error) {
 }
 
 const schemaListByApp = `-- name: SchemaListByApp :many
-SELECT slice,app,class,createdby,createdat,editedby,editedat  FROM schema WHERE app = $1
+SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
+FROM schema
+    JOIN app ON schema.app = app.shortname
+    JOIN realmslice on schema.slice = realmslice.id
+WHERE app = $1
 `
 
 type SchemaListByAppRow struct {
 	Slice     int32     `json:"slice"`
 	App       string    `json:"app"`
+	Longname  string    `json:"longname"`
 	Class     string    `json:"class"`
 	Createdby string    `json:"createdby"`
 	Createdat time.Time `json:"createdat"`
@@ -144,6 +156,7 @@ func (q *Queries) SchemaListByApp(ctx context.Context, app string) ([]SchemaList
 		if err := rows.Scan(
 			&i.Slice,
 			&i.App,
+			&i.Longname,
 			&i.Class,
 			&i.Createdby,
 			&i.Createdat,
@@ -164,7 +177,11 @@ func (q *Queries) SchemaListByApp(ctx context.Context, app string) ([]SchemaList
 }
 
 const schemaListByAppAndClass = `-- name: SchemaListByAppAndClass :many
-SELECT slice,app,class,createdby,createdat,editedby,editedat  FROM schema WHERE app = $1 AND class = $2
+SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
+FROM schema
+    JOIN app ON schema.app = app.shortname
+    JOIN realmslice on schema.slice = realmslice.id
+WHERE app = $1 AND class = $2
 `
 
 type SchemaListByAppAndClassParams struct {
@@ -175,6 +192,7 @@ type SchemaListByAppAndClassParams struct {
 type SchemaListByAppAndClassRow struct {
 	Slice     int32     `json:"slice"`
 	App       string    `json:"app"`
+	Longname  string    `json:"longname"`
 	Class     string    `json:"class"`
 	Createdby string    `json:"createdby"`
 	Createdat time.Time `json:"createdat"`
@@ -194,6 +212,7 @@ func (q *Queries) SchemaListByAppAndClass(ctx context.Context, arg SchemaListByA
 		if err := rows.Scan(
 			&i.Slice,
 			&i.App,
+			&i.Longname,
 			&i.Class,
 			&i.Createdby,
 			&i.Createdat,
@@ -214,7 +233,11 @@ func (q *Queries) SchemaListByAppAndClass(ctx context.Context, arg SchemaListByA
 }
 
 const schemaListByAppAndSlice = `-- name: SchemaListByAppAndSlice :many
-SELECT slice,app,class,createdby,createdat,editedby,editedat  FROM schema WHERE app = $1 AND slice = $2
+SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
+FROM schema
+    JOIN app ON schema.app = app.shortname
+    JOIN realmslice on schema.slice = realmslice.id
+WHERE app = $1 AND slice = $2
 `
 
 type SchemaListByAppAndSliceParams struct {
@@ -225,6 +248,7 @@ type SchemaListByAppAndSliceParams struct {
 type SchemaListByAppAndSliceRow struct {
 	Slice     int32     `json:"slice"`
 	App       string    `json:"app"`
+	Longname  string    `json:"longname"`
 	Class     string    `json:"class"`
 	Createdby string    `json:"createdby"`
 	Createdat time.Time `json:"createdat"`
@@ -244,6 +268,7 @@ func (q *Queries) SchemaListByAppAndSlice(ctx context.Context, arg SchemaListByA
 		if err := rows.Scan(
 			&i.Slice,
 			&i.App,
+			&i.Longname,
 			&i.Class,
 			&i.Createdby,
 			&i.Createdat,
@@ -264,12 +289,17 @@ func (q *Queries) SchemaListByAppAndSlice(ctx context.Context, arg SchemaListByA
 }
 
 const schemaListByClass = `-- name: SchemaListByClass :many
-SELECT slice,app,class,createdby,createdat,editedby,editedat  FROM schema WHERE class = $1
+SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
+FROM schema
+    JOIN app ON schema.app = app.shortname
+    JOIN realmslice on schema.slice = realmslice.id
+WHERE class = $1
 `
 
 type SchemaListByClassRow struct {
 	Slice     int32     `json:"slice"`
 	App       string    `json:"app"`
+	Longname  string    `json:"longname"`
 	Class     string    `json:"class"`
 	Createdby string    `json:"createdby"`
 	Createdat time.Time `json:"createdat"`
@@ -289,6 +319,7 @@ func (q *Queries) SchemaListByClass(ctx context.Context, class string) ([]Schema
 		if err := rows.Scan(
 			&i.Slice,
 			&i.App,
+			&i.Longname,
 			&i.Class,
 			&i.Createdby,
 			&i.Createdat,
@@ -309,7 +340,13 @@ func (q *Queries) SchemaListByClass(ctx context.Context, class string) ([]Schema
 }
 
 const schemaListByClassAndSlice = `-- name: SchemaListByClassAndSlice :many
-SELECT slice,app,class,createdby,createdat,editedby,editedat  FROM schema WHERE class = $1 AND slice = $2
+SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
+FROM schema
+    JOIN app ON schema.app = app.shortname
+    JOIN realmslice on schema.slice = realmslice.id
+WHERE
+    class = $1
+    AND slice = $2
 `
 
 type SchemaListByClassAndSliceParams struct {
@@ -320,6 +357,7 @@ type SchemaListByClassAndSliceParams struct {
 type SchemaListByClassAndSliceRow struct {
 	Slice     int32     `json:"slice"`
 	App       string    `json:"app"`
+	Longname  string    `json:"longname"`
 	Class     string    `json:"class"`
 	Createdby string    `json:"createdby"`
 	Createdat time.Time `json:"createdat"`
@@ -339,6 +377,7 @@ func (q *Queries) SchemaListByClassAndSlice(ctx context.Context, arg SchemaListB
 		if err := rows.Scan(
 			&i.Slice,
 			&i.App,
+			&i.Longname,
 			&i.Class,
 			&i.Createdby,
 			&i.Createdat,
@@ -359,12 +398,17 @@ func (q *Queries) SchemaListByClassAndSlice(ctx context.Context, arg SchemaListB
 }
 
 const schemaListBySlice = `-- name: SchemaListBySlice :many
-SELECT slice,app,class,createdby,createdat,editedby,editedat  FROM schema WHERE slice = $1
+SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
+FROM schema
+    JOIN app ON schema.app = app.shortname
+    JOIN realmslice on schema.slice = realmslice.id
+WHERE slice = $1
 `
 
 type SchemaListBySliceRow struct {
 	Slice     int32     `json:"slice"`
 	App       string    `json:"app"`
+	Longname  string    `json:"longname"`
 	Class     string    `json:"class"`
 	Createdby string    `json:"createdby"`
 	Createdat time.Time `json:"createdat"`
@@ -384,6 +428,7 @@ func (q *Queries) SchemaListBySlice(ctx context.Context, slice int32) ([]SchemaL
 		if err := rows.Scan(
 			&i.Slice,
 			&i.App,
+			&i.Longname,
 			&i.Class,
 			&i.Createdby,
 			&i.Createdat,
@@ -405,12 +450,14 @@ func (q *Queries) SchemaListBySlice(ctx context.Context, slice int32) ([]SchemaL
 
 const schemaNew = `-- name: SchemaNew :one
 INSERT INTO
-    schema(
+    schema (
         realm, slice, app, brwf, class, patternschema, actionschema, createdby, editedby
     )
 VALUES (
         1, $1, $2, W, $3, $4, $5, $6, $7
-    ) RETURNING id
+    )
+RETURNING
+    id
 `
 
 type SchemaNewParams struct {
@@ -450,7 +497,9 @@ SET
     editedat = CURRENT_TIMESTAMP,
     editedby = $7
 WHERE
-    id = $1 RETURNING id
+    id = $1
+RETURNING
+    id
 `
 
 type SchemaUpdateParams struct {

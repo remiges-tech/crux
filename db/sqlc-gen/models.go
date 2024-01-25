@@ -75,7 +75,7 @@ type Ruleset struct {
 	ID         int32           `json:"id"`
 	Realm      int32           `json:"realm"`
 	Slice      int32           `json:"slice"`
-	App        string          `json:"app"`
+	App        sql.NullString  `json:"app"`
 	Brwf       string          `json:"brwf"`
 	Class      string          `json:"class"`
 	Setname    string          `json:"setname"`
@@ -112,15 +112,15 @@ type Stepworkflow struct {
 }
 
 type Wfinstance struct {
-	ID       int32         `json:"id"`
-	Entityid int32         `json:"entityid"`
-	Slice    int32         `json:"slice"`
-	App      string        `json:"app"`
-	Class    string        `json:"class"`
-	Workflow string        `json:"workflow"`
-	Step     string        `json:"step"`
-	Loggedat time.Time     `json:"loggedat"`
-	Doneat   sql.NullTime  `json:"doneat"`
-	Nextstep string        `json:"nextstep"`
-	Parent   sql.NullInt32 `json:"parent"`
+	ID       int32          `json:"id"`
+	Entityid int32          `json:"entityid"`
+	Slice    int32          `json:"slice"`
+	App      sql.NullString `json:"app"`
+	Class    string         `json:"class"`
+	Workflow string         `json:"workflow"`
+	Step     string         `json:"step"`
+	Loggedat time.Time      `json:"loggedat"`
+	Doneat   sql.NullTime   `json:"doneat"`
+	Nextstep string         `json:"nextstep"`
+	Parent   sql.NullInt32  `json:"parent"`
 }
