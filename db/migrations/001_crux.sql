@@ -4,7 +4,7 @@ CREATE TABLE realm (
   shortnamelc varchar(255) UNIQUE NOT NULL,
   longname varchar(255) NOT NULL,
   setby varchar(255) NOT NULL,
-  setat TIMESTAMPTZ NOT NULL DEFAULT (CURRENT_TIMESTAMPTZ),
+  setat TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP),
   payload jsonb NOT NULL
 );
 
@@ -15,7 +15,7 @@ CREATE TABLE app (
     shortnamelc VARCHAR(255) NOT NULL,
     longname VARCHAR(255) NOT NULL,
     setby VARCHAR(255) NOT NULL,
-    setat TIMESTAMPTZ NOT NULL
+    setat TIMESTAMP NOT NULL
 );
 
 CREATE TABLE realmslice (
@@ -23,8 +23,8 @@ CREATE TABLE realmslice (
     realm VARCHAR(255) REFERENCES realm(shortname) NOT NULL,
     descr VARCHAR(255) NOT NULL,
     active BOOLEAN NOT NULL,
-    activateat TIMESTAMPTZ,
-    deactivateat TIMESTAMPTZ
+    activateat TIMESTAMP,
+    deactivateat TIMESTAMP
 );
 
 CREATE TABLE config (
@@ -35,7 +35,7 @@ CREATE TABLE config (
     val VARCHAR(255),
     ver SERIAL ,
     setby VARCHAR(255) NOT NULL,
-    setat TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMPTZ,
+    setat TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (realm, slice, name)
 );
 
@@ -45,9 +45,9 @@ CREATE TABLE capgrant (
     "user" VARCHAR(255) NOT NULL, -- "user" is a reserved keyword in SQL, so it is enclosed in double quotes
     app VARCHAR(255),
     cap VARCHAR(255) NOT NULL,
-    "from" TIMESTAMPTZ,
-    "to" TIMESTAMPTZ,
-    setat TIMESTAMPTZ NOT NULL,
+    "from" TIMESTAMP,
+    "to" TIMESTAMP,
+    setat TIMESTAMP NOT NULL,
     setby VARCHAR(255) NOT NULL,
     isdeleted BOOLEAN,
     UNIQUE (realm, "user", app, cap, setat)
@@ -58,7 +58,7 @@ CREATE TABLE deactivated (
     realm VARCHAR(255) REFERENCES realm(shortname) NOT NULL,
     "user" VARCHAR(255),
     deactby VARCHAR(255) NOT NULL,
-    deactat TIMESTAMPTZ NOT NULL
+    deactat TIMESTAMP NOT NULL
 );
 
 CREATE TABLE schema (
@@ -70,9 +70,9 @@ CREATE TABLE schema (
     class VARCHAR(255) CHECK(class ~ '^[a-z_]+$') NOT NULL,
     patternschema JSONB NOT NULL,
     actionschema JSONB NOT NULL,
-    createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ NOT NULL,
+    createdat TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     createdby VARCHAR(255) NOT NULL,
-    editedat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ NOT NULL,
+    editedat TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     editedby VARCHAR(255) NOT NULL,
     UNIQUE (realm,slice,app,class)
 );
@@ -89,9 +89,9 @@ CREATE TABLE ruleset (
     is_active BOOLEAN DEFAULT false,
     is_internal BOOLEAN NOT NULL,
     ruleset JSONB NOT NULL,
-    createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ NOT NULL,
+    createdat TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     createdby VARCHAR(255) NOT NULL,
-    editedat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ NOT NULL,
+    editedat TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     editedby VARCHAR(255) NOT NULL
 );
 
@@ -104,8 +104,8 @@ CREATE TABLE wfinstance (
     class VARCHAR(255) CHECK(class ~ '^[a-z_]+$') NOT NULL,
     workflow VARCHAR(255) CHECK(workflow ~ '^[a-z_]+$') NOT NULL,
     step VARCHAR(255) NOT NULL,
-    loggedat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ NOT NULL,
-    doneat TIMESTAMPTZ,
+    loggedat TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    doneat TIMESTAMP,
     nextstep VARCHAR(255) NOT NULL,
     parent INTEGER
 );

@@ -65,12 +65,12 @@ func main() {
 
 	// Database connection
 	connURL := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", config.DBHost, config.DBPort, config.DBUser, config.DBPassword, config.DBName)
-	conn, err := pg.Connect(config.DriverName, connURL)
+	db, err := pg.Connect(config.DriverName, connURL)
 	if err != nil {
 		l.LogActivity("Error while establishes a connection with database", err)
 		log.Fatalln("Failed to establishes a connection with database", err)
 	}
-	queries := sqlc.New(conn)
+	query := sqlc.New(db)
 
 	// router
 	r := gin.Default()
@@ -78,10 +78,10 @@ func main() {
 	// schema services
 	schemaSvc := service.NewService(r).
 		WithLogHarbour(l).
-		WithDatabase(queries).
+		WithDatabase(query).
 		WithRigelConfig(rigelClient)
 
-	schemaSvc.RegisterRoute(http.MethodGet, "/WFschemaList", schema.SchemaList)
+	schemaSvc.RegisterRoute(http.MethodGet, "/schemaList", schema.SchemaList)
 
 	appServerPort := strconv.Itoa(config.AppServerPort)
 	r.Run(":" + appServerPort)
