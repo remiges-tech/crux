@@ -7,7 +7,7 @@ type AppConfig struct {
 	DBPassword    string `json:"db_password"`
 	DBName        string `json:"db_name"`
 	DriverName    string `json:"driver_name"`
-	AppServerPort int    `json:"app_server_port"`
+	AppServerPort int    `json:"driver_name"`
 	ErrorTypeFile string `json:"error_type_file"`
 }
 
