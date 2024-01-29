@@ -38,7 +38,6 @@ SELECT schema.slice,realmslice.descr, schema.app, app.longname, schema.class, sc
 FROM schema
     JOIN app ON schema.app = app.shortname
     JOIN realmslice on schema.slice = realmslice.id
-    JOIN realmslice on schema.slice = realmslice.id
 WHERE
     app = $1;
 
