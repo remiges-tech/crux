@@ -15,7 +15,6 @@ const schemaDelete = `-- name: SchemaDelete :one
 DELETE FROM schema WHERE id = $1 RETURNING id
 `
 
-// :one
 func (q *Queries) SchemaDelete(ctx context.Context, id int32) (int32, error) {
 	row := q.db.QueryRowContext(ctx, schemaDelete, id)
 	err := row.Scan(&id)
@@ -130,7 +129,8 @@ SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, s
 FROM schema
     JOIN app ON schema.app = app.shortname
     JOIN realmslice on schema.slice = realmslice.id
-WHERE app = $1
+WHERE
+    app = $1
 `
 
 type SchemaListByAppRow struct {
@@ -181,7 +181,9 @@ SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, s
 FROM schema
     JOIN app ON schema.app = app.shortname
     JOIN realmslice on schema.slice = realmslice.id
-WHERE app = $1 AND class = $2
+WHERE
+    app = $1
+    AND class = $2
 `
 
 type SchemaListByAppAndClassParams struct {
@@ -237,7 +239,9 @@ SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, s
 FROM schema
     JOIN app ON schema.app = app.shortname
     JOIN realmslice on schema.slice = realmslice.id
-WHERE app = $1 AND slice = $2
+WHERE
+    app = $1
+    AND slice = $2
 `
 
 type SchemaListByAppAndSliceParams struct {
@@ -293,7 +297,8 @@ SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, s
 FROM schema
     JOIN app ON schema.app = app.shortname
     JOIN realmslice on schema.slice = realmslice.id
-WHERE class = $1
+WHERE
+    class = $1
 `
 
 type SchemaListByClassRow struct {
@@ -402,7 +407,8 @@ SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, s
 FROM schema
     JOIN app ON schema.app = app.shortname
     JOIN realmslice on schema.slice = realmslice.id
-WHERE slice = $1
+WHERE
+    slice = $1
 `
 
 type SchemaListBySliceRow struct {
@@ -454,7 +460,7 @@ INSERT INTO
         realm, slice, app, brwf, class, patternschema, actionschema, createdby, editedby
     )
 VALUES (
-        1, $1, $2, W, $3, $4, $5, $6, $7
+        1, $1, $2, 'W', $3, $4, $5, $6, $7
     )
 RETURNING
     id
@@ -470,7 +476,6 @@ type SchemaNewParams struct {
 	Editedby      string          `json:"editedby"`
 }
 
-// :one
 func (q *Queries) SchemaNew(ctx context.Context, arg SchemaNewParams) (int32, error) {
 	row := q.db.QueryRowContext(ctx, schemaNew,
 		arg.Slice,
@@ -489,36 +494,33 @@ func (q *Queries) SchemaNew(ctx context.Context, arg SchemaNewParams) (int32, er
 const schemaUpdate = `-- name: SchemaUpdate :one
 UPDATE schema
 SET
-    app = $2,
-    brwf = $3,
-    class = $4,
-    patternschema = $5,
-    actionschema = $6,
+    brwf = 'W',
+    patternschema = $4,
+    actionschema = $5,
     editedat = CURRENT_TIMESTAMP,
-    editedby = $7
+    editedby = $6
 WHERE
-    id = $1
+    slice = $1
+    AND class = $2
+    AND app = $3
 RETURNING
     id
 `
 
 type SchemaUpdateParams struct {
-	ID            int32           `json:"id"`
-	App           string          `json:"app"`
-	Brwf          string          `json:"brwf"`
+	Slice         int32           `json:"slice"`
 	Class         string          `json:"class"`
+	App           string          `json:"app"`
 	Patternschema json.RawMessage `json:"patternschema"`
 	Actionschema  json.RawMessage `json:"actionschema"`
 	Editedby      string          `json:"editedby"`
 }
 
-// :one
 func (q *Queries) SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) (int32, error) {
 	row := q.db.QueryRowContext(ctx, schemaUpdate,
-		arg.ID,
-		arg.App,
-		arg.Brwf,
+		arg.Slice,
 		arg.Class,
+		arg.App,
 		arg.Patternschema,
 		arg.Actionschema,
 		arg.Editedby,

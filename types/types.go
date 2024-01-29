@@ -32,3 +32,25 @@ type Capabilities struct {
 	Name          string         `json:"name"` //either user name or group name
 	QualifiedCaps []QualifiedCap `json:"qualifiedcaps"`
 }
+type Attribute struct {
+	Name      string   `json:"name"`
+	ShortName string   `json:"shortname"`
+	LongDesc  string   `json:"longdesc"`
+	ValType   string   `json:"valtype"`
+	Vals      []string `json:"vals,omitempty"`
+	Enumdesc  []string `json:"enumdesc,omitempty"`
+	ValMax    int32    `json:"valmax,omitempty"`
+	ValMin    int32    `json:"valmin,omitempty"`
+	LenMax    int32    `json:"lemmax,omitempty"`
+	LenMin    int32    `json:"lenmin,omitempty"`
+}
+type Patternschema struct {
+	Class string      `json:"class"`
+	Attr  []Attribute `json:"attr"`
+}
+
+type Actionschema struct {
+	Class      string   `json:"class"`
+	Task       []string `json:"task"`
+	Properties []string `json:"properties"`
+}
