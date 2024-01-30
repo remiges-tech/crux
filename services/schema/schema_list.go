@@ -2,15 +2,18 @@ package schema
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
+
+	// "github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 )
 
 type SchemaListStruct struct {
-	Slice *int32  `form:"slice"`
-	App   *string `form:"app"`
-	Class *string `form:"class"`
+	Slice *int32  `form:"slice" validate:"omitempty,gt=0"`
+	App   *string `form:"app" validate:"omitempty,alpha"`
+	Class *string `form:"class" validate:"omitempty,lowercase"`
 }
 
 func SchemaList(c *gin.Context, s *service.Service) {
@@ -39,6 +42,20 @@ func SchemaList(c *gin.Context, s *service.Service) {
 	if err != nil {
 		l.LogActivity("Error Unmarshalling Query paramaeters to struct:", err.Error())
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeInvalidJson))
+		return
+	}
+
+	// valError := wscutils.WscValidate(sh, getValsForSchemaGetReqError)
+	// if len(valError) > 0 {
+	// 	wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, valError))
+	// 	l.Debug0().LogActivity("validation error:", valError)
+	// 	return
+	// }
+
+	// Validate request
+	validationErrors := wscutils.WscValidate(sh, func(err validator.FieldError) []string { return []string{} })
+	if len(validationErrors) > 0 {
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
 		return
 	}
 	query, ok := s.Database.(*sqlc.Queries)
@@ -109,3 +126,8 @@ func SchemaList(c *gin.Context, s *service.Service) {
 	}
 
 }
+
+// func getValsForSchemaGetReqError(err validator.FieldError) []string {
+// 	// validationErrorVals := types.GetErrorValidationMapByAPIName("SchemaGet")
+// 	return types.CommonValidation(err)
+// }
