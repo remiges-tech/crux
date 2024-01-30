@@ -4,20 +4,12 @@ import (
 	"encoding/json"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
-	"github.com/remiges-tech/crux/types"
 	"github.com/remiges-tech/logharbour/logharbour"
 )
-
-type schema struct {
-	Slice         int32               `json:"slice" validator:"required"`
-	App           string              `json:"App" validator:"required"`
-	Class         string              `json:"class" validator:"required"`
-	Patternschema types.Patternschema `json:"patternschema,omitempty"`
-	Actionschema  types.Actionschema  `json:"actionschema,omitempty"`
-}
 
 func SchemaUpdate(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
@@ -49,6 +41,13 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 		return
 	}
 
+	// Validate request
+	validationErrors := wscutils.WscValidate(sh, func(err validator.FieldError) []string { return []string{} })
+	if len(validationErrors) > 0 {
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
+		return
+	}
+
 	query, ok := s.Database.(*sqlc.Queries)
 	if !ok {
 		l.Log("Error while getting query instance from service")
@@ -76,16 +75,17 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 	l.LogDataChange("Updated schema", logharbour.ChangeInfo{
 		Entity:    "schema",
 		Operation: "Update",
-		Changes:  []logharbour.ChangeDetail{
+		Changes: []logharbour.ChangeDetail{
 			{
-			Field: "patternSchema",
-			OldValue: "",
-			NewValue: paternSchema},
+				Field:    "patternSchema",
+				OldValue: "",
+				NewValue: paternSchema},
 			{
-				Field: "actionschema",
+				Field:    "actionschema",
 				OldValue: "",
 				NewValue: actionschema},
-			},
-		})
+		},
+	})
 	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: "updated successfully", Messages: nil})
+	l.Log("Starting execution of SchemaUpdate()")
 }

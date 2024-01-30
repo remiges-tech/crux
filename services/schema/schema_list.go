@@ -10,12 +10,6 @@ import (
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 )
 
-type SchemaListStruct struct {
-	Slice *int32  `form:"slice" validate:"omitempty,gt=0"`
-	App   *string `form:"app" validate:"omitempty,alpha"`
-	Class *string `form:"class" validate:"omitempty,lowercase"`
-}
-
 func SchemaList(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
 	l.Log("Starting execution of SchemaList()")
@@ -44,13 +38,6 @@ func SchemaList(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeInvalidJson))
 		return
 	}
-
-	// valError := wscutils.WscValidate(sh, getValsForSchemaGetReqError)
-	// if len(valError) > 0 {
-	// 	wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, valError))
-	// 	l.Debug0().LogActivity("validation error:", valError)
-	// 	return
-	// }
 
 	// Validate request
 	validationErrors := wscutils.WscValidate(sh, func(err validator.FieldError) []string { return []string{} })
@@ -126,8 +113,3 @@ func SchemaList(c *gin.Context, s *service.Service) {
 	}
 
 }
-
-// func getValsForSchemaGetReqError(err validator.FieldError) []string {
-// 	// validationErrorVals := types.GetErrorValidationMapByAPIName("SchemaGet")
-// 	return types.CommonValidation(err)
-// }

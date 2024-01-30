@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
@@ -39,6 +40,12 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 		return
 	}
 
+	// Validate request
+	validationErrors := wscutils.WscValidate(sh, func(err validator.FieldError) []string { return []string{} })
+	if len(validationErrors) > 0 {
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
+		return
+	}
 
 	query, ok := s.Database.(*sqlc.Queries)
 	if !ok {
@@ -66,4 +73,5 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 		return
 	}
 	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: "created successfully", Messages: nil})
+	l.Log("Finished execution of SchemaNew()")
 }

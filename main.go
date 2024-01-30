@@ -113,8 +113,8 @@ func main() {
 		WithDatabase(query)
 
 	schemaSvc.RegisterRoute(http.MethodGet, "/WFschemaList", schema.SchemaList)
-	schemaSvc.RegisterRoute(http.MethodGet, "/WFschemaNew", schema.SchemaNew)
-	schemaSvc.RegisterRoute(http.MethodGet, "/WFschemaUpdate", schema.SchemaUpdate)
+	schemaSvc.RegisterRoute(http.MethodPost, "/WFschemaNew", schema.SchemaNew)
+	schemaSvc.RegisterRoute(http.MethodPut, "/WFschemaUpdate", schema.SchemaUpdate)
 
 	appServerPortStr := strconv.Itoa(appServerPort)
 	r.Run(":" + appServerPortStr)
