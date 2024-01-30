@@ -1,10 +1,10 @@
 -- name: SchemaNew :one
 INSERT INTO
     schema (
-        realm, slice, app, brwf, class, patternschema, actionschema, createdby, editedby
+        realm, slice, app, brwf, class, patternschema, actionschema, createdby
     )
 VALUES (
-        1, $1, $2, 'W', $3, $4, $5, $6, $7
+        1, $1, $2, 'W', $3, $4, $5, $6
     )
 RETURNING
     id;

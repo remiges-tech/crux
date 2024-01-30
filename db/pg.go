@@ -1,27 +1,21 @@
 package pg
 
 import (
-	"database/sql"
-	"log"
+	"context"
 
-	_ "github.com/lib/pq" // PostgreSQL driver
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/remiges-tech/crux/db/sqlc-gen"
 )
 
-// Connect initializes a connection to the PostgreSQL database.
-func Connect(driverName string, dataSourceName string) (*sql.DB, error) {
-	// Open a connection to the database
-	db, err := sql.Open(driverName, dataSourceName)
+func NewProvider(connString string) (sqlc.Querier, error) {
+	ctx := context.Background()
+	connPool, err := pgxpool.New(ctx, connString)
 	if err != nil {
 		return nil, err
 	}
-
-	// Check the connection
-	err = db.Ping()
+	err = connPool.Ping(ctx)
 	if err != nil {
 		return nil, err
 	}
-
-	log.Println("Successfully connected to the database")
-
-	return db, nil
+	return sqlc.New(connPool), nil
 }

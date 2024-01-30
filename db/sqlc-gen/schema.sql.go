@@ -7,8 +7,8 @@ package sqlc
 
 import (
 	"context"
-	"encoding/json"
-	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const schemaDelete = `-- name: SchemaDelete :one
@@ -16,7 +16,7 @@ DELETE FROM schema WHERE id = $1 RETURNING id
 `
 
 func (q *Queries) SchemaDelete(ctx context.Context, id int32) (int32, error) {
-	row := q.db.QueryRowContext(ctx, schemaDelete, id)
+	row := q.db.QueryRow(ctx, schemaDelete, id)
 	err := row.Scan(&id)
 	return id, err
 }
@@ -37,7 +37,7 @@ type SchemaGetParams struct {
 }
 
 func (q *Queries) SchemaGet(ctx context.Context, arg SchemaGetParams) ([]Schema, error) {
-	rows, err := q.db.QueryContext(ctx, schemaGet, arg.Slice, arg.Class, arg.App)
+	rows, err := q.db.Query(ctx, schemaGet, arg.Slice, arg.Class, arg.App)
 	if err != nil {
 		return nil, err
 	}
@@ -63,9 +63,6 @@ func (q *Queries) SchemaGet(ctx context.Context, arg SchemaGetParams) ([]Schema,
 		}
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -80,19 +77,19 @@ FROM schema
 `
 
 type SchemaListRow struct {
-	Slice     int32     `json:"slice"`
-	Descr     string    `json:"descr"`
-	App       string    `json:"app"`
-	Longname  string    `json:"longname"`
-	Class     string    `json:"class"`
-	Createdby string    `json:"createdby"`
-	Createdat time.Time `json:"createdat"`
-	Editedby  string    `json:"editedby"`
-	Editedat  time.Time `json:"editedat"`
+	Slice     int32            `json:"slice"`
+	Descr     string           `json:"descr"`
+	App       string           `json:"app"`
+	Longname  string           `json:"longname"`
+	Class     string           `json:"class"`
+	Createdby string           `json:"createdby"`
+	Createdat pgtype.Timestamp `json:"createdat"`
+	Editedby  string           `json:"editedby"`
+	Editedat  pgtype.Timestamp `json:"editedat"`
 }
 
 func (q *Queries) SchemaList(ctx context.Context) ([]SchemaListRow, error) {
-	rows, err := q.db.QueryContext(ctx, schemaList)
+	rows, err := q.db.Query(ctx, schemaList)
 	if err != nil {
 		return nil, err
 	}
@@ -115,9 +112,6 @@ func (q *Queries) SchemaList(ctx context.Context) ([]SchemaListRow, error) {
 		}
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -125,7 +119,7 @@ func (q *Queries) SchemaList(ctx context.Context) ([]SchemaListRow, error) {
 }
 
 const schemaListByApp = `-- name: SchemaListByApp :many
-SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
+SELECT schema.slice,realmslice.descr, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
 FROM schema
     JOIN app ON schema.app = app.shortname
     JOIN realmslice on schema.slice = realmslice.id
@@ -134,18 +128,19 @@ WHERE
 `
 
 type SchemaListByAppRow struct {
-	Slice     int32     `json:"slice"`
-	App       string    `json:"app"`
-	Longname  string    `json:"longname"`
-	Class     string    `json:"class"`
-	Createdby string    `json:"createdby"`
-	Createdat time.Time `json:"createdat"`
-	Editedby  string    `json:"editedby"`
-	Editedat  time.Time `json:"editedat"`
+	Slice     int32            `json:"slice"`
+	Descr     string           `json:"descr"`
+	App       string           `json:"app"`
+	Longname  string           `json:"longname"`
+	Class     string           `json:"class"`
+	Createdby string           `json:"createdby"`
+	Createdat pgtype.Timestamp `json:"createdat"`
+	Editedby  string           `json:"editedby"`
+	Editedat  pgtype.Timestamp `json:"editedat"`
 }
 
 func (q *Queries) SchemaListByApp(ctx context.Context, app string) ([]SchemaListByAppRow, error) {
-	rows, err := q.db.QueryContext(ctx, schemaListByApp, app)
+	rows, err := q.db.Query(ctx, schemaListByApp, app)
 	if err != nil {
 		return nil, err
 	}
@@ -155,6 +150,7 @@ func (q *Queries) SchemaListByApp(ctx context.Context, app string) ([]SchemaList
 		var i SchemaListByAppRow
 		if err := rows.Scan(
 			&i.Slice,
+			&i.Descr,
 			&i.App,
 			&i.Longname,
 			&i.Class,
@@ -166,9 +162,6 @@ func (q *Queries) SchemaListByApp(ctx context.Context, app string) ([]SchemaList
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -192,18 +185,18 @@ type SchemaListByAppAndClassParams struct {
 }
 
 type SchemaListByAppAndClassRow struct {
-	Slice     int32     `json:"slice"`
-	App       string    `json:"app"`
-	Longname  string    `json:"longname"`
-	Class     string    `json:"class"`
-	Createdby string    `json:"createdby"`
-	Createdat time.Time `json:"createdat"`
-	Editedby  string    `json:"editedby"`
-	Editedat  time.Time `json:"editedat"`
+	Slice     int32            `json:"slice"`
+	App       string           `json:"app"`
+	Longname  string           `json:"longname"`
+	Class     string           `json:"class"`
+	Createdby string           `json:"createdby"`
+	Createdat pgtype.Timestamp `json:"createdat"`
+	Editedby  string           `json:"editedby"`
+	Editedat  pgtype.Timestamp `json:"editedat"`
 }
 
 func (q *Queries) SchemaListByAppAndClass(ctx context.Context, arg SchemaListByAppAndClassParams) ([]SchemaListByAppAndClassRow, error) {
-	rows, err := q.db.QueryContext(ctx, schemaListByAppAndClass, arg.App, arg.Class)
+	rows, err := q.db.Query(ctx, schemaListByAppAndClass, arg.App, arg.Class)
 	if err != nil {
 		return nil, err
 	}
@@ -224,9 +217,6 @@ func (q *Queries) SchemaListByAppAndClass(ctx context.Context, arg SchemaListByA
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -250,18 +240,18 @@ type SchemaListByAppAndSliceParams struct {
 }
 
 type SchemaListByAppAndSliceRow struct {
-	Slice     int32     `json:"slice"`
-	App       string    `json:"app"`
-	Longname  string    `json:"longname"`
-	Class     string    `json:"class"`
-	Createdby string    `json:"createdby"`
-	Createdat time.Time `json:"createdat"`
-	Editedby  string    `json:"editedby"`
-	Editedat  time.Time `json:"editedat"`
+	Slice     int32            `json:"slice"`
+	App       string           `json:"app"`
+	Longname  string           `json:"longname"`
+	Class     string           `json:"class"`
+	Createdby string           `json:"createdby"`
+	Createdat pgtype.Timestamp `json:"createdat"`
+	Editedby  string           `json:"editedby"`
+	Editedat  pgtype.Timestamp `json:"editedat"`
 }
 
 func (q *Queries) SchemaListByAppAndSlice(ctx context.Context, arg SchemaListByAppAndSliceParams) ([]SchemaListByAppAndSliceRow, error) {
-	rows, err := q.db.QueryContext(ctx, schemaListByAppAndSlice, arg.App, arg.Slice)
+	rows, err := q.db.Query(ctx, schemaListByAppAndSlice, arg.App, arg.Slice)
 	if err != nil {
 		return nil, err
 	}
@@ -283,9 +273,6 @@ func (q *Queries) SchemaListByAppAndSlice(ctx context.Context, arg SchemaListByA
 		}
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -302,18 +289,18 @@ WHERE
 `
 
 type SchemaListByClassRow struct {
-	Slice     int32     `json:"slice"`
-	App       string    `json:"app"`
-	Longname  string    `json:"longname"`
-	Class     string    `json:"class"`
-	Createdby string    `json:"createdby"`
-	Createdat time.Time `json:"createdat"`
-	Editedby  string    `json:"editedby"`
-	Editedat  time.Time `json:"editedat"`
+	Slice     int32            `json:"slice"`
+	App       string           `json:"app"`
+	Longname  string           `json:"longname"`
+	Class     string           `json:"class"`
+	Createdby string           `json:"createdby"`
+	Createdat pgtype.Timestamp `json:"createdat"`
+	Editedby  string           `json:"editedby"`
+	Editedat  pgtype.Timestamp `json:"editedat"`
 }
 
 func (q *Queries) SchemaListByClass(ctx context.Context, class string) ([]SchemaListByClassRow, error) {
-	rows, err := q.db.QueryContext(ctx, schemaListByClass, class)
+	rows, err := q.db.Query(ctx, schemaListByClass, class)
 	if err != nil {
 		return nil, err
 	}
@@ -334,9 +321,6 @@ func (q *Queries) SchemaListByClass(ctx context.Context, class string) ([]Schema
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -360,18 +344,18 @@ type SchemaListByClassAndSliceParams struct {
 }
 
 type SchemaListByClassAndSliceRow struct {
-	Slice     int32     `json:"slice"`
-	App       string    `json:"app"`
-	Longname  string    `json:"longname"`
-	Class     string    `json:"class"`
-	Createdby string    `json:"createdby"`
-	Createdat time.Time `json:"createdat"`
-	Editedby  string    `json:"editedby"`
-	Editedat  time.Time `json:"editedat"`
+	Slice     int32            `json:"slice"`
+	App       string           `json:"app"`
+	Longname  string           `json:"longname"`
+	Class     string           `json:"class"`
+	Createdby string           `json:"createdby"`
+	Createdat pgtype.Timestamp `json:"createdat"`
+	Editedby  string           `json:"editedby"`
+	Editedat  pgtype.Timestamp `json:"editedat"`
 }
 
 func (q *Queries) SchemaListByClassAndSlice(ctx context.Context, arg SchemaListByClassAndSliceParams) ([]SchemaListByClassAndSliceRow, error) {
-	rows, err := q.db.QueryContext(ctx, schemaListByClassAndSlice, arg.Class, arg.Slice)
+	rows, err := q.db.Query(ctx, schemaListByClassAndSlice, arg.Class, arg.Slice)
 	if err != nil {
 		return nil, err
 	}
@@ -393,9 +377,6 @@ func (q *Queries) SchemaListByClassAndSlice(ctx context.Context, arg SchemaListB
 		}
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -412,18 +393,18 @@ WHERE
 `
 
 type SchemaListBySliceRow struct {
-	Slice     int32     `json:"slice"`
-	App       string    `json:"app"`
-	Longname  string    `json:"longname"`
-	Class     string    `json:"class"`
-	Createdby string    `json:"createdby"`
-	Createdat time.Time `json:"createdat"`
-	Editedby  string    `json:"editedby"`
-	Editedat  time.Time `json:"editedat"`
+	Slice     int32            `json:"slice"`
+	App       string           `json:"app"`
+	Longname  string           `json:"longname"`
+	Class     string           `json:"class"`
+	Createdby string           `json:"createdby"`
+	Createdat pgtype.Timestamp `json:"createdat"`
+	Editedby  string           `json:"editedby"`
+	Editedat  pgtype.Timestamp `json:"editedat"`
 }
 
 func (q *Queries) SchemaListBySlice(ctx context.Context, slice int32) ([]SchemaListBySliceRow, error) {
-	rows, err := q.db.QueryContext(ctx, schemaListBySlice, slice)
+	rows, err := q.db.Query(ctx, schemaListBySlice, slice)
 	if err != nil {
 		return nil, err
 	}
@@ -445,9 +426,6 @@ func (q *Queries) SchemaListBySlice(ctx context.Context, slice int32) ([]SchemaL
 		}
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -457,34 +435,32 @@ func (q *Queries) SchemaListBySlice(ctx context.Context, slice int32) ([]SchemaL
 const schemaNew = `-- name: SchemaNew :one
 INSERT INTO
     schema (
-        realm, slice, app, brwf, class, patternschema, actionschema, createdby, editedby
+        realm, slice, app, brwf, class, patternschema, actionschema, createdby
     )
 VALUES (
-        1, $1, $2, 'W', $3, $4, $5, $6, $7
+        1, $1, $2, 'W', $3, $4, $5, $6
     )
 RETURNING
     id
 `
 
 type SchemaNewParams struct {
-	Slice         int32           `json:"slice"`
-	App           string          `json:"app"`
-	Class         string          `json:"class"`
-	Patternschema json.RawMessage `json:"patternschema"`
-	Actionschema  json.RawMessage `json:"actionschema"`
-	Createdby     string          `json:"createdby"`
-	Editedby      string          `json:"editedby"`
+	Slice         int32  `json:"slice"`
+	App           string `json:"app"`
+	Class         string `json:"class"`
+	Patternschema []byte `json:"patternschema"`
+	Actionschema  []byte `json:"actionschema"`
+	Createdby     string `json:"createdby"`
 }
 
 func (q *Queries) SchemaNew(ctx context.Context, arg SchemaNewParams) (int32, error) {
-	row := q.db.QueryRowContext(ctx, schemaNew,
+	row := q.db.QueryRow(ctx, schemaNew,
 		arg.Slice,
 		arg.App,
 		arg.Class,
 		arg.Patternschema,
 		arg.Actionschema,
 		arg.Createdby,
-		arg.Editedby,
 	)
 	var id int32
 	err := row.Scan(&id)
@@ -508,16 +484,16 @@ RETURNING
 `
 
 type SchemaUpdateParams struct {
-	Slice         int32           `json:"slice"`
-	Class         string          `json:"class"`
-	App           string          `json:"app"`
-	Patternschema json.RawMessage `json:"patternschema"`
-	Actionschema  json.RawMessage `json:"actionschema"`
-	Editedby      string          `json:"editedby"`
+	Slice         int32  `json:"slice"`
+	Class         string `json:"class"`
+	App           string `json:"app"`
+	Patternschema []byte `json:"patternschema"`
+	Actionschema  []byte `json:"actionschema"`
+	Editedby      string `json:"editedby"`
 }
 
 func (q *Queries) SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) (int32, error) {
-	row := q.db.QueryRowContext(ctx, schemaUpdate,
+	row := q.db.QueryRow(ctx, schemaUpdate,
 		arg.Slice,
 		arg.Class,
 		arg.App,
