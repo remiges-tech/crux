@@ -1,0 +1,9 @@
+{
+    "db_conn_url": "host=localhost port=5432  user=postgres password=postgres dbname=crux sslmode=disable",
+    "db_host": "localhost",
+    "db_port": 5432,
+    "db_name" :"crux",
+    "db_user" :"postgres",
+    "db_password" :"postgres",
+    "app_server_port": "8090"
+}
