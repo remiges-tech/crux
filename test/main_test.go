@@ -12,11 +12,12 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-migrate/migrate"
 	_ "github.com/lib/pq"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 
+	"github.com/jackc/pgx/v4"
+	"github.com/jackc/tern/migrate"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	pg "github.com/remiges-tech/crux/db"
@@ -89,13 +90,6 @@ func TestMain(m *testing.M) {
 	}
 	fmt.Println("Initialize Docker pool")
 
-	// Create a Docker network for the tests.
-	network, err = pool.CreateNetwork("test-network")
-	if err != nil {
-		log.Fatalf("Could not create network: %v", err)
-	}
-	fmt.Println("Create a Docker network")
-
 	// Deploy the Postgres container.
 	PostgresResource, err := deployPostgres(pool, testCon)
 	if err != nil {
@@ -104,7 +98,7 @@ func TestMain(m *testing.M) {
 	fmt.Println("Deploy the Postgres container")
 
 	// Deploy the API container.
-	r, err = deployAPIContainer(pool, testCon)
+	r, err = registerRoutes(pool, testCon)
 	if err != nil {
 		log.Fatalf("Could not start resource: %v", err)
 	}
@@ -171,30 +165,30 @@ func deployPostgres(pool *dockertest.Pool, testCon testConfig) (*dockertest.Reso
 	}); err != nil {
 		log.Fatalf("Could not connect to docker: %s", err)
 	}
+	dbUrl := fmt.Sprintf("postgres://%s:%s@%s:%d/%s", testCon.dbUser, testCon.dbPassword, testCon.dbHost, testCon.dbPort, testCon.dbName)
+	fmt.Println("dburl", dbUrl)
 
 	// Create a new Tern migration instance
-	m, err := migrate.New("/db/migrations/001_crux.sql", databaseUrl)
+	conn, err := pgx.Connect(context.Background(), databaseUrl)
+	if err != nil {
+		log.Fatalln("unable to connect", err)
+	}
+	defer conn.Close(context.Background())
+
+	migrator, err := migrate.NewMigrator(context.Background(), conn, "schema_migrations")
 	if err != nil {
 		log.Fatal("Error creating migration instance:", err)
 	}
-
-	// Run migration
-	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-		log.Fatal("Error applying migration:", err)
+	if err := migrator.LoadMigrations("../db/migrations"); err != nil {
+		log.Fatal("Error loading data:", err)
 	}
-	fmt.Println("Migration successful!")
 
-	// // Load data from SQL file
-	// if err := loadDataFromFile(db, "path/to/data.sql"); err != nil {
-	// 	log.Fatal("Error loading data:", err)
-	// }
-	// fmt.Println("Data loaded successfully!")
 	return resource, nil
 
 }
 
 // deployAPIContainer builds and runs the API container.
-func deployAPIContainer(pool *dockertest.Pool, testCon testConfig) (*gin.Engine, error) {
+func registerRoutes(pool *dockertest.Pool, testCon testConfig) (*gin.Engine, error) {
 	// router
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
@@ -204,7 +198,7 @@ func deployAPIContainer(pool *dockertest.Pool, testCon testConfig) (*gin.Engine,
 	lctx := logharbour.NewLoggerContext(logharbour.Info)
 	l := logharbour.NewLogger(lctx, "crux", fallbackWriter)
 
-	file, err := os.Open("./errortypes.yaml")
+	file, err := os.Open("../errortypes.yaml")
 	if err != nil {
 		log.Fatalf("Failed to open error types file: %v", err)
 	}
