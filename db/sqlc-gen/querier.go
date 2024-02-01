@@ -6,6 +6,7 @@ package sqlc
 
 import (
 	"context"
+<<<<<<< HEAD
 )
 
 type Querier interface {
@@ -20,6 +21,16 @@ type Querier interface {
 	SchemaListBySlice(ctx context.Context, slice int32) ([]SchemaListBySliceRow, error)
 	SchemaNew(ctx context.Context, arg SchemaNewParams) (int32, error)
 	SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) (int32, error)
+=======
+	"encoding/json"
+)
+
+type Querier interface {
+	WfPatternSchemaGet(ctx context.Context, arg WfPatternSchemaGetParams) (json.RawMessage, error)
+	Wfschemadelete(ctx context.Context, arg WfschemadeleteParams) error
+	Wfschemaget(ctx context.Context, arg WfschemagetParams) (WfschemagetRow, error)
+	Workflowget(ctx context.Context, arg WorkflowgetParams) (WorkflowgetRow, error)
+>>>>>>> 95154679e693ee1f5f61feec17444188e01ce8d6
 }
 
 var _ Querier = (*Queries)(nil)

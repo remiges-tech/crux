@@ -14,4 +14,6 @@ generate:
 etcd:
 	cd; cd etcd/bin; ./etcd
 
+jaadu: generate tern
+
 .PHONY: newSchema
