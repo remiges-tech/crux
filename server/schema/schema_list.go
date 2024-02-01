@@ -32,10 +32,16 @@ func SchemaList(c *gin.Context, s *service.Service) {
 	// 	return
 	// }
 
-	err := c.ShouldBindQuery(&sh)
+	// err := c.ShouldBindQuery(&sh)
+	// if err != nil {
+	// 	l.LogActivity("Error Unmarshalling Query paramaeters to struct:", err.Error())
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeInvalidJson))
+	// 	return
+	// }
+
+	err := wscutils.BindJSON(c, &sh)
 	if err != nil {
 		l.LogActivity("Error Unmarshalling Query paramaeters to struct:", err.Error())
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeInvalidJson))
 		return
 	}
 
