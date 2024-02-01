@@ -7,9 +7,8 @@ package sqlc
 
 import (
 	"context"
-	"database/sql"
-	"encoding/json"
-	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const workflowget = `-- name: Workflowget :one
@@ -42,22 +41,22 @@ type WorkflowgetParams struct {
 }
 
 type WorkflowgetRow struct {
-	ID         int32           `json:"id"`
-	Slice      int32           `json:"slice"`
-	App        string          `json:"app"`
-	Class      string          `json:"class"`
-	Name       string          `json:"name"`
-	IsActive   sql.NullBool    `json:"is_active"`
-	IsInternal bool            `json:"is_internal"`
-	Flowrules  json.RawMessage `json:"flowrules"`
-	Createdat  time.Time       `json:"createdat"`
-	Createdby  string          `json:"createdby"`
-	Editedat   time.Time       `json:"editedat"`
-	Editedby   string          `json:"editedby"`
+	ID         int32            `json:"id"`
+	Slice      int32            `json:"slice"`
+	App        string           `json:"app"`
+	Class      string           `json:"class"`
+	Name       string           `json:"name"`
+	IsActive   pgtype.Bool      `json:"is_active"`
+	IsInternal bool             `json:"is_internal"`
+	Flowrules  []byte           `json:"flowrules"`
+	Createdat  pgtype.Timestamp `json:"createdat"`
+	Createdby  string           `json:"createdby"`
+	Editedat   pgtype.Timestamp `json:"editedat"`
+	Editedby   string           `json:"editedby"`
 }
 
 func (q *Queries) Workflowget(ctx context.Context, arg WorkflowgetParams) (WorkflowgetRow, error) {
-	row := q.db.QueryRowContext(ctx, workflowget,
+	row := q.db.QueryRow(ctx, workflowget,
 		arg.Slice,
 		arg.App,
 		arg.Class,

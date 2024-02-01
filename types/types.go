@@ -1,5 +1,17 @@
 package types
 
+import "github.com/go-playground/validator/v10"
+
+const (
+	DevEnv           Environment = "dev_env"
+	ProdEnv          Environment = "prod_env"
+	UATEnv           Environment = "uat_env"
+	RECORD_NOT_EXIST             = "record_does_not_exist"
+	OPERATION_FAILED             = "operation_failed"
+)
+
+type Environment string
+
 type OpReq struct {
 	User      string   `json:"user"`
 	CapNeeded []string `json:"capNeeded"`
@@ -43,4 +55,28 @@ type Actionschema struct {
 	Class      string   `json:"class" validate:"required"`
 	Task       []string `json:"tasks" validate:"required"`
 	Properties []string `json:"properties" validate:"required"`
+}
+
+func (env Environment) IsValid() bool {
+	switch env {
+	case DevEnv, ProdEnv, UATEnv:
+		return true
+	}
+	return false
+}
+
+// CommonValidation is a generic function which setup standard validation utilizing
+// validator package and Maps the errorVals based on the map parameter and
+// return []errorVals
+func CommonValidation(err validator.FieldError) []string {
+	var vals []string
+	switch err.Tag() {
+	case "required":
+		vals = append(vals, "not_provided")
+	case "alpha":
+		vals = append(vals, "only_alphabets_are_allowed")
+	default:
+		vals = append(vals, "not_valid_input")
+	}
+	return vals
 }

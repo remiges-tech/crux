@@ -7,7 +7,6 @@ package sqlc
 
 import (
 	"context"
-<<<<<<< HEAD
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -32,29 +31,11 @@ WHERE
 `
 
 type SchemaGetParams struct {
-=======
-	"encoding/json"
-	"time"
-)
-
-const wfPatternSchemaGet = `-- name: WfPatternSchemaGet :one
- SELECT patternschema
- FROM public.schema
- WHERE 
- slice = $1
-    AND class = $2
-    AND app = $3
-    AND brwf = 'W'
-`
-
-type WfPatternSchemaGetParams struct {
->>>>>>> 95154679e693ee1f5f61feec17444188e01ce8d6
 	Slice int32  `json:"slice"`
 	Class string `json:"class"`
 	App   string `json:"app"`
 }
 
-<<<<<<< HEAD
 func (q *Queries) SchemaGet(ctx context.Context, arg SchemaGetParams) ([]Schema, error) {
 	rows, err := q.db.Query(ctx, schemaGet, arg.Slice, arg.Class, arg.App)
 	if err != nil {
@@ -138,7 +119,7 @@ func (q *Queries) SchemaList(ctx context.Context) ([]SchemaListRow, error) {
 }
 
 const schemaListByApp = `-- name: SchemaListByApp :many
-SELECT schema.slice,realmslice.descr, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
+SELECT schema.slice, realmslice.descr, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
 FROM schema
     JOIN app ON schema.app = app.shortname
     JOIN realmslice on schema.slice = realmslice.id
@@ -523,10 +504,26 @@ func (q *Queries) SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) (int
 	var id int32
 	err := row.Scan(&id)
 	return id, err
-=======
-func (q *Queries) WfPatternSchemaGet(ctx context.Context, arg WfPatternSchemaGetParams) (json.RawMessage, error) {
-	row := q.db.QueryRowContext(ctx, wfPatternSchemaGet, arg.Slice, arg.Class, arg.App)
-	var patternschema json.RawMessage
+}
+
+const wfPatternSchemaGet = `-- name: WfPatternSchemaGet :one
+SELECT patternschema
+FROM public.schema
+WHERE
+    slice = $1
+    AND class = $2
+    AND app = $3
+`
+
+type WfPatternSchemaGetParams struct {
+	Slice int32  `json:"slice"`
+	Class string `json:"class"`
+	App   string `json:"app"`
+}
+
+func (q *Queries) WfPatternSchemaGet(ctx context.Context, arg WfPatternSchemaGetParams) ([]byte, error) {
+	row := q.db.QueryRow(ctx, wfPatternSchemaGet, arg.Slice, arg.Class, arg.App)
+	var patternschema []byte
 	err := row.Scan(&patternschema)
 	return patternschema, err
 }
@@ -554,7 +551,7 @@ type WfschemadeleteParams struct {
 }
 
 func (q *Queries) Wfschemadelete(ctx context.Context, arg WfschemadeleteParams) error {
-	_, err := q.db.ExecContext(ctx, wfschemadelete, arg.Slice, arg.App, arg.Class)
+	_, err := q.db.Exec(ctx, wfschemadelete, arg.Slice, arg.App, arg.Class)
 	return err
 }
 
@@ -577,20 +574,20 @@ type WfschemagetParams struct {
 }
 
 type WfschemagetRow struct {
-	Slice         int32           `json:"slice"`
-	App           string          `json:"app"`
-	Class         string          `json:"class"`
-	Longname      string          `json:"longname"`
-	Patternschema json.RawMessage `json:"patternschema"`
-	Actionschema  json.RawMessage `json:"actionschema"`
-	Createdat     time.Time       `json:"createdat"`
-	Createdby     string          `json:"createdby"`
-	Editedat      time.Time       `json:"editedat"`
-	Editedby      string          `json:"editedby"`
+	Slice         int32            `json:"slice"`
+	App           string           `json:"app"`
+	Class         string           `json:"class"`
+	Longname      string           `json:"longname"`
+	Patternschema []byte           `json:"patternschema"`
+	Actionschema  []byte           `json:"actionschema"`
+	Createdat     pgtype.Timestamp `json:"createdat"`
+	Createdby     string           `json:"createdby"`
+	Editedat      pgtype.Timestamp `json:"editedat"`
+	Editedby      string           `json:"editedby"`
 }
 
 func (q *Queries) Wfschemaget(ctx context.Context, arg WfschemagetParams) (WfschemagetRow, error) {
-	row := q.db.QueryRowContext(ctx, wfschemaget, arg.Slice, arg.App, arg.Class)
+	row := q.db.QueryRow(ctx, wfschemaget, arg.Slice, arg.App, arg.Class)
 	var i WfschemagetRow
 	err := row.Scan(
 		&i.Slice,
@@ -605,5 +602,4 @@ func (q *Queries) Wfschemaget(ctx context.Context, arg WfschemagetParams) (Wfsch
 		&i.Editedby,
 	)
 	return i, err
->>>>>>> 95154679e693ee1f5f61feec17444188e01ce8d6
 }

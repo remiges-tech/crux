@@ -34,7 +34,7 @@ FROM schema
     JOIN realmslice on schema.slice = realmslice.id;
 
 -- name: SchemaListByApp :many
-SELECT schema.slice,realmslice.descr, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
+SELECT schema.slice, realmslice.descr, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
 FROM schema
     JOIN app ON schema.app = app.shortname
     JOIN realmslice on schema.slice = realmslice.id
@@ -118,9 +118,9 @@ where
     );
 
 -- name: WfPatternSchemaGet :one
- SELECT patternschema
- FROM public.schema
- WHERE 
- slice = $1
+SELECT patternschema
+FROM public.schema
+WHERE
+    slice = $1
     AND class = $2
-    AND app = $3
+    AND app = $3;

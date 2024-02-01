@@ -14,7 +14,6 @@ import (
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	pg "github.com/remiges-tech/crux/db"
-	"github.com/remiges-tech/crux/db/sqlc-gen"
 	"github.com/remiges-tech/crux/server/schema"
 	"github.com/remiges-tech/crux/server/wfinstanceserv"
 	"github.com/remiges-tech/crux/server/workflow"
@@ -101,12 +100,11 @@ func main() {
 
 	// Database connection
 	connURL := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", dbHost, dbPort, dbUser, dbPassword, dbName)
-	db, err := pg.Connect(dbUser, connURL)
+	db, err := pg.NewProvider(connURL)
 	if err != nil {
 		l.LogActivity("Error while establishes a connection with database", err)
 		log.Fatalln("Failed to establishes a connection with database", err)
 	}
-	querier := sqlc.New(db)
 
 	// router
 	r := gin.Default()
@@ -116,7 +114,7 @@ func main() {
 	// schema services
 	schemaSvc := service.NewService(r).
 		WithLogHarbour(l).
-		WithDatabase(querier)
+		WithDatabase(db)
 
 	apiV1Group := r.Group("/api/v1/")
 
@@ -124,9 +122,9 @@ func main() {
 	// s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/WFschemaList", schema.SchemaList)
 	schemaSvc.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/wfschemaget", schema.SchemaGet)
 	schemaSvc.RegisterRouteWithGroup(apiV1Group, http.MethodDelete, "/wfschemadelete", schema.SchemaDelete)
-	// schemaSvc.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/WFschemaList", schema.SchemaList)
-	// schemaSvc.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/WFschemaNew", schema.SchemaNew)
-	// schemaSvc.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/WFschemaUpdate", schema.SchemaUpdate)
+	schemaSvc.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/WFschemaList", schema.SchemaList)
+	schemaSvc.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/WFschemaNew", schema.SchemaNew)
+	schemaSvc.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/WFschemaUpdate", schema.SchemaUpdate)
 	// Workflow
 	schemaSvc.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/workflowget", workflow.WorkflowGet)
 	schemaSvc.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/WFInstanceNew", wfinstanceserv.GetWFinstanceNew)
