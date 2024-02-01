@@ -11,6 +11,29 @@ import (
 	"time"
 )
 
+const wfPatternSchemaGet = `-- name: WfPatternSchemaGet :one
+ SELECT patternschema
+ FROM public.schema
+ WHERE 
+ slice = $1
+    AND class = $2
+    AND app = $3
+    AND brwf = 'W'
+`
+
+type WfPatternSchemaGetParams struct {
+	Slice int32  `json:"slice"`
+	Class string `json:"class"`
+	App   string `json:"app"`
+}
+
+func (q *Queries) WfPatternSchemaGet(ctx context.Context, arg WfPatternSchemaGetParams) (json.RawMessage, error) {
+	row := q.db.QueryRowContext(ctx, wfPatternSchemaGet, arg.Slice, arg.Class, arg.App)
+	var patternschema json.RawMessage
+	err := row.Scan(&patternschema)
+	return patternschema, err
+}
+
 const wfschemadelete = `-- name: Wfschemadelete :exec
 DELETE from schema
 where

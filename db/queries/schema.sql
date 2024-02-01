@@ -24,3 +24,12 @@ where
             and a.class = $3
             AND a.app = $2
     );
+
+-- name: WfPatternSchemaGet :one
+ SELECT patternschema
+ FROM public.schema
+ WHERE 
+ slice = $1
+    AND class = $2
+    AND app = $3
+    AND brwf = 'W';

@@ -16,6 +16,7 @@ import (
 	pg "github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	"github.com/remiges-tech/crux/server/schema"
+	"github.com/remiges-tech/crux/server/wfinstanceserv"
 	"github.com/remiges-tech/crux/server/workflow"
 	"github.com/remiges-tech/logharbour/logharbour"
 	"github.com/remiges-tech/rigel"
@@ -128,6 +129,7 @@ func main() {
 	// schemaSvc.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/WFschemaUpdate", schema.SchemaUpdate)
 	// Workflow
 	schemaSvc.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/workflowget", workflow.WorkflowGet)
+	schemaSvc.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/WFInstanceNew", wfinstanceserv.GetWFinstanceNew)
 
 	appServerPortStr := strconv.Itoa(appServerPort)
 	r.Run(":" + appServerPortStr)
