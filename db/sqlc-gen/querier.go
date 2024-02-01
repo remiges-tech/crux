@@ -6,11 +6,21 @@ package sqlc
 
 import (
 	"context"
-	"encoding/json"
 )
 
 type Querier interface {
-	WfPatternSchemaGet(ctx context.Context, arg WfPatternSchemaGetParams) (json.RawMessage, error)
+	SchemaDelete(ctx context.Context, id int32) (int32, error)
+	SchemaGet(ctx context.Context, arg SchemaGetParams) ([]Schema, error)
+	SchemaList(ctx context.Context) ([]SchemaListRow, error)
+	SchemaListByApp(ctx context.Context, app string) ([]SchemaListByAppRow, error)
+	SchemaListByAppAndClass(ctx context.Context, arg SchemaListByAppAndClassParams) ([]SchemaListByAppAndClassRow, error)
+	SchemaListByAppAndSlice(ctx context.Context, arg SchemaListByAppAndSliceParams) ([]SchemaListByAppAndSliceRow, error)
+	SchemaListByClass(ctx context.Context, class string) ([]SchemaListByClassRow, error)
+	SchemaListByClassAndSlice(ctx context.Context, arg SchemaListByClassAndSliceParams) ([]SchemaListByClassAndSliceRow, error)
+	SchemaListBySlice(ctx context.Context, slice int32) ([]SchemaListBySliceRow, error)
+	SchemaNew(ctx context.Context, arg SchemaNewParams) (int32, error)
+	SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) (int32, error)
+	WfPatternSchemaGet(ctx context.Context, arg WfPatternSchemaGetParams) ([]byte, error)
 	Wfschemadelete(ctx context.Context, arg WfschemadeleteParams) error
 	Wfschemaget(ctx context.Context, arg WfschemagetParams) (WfschemagetRow, error)
 	Workflowget(ctx context.Context, arg WorkflowgetParams) (WorkflowgetRow, error)

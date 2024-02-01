@@ -2,35 +2,6 @@ package types
 
 import "github.com/go-playground/validator/v10"
 
-type Attribute struct {
-	Name      string   `json:"name"`
-	ShortName string   `json:"shortname"`
-	LongDesc  string   `json:"longdesc"`
-	ValType   string   `json:"valtype"`
-	Vals      []string `json:"vals,omitempty"`
-	Enumdesc  []string `json:"enumdesc,omitempty"`
-	ValMax    int32    `json:"valmax,omitempty"`
-	ValMin    int32    `json:"valmin,omitempty"`
-	LenMax    int32    `json:"lemmax,omitempty"`
-	LenMin    int32    `json:"lenmin,omitempty"`
-}
-type Patternschema struct {
-	Class string      `json:"class"`
-	Attr  []Attribute `json:"attr"`
-}
-
-type AppConfig struct {
-	DBConnURL     string `json:"db_conn_url"`
-	DBHost        string `json:"db_host"`
-	DBPort        int    `json:"db_port"`
-	DBUser        string `json:"db_user"`
-	DBPassword    string `json:"db_password"`
-	DBName        string `json:"db_name"`
-	DriverName    string `json:"driver_name"`
-	AppServerPort string `json:"app_server_port"`
-	ErrorTypeFile string `json:"error_type_file"`
-}
-
 const (
 	DevEnv           Environment = "dev_env"
 	ProdEnv          Environment = "prod_env"
@@ -40,6 +11,51 @@ const (
 )
 
 type Environment string
+
+type OpReq struct {
+	User      string   `json:"user"`
+	CapNeeded []string `json:"capNeeded"`
+	Scope     Scope    `json:"scope"`
+	Limit     Limit    `json:"limit"`
+}
+
+type Scope map[string]interface{}
+type Limit map[string]interface{}
+
+type QualifiedCap struct {
+	Id    string `json:"id"`
+	Cap   string `json:"cap"`
+	Scope Scope  `json:"scope"`
+	Limit Limit  `json:"limit"`
+}
+
+type Capabilities struct {
+	Name          string         `json:"name"` //either user name or group name
+	QualifiedCaps []QualifiedCap `json:"qualifiedcaps"`
+}
+
+type Attribute struct {
+	Name      string   `json:"name" validate:"required"`
+	ShortName string   `json:"shortname" validate:"required"`
+	LongDesc  string   `json:"longdesc" validate:"required"`
+	ValType   string   `json:"valtype" validate:"required"`
+	Vals      []string `json:"vals,omitempty"`
+	Enumdesc  []string `json:"enumdesc,omitempty"`
+	ValMax    int32    `json:"valmax,omitempty"`
+	ValMin    int32    `json:"valmin,omitempty"`
+	LenMax    int32    `json:"lemmax,omitempty"`
+	LenMin    int32    `json:"lenmin,omitempty"`
+}
+type Patternschema struct {
+	Class string      `json:"class" validate:"required"`
+	Attr  []Attribute `json:"attr"`
+}
+
+type Actionschema struct {
+	Class      string   `json:"class" validate:"required"`
+	Task       []string `json:"tasks" validate:"required"`
+	Properties []string `json:"properties" validate:"required"`
+}
 
 func (env Environment) IsValid() bool {
 	switch env {
@@ -64,18 +80,3 @@ func CommonValidation(err validator.FieldError) []string {
 	}
 	return vals
 }
-
-// func GetErrorValidationMapByAPIName(apiName string) map[string]string {
-// 	var validationsMap = make(map[string]map[string]string)
-// 	validationsMap["WorkflowGet"] = map[string]string{
-// 		"required": "not_provided",
-// 	}
-// 	validationsMap["SchemaGet"] = map[string]string{
-// 		"required": "not_provided",
-// 	}
-// 	// below is one more example ::
-// 	// validationsMap["country_draft_forward"] = map[string]string{
-// 	// 	"IDmin": "length must be greater than one",
-// 	// }
-// 	return validationsMap[apiName]
-// }
