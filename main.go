@@ -14,7 +14,9 @@ import (
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	pg "github.com/remiges-tech/crux/db"
-	"github.com/remiges-tech/crux/services/schema"
+	"github.com/remiges-tech/crux/db/sqlc-gen"
+	"github.com/remiges-tech/crux/server/schema"
+	"github.com/remiges-tech/crux/server/workflow"
 	"github.com/remiges-tech/logharbour/logharbour"
 	"github.com/remiges-tech/rigel"
 	"github.com/remiges-tech/rigel/etcd"
@@ -98,23 +100,34 @@ func main() {
 
 	// Database connection
 	connURL := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", dbHost, dbPort, dbUser, dbPassword, dbName)
-	query, err := pg.NewProvider(connURL)
+	db, err := pg.Connect(dbUser, connURL)
 	if err != nil {
 		l.LogActivity("Error while establishes a connection with database", err)
 		log.Fatalln("Failed to establishes a connection with database", err)
 	}
+	querier := sqlc.New(db)
 
 	// router
 	r := gin.Default()
 
+	// r.Use(corsMiddleware())
+
 	// schema services
 	schemaSvc := service.NewService(r).
 		WithLogHarbour(l).
-		WithDatabase(query)
+		WithDatabase(querier)
 
-	schemaSvc.RegisterRoute(http.MethodGet, "/WFschemaList", schema.SchemaList)
-	schemaSvc.RegisterRoute(http.MethodPost, "/WFschemaNew", schema.SchemaNew)
-	schemaSvc.RegisterRoute(http.MethodPut, "/WFschemaUpdate", schema.SchemaUpdate)
+	apiV1Group := r.Group("/api/v1/")
+
+	// Schema
+	// s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/WFschemaList", schema.SchemaList)
+	schemaSvc.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/wfschemaget", schema.SchemaGet)
+	schemaSvc.RegisterRouteWithGroup(apiV1Group, http.MethodDelete, "/wfschemadelete", schema.SchemaDelete)
+	// schemaSvc.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/WFschemaList", schema.SchemaList)
+	// schemaSvc.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/WFschemaNew", schema.SchemaNew)
+	// schemaSvc.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/WFschemaUpdate", schema.SchemaUpdate)
+	// Workflow
+	schemaSvc.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/workflowget", workflow.WorkflowGet)
 
 	appServerPortStr := strconv.Itoa(appServerPort)
 	r.Run(":" + appServerPortStr)
