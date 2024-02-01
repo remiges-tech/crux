@@ -1,0 +1,8 @@
+"not_found" : 100
+"required" : 101
+"database_error" : 102
+"invalid_request" : 103
+"record_does_not_exist" : 500
+"operation_failed" : 104
+"alpha" : 105
+
