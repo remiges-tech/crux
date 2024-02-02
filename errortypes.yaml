@@ -5,5 +5,11 @@
 "record_does_not_exist" : 500
 "operation_failed" : 104
 "alpha" : 105
-
+"invalid_entity": 301
+"invalid_app": 302
+"invalid_class": 303
+"invalid_wf_active_status": 304
+"invalid_wf_internal_status": 305
+"instance_already_exist" : 306
+"schema_pattern_not_found": 307
 "gt" : 101

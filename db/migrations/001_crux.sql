@@ -1,5 +1,9 @@
 CREATE TABLE realm (
-    id SERIAL PRIMARY KEY, shortname varchar(255) UNIQUE NOT NULL CHECK (shortname ~ '^[a-zA-Z0-9]+$'), shortnamelc varchar(255) UNIQUE NOT NULL, longname varchar(255) NOT NULL, setby varchar(255) NOT NULL, setat TIMESTAMP NOT NULL DEFAULT (NOW()::timestamp), payload jsonb NOT NULL
+    id SERIAL PRIMARY KEY, 
+    shortname varchar(255) UNIQUE NOT NULL CHECK (shortname ~ '^[a-zA-Z0-9]+$'), 
+    shortnamelc varchar(255) UNIQUE NOT NULL, longname varchar(255) NOT NULL, 
+    setby varchar(255) NOT NULL, setat TIMESTAMP NOT NULL DEFAULT (NOW()::timestamp), 
+    payload jsonb NOT NULL
 );
 
 CREATE TABLE app (
@@ -30,11 +34,23 @@ CREATE TABLE schema (
 );
 
 CREATE TABLE ruleset (
-    id SERIAL PRIMARY KEY, realm INTEGER REFERENCES realm (id) NOT NULL, slice INTEGER REFERENCES realmslice (id) NOT NULL, app VARCHAR(255) REFERENCES app (shortname) NOT NULL, brwf CHAR(1) CHECK (brwf IN ('B', 'W')) NOT NULL, class VARCHAR(255) CHECK (class ~ '^[a-z_]+$') NOT NULL, setname VARCHAR(255) CHECK (setname ~ '^[a-z_]+$') NOT NULL, schemaid INTEGER REFERENCES schema (id) NOT NULL, is_active BOOLEAN DEFAULT false, is_internal BOOLEAN NOT NULL, ruleset JSONB NOT NULL, createdat TIMESTAMP DEFAULT NOW()::timestamp NOT NULL, createdby VARCHAR(255) NOT NULL, editedat TIMESTAMP DEFAULT NOW()::timestamp NOT NULL, editedby VARCHAR(255) NOT NULL
+    id SERIAL PRIMARY KEY, 
+    realm INTEGER REFERENCES realm (id) NOT NULL, 
+    slice INTEGER REFERENCES realmslice (id) NOT NULL, 
+    app VARCHAR(255) REFERENCES app (shortname) NOT NULL, 
+    brwf CHAR(1) CHECK (brwf IN ('B', 'W')) NOT NULL, 
+    class VARCHAR(255) CHECK (class ~ '^[a-z_]+$') NOT NULL, 
+    setname VARCHAR(255) CHECK (setname ~ '^[a-z_]+$') NOT NULL, 
+    schemaid INTEGER REFERENCES schema (id) NOT NULL, 
+    is_active BOOLEAN DEFAULT false, 
+    is_internal BOOLEAN NOT NULL, ruleset JSONB NOT NULL, createdat TIMESTAMP DEFAULT NOW()::timestamp NOT NULL, createdby VARCHAR(255) NOT NULL, editedat TIMESTAMP DEFAULT NOW()::timestamp NOT NULL, editedby VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE wfinstance (
-    id SERIAL PRIMARY KEY, entityid INTEGER NOT NULL, slice INTEGER REFERENCES realmslice (id) NOT NULL, app VARCHAR(255) REFERENCES app (shortname) NOT NULL, class VARCHAR(255) CHECK (class ~ '^[a-z_]+$') NOT NULL, workflow VARCHAR(255) CHECK (workflow ~ '^[a-z_]+$') NOT NULL, step VARCHAR(255) NOT NULL, loggedat TIMESTAMP DEFAULT NOW()::timestamp NOT NULL, doneat TIMESTAMP, nextstep VARCHAR(255) NOT NULL, parent INTEGER
+    id SERIAL PRIMARY KEY, 
+    entityid VARCHAR(255) NOT NULL,
+    slice INTEGER REFERENCES realmslice (id) NOT NULL, 
+    app VARCHAR(255) REFERENCES app (shortname) NOT NULL, class VARCHAR(255) CHECK (class ~ '^[a-z_]+$') NOT NULL, workflow VARCHAR(255) CHECK (workflow ~ '^[a-z_]+$') NOT NULL, step VARCHAR(255) NOT NULL, loggedat TIMESTAMP DEFAULT NOW()::timestamp NOT NULL, doneat TIMESTAMP, nextstep VARCHAR(255) NOT NULL, parent INTEGER
 );
 
 CREATE TABLE stepworkflow (
