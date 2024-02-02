@@ -28,13 +28,11 @@ func TestSchemaNew(t *testing.T) {
 
 			res := httptest.NewRecorder()
 			req, err := http.NewRequest(http.MethodPost, "/WFschemaNew", payload)
-			if err != nil {
-				t.Fatalf("Could not create request: %v", err)
-			}
-			r.ServeHTTP(res, req)
-
 			require.NoError(t, err)
 
+			r.ServeHTTP(res, req)
+
+			require.Equal(t, tc.expectedHttpCode, res.Code)
 			if tc.expectedResult != nil {
 				jsonData := testutils.MarshalJson(tc.expectedResult)
 				require.JSONEq(t, string(jsonData), res.Body.String())
