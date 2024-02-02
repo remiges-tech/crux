@@ -24,7 +24,6 @@ import (
 	"github.com/remiges-tech/logharbour/logharbour"
 )
 
-// Declare a global variable to hold the Docker pool and resource.
 var r *gin.Engine
 var versionTable string = "schema_version_non_default"
 
@@ -38,27 +37,27 @@ func TestMain(m *testing.M) {
 	fmt.Println("Initialize Docker pool")
 
 	// Deploy the Postgres container.
-	PostgresResource, databaseUrl, err := deployPostgres(pool)
+	resource, databaseUrl, err := deployPostgres(pool)
 	if err != nil {
 		log.Fatalf("Could not start resource: %v", err)
 	}
 	fmt.Println("Deploy the Postgres container")
 
 	ternMigrate(databaseUrl)
+	fmt.Println("tern migrate")
 
-	// Deploy the API container.
+	// Register routes.
 	r, err = registerRoutes(pool, databaseUrl)
 	if err != nil {
 		log.Fatalf("Could not start resource: %v", err)
 	}
-
+	fmt.Println("Register routes")
 	// Run the tests.
 	exitCode := m.Run()
 
 	// Exit with the appropriate code.
-	err = TearDown(pool, PostgresResource)
-	if err != nil {
-		log.Fatalf("Could not purge resource: %v", err)
+	if err := pool.Purge(resource); err != nil {
+		log.Fatalf("Could not purge resource: %s", err)
 	}
 	fmt.Println("Exit with the appropriate code")
 
@@ -92,8 +91,6 @@ func deployPostgres(pool *dockertest.Pool) (*dockertest.Resource, string, error)
 	log.Println("Connecting to database on url: ", databaseUrl)
 
 	resource.Expire(120) // Tell docker to hard kill the container in 120 seconds
-
-	// exponential backoff-retry, because the application in the container might not be ready to accept connections yet
 	pool.MaxWait = 120 * time.Second
 
 	// Ensure the Postgres container is ready to accept connections.
@@ -110,7 +107,7 @@ func deployPostgres(pool *dockertest.Pool) (*dockertest.Resource, string, error)
 
 }
 
-// deployAPIContainer builds and runs the API container.
+// registerRoutes register and runs.
 func registerRoutes(pool *dockertest.Pool, databaseUrl string) (*gin.Engine, error) {
 	// router
 	gin.SetMode(gin.TestMode)
@@ -144,12 +141,6 @@ func registerRoutes(pool *dockertest.Pool, databaseUrl string) (*gin.Engine, err
 	schemaSvc.RegisterRoute(http.MethodPost, "/WFschemaNew", schema.SchemaNew)
 	schemaSvc.RegisterRoute(http.MethodPut, "/WFschemaUpdate", schema.SchemaUpdate)
 
-	r.Run(":" + "8888")
-	if err != nil {
-		l.LogActivity("Failed to start server", err)
-		log.Fatalf("Failed to start server: %v", err)
-	}
-
 	return r, nil
 
 }
@@ -163,13 +154,14 @@ func TearDown(pool *dockertest.Pool, resource *dockertest.Resource) error {
 }
 
 func ternMigrate(databaseUrl string) {
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	// Create a new Tern migration instance
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 	conn, err := pgx.Connect(ctx, databaseUrl)
 	if err != nil {
 		log.Fatalln("unable to connect", err)
 	}
 
+	// Create a new Tern migration instance
 	m, err := migrate.NewMigrator(ctx, conn, versionTable)
 	if err != nil {
 		log.Fatal("Error creating migration instance:", err)
