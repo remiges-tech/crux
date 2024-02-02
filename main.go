@@ -124,12 +124,11 @@ func main() {
 	apiV1Group := r.Group("/api/v1/")
 
 	// Schema
-	// s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/WFschemaList", schema.SchemaList)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/wfschemaget", schema.SchemaGet)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodDelete, "/wfschemadelete", schema.SchemaDelete)
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfschemList", schema.SchemaList)
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/WFschemaNew", schema.SchemaNew)
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/WFschemaUpdate", schema.SchemaUpdate)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfschemaList", schema.SchemaList)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfschemaNew", schema.SchemaNew)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/wfschemaUpdate", schema.SchemaUpdate)
 	// Workflow
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/workflowget", workflow.WorkflowGet)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstancenew", wfinstanceserv.GetWFinstanceNew)

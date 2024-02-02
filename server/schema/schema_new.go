@@ -15,7 +15,7 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 	l.Log("Starting execution of SchemaNew()")
 	createdby := "admin"
 
-	var sh schema
+	var sh Schema
 
 	// check the capgrant table to see if the calling user has the capability to perform the
 	// operation
@@ -66,12 +66,12 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse("MarshalJSON"))
 		return
 	}
-	_, err = query.SchemaNew(c, sqlc.SchemaNewParams{Slice: sh.Slice, Class: sh.Class, App: sh.App, Patternschema: paternSchema, Actionschema: actionschema, Createdby: createdby})
+	_, err = query.SchemaNew(c, sqlc.SchemaNewParams{Realm: 1, Slice: sh.Slice, Class: sh.Class, App: sh.App, Brwf: "W", Patternschema: paternSchema, Actionschema: actionschema, Createdby: createdby, Editedby: createdby})
 	if err != nil {
 		l.LogActivity("Error while creating schema", err)
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
 		return
 	}
-	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: "created successfully", Messages: nil})
+	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: "Created successfully", Messages: nil})
 	l.Log("Finished execution of SchemaNew()")
 }

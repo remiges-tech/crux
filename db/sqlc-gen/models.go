@@ -5,8 +5,53 @@
 package sqlc
 
 import (
+	"database/sql/driver"
+	"fmt"
+
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type BrwfEnum string
+
+const (
+	BrwfEnumB BrwfEnum = "B"
+	BrwfEnumW BrwfEnum = "W"
+)
+
+func (e *BrwfEnum) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = BrwfEnum(s)
+	case string:
+		*e = BrwfEnum(s)
+	default:
+		return fmt.Errorf("unsupported scan type for BrwfEnum: %T", src)
+	}
+	return nil
+}
+
+type NullBrwfEnum struct {
+	BrwfEnum BrwfEnum `json:"brwf_enum"`
+	Valid    bool     `json:"valid"` // Valid is true if BrwfEnum is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullBrwfEnum) Scan(value interface{}) error {
+	if value == nil {
+		ns.BrwfEnum, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.BrwfEnum.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullBrwfEnum) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.BrwfEnum), nil
+}
 
 type App struct {
 	ID          int32            `json:"id"`
@@ -74,7 +119,7 @@ type Ruleset struct {
 	Realm      int32            `json:"realm"`
 	Slice      int32            `json:"slice"`
 	App        string           `json:"app"`
-	Brwf       string           `json:"brwf"`
+	Brwf       BrwfEnum         `json:"brwf"`
 	Class      string           `json:"class"`
 	Setname    string           `json:"setname"`
 	Schemaid   int32            `json:"schemaid"`
@@ -92,7 +137,7 @@ type Schema struct {
 	Realm         int32            `json:"realm"`
 	Slice         int32            `json:"slice"`
 	App           string           `json:"app"`
-	Brwf          string           `json:"brwf"`
+	Brwf          BrwfEnum         `json:"brwf"`
 	Class         string           `json:"class"`
 	Patternschema []byte           `json:"patternschema"`
 	Actionschema  []byte           `json:"actionschema"`

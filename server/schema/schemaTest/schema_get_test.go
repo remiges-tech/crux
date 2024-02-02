@@ -1,4 +1,4 @@
-package schema
+package schema_test
 
 import (
 	"bytes"
@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/remiges-tech/alya/wscutils"
+	"github.com/remiges-tech/crux/server/schema"
+	"github.com/remiges-tech/crux/testutils"
 	"github.com/remiges-tech/crux/types"
 	"github.com/stretchr/testify/require"
 )
@@ -14,9 +16,9 @@ import (
 func TestSchemaGet(t *testing.T) {
 	testCases := schemaGetTestcase()
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.Name, func(t *testing.T) {
 			// Setting up buffer
-			payload := bytes.NewBuffer(types.MarshalJson(tc.requestPayload))
+			payload := bytes.NewBuffer(types.MarshalJson(tc.RequestPayload))
 
 			res := httptest.NewRecorder()
 			req, err := http.NewRequest(http.MethodGet, "/wfschemaget", payload)
@@ -24,12 +26,12 @@ func TestSchemaGet(t *testing.T) {
 
 			r.ServeHTTP(res, req)
 
-			require.Equal(t, tc.expectedHttpCode, res.Code)
-			if tc.expectedResult != nil {
-				jsonData := types.MarshalJson(tc.expectedResult)
+			require.Equal(t, tc.ExpectedHttpCode, res.Code)
+			if tc.ExpectedResult != nil {
+				jsonData := types.MarshalJson(tc.ExpectedResult)
 				require.JSONEq(t, string(jsonData), res.Body.String())
 			} else {
-				jsonData, err := types.ReadJsonFromFile(tc.testJsonFile)
+				jsonData, err := types.ReadJsonFromFile(tc.TestJsonFile)
 				require.NoError(t, err)
 				require.JSONEq(t, string(jsonData), res.Body.String())
 			}
@@ -38,22 +40,22 @@ func TestSchemaGet(t *testing.T) {
 
 }
 
-func schemaGetTestcase() []TestCasesStruct {
+func schemaGetTestcase() []testutils.TestCasesStruct {
 	var sliceStr int32 = 1
 	app := "retailbank"
 	class := "custonboarding"
 	var slice int32 = -1
-	schemaNewTestcase := []TestCasesStruct{
+	schemaNewTestcase := []testutils.TestCasesStruct{
 		// 1st test case
 		{
-			name: "ERROR- slice validation",
-			requestPayload: wscutils.Request{
-				Data: schemaGetReq{
+			Name: "ERROR- slice validation",
+			RequestPayload: wscutils.Request{
+				Data: schema.SchemaGetReq{
 					Slice: &slice,
 				},
 			},
-			expectedHttpCode: http.StatusBadRequest,
-			expectedResult: &wscutils.Response{
+			ExpectedHttpCode: http.StatusBadRequest,
+			ExpectedResult: &wscutils.Response{
 				Status: wscutils.ErrorStatus,
 				Data:   nil,
 				Messages: []wscutils.ErrorMessage{
@@ -76,17 +78,17 @@ func schemaGetTestcase() []TestCasesStruct {
 
 		// 2nd test case
 		{
-			name: "SUCCESS- get schema by valid req ",
-			requestPayload: wscutils.Request{
-				Data: SchemaListStruct{
+			Name: "SUCCESS- get schema by valid req ",
+			RequestPayload: wscutils.Request{
+				Data: schema.SchemaListStruct{
 					Slice: &sliceStr,
 					App:   &app,
 					Class: &class,
 				},
 			},
 
-			expectedHttpCode: http.StatusOK,
-			testJsonFile:     "./testData/schema_get_response.json",
+			ExpectedHttpCode: http.StatusOK,
+			TestJsonFile:     "./testData/schema_get_response.json",
 		},
 	}
 	return schemaNewTestcase

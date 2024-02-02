@@ -16,7 +16,7 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 	l.Log("Starting execution of SchemaUpdate()")
 	editedBy := "admin"
 
-	var sh schema
+	var sh Schema
 
 	// check the capgrant table to see if the calling user has the capability to perform the
 	// operation
@@ -68,7 +68,7 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 	}
 	_, err = query.SchemaUpdate(c, sqlc.SchemaUpdateParams{Slice: sh.Slice, Class: sh.Class, App: sh.App, Patternschema: paternSchema, Actionschema: actionschema, Editedby: editedBy})
 	if err != nil {
-		l.LogActivity("Error while Updating schema", err)
+		l.LogActivity("Error while Updating schema", err.Error())
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
 		return
 	}

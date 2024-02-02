@@ -17,7 +17,7 @@ type Querier interface {
 	GetWFINstance(ctx context.Context, arg GetWFINstanceParams) ([]Wfinstance, error)
 	GetWFInternalStatus(ctx context.Context, arg GetWFInternalStatusParams) (bool, error)
 	SchemaDelete(ctx context.Context, id int32) (int32, error)
-	SchemaGet(ctx context.Context, arg SchemaGetParams) ([]Schema, error)
+	SchemaGet(ctx context.Context, arg SchemaGetParams) ([]SchemaGetRow, error)
 	SchemaList(ctx context.Context) ([]SchemaListRow, error)
 	SchemaListByApp(ctx context.Context, app string) ([]SchemaListByAppRow, error)
 	SchemaListByAppAndClass(ctx context.Context, arg SchemaListByAppAndClassParams) ([]SchemaListByAppAndClassRow, error)

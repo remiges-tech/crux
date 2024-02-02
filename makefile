@@ -4,7 +4,7 @@ newSchema:
 
 # tern migration
 tern:
-	cd db/migrations; tern migrate
+	cd db/migrations; tern migrate 
 
 # sqlc generate
 generate:
