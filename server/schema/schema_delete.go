@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
@@ -23,7 +24,7 @@ func SchemaDelete(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	valError := wscutils.WscValidate(request, getValsForSchemaGetReqError)
+	valError := wscutils.WscValidate(request, func(err validator.FieldError) []string { return []string{} })
 	if len(valError) > 0 {
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, valError))
 		lh.Debug0().LogActivity("validation error:", valError)

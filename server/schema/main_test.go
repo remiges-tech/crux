@@ -1,4 +1,4 @@
-package test
+package schema
 
 import (
 	"context"
@@ -20,7 +20,6 @@ import (
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	pg "github.com/remiges-tech/crux/db"
-	"github.com/remiges-tech/crux/server/schema"
 	"github.com/remiges-tech/logharbour/logharbour"
 )
 
@@ -118,7 +117,7 @@ func registerRoutes(pool *dockertest.Pool, databaseUrl string) (*gin.Engine, err
 	lctx := logharbour.NewLoggerContext(logharbour.Info)
 	l := logharbour.NewLogger(lctx, "crux", fallbackWriter)
 
-	file, err := os.Open("../errortypes.yaml")
+	file, err := os.Open("./../../errortypes.yaml")
 	if err != nil {
 		log.Fatalf("Failed to open error types file: %v", err)
 	}
@@ -137,9 +136,11 @@ func registerRoutes(pool *dockertest.Pool, databaseUrl string) (*gin.Engine, err
 		WithLogHarbour(l).
 		WithDatabase(query)
 
-	schemaSvc.RegisterRoute(http.MethodPost, "/WFschemaList", schema.SchemaList)
-	schemaSvc.RegisterRoute(http.MethodPost, "/WFschemaNew", schema.SchemaNew)
-	schemaSvc.RegisterRoute(http.MethodPut, "/WFschemaUpdate", schema.SchemaUpdate)
+	schemaSvc.RegisterRoute(http.MethodGet, "/wfschemaget", SchemaList)
+	schemaSvc.RegisterRoute(http.MethodDelete, "/wfschemadelete", SchemaDelete)
+	schemaSvc.RegisterRoute(http.MethodPost, "/WFschemaList", SchemaList)
+	schemaSvc.RegisterRoute(http.MethodPost, "/WFschemaNew", SchemaNew)
+	schemaSvc.RegisterRoute(http.MethodPut, "/WFschemaUpdate", SchemaUpdate)
 
 	return r, nil
 
@@ -166,9 +167,12 @@ func ternMigrate(databaseUrl string) {
 	if err != nil {
 		log.Fatal("Error creating migration instance:", err)
 	}
-	if err := m.LoadMigrations("../db/migrations"); err != nil {
+	if err := m.LoadMigrations("./../../db/migrations/"); err != nil {
 		log.Fatal("Error loading data:", err)
 	}
+	// if err := m.LoadMigrations(filepath.Base("/db/migrations/002_insert_demo_data.sql")); err != nil {
+	// 	log.Fatal("Error loading data:", err)
+	// }
 	if err = m.Migrate(ctx); err != nil {
 		log.Fatal("Error loading data:", err)
 	}

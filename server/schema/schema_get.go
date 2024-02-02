@@ -12,7 +12,7 @@ import (
 )
 
 type schemaGetReq struct {
-	Slice *int32  `json:"slice" validate:"required"`
+	Slice *int32  `json:"slice" validate:"required,gt=0"`
 	App   *string `json:"app" validate:"required,alpha"`
 	Class *string `json:"class" validate:"required,alpha"`
 }
@@ -22,15 +22,14 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour
 	lh.Log("SchemaGet request received")
 
-	// var response schemaGetResp
 	var request schemaGetReq
 	err := wscutils.BindJSON(c, &request)
 	if err != nil {
-		lh.Debug0().LogActivity("error while binding json request error:", err.Error)
+		lh.Debug0().LogActivity("error while binding json request error:", err.Error())
 		return
 	}
 
-	valError := wscutils.WscValidate(request, getValsForSchemaGetReqError)
+	valError := wscutils.WscValidate(request, func(err validator.FieldError) []string { return []string{} })
 	if len(valError) > 0 {
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, valError))
 		lh.Debug0().LogActivity("validation error:", valError)
@@ -44,15 +43,10 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 	})
 	if err != nil {
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(types.RECORD_NOT_EXIST, nil)}))
-		lh.Debug0().LogActivity("failed to get data from DB:", err.Error)
+		lh.Debug0().LogActivity("failed to get data from DB:", err.Error())
 		return
 	}
 
 	lh.Log(fmt.Sprintf("Record found: %v", map[string]any{"response": dbResponse}))
 	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(dbResponse))
-}
-
-func getValsForSchemaGetReqError(err validator.FieldError) []string {
-	// validationErrorVals := types.GetErrorValidationMapByAPIName("SchemaGet")
-	return types.CommonValidation(err)
 }

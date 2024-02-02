@@ -92,15 +92,15 @@ WHERE
     AND class = $2
     AND app = $3;
 -- name: Wfschemaget :one
-SELECT a.slice, a.app, a.class, b.longname, a.patternschema, a.actionschema, a.createdat, a.createdby, a.editedat, a.editedby
-FROM schema as a, realm as b, realmslice as c
+SELECT s.slice, s.app, s.class, rm.longname, s.patternschema, s.actionschema, s.createdat, s.createdby, s.editedat, s.editedby
+FROM schema as s, realm as rm, realmslice as rs
 WHERE
-    a.realm = b.id
-    and a.slice = c.id
-    and a.slice = $1
-    and c.realm = b.shortname
-    and a.class = $3
-    AND a.app = $2;
+    s.realm = rm.id
+    and s.slice = rs.id
+    and s.slice = $1
+    and rs.realm = rm.shortname
+    and s.class = $3
+    AND s.app = $2;
 
 -- name: Wfschemadelete :exec
 DELETE from schema
