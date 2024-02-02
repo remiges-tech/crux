@@ -111,7 +111,7 @@ type Stepworkflow struct {
 
 type Wfinstance struct {
 	ID       int32            `json:"id"`
-	Entityid int32            `json:"entityid"`
+	Entityid string           `json:"entityid"`
 	Slice    int32            `json:"slice"`
 	App      string           `json:"app"`
 	Class    string           `json:"class"`

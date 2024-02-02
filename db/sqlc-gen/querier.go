@@ -6,9 +6,16 @@ package sqlc
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
+	GetApp(ctx context.Context, arg GetAppParams) (string, error)
+	GetClass(ctx context.Context, arg GetClassParams) (string, error)
+	GetWFActiveStatus(ctx context.Context, arg GetWFActiveStatusParams) (pgtype.Bool, error)
+	GetWFINstance(ctx context.Context, arg GetWFINstanceParams) ([]Wfinstance, error)
+	GetWFInternalStatus(ctx context.Context, arg GetWFInternalStatusParams) (bool, error)
 	SchemaDelete(ctx context.Context, id int32) (int32, error)
 	SchemaGet(ctx context.Context, arg SchemaGetParams) ([]Schema, error)
 	SchemaList(ctx context.Context) ([]SchemaListRow, error)
