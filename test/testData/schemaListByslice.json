@@ -1,0 +1,36 @@
+{
+    "data": [
+        {
+            "app": "retailBANK",
+            "class": "custonboarding",
+            "createdat": "2022-12-26T09:03:46Z",
+            "createdby": "Mal Houndsom",
+            "editedat": "2023-07-12T01:33:32Z",
+            "editedby": "Clerc Careless",
+            "longname": "retailBANK",
+            "slice": 1
+        },
+        {
+            "app": "retailBANK",
+            "class": "custonboarding",
+            "createdat": "2020-08-25T13:17:49Z",
+            "createdby": "Mireille Slidders",
+            "editedat": "2021-01-22T15:53:49Z",
+            "editedby": "Spencer Jaffra",
+            "longname": "retailBANK",
+            "slice": 1
+        },
+        {
+            "app": "retailBANK",
+            "class": "tempclass",
+            "createdat": "2022-12-24T19:38:52Z",
+            "createdby": "Olly Gerrish",
+            "editedat": "2021-04-28T20:39:09Z",
+            "editedby": "Ronni Matson",
+            "longname": "retailBANK",
+            "slice": 1
+        }
+    ],
+    "messages": null,
+    "status": "success"
+}

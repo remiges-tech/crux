@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/remiges-tech/alya/wscutils"
-	"github.com/remiges-tech/crux/testutils"
+	"github.com/remiges-tech/crux/test/testutils"
 	"github.com/stretchr/testify/require"
 )
 
