@@ -39,27 +39,24 @@ func TestSchemaGet(t *testing.T) {
 }
 
 func schemaGetTestcase() []TestCasesStruct {
-	var sliceStr int32 = 2
-	app := "nedbank"
+	var sliceStr int32 = 1
+	app := "retailbank"
 	class := "custonboarding"
-	slice := int32(-1)
-	// slice1 := int32(1)
+	var slice int32 = -1
 	schemaNewTestcase := []TestCasesStruct{
 		// 1st test case
 		{
-			name: "err- slice validation",
+			name: "ERROR- slice validation",
 			requestPayload: wscutils.Request{
 				Data: schemaGetReq{
 					Slice: &slice,
 				},
 			},
-
 			expectedHttpCode: http.StatusBadRequest,
 			expectedResult: &wscutils.Response{
 				Status: wscutils.ErrorStatus,
 				Data:   nil,
 				Messages: []wscutils.ErrorMessage{
-
 					{
 						MsgID:   101,
 						ErrCode: "gt",
@@ -79,7 +76,7 @@ func schemaGetTestcase() []TestCasesStruct {
 
 		// 2nd test case
 		{
-			name: "success- get schema by valid req ",
+			name: "SUCCESS- get schema by valid req ",
 			requestPayload: wscutils.Request{
 				Data: SchemaListStruct{
 					Slice: &sliceStr,

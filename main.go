@@ -23,8 +23,13 @@ import (
 )
 
 func main() {
+
+	logFile, err := os.OpenFile("log.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
 	// logger setup
-	fallbackWriter := logharbour.NewFallbackWriter(os.Stdout, os.Stdout)
+	fallbackWriter := logharbour.NewFallbackWriter(logFile, os.Stdout)
 	lctx := logharbour.NewLoggerContext(logharbour.Info)
 	l := logharbour.NewLogger(lctx, "crux", fallbackWriter)
 
@@ -112,7 +117,7 @@ func main() {
 	// r.Use(corsMiddleware())
 
 	// schema services
-	schemaSvc := service.NewService(r).
+	s := service.NewService(r).
 		WithLogHarbour(l).
 		WithDatabase(db)
 
@@ -120,14 +125,14 @@ func main() {
 
 	// Schema
 	// s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/WFschemaList", schema.SchemaList)
-	schemaSvc.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/wfschemaget", schema.SchemaGet)
-	schemaSvc.RegisterRouteWithGroup(apiV1Group, http.MethodDelete, "/wfschemadelete", schema.SchemaDelete)
-	schemaSvc.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/WFschemaList", schema.SchemaList)
-	schemaSvc.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/WFschemaNew", schema.SchemaNew)
-	schemaSvc.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/WFschemaUpdate", schema.SchemaUpdate)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/wfschemaget", schema.SchemaGet)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodDelete, "/wfschemadelete", schema.SchemaDelete)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfschemList", schema.SchemaList)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/WFschemaNew", schema.SchemaNew)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/WFschemaUpdate", schema.SchemaUpdate)
 	// Workflow
-	schemaSvc.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/workflowget", workflow.WorkflowGet)
-	schemaSvc.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/WFInstanceNew", wfinstanceserv.GetWFinstanceNew)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/workflowget", workflow.WorkflowGet)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/WFInstanceNew", wfinstanceserv.GetWFinstanceNew)
 
 	appServerPortStr := strconv.Itoa(appServerPort)
 	r.Run(":" + appServerPortStr)
