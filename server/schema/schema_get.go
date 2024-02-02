@@ -12,7 +12,7 @@ import (
 )
 
 type schemaGetReq struct {
-	Slice *int32  `json:"slice" validate:"required"`
+	Slice *int32  `json:"slice" validate:"required,gt=0"`
 	App   *string `json:"app" validate:"required,alpha"`
 	Class *string `json:"class" validate:"required,alpha"`
 }
@@ -30,7 +30,7 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	valError := wscutils.WscValidate(request, getValsForSchemaGetReqError)
+	valError := wscutils.WscValidate(request, func(err validator.FieldError) []string { return []string{} })
 	if len(valError) > 0 {
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, valError))
 		lh.Debug0().LogActivity("validation error:", valError)
@@ -50,9 +50,4 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 
 	lh.Log(fmt.Sprintf("Record found: %v", map[string]any{"response": dbResponse}))
 	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(dbResponse))
-}
-
-func getValsForSchemaGetReqError(err validator.FieldError) []string {
-	// validationErrorVals := types.GetErrorValidationMapByAPIName("SchemaGet")
-	return types.CommonValidation(err)
 }

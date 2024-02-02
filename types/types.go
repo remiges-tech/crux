@@ -1,6 +1,14 @@
 package types
 
-import "github.com/go-playground/validator/v10"
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"log"
+	"os"
+
+	"github.com/go-playground/validator/v10"
+)
 
 const (
 	DevEnv           Environment = "dev_env"
@@ -9,6 +17,8 @@ const (
 	RECORD_NOT_EXIST             = "record_does_not_exist"
 	OPERATION_FAILED             = "operation_failed"
 )
+
+var APP, SLICE, CLASS string = "App", "Slice", "Class"
 
 type Environment string
 
@@ -75,8 +85,32 @@ func CommonValidation(err validator.FieldError) []string {
 		vals = append(vals, "not_provided")
 	case "alpha":
 		vals = append(vals, "only_alphabets_are_allowed")
+	case "gt":
+		vals = append(vals, "must_be_greater_than_zero")
 	default:
 		vals = append(vals, "not_valid_input")
 	}
 	return vals
+}
+
+func MarshalJson(data any) []byte {
+	jsonData, err := json.Marshal(&data)
+	if err != nil {
+		log.Fatal("error marshaling")
+	}
+	return jsonData
+}
+
+func ReadJsonFromFile(filepath string) ([]byte, error) {
+	// var err error
+	file, err := os.Open(filepath)
+	if err != nil {
+		return nil, fmt.Errorf("testFile path is not exist")
+	}
+	defer file.Close()
+	jsonData, err := io.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+	return jsonData, nil
 }
