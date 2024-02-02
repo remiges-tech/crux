@@ -17,7 +17,7 @@ func SchemaDelete(c *gin.Context, s *service.Service) {
 	lh.Log("SchemaDelete request received")
 
 	// var response schemaGetResp
-	var request schemaGetReq
+	var request SchemaGetReq
 	err := wscutils.BindJSON(c, &request)
 	if err != nil {
 		lh.Debug0().LogActivity("error while binding json request error:", err.Error)

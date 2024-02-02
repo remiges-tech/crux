@@ -2,7 +2,7 @@ package schema
 
 import "github.com/remiges-tech/crux/types"
 
-type schema struct {
+type Schema struct {
 	Slice         int32               `json:"slice" validate:"required,gt=0"`
 	App           string              `json:"App" validate:"required,alpha"`
 	Class         string              `json:"class" validate:"required,lowercase"`

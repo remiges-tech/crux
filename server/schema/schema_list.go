@@ -32,13 +32,6 @@ func SchemaList(c *gin.Context, s *service.Service) {
 	// 	return
 	// }
 
-	// err := c.ShouldBindQuery(&sh)
-	// if err != nil {
-	// 	l.LogActivity("Error Unmarshalling Query paramaeters to struct:", err.Error())
-	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeInvalidJson))
-	// 	return
-	// }
-
 	err := wscutils.BindJSON(c, &sh)
 	if err != nil {
 		l.LogActivity("Error Unmarshalling Query paramaeters to struct:", err.Error())
@@ -64,6 +57,7 @@ func SchemaList(c *gin.Context, s *service.Service) {
 		if err != nil || len(schemaList) == 0 {
 			l.LogActivity("Error while retrieving schema list by app", err)
 			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+			return
 		}
 		wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: schemaList, Messages: nil})
 	case sh.Class != nil && sh.App == nil && sh.Slice == nil:
@@ -71,6 +65,7 @@ func SchemaList(c *gin.Context, s *service.Service) {
 		if err != nil || len(schemaList) == 0 {
 			l.LogActivity("Error while retrieving schema list by class", err)
 			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+			return
 		}
 		wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: schemaList, Messages: nil})
 	case sh.Slice != nil && sh.Class == nil && sh.App == nil:
@@ -78,34 +73,39 @@ func SchemaList(c *gin.Context, s *service.Service) {
 		if err != nil || len(schemaList) == 0 {
 			l.LogActivity("Error while retrieving schema list by slice", err)
 			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+			return
 		}
 		wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: schemaList, Messages: nil})
-	case sh.App != nil && sh.Class != nil:
+	case sh.App != nil && sh.Class != nil && sh.Slice == nil:
 		schemaList, err := query.SchemaListByAppAndClass(c, sqlc.SchemaListByAppAndClassParams{App: *sh.App, Class: *sh.Class})
 		if err != nil || len(schemaList) == 0 {
 			l.LogActivity("Error while retrieving schema list by app & class", err)
 			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+			return
 		}
 		wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: schemaList, Messages: nil})
-	case sh.App != nil && sh.Slice != nil:
+	case sh.App != nil && sh.Slice != nil && sh.Class == nil:
 		schemaList, err := query.SchemaListByAppAndSlice(c, sqlc.SchemaListByAppAndSliceParams{App: *sh.App, Slice: *sh.Slice})
 		if err != nil || len(schemaList) == 0 {
 			l.LogActivity("Error while retrieving schema list by app & slice", err)
 			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+			return
 		}
 		wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: schemaList, Messages: nil})
-	case sh.Class != nil && sh.Slice != nil:
+	case sh.Class != nil && sh.Slice != nil && sh.App == nil:
 		schemaList, err := query.SchemaListByClassAndSlice(c, sqlc.SchemaListByClassAndSliceParams{Class: *sh.Class, Slice: *sh.Slice})
 		if err != nil || len(schemaList) == 0 {
 			l.LogActivity("Error while retrieving schema list by class & slice", err)
 			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+			return
 		}
 		wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: schemaList, Messages: nil})
 	case sh.App != nil && sh.Class != nil && sh.Slice != nil:
 		Schema, err := query.SchemaGet(c, sqlc.SchemaGetParams{App: *sh.App, Class: *sh.Class, Slice: *sh.Slice})
-		if err != nil || Schema != nil {
+		if err != nil || Schema == nil {
 			l.LogActivity("Error while retrieving schema list by app, class & slice", err)
 			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+			return
 		}
 		wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: Schema, Messages: nil})
 

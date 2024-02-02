@@ -11,7 +11,7 @@ import (
 	"github.com/remiges-tech/crux/types"
 )
 
-type schemaGetReq struct {
+type SchemaGetReq struct {
 	Slice *int32  `json:"slice" validate:"required,gt=0"`
 	App   *string `json:"app" validate:"required,alpha"`
 	Class *string `json:"class" validate:"required,alpha"`
@@ -22,7 +22,7 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour
 	lh.Log("SchemaGet request received")
 
-	var request schemaGetReq
+	var request SchemaGetReq
 	err := wscutils.BindJSON(c, &request)
 	if err != nil {
 		lh.Debug0().LogActivity("error while binding json request error:", err.Error())
