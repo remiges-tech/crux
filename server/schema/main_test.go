@@ -113,7 +113,7 @@ func registerRoutes(pool *dockertest.Pool, databaseUrl string) (*gin.Engine, err
 	r := gin.Default()
 
 	// logger setup
-	fallbackWriter := logharbour.NewFallbackWriter(os.Stdout, os.Stdout)
+	fallbackWriter := logharbour.NewFallbackWriter(log.Writer(), os.Stdout)
 	lctx := logharbour.NewLoggerContext(logharbour.Info)
 	l := logharbour.NewLogger(lctx, "crux", fallbackWriter)
 
@@ -132,15 +132,15 @@ func registerRoutes(pool *dockertest.Pool, databaseUrl string) (*gin.Engine, err
 	}
 
 	// schema services
-	schemaSvc := service.NewService(r).
+	s := service.NewService(r).
 		WithLogHarbour(l).
 		WithDatabase(query)
 
-	schemaSvc.RegisterRoute(http.MethodGet, "/wfschemaget", SchemaList)
-	schemaSvc.RegisterRoute(http.MethodDelete, "/wfschemadelete", SchemaDelete)
-	schemaSvc.RegisterRoute(http.MethodPost, "/WFschemaList", SchemaList)
-	schemaSvc.RegisterRoute(http.MethodPost, "/WFschemaNew", SchemaNew)
-	schemaSvc.RegisterRoute(http.MethodPut, "/WFschemaUpdate", SchemaUpdate)
+	s.RegisterRoute(http.MethodGet, "/wfschemaget", SchemaGet)
+	s.RegisterRoute(http.MethodDelete, "/wfschemadelete", SchemaDelete)
+	s.RegisterRoute(http.MethodPost, "/wfschemList", SchemaList)
+	s.RegisterRoute(http.MethodPost, "/WFschemaNew", SchemaNew)
+	s.RegisterRoute(http.MethodPut, "/WFschemaUpdate", SchemaUpdate)
 
 	return r, nil
 
@@ -170,9 +170,6 @@ func ternMigrate(databaseUrl string) {
 	if err := m.LoadMigrations("./../../db/migrations/"); err != nil {
 		log.Fatal("Error loading data:", err)
 	}
-	// if err := m.LoadMigrations(filepath.Base("/db/migrations/002_insert_demo_data.sql")); err != nil {
-	// 	log.Fatal("Error loading data:", err)
-	// }
 	if err = m.Migrate(ctx); err != nil {
 		log.Fatal("Error loading data:", err)
 	}
