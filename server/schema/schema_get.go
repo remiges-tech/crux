@@ -22,11 +22,10 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour
 	lh.Log("SchemaGet request received")
 
-	// var response schemaGetResp
 	var request schemaGetReq
 	err := wscutils.BindJSON(c, &request)
 	if err != nil {
-		lh.Debug0().LogActivity("error while binding json request error:", err.Error)
+		lh.Debug0().LogActivity("error while binding json request error:", err.Error())
 		return
 	}
 
@@ -44,7 +43,7 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 	})
 	if err != nil {
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(types.RECORD_NOT_EXIST, nil)}))
-		lh.Debug0().LogActivity("failed to get data from DB:", err.Error)
+		lh.Debug0().LogActivity("failed to get data from DB:", err.Error())
 		return
 	}
 
