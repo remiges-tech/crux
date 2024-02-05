@@ -49,9 +49,9 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	query, ok := s.Database.(*sqlc.Queries)
+	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
-		l.Log("Error while getting query instance from service")
+		l.Log("Error while getting query instance from service Dependencies")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
 		return
 	}

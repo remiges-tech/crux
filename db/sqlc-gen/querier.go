@@ -27,6 +27,7 @@ type Querier interface {
 	SchemaListBySlice(ctx context.Context, slice int32) ([]SchemaListBySliceRow, error)
 	SchemaNew(ctx context.Context, arg SchemaNewParams) (int32, error)
 	SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) (int32, error)
+	UpdateSchemaWithLock(ctx context.Context, arg UpdateSchemaWithLockParams) (UpdateSchemaWithLockRow, error)
 	WfPatternSchemaGet(ctx context.Context, arg WfPatternSchemaGetParams) ([]byte, error)
 	Wfschemadelete(ctx context.Context, arg WfschemadeleteParams) error
 	Wfschemaget(ctx context.Context, arg WfschemagetParams) (WfschemagetRow, error)

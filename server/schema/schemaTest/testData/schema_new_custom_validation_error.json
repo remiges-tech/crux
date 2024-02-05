@@ -41,31 +41,6 @@
             "field": "attrSchema[1].Vals"
         },
         {
-            "msgid": 0,
-            "errcode": "empty",
-            "field": "attrSchema[1].Enumdesc"
-        },
-        {
-            "msgid": 0,
-            "errcode": "empty",
-            "field": "attrSchema[2].ValMin"
-        },
-        {
-            "msgid": 0,
-            "errcode": "empty",
-            "field": "attrSchema[2].ValMax"
-        },
-        {
-            "msgid": 0,
-            "errcode": "empty",
-            "field": "attrSchema[3].LenMin"
-        },
-        {
-            "msgid": 0,
-            "errcode": "empty",
-            "field": "attrSchema[3].LenMax"
-        },
-        {
             "msgid": 108,
             "errcode": "not_valid",
             "field": "attrSchema[4].ValType",

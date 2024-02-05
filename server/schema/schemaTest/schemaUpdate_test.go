@@ -51,7 +51,7 @@ func schemaUpdateTestcase() []testutils.TestCasesStruct {
 		log.Fatalln("Error unmarshalling JSON:", err)
 	}
 
-	cusValTestJson, err := testutils.ReadJsonFromFile("./testData/schema_new_custom_validation_payload.json")
+	cusValTestJson, err := testutils.ReadJsonFromFile("./testData/schema_update_custom_validation_payload.json")
 	if err != nil {
 		log.Fatalln("Error reading JSON file:", err)
 	}
@@ -104,7 +104,7 @@ func schemaUpdateTestcase() []testutils.TestCasesStruct {
 			},
 
 			ExpectedHttpCode: http.StatusBadRequest,
-			TestJsonFile:     "./testData/schema_new_custom_validation_error.json",
+			TestJsonFile:     "./testData/schema_update_custom_validation_error.json",
 		},
 		{
 			Name: "Success- Update schema",
