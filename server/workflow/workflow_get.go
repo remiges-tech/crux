@@ -11,8 +11,8 @@ import (
 	"github.com/remiges-tech/crux/types"
 )
 
-type workflowGetReq struct {
-	Slice *int32  `json:"slice" validate:"required"`
+type WorkflowGetReq struct {
+	Slice *int32  `json:"slice" validate:"required,gt=0"`
 	App   *string `json:"app" validate:"required,alpha"`
 	Class *string `json:"class" validate:"required,alpha"`
 	Name  *string `json:"name" validate:"required,alpha"`
@@ -24,14 +24,14 @@ func WorkflowGet(c *gin.Context, s *service.Service) {
 	lh.Log("WorkflowGet request received")
 
 	// var response schemaGetResp
-	var request workflowGetReq
+	var request WorkflowGetReq
 	err := wscutils.BindJSON(c, &request)
 	if err != nil {
 		lh.Debug0().LogActivity("error while binding json request error:", err.Error)
 		return
 	}
 
-	valError := wscutils.WscValidate(request, getValsForWorkflowGetReqError)
+	valError := wscutils.WscValidate(request, func(err validator.FieldError) []string { return []string{} })
 	if len(valError) > 0 {
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, valError))
 		lh.Debug0().LogActivity("validation error:", valError)
@@ -52,9 +52,4 @@ func WorkflowGet(c *gin.Context, s *service.Service) {
 
 	lh.Log(fmt.Sprintf("Record found: %v", map[string]any{"response": dbResponse}))
 	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(dbResponse))
-}
-
-func getValsForWorkflowGetReqError(err validator.FieldError) []string {
-	// validationErrorVals := types.GetErrorValidationMapByAPIName("WorkflowGet")
-	return types.CommonValidation(err)
 }
