@@ -80,13 +80,91 @@ func schemaListTestcase() []testutils.TestCasesStruct {
 			TestJsonFile:     "./testData/schema_list_validation_error.json",
 		},
 		{
-			Name: "Success- get schema",
+			Name: "Success- get schema by app slice class",
 			RequestPayload: wscutils.Request{
 				Data: schema.SchemaListStruct{
 					Slice: &slice1,
 					App:   &app1,
 					Class: &class1,
 				},
+			},
+
+			ExpectedHttpCode: http.StatusOK,
+			TestJsonFile:     "./testData/schema_list_by_app_class_slice.json",
+		},
+		{
+			Name: "Success- get schema by app",
+			RequestPayload: wscutils.Request{
+				Data: schema.SchemaListStruct{
+					App: &app1,
+				},
+			},
+
+			ExpectedHttpCode: http.StatusOK,
+			TestJsonFile:     "./testData/schema_list_by_app.json",
+		},
+		{
+			Name: "Success- get schema by slice",
+			RequestPayload: wscutils.Request{
+				Data: schema.SchemaListStruct{
+					Slice: &slice1,
+				},
+			},
+
+			ExpectedHttpCode: http.StatusOK,
+			TestJsonFile:     "./testData/schema_list_by_slice.json",
+		},
+		{
+			Name: "Success- get schema by class",
+			RequestPayload: wscutils.Request{
+				Data: schema.SchemaListStruct{
+					Class: &class1,
+				},
+			},
+
+			ExpectedHttpCode: http.StatusOK,
+			TestJsonFile:     "./testData/schema_list_by_class.json",
+		},
+		{
+			Name: "Success- get schema by app slice",
+			RequestPayload: wscutils.Request{
+				Data: schema.SchemaListStruct{
+					Slice: &slice1,
+					App:   &app1,
+				},
+			},
+
+			ExpectedHttpCode: http.StatusOK,
+			TestJsonFile:     "./testData/schema_list_by_app_slice.json",
+		},
+		{
+			Name: "Success- get schema by slice class",
+			RequestPayload: wscutils.Request{
+				Data: schema.SchemaListStruct{
+					Slice: &slice1,
+					Class: &class1,
+				},
+			},
+
+			ExpectedHttpCode: http.StatusOK,
+			TestJsonFile:     "./testData/schema_list_by_class_slice.json",
+		},
+		{
+			Name: "Success- get schema by app class",
+			RequestPayload: wscutils.Request{
+				Data: schema.SchemaListStruct{
+					App:   &app1,
+					Class: &class1,
+				},
+			},
+
+			ExpectedHttpCode: http.StatusOK,
+			TestJsonFile:     "./testData/schema_list_by_app_class.json",
+		},
+		{
+			Name: "Success- get schema list",
+			RequestPayload: wscutils.Request{
+				Data: schema.SchemaListStruct{},
 			},
 
 			ExpectedHttpCode: http.StatusOK,

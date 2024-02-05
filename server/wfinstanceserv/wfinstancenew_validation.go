@@ -165,7 +165,7 @@ func validateRequest(r WFInstanceNewRequest, s *service.Service, c *gin.Context)
 }
 
 // validate entity
-func validateEntity(e Entity, ps *types.Patternschema, s *service.Service) (bool, error) {
+func validateEntity(e Entity, ps *types.PatternSchema, s *service.Service) (bool, error) {
 
 	// Check if the entity class matches the expected class from the schema
 	if e.Class != ps.Class {
@@ -187,7 +187,7 @@ func validateEntity(e Entity, ps *types.Patternschema, s *service.Service) (bool
 }
 
 // To get type of request entity attributes
-func getType(ps types.Patternschema, name string) string {
+func getType(ps types.PatternSchema, name string) string {
 	for _, as := range ps.Attr {
 		if as.Name == name {
 			return as.ValType
@@ -220,11 +220,11 @@ func convertEntityAttrVal(entityAttrVal string, valType string) (any, error) {
 }
 
 // To convert byte data to patternschema struct
-func byteToPatternSchema(byteData []byte) (*types.Patternschema, error) {
-	var response *types.Patternschema
+func byteToPatternSchema(byteData []byte) (*types.PatternSchema, error) {
+	var response *types.PatternSchema
 	err := json.Unmarshal(byteData, &response)
 	if err != nil {
-		return nil, fmt.Errorf("Error decoding JSON: %v", err)
+		return nil, fmt.Errorf("error decoding JSON: %v", err)
 	}
 	return response, nil
 }

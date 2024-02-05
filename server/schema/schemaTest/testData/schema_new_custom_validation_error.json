@@ -1,0 +1,93 @@
+{
+    "status": "error",
+    "data": null,
+    "messages": [
+        {
+            "msgid": 101,
+            "errcode": "gt",
+            "field": "Slice"
+        },
+        {
+            "msgid": 105,
+            "errcode": "alpha",
+            "field": "App"
+        },
+        {
+            "msgid": 107,
+            "errcode": "lowercase",
+            "field": "Class"
+        },
+        {
+            "msgid": 107,
+            "errcode": "lowercase",
+            "field": "Class"
+        },
+        {
+            "msgid": 107,
+            "errcode": "lowercase",
+            "field": "Class"
+        },
+        {
+            "msgid": 108,
+            "errcode": "not_valid",
+            "field": "attrSchema[1].Name",
+            "vals": [
+                "cat$"
+            ]
+        },
+        {
+            "msgid": 0,
+            "errcode": "empty",
+            "field": "attrSchema[1].Vals"
+        },
+        {
+            "msgid": 0,
+            "errcode": "empty",
+            "field": "attrSchema[1].Enumdesc"
+        },
+        {
+            "msgid": 0,
+            "errcode": "empty",
+            "field": "attrSchema[2].ValMin"
+        },
+        {
+            "msgid": 0,
+            "errcode": "empty",
+            "field": "attrSchema[2].ValMax"
+        },
+        {
+            "msgid": 0,
+            "errcode": "empty",
+            "field": "attrSchema[3].LenMin"
+        },
+        {
+            "msgid": 0,
+            "errcode": "empty",
+            "field": "attrSchema[3].LenMax"
+        },
+        {
+            "msgid": 108,
+            "errcode": "not_valid",
+            "field": "attrSchema[4].ValType",
+            "vals": [
+                "ints"
+            ]
+        },
+        {
+            "msgid": 108,
+            "errcode": "not_valid",
+            "field": "actionSchema.Tasks[0]",
+            "vals": [
+                "invitefordiwali!"
+            ]
+        },
+        {
+            "msgid": 108,
+            "errcode": "not_valid",
+            "field": "actionSchema.Properties[0]",
+            "vals": [
+                "discount!"
+            ]
+        }
+    ]
+}

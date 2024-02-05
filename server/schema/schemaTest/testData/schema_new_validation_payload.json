@@ -2,6 +2,10 @@
     "slice": -1,
     "app": "retailBANK1",
     "class": "Custonboarding",
-    "patternschema": {},
-    "actionschema": {}
+    "patternSchema": {
+        "attr": [
+            {}
+        ]
+    },
+    "actionSchema": {}
 }

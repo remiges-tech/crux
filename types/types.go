@@ -41,29 +41,29 @@ type QualifiedCap struct {
 
 type Capabilities struct {
 	Name          string         `json:"name"` //either user name or group name
-	QualifiedCaps []QualifiedCap `json:"qualifiedcaps"`
+	QualifiedCaps []QualifiedCap `json:"qualifiedCaps"`
 }
 
 type Attribute struct {
 	Name      string   `json:"name" validate:"required"`
-	ShortName string   `json:"shortname" validate:"required"`
+	ShortDesc string   `json:"shortdesc" validate:"required"`
 	LongDesc  string   `json:"longdesc" validate:"required"`
 	ValType   string   `json:"valtype" validate:"required"`
 	Vals      []string `json:"vals,omitempty"`
 	Enumdesc  []string `json:"enumdesc,omitempty"`
-	ValMax    int32    `json:"valmax,omitempty"`
-	ValMin    int32    `json:"valmin,omitempty"`
-	LenMax    int32    `json:"lemmax,omitempty"`
-	LenMin    int32    `json:"lenmin,omitempty"`
+	ValMax    *int32   `json:"valmax,omitempty"`
+	ValMin    *int32   `json:"valmin,omitempty"`
+	LenMax    *int32   `json:"lenmax,omitempty"`
+	LenMin    *int32   `json:"lenmin,omitempty"`
 }
-type Patternschema struct {
-	Class string      `json:"class" validate:"required"`
-	Attr  []Attribute `json:"attr"`
+type PatternSchema struct {
+	Class string      `json:"class" validate:"required,lowercase"`
+	Attr  []Attribute `json:"attr" validate:"required,dive"`
 }
 
-type Actionschema struct {
-	Class      string   `json:"class" validate:"required"`
-	Task       []string `json:"tasks" validate:"required"`
+type ActionSchema struct {
+	Class      string   `json:"class" validate:"required,lowercase"`
+	Tasks      []string `json:"tasks" validate:"required"`
 	Properties []string `json:"properties" validate:"required"`
 }
 
