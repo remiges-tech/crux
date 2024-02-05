@@ -18,7 +18,7 @@ const (
 	OPERATION_FAILED             = "operation_failed"
 )
 
-var APP, SLICE, CLASS string = "App", "Slice", "Class"
+var APP, SLICE, CLASS, NAME string = "App", "Slice", "Class", "Name"
 
 type Environment string
 
