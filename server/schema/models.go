@@ -6,8 +6,8 @@ type Schema struct {
 	Slice         int32               `json:"slice" validate:"required,gt=0"`
 	App           string              `json:"App" validate:"required,alpha"`
 	Class         string              `json:"class" validate:"required,lowercase"`
-	Patternschema types.Patternschema `json:"patternschema"`
-	Actionschema  types.Actionschema  `json:"actionschema"`
+	PatternSchema types.PatternSchema `json:"patternSchema"`
+	ActionSchema  types.ActionSchema  `json:"actionSchema"`
 }
 
 type SchemaListStruct struct {

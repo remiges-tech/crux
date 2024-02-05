@@ -51,12 +51,21 @@ func schemaUpdateTestcase() []testutils.TestCasesStruct {
 		log.Fatalln("Error unmarshalling JSON:", err)
 	}
 
+	cusValTestJson, err := testutils.ReadJsonFromFile("./testData/schema_new_custom_validation_payload.json")
+	if err != nil {
+		log.Fatalln("Error reading JSON file:", err)
+	}
+	var cusValPayload schema.Schema
+	if err := json.Unmarshal(cusValTestJson, &cusValPayload); err != nil {
+		log.Fatalln("Error unmarshalling JSON:", err)
+	}
+
 	successTestJson, err := testutils.ReadJsonFromFile("./testData/schema_update_success_payload.json")
 	if err != nil {
 		log.Fatalln("Error reading JSON file:", err)
 	}
-	var successpayload schema.Schema
-	if err := json.Unmarshal(successTestJson, &successpayload); err != nil {
+	var successPayload schema.Schema
+	if err := json.Unmarshal(successTestJson, &successPayload); err != nil {
 		log.Fatalln("Error unmarshalling JSON:", err)
 	}
 
@@ -80,7 +89,7 @@ func schemaUpdateTestcase() []testutils.TestCasesStruct {
 			},
 		},
 		{
-			Name: "err- validation",
+			Name: "err- standard validation",
 			RequestPayload: wscutils.Request{
 				Data: payload,
 			},
@@ -89,9 +98,18 @@ func schemaUpdateTestcase() []testutils.TestCasesStruct {
 			TestJsonFile:     "./testData/schema_update_validation_error.json",
 		},
 		{
+			Name: "err- custom validation",
+			RequestPayload: wscutils.Request{
+				Data: cusValPayload,
+			},
+
+			ExpectedHttpCode: http.StatusBadRequest,
+			TestJsonFile:     "./testData/schema_new_custom_validation_error.json",
+		},
+		{
 			Name: "Success- Update schema",
 			RequestPayload: wscutils.Request{
-				Data: successpayload,
+				Data: successPayload,
 			},
 
 			ExpectedHttpCode: http.StatusOK,
