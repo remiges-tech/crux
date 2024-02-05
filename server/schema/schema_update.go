@@ -43,6 +43,8 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 
 	// Validate request
 	validationErrors := wscutils.WscValidate(sh, func(err validator.FieldError) []string { return []string{} })
+	customValidationErrors := customValidationErrors(sh)
+	validationErrors = append(validationErrors, customValidationErrors...)
 	if len(validationErrors) > 0 {
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
 		return
@@ -54,19 +56,22 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
 		return
 	}
-	paternSchema, err := json.Marshal(sh.Patternschema)
+	patternSchema, err := json.Marshal(sh.PatternSchema)
 	if err != nil {
-		l.LogDebug("Error while marshaling paternSchema", err)
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse("MarshalJSON"))
+		patternSchema := "patternSchema"
+		l.LogDebug("Error while marshaling patternSchema", err)
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(wscutils.ErrcodeInvalidJson, &patternSchema)}))
 		return
 	}
-	actionschema, err := json.Marshal(sh.Actionschema)
+
+	actionSchema, err := json.Marshal(sh.ActionSchema)
 	if err != nil {
-		l.LogDebug("Error while marshaling actionschema", err)
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse("MarshalJSON"))
+		actionSchema := "actionSchema"
+		l.LogDebug("Error while marshaling actionSchema", err)
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(wscutils.ErrcodeInvalidJson, &actionSchema)}))
 		return
 	}
-	_, err = query.SchemaUpdate(c, sqlc.SchemaUpdateParams{Slice: sh.Slice, Class: sh.Class, App: sh.App, Patternschema: paternSchema, Actionschema: actionschema, Editedby: editedBy})
+	_, err = query.SchemaUpdate(c, sqlc.SchemaUpdateParams{Slice: sh.Slice, Class: sh.Class, App: sh.App, Patternschema: patternSchema, Actionschema: actionSchema, Editedby: editedBy})
 	if err != nil {
 		l.LogActivity("Error while Updating schema", err.Error())
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
@@ -79,11 +84,11 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 			{
 				Field:    "patternSchema",
 				OldValue: "",
-				NewValue: paternSchema},
+				NewValue: patternSchema},
 			{
-				Field:    "actionschema",
+				Field:    "actionSchema",
 				OldValue: "",
-				NewValue: actionschema},
+				NewValue: actionSchema},
 		},
 	})
 	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: "updated successfully", Messages: nil})

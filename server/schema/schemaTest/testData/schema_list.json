@@ -3,6 +3,18 @@
     "data": [
         {
             "slice": 1,
+            "descr": "Stock Market",
+            "app": "retailBANK",
+            "longname": "retailbank pvt ltd",
+            "class": "tempclass",
+            "createdby": "Olly Gerrish",
+            "createdat": "2022-12-24T19:38:52Z",
+            "editedby": "Ronni Matson",
+            "editedat": "2021-04-28T20:39:09Z"
+        },
+        {
+            "slice": 1,
+            "descr": "Stock Market",
             "app": "retailBANK",
             "longname": "retailbank pvt ltd",
             "class": "custonboarding",
@@ -10,6 +22,50 @@
             "createdat": "2020-08-25T13:17:49Z",
             "editedby": "Spencer Jaffra",
             "editedat": "2021-01-22T15:53:49Z"
+        },
+        {
+            "slice": 1,
+            "descr": "Stock Market",
+            "app": "retailbank",
+            "longname": "retailbank pvt ltd",
+            "class": "custonboarding",
+            "createdby": "Mal Houndsom",
+            "createdat": "2022-12-26T09:03:46Z",
+            "editedby": "Clerc Careless",
+            "editedat": "2023-07-12T01:33:32Z"
+        },
+        {
+            "slice": 2,
+            "descr": "Stock Market",
+            "app": "retailBANK",
+            "longname": "retailbank pvt ltd",
+            "class": "custon",
+            "createdby": "Marigold Sherwin",
+            "createdat": "2020-03-10T12:06:40Z",
+            "editedby": "Brunhilde Bampkin",
+            "editedat": "2023-10-21T17:39:11Z"
+        },
+        {
+            "slice": 2,
+            "descr": "Stock Market",
+            "app": "retailBANK",
+            "longname": "retailbank pvt ltd",
+            "class": "custonboarding",
+            "createdby": "Adelaide Reape",
+            "createdat": "2023-01-27T12:12:15Z",
+            "editedby": "Imogene Iaduccelli",
+            "editedat": "2023-01-04T22:00:12Z"
+        },
+        {
+            "slice": 2,
+            "descr": "Stock Market",
+            "app": "nedbank",
+            "longname": "nedbank from canada",
+            "class": "custonboarding",
+            "createdby": "Marielle Strongitharm",
+            "createdat": "2021-01-03T06:02:41Z",
+            "editedby": "Therese Roselli",
+            "editedat": "2021-06-07T02:28:17Z"
         }
     ],
     "messages": null
