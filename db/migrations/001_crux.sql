@@ -1,3 +1,5 @@
+drop type IF EXISTS brwf_enum CASCADE;
+
 CREATE TABLE realm (
     id SERIAL PRIMARY KEY,
     shortname varchar(255) UNIQUE NOT NULL CHECK (shortname ~ '^[a-zA-Z0-9]+$'),
@@ -137,6 +139,5 @@ drop table schema;
 
 drop table ruleset;
 
-drop type IF EXISTS brwf_enum CASCADE;
 
 drop table wfinstance;
