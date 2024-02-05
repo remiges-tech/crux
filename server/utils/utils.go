@@ -37,41 +37,6 @@ func VerifyPatternSchema(ps types.PatternSchema) []wscutils.ErrorMessage {
 			vErr := wscutils.BuildErrorMessage("empty", &fieldName)
 			validationErrors = append(validationErrors, vErr)
 		}
-		if attrSchema.ValType == "enum" && len(attrSchema.Enumdesc) == 0 {
-			fieldName := fmt.Sprintf("attrSchema[%d].Enumdesc", i)
-			vErr := wscutils.BuildErrorMessage("empty", &fieldName)
-			validationErrors = append(validationErrors, vErr)
-		}
-		if attrSchema.ValType == "int" && attrSchema.ValMin == nil {
-			fieldName := fmt.Sprintf("attrSchema[%d].ValMin", i)
-			vErr := wscutils.BuildErrorMessage("empty", &fieldName)
-			validationErrors = append(validationErrors, vErr)
-		}
-		if attrSchema.ValType == "int" && attrSchema.ValMax == nil {
-			fieldName := fmt.Sprintf("attrSchema[%d].ValMax", i)
-			vErr := wscutils.BuildErrorMessage("empty", &fieldName)
-			validationErrors = append(validationErrors, vErr)
-		}
-		if attrSchema.ValType == "float" && attrSchema.ValMin == nil {
-			fieldName := fmt.Sprintf("attrSchema[%d].ValMin", i)
-			vErr := wscutils.BuildErrorMessage("empty", &fieldName)
-			validationErrors = append(validationErrors, vErr)
-		}
-		if attrSchema.ValType == "float" && attrSchema.ValMax == nil {
-			fieldName := fmt.Sprintf("attrSchema[%d].ValMax", i)
-			vErr := wscutils.BuildErrorMessage("empty", &fieldName)
-			validationErrors = append(validationErrors, vErr)
-		}
-		if attrSchema.ValType == "str" && attrSchema.LenMin == nil {
-			fieldName := fmt.Sprintf("attrSchema[%d].LenMin", i)
-			vErr := wscutils.BuildErrorMessage("empty", &fieldName)
-			validationErrors = append(validationErrors, vErr)
-		}
-		if attrSchema.ValType == "str" && attrSchema.LenMax == nil {
-			fieldName := fmt.Sprintf("attrSchema[%d].LenMax", i)
-			vErr := wscutils.BuildErrorMessage("empty", &fieldName)
-			validationErrors = append(validationErrors, vErr)
-		}
 	}
 	return validationErrors
 }

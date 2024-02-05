@@ -14,6 +14,7 @@ import (
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	pg "github.com/remiges-tech/crux/db"
+	"github.com/remiges-tech/crux/db/sqlc-gen"
 	"github.com/remiges-tech/crux/server/schema"
 	"github.com/remiges-tech/crux/server/wfinstanceserv"
 	"github.com/remiges-tech/crux/server/workflow"
@@ -23,13 +24,8 @@ import (
 )
 
 func main() {
-
-	logFile, err := os.OpenFile("log.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		log.Fatal(err)
-	}
 	// logger setup
-	fallbackWriter := logharbour.NewFallbackWriter(logFile, os.Stdout)
+	fallbackWriter := logharbour.NewFallbackWriter(os.Stdout, os.Stdout)
 	lctx := logharbour.NewLoggerContext(logharbour.Info)
 	l := logharbour.NewLogger(lctx, "crux", fallbackWriter)
 
@@ -105,11 +101,12 @@ func main() {
 
 	// Database connection
 	connURL := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", dbHost, dbPort, dbUser, dbPassword, dbName)
-	db, err := pg.NewProvider(connURL)
+	connPool, err := pg.NewProvider(connURL)
 	if err != nil {
 		l.LogActivity("Error while establishes a connection with database", err)
 		log.Fatalln("Failed to establishes a connection with database", err)
 	}
+	queries := sqlc.New(connPool)
 
 	// router
 	r := gin.Default()
@@ -119,7 +116,8 @@ func main() {
 	// schema services
 	s := service.NewService(r).
 		WithLogHarbour(l).
-		WithDatabase(db)
+		WithDatabase(connPool).
+		WithDependency("queries", queries)
 
 	apiV1Group := r.Group("/api/v1/")
 

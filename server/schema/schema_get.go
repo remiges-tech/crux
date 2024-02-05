@@ -35,8 +35,13 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 		lh.Debug0().LogActivity("validation error:", valError)
 		return
 	}
-
-	dbResponse, err := s.Database.(*sqlc.Queries).Wfschemaget(c, sqlc.WfschemagetParams{
+	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
+	if !ok {
+		lh.Log("Error while getting query instance from service Dependencies")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+		return
+	}
+	dbResponse, err := query.Wfschemaget(c, sqlc.WfschemagetParams{
 		Slice: *request.Slice,
 		App:   *request.App,
 		Class: *request.Class,

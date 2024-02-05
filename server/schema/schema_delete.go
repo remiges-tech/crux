@@ -30,8 +30,13 @@ func SchemaDelete(c *gin.Context, s *service.Service) {
 		lh.Debug0().LogActivity("validation error:", valError)
 		return
 	}
-
-	err = s.Database.(*sqlc.Queries).Wfschemadelete(c, sqlc.WfschemadeleteParams{
+	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
+	if !ok {
+		lh.Log("Error while getting query instance from service Dependencies")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+		return
+	}
+	err = query.Wfschemadelete(c, sqlc.WfschemadeleteParams{
 		Slice: *request.Slice,
 		App:   *request.App,
 		Class: *request.Class,

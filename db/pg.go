@@ -4,10 +4,9 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/remiges-tech/crux/db/sqlc-gen"
 )
 
-func NewProvider(connString string) (sqlc.Querier, error) {
+func NewProvider(connString string) (*pgxpool.Pool, error) {
 	ctx := context.Background()
 	connPool, err := pgxpool.New(ctx, connString)
 	if err != nil {
@@ -17,5 +16,5 @@ func NewProvider(connString string) (sqlc.Querier, error) {
 	if err != nil {
 		return nil, err
 	}
-	return sqlc.New(connPool), nil
+	return connPool, err
 }

@@ -6,7 +6,6 @@ import (
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 
-	// "github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 )
 
@@ -44,10 +43,10 @@ func SchemaList(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
 		return
 	}
-	query, ok := s.Database.(*sqlc.Queries)
+	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
-		l.Log("Error while getting query instance from service")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse("unable_to_get_database_query"))
+		l.Log("Error while getting query instance from service Dependencies")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
 		return
 	}
 
@@ -102,7 +101,7 @@ func SchemaList(c *gin.Context, s *service.Service) {
 		wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: schemaList, Messages: nil})
 	case sh.App != nil && sh.Class != nil && sh.Slice != nil:
 		Schema, err := query.SchemaGet(c, sqlc.SchemaGetParams{App: *sh.App, Class: *sh.Class, Slice: *sh.Slice})
-		if err != nil || Schema == nil {
+		if err != nil {
 			l.LogActivity("Error while retrieving schema list by app, class & slice", err)
 			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
 			return
