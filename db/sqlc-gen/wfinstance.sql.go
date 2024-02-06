@@ -9,6 +9,39 @@ import (
 	"context"
 )
 
+const addWFNewInstace = `-- name: AddWFNewInstace :one
+INSERT INTO 
+wfinstance
+(entityid,slice, app, class, workflow, step,loggedat, nextstep)
+VALUES ($1,$2,$3,$4,$5,$6,(NOW() :: timestamp),$7) 
+RETURNING id
+`
+
+type AddWFNewInstaceParams struct {
+	Entityid string `json:"entityid"`
+	Slice    int32  `json:"slice"`
+	App      string `json:"app"`
+	Class    string `json:"class"`
+	Workflow string `json:"workflow"`
+	Step     string `json:"step"`
+	Nextstep string `json:"nextstep"`
+}
+
+func (q *Queries) AddWFNewInstace(ctx context.Context, arg AddWFNewInstaceParams) (int32, error) {
+	row := q.db.QueryRow(ctx, addWFNewInstace,
+		arg.Entityid,
+		arg.Slice,
+		arg.App,
+		arg.Class,
+		arg.Workflow,
+		arg.Step,
+		arg.Nextstep,
+	)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
+}
+
 const getWFINstance = `-- name: GetWFINstance :many
 
 SELECT id, entityid, slice, app, class, workflow, step, loggedat, doneat, nextstep, parent 

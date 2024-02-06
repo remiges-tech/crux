@@ -11,6 +11,7 @@ import (
 )
 
 type Querier interface {
+	AddWFNewInstace(ctx context.Context, arg AddWFNewInstaceParams) (int32, error)
 	GetApp(ctx context.Context, arg GetAppParams) (string, error)
 	GetClass(ctx context.Context, arg GetClassParams) (string, error)
 	GetWFActiveStatus(ctx context.Context, arg GetWFActiveStatusParams) (pgtype.Bool, error)
