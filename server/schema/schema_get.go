@@ -12,9 +12,9 @@ import (
 )
 
 type SchemaGetReq struct {
-	Slice *int32  `json:"slice" validate:"required,gt=0"`
-	App   *string `json:"app" validate:"required,alpha"`
-	Class *string `json:"class" validate:"required,alpha"`
+	Slice int32  `json:"slice" validate:"required,gt=0"`
+	App   string `json:"app" validate:"required,alpha"`
+	Class string `json:"class" validate:"required,alpha"`
 }
 
 // SchemaGet will be responsible for processing the /wfschemaget request that comes through as a POST
@@ -23,12 +23,14 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 	lh.Log("SchemaGet request received")
 
 	var request SchemaGetReq
+	// step 1: json request binding with a struct
 	err := wscutils.BindJSON(c, &request)
 	if err != nil {
 		lh.Debug0().LogActivity("error while binding json request error:", err.Error())
 		return
 	}
 
+	// step 2: standard validation
 	valError := wscutils.WscValidate(request, func(err validator.FieldError) []string { return []string{} })
 	if len(valError) > 0 {
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, valError))
@@ -42,9 +44,9 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 		return
 	}
 	dbResponse, err := query.Wfschemaget(c, sqlc.WfschemagetParams{
-		Slice: *request.Slice,
-		App:   *request.App,
-		Class: *request.Class,
+		Slice: request.Slice,
+		App:   request.App,
+		Class: request.Class,
 	})
 	if err != nil {
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(types.RECORD_NOT_EXIST, nil)}))
