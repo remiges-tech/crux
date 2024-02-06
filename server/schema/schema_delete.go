@@ -37,9 +37,9 @@ func SchemaDelete(c *gin.Context, s *service.Service) {
 		return
 	}
 	err = query.Wfschemadelete(c, sqlc.WfschemadeleteParams{
-		Slice: *request.Slice,
-		App:   *request.App,
-		Class: *request.Class,
+		Slice: request.Slice,
+		App:   request.App,
+		Class: request.Class,
 	})
 	if err != nil {
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(types.OPERATION_FAILED, nil)}))

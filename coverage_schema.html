@@ -586,8 +586,18 @@ func (q *Queries) SchemaGet(ctx context.Context, arg SchemaGetParams) ([]SchemaG
 }
 
 const schemaList = `-- name: SchemaList :many
-SELECT schema.slice, realmslice.descr, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
-FROM schema
+SELECT
+    schema.slice,
+    realmslice.descr,
+    schema.app,
+    app.longname,
+    schema.class,
+    schema.createdby,
+    schema.createdat,
+    schema.editedby,
+    schema.editedat
+FROM
+    schema
     JOIN app ON schema.app = app.shortname
     JOIN realmslice on schema.slice = realmslice.id
 `
@@ -635,8 +645,18 @@ func (q *Queries) SchemaList(ctx context.Context) ([]SchemaListRow, error) <span
 }
 
 const schemaListByApp = `-- name: SchemaListByApp :many
-SELECT schema.slice, realmslice.descr, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
-FROM schema
+SELECT
+    schema.slice,
+    realmslice.descr,
+    schema.app,
+    app.longname,
+    schema.class,
+    schema.createdby,
+    schema.createdat,
+    schema.editedby,
+    schema.editedat
+FROM
+    schema
     JOIN app ON schema.app = app.shortname
     JOIN realmslice on schema.slice = realmslice.id
 WHERE
@@ -686,8 +706,17 @@ func (q *Queries) SchemaListByApp(ctx context.Context, app string) ([]SchemaList
 }
 
 const schemaListByAppAndClass = `-- name: SchemaListByAppAndClass :many
-SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
-FROM schema
+SELECT
+    schema.slice,
+    schema.app,
+    app.longname,
+    schema.class,
+    schema.createdby,
+    schema.createdat,
+    schema.editedby,
+    schema.editedat
+FROM
+    schema
     JOIN app ON schema.app = app.shortname
     JOIN realmslice on schema.slice = realmslice.id
 WHERE
@@ -741,8 +770,17 @@ func (q *Queries) SchemaListByAppAndClass(ctx context.Context, arg SchemaListByA
 }
 
 const schemaListByAppAndSlice = `-- name: SchemaListByAppAndSlice :many
-SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
-FROM schema
+SELECT
+    schema.slice,
+    schema.app,
+    app.longname,
+    schema.class,
+    schema.createdby,
+    schema.createdat,
+    schema.editedby,
+    schema.editedat
+FROM
+    schema
     JOIN app ON schema.app = app.shortname
     JOIN realmslice on schema.slice = realmslice.id
 WHERE
@@ -796,8 +834,17 @@ func (q *Queries) SchemaListByAppAndSlice(ctx context.Context, arg SchemaListByA
 }
 
 const schemaListByClass = `-- name: SchemaListByClass :many
-SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
-FROM schema
+SELECT
+    schema.slice,
+    schema.app,
+    app.longname,
+    schema.class,
+    schema.createdby,
+    schema.createdat,
+    schema.editedby,
+    schema.editedat
+FROM
+    schema
     JOIN app ON schema.app = app.shortname
     JOIN realmslice on schema.slice = realmslice.id
 WHERE
@@ -845,8 +892,17 @@ func (q *Queries) SchemaListByClass(ctx context.Context, class string) ([]Schema
 }
 
 const schemaListByClassAndSlice = `-- name: SchemaListByClassAndSlice :many
-SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
-FROM schema
+SELECT
+    schema.slice,
+    schema.app,
+    app.longname,
+    schema.class,
+    schema.createdby,
+    schema.createdat,
+    schema.editedby,
+    schema.editedat
+FROM
+    schema
     JOIN app ON schema.app = app.shortname
     JOIN realmslice on schema.slice = realmslice.id
 WHERE
@@ -900,8 +956,17 @@ func (q *Queries) SchemaListByClassAndSlice(ctx context.Context, arg SchemaListB
 }
 
 const schemaListBySlice = `-- name: SchemaListBySlice :many
-SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
-FROM schema
+SELECT
+    schema.slice,
+    schema.app,
+    app.longname,
+    schema.class,
+    schema.createdby,
+    schema.createdat,
+    schema.editedby,
+    schema.editedat
+FROM
+    schema
     JOIN app ON schema.app = app.shortname
     JOIN realmslice on schema.slice = realmslice.id
 WHERE
@@ -1073,8 +1138,10 @@ func (q *Queries) UpdateSchemaWithLock(ctx context.Context, arg UpdateSchemaWith
 }</span>
 
 const wfPatternSchemaGet = `-- name: WfPatternSchemaGet :one
-SELECT patternschema
-FROM public.schema
+SELECT
+    patternschema
+FROM
+    public.schema
 WHERE
     slice = $1
     AND class = $2
@@ -1095,11 +1162,16 @@ func (q *Queries) WfPatternSchemaGet(ctx context.Context, arg WfPatternSchemaGet
 }</span>
 
 const wfschemadelete = `-- name: Wfschemadelete :exec
-DELETE from schema
+DELETE from
+    schema
 where
     id in (
-        SELECT a.id
-        FROM schema as a, realm as b, realmslice as c
+        SELECT
+            a.id
+        FROM
+            schema as a,
+            realm as b,
+            realmslice as c
         WHERE
             a.realm = b.id
             and a.slice = c.id
@@ -1276,9 +1348,9 @@ func SchemaDelete(c *gin.Context, s *service.Service) <span class="cov8" title="
                 return
         }</span>
         <span class="cov8" title="1">err = query.Wfschemadelete(c, sqlc.WfschemadeleteParams{
-                Slice: *request.Slice,
-                App:   *request.App,
-                Class: *request.Class,
+                Slice: request.Slice,
+                App:   request.App,
+                Class: request.Class,
         })
         if err != nil </span><span class="cov0" title="0">{
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(types.OPERATION_FAILED, nil)}))
@@ -1306,9 +1378,9 @@ import (
 )
 
 type SchemaGetReq struct {
-        Slice *int32  `json:"slice" validate:"required,gt=0"`
-        App   *string `json:"app" validate:"required,alpha"`
-        Class *string `json:"class" validate:"required,alpha"`
+        Slice int32  `json:"slice" validate:"required,gt=0"`
+        App   string `json:"app" validate:"required,alpha"`
+        Class string `json:"class" validate:"required,alpha"`
 }
 
 // SchemaGet will be responsible for processing the /wfschemaget request that comes through as a POST
@@ -1317,12 +1389,14 @@ func SchemaGet(c *gin.Context, s *service.Service) <span class="cov8" title="1">
         lh.Log("SchemaGet request received")
 
         var request SchemaGetReq
+        // step 1: json request binding with a struct
         err := wscutils.BindJSON(c, &amp;request)
         if err != nil </span><span class="cov0" title="0">{
                 lh.Debug0().LogActivity("error while binding json request error:", err.Error())
                 return
         }</span>
 
+        // step 2: standard validation
         <span class="cov8" title="1">valError := wscutils.WscValidate(request, func(err validator.FieldError) []string </span><span class="cov8" title="1">{ return []string{} }</span>)
         <span class="cov8" title="1">if len(valError) &gt; 0 </span><span class="cov8" title="1">{
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, valError))
@@ -1336,9 +1410,9 @@ func SchemaGet(c *gin.Context, s *service.Service) <span class="cov8" title="1">
                 return
         }</span>
         <span class="cov8" title="1">dbResponse, err := query.Wfschemaget(c, sqlc.WfschemagetParams{
-                Slice: *request.Slice,
-                App:   *request.App,
-                Class: *request.Class,
+                Slice: request.Slice,
+                App:   request.App,
+                Class: request.Class,
         })
         if err != nil </span><span class="cov0" title="0">{
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(types.RECORD_NOT_EXIST, nil)}))

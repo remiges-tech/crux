@@ -51,7 +51,7 @@ func workflowGetTestCase() []TestCasesStruct {
 	var sliceStr int32 = 2
 	app := "retailbank"
 	class := "members"
-	name := "goldstatus"
+	tname := "goldstatus"
 	var slice int32 = -1
 	schemaNewTestcase := []TestCasesStruct{
 		// 1st test case
@@ -59,7 +59,7 @@ func workflowGetTestCase() []TestCasesStruct {
 			name: "ERROR- slice validation",
 			requestPayload: wscutils.Request{
 				Data: workflow.WorkflowGetReq{
-					Slice: &slice,
+					Slice: slice,
 				},
 			},
 			expectedHttpCode: http.StatusBadRequest,
@@ -94,10 +94,10 @@ func workflowGetTestCase() []TestCasesStruct {
 			name: "SUCCESS- get workflow by valid req ",
 			requestPayload: wscutils.Request{
 				Data: workflow.WorkflowGetReq{
-					Slice: &sliceStr,
-					App:   &app,
-					Class: &class,
-					Name:  &name,
+					Slice: sliceStr,
+					App:   app,
+					Class: class,
+					Name:  tname,
 				},
 			},
 

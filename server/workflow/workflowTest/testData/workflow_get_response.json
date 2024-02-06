@@ -8,10 +8,33 @@
         "name": "goldstatus",
         "is_active": true,
         "is_internal": true,
-        "flowrules": "eyJuYW1lIjogInN0ZXAiLCAidHlwZSI6ICJlbnVtIiwgInZhbHMiOiBbIlNUQVJUIiwgImluaXRpYWxkb2MiLCAiYWFkaGFhcmNoZWNrIiwgImNyZWRpdGJ1cmVhdWNoayIsICJwYW5jaGsiLCAiYmFua2RldGFpbHMiLCAicmVmZXJlbmNlY2hrIiwgInN0YWdlMmRvbmUiLCAiY29tcGxldGUiXSwgImRlc2NyIjogIkN1cnJlbnQgc3RlcCBjb21wbGV0ZWQifQ==",
-        "createdat": "2024-01-28T00:00:00Z",
+        "flowrules": {
+            "descr": "Current step completed",
+            "name": "step",
+            "type": "enum",
+            "vals": [
+                "START",
+                "initialdoc",
+                "aadhaarcheck",
+                "creditbureauchk",
+                "panchk",
+                "bankdetails",
+                "referencechk",
+                "stage2done",
+                "complete"
+            ]
+        },
+        "createdat": {
+            "Time": "2024-01-28T00:00:00Z",
+            "Status": 0,
+            "InfinityModifier": 0
+        },
         "createdby": "admin",
-        "editedat": "2024-01-15T00:00:00Z",
+        "editedat": {
+            "Time": "2024-01-15T00:00:00Z",
+            "Status": 0,
+            "InfinityModifier": 0
+        },
         "editedby": "admin"
     },
     "messages": null

@@ -51,7 +51,7 @@ func schemaDeleteTestCase() []testutils.TestCasesStruct {
 			Name: "ERROR- slice validation",
 			RequestPayload: wscutils.Request{
 				Data: schema.SchemaGetReq{
-					Slice: &slice,
+					Slice: slice,
 				},
 			},
 			ExpectedHttpCode: http.StatusBadRequest,

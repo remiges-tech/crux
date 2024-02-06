@@ -20,6 +20,7 @@ import (
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	pg "github.com/remiges-tech/crux/db"
+	"github.com/remiges-tech/crux/db/sqlc-gen"
 	"github.com/remiges-tech/crux/server/workflow"
 	"github.com/remiges-tech/logharbour/logharbour"
 )
@@ -126,16 +127,18 @@ func registerRoutes(pool *dockertest.Pool, databaseUrl string) (*gin.Engine, err
 	wscutils.LoadErrorTypes(file)
 
 	// Database connection
-	query, err := pg.NewProvider(databaseUrl)
+	connPool, err := pg.NewProvider(databaseUrl)
 	if err != nil {
 		l.LogActivity("Error while establishes a connection with database", err)
 		log.Fatalln("Failed to establishes a connection with database", err)
 	}
+	queries := sqlc.New(connPool)
 
 	// schema services
 	s := service.NewService(r).
 		WithLogHarbour(l).
-		WithDatabase(query)
+		WithDatabase(connPool).
+		WithDependency("queries", queries)
 
 	s.RegisterRoute(http.MethodGet, "/workflowget", workflow.WorkflowGet)
 
