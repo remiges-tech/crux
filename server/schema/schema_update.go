@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
@@ -15,68 +16,23 @@ import (
 	"github.com/remiges-tech/logharbour/logharbour"
 )
 
-type attribute struct {
-	Name      string   `json:"name,omitempty"`
-	ShortDesc string   `json:"shortdesc,omitempty"`
-	LongDesc  string   `json:"longdesc,omitempty"`
-	ValType   string   `json:"valtype,omitempty"`
-	Vals      []string `json:"vals,omitempty"`
-	Enumdesc  []string `json:"enumdesc,omitempty"`
-	ValMax    int32    `json:"valmax,omitempty"`
-	ValMin    int32    `json:"valmin,omitempty"`
-	LenMax    int32    `json:"lenmax,omitempty"`
-	LenMin    int32    `json:"lenmin,omitempty"`
-}
-type patternSchema struct {
-	Class *string      `json:"class,omitempty"`
-	Attr  []*attribute `json:"attr,omitempty"`
-}
-type actionSchema struct {
-	Class      string   `json:"class,omitempty"`
-	Tasks      []string `json:"tasks,omitempty"`
-	Properties []string `json:"properties,omitempty"`
-}
-type updateSchema struct {
-	Slice         int32          `json:"slice" validate:"required,gt=0"`
-	App           string         `json:"App" validate:"required,alpha"`
-	Class         string         `json:"class" validate:"required,lowercase"`
-	PatternSchema *patternSchema `json:"patternSchema,omitempty"`
-	ActionSchema  *actionSchema  `json:"actionSchema,omitempty"`
-}
-
 const (
+	setBy        = "admin"
+	brwf         = "W"
+	editedBy     = "admin"
 	cruxIDRegExp = `^[a-z][a-z0-9_]*$`
 )
 
-var (
-	editedBy   = "admin"
-	validTypes = map[string]bool{
-		"int": true, "float": true, "str": true, "enum": true, "bool": true, "timestamps": true,
-	}
-)
+var validTypes = map[string]bool{
+	"int": true, "float": true, "str": true, "enum": true, "bool": true, "timestamps": true,
+}
 
 func SchemaUpdate(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
 	l.Log("Starting execution of SchemaUpdate()")
 
 	var sh updateSchema
-	// check the capgrant table to see if the calling user has the capability to perform the
-	// operation
-	// isCapable, _ := utils.Authz_check(types.OpReq{
-	// 	User:      username,
-	// 	CapNeeded: []string{"schema"},
-	// }, false)
-
-	// if !isCapable {
-	// 	l.Log("Unauthorized user:")
-	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(utils.ErrUnauthorized))
-	// 	return
-	// }
-
-	// The system will check whether there are any rulesets in the ruleset table whose
-	// (slice,app,class) match this record. If this is true, then the call will fail.
-	// In other words, updating a schema is not allowed once rulesets referring to it are defined.
-
+	
 	err := wscutils.BindJSON(c, &sh)
 	if err != nil {
 		l.LogActivity("Error Unmarshalling Query paramaeters to struct:", err.Error())
@@ -144,29 +100,29 @@ func schemaUpdateWithTX(c context.Context, query *sqlc.Queries, connpool *pgxpoo
 		tx.Rollback(c)
 		return err
 	}
-	if patternSchema != nil {
+	if patternSchema != nil && actionSchema == nil {
 		_, err = qtx.SchemaUpdate(c, sqlc.SchemaUpdateParams{
 			Slice:         sh.Slice,
 			Class:         sh.Class,
 			App:           sh.App,
-			Brwf:          "W",
+			Brwf:          brwf,
 			Patternschema: schema.Patternschema,
 			Actionschema:  actionSchema,
-			Editedby:      editedBy,
+			Editedby:      pgtype.Text{String: editedBy},
 		})
 		if err != nil {
 			tx.Rollback(c)
 			return err
 		}
-	} else if actionSchema != nil {
+	} else if actionSchema != nil && patternSchema == nil {
 		_, err = qtx.SchemaUpdate(c, sqlc.SchemaUpdateParams{
 			Slice:         sh.Slice,
 			Class:         sh.Class,
 			App:           sh.App,
-			Brwf:          "W",
+			Brwf:          brwf,
 			Patternschema: schema.Patternschema,
 			Actionschema:  actionSchema,
-			Editedby:      editedBy,
+			Editedby:      pgtype.Text{String: editedBy},
 		})
 		if err != nil {
 			tx.Rollback(c)
@@ -177,10 +133,10 @@ func schemaUpdateWithTX(c context.Context, query *sqlc.Queries, connpool *pgxpoo
 			Slice:         sh.Slice,
 			Class:         sh.Class,
 			App:           sh.App,
-			Brwf:          "W",
+			Brwf:          brwf,
 			Patternschema: schema.Patternschema,
 			Actionschema:  schema.Actionschema,
-			Editedby:      editedBy,
+			Editedby:      pgtype.Text{String: editedBy},
 		})
 		if err != nil {
 			tx.Rollback(c)
@@ -213,23 +169,26 @@ func schemaUpdateWithTX(c context.Context, query *sqlc.Queries, connpool *pgxpoo
 
 func customValidationErrorsForUpdate(sh updateSchema) []wscutils.ErrorMessage {
 	var validationErrors []wscutils.ErrorMessage
-	if sh.PatternSchema != nil {
-		patternSchemaError := verifyPatternSchema(sh.PatternSchema)
+	if sh.PatternSchema != nil && sh.ActionSchema == nil {
+		patternSchemaError := verifyPatternSchemaUpdate(sh.PatternSchema)
 		validationErrors = append(validationErrors, patternSchemaError...)
-	}
-	if sh.ActionSchema != nil {
-		actionSchemaError := verifyActionSchema(sh.ActionSchema)
+	} else if sh.ActionSchema != nil && sh.PatternSchema == nil {
+		actionSchemaError := verifyActionSchemaUpdate(sh.ActionSchema)
 		validationErrors = append(validationErrors, actionSchemaError...)
-	}
-	if sh.PatternSchema == nil && sh.ActionSchema == nil {
+	} else if sh.PatternSchema == nil && sh.ActionSchema == nil {
 		fieldName := fmt.Sprintln("PatternSchema/ActionSchema")
 		vErr := wscutils.BuildErrorMessage("at_least_one_must_be_supplied", &fieldName)
 		validationErrors = append(validationErrors, vErr)
+	} else {
+		patternSchemaError := verifyPatternSchemaUpdate(sh.PatternSchema)
+		validationErrors = append(validationErrors, patternSchemaError...)
+		actionSchemaError := verifyActionSchemaUpdate(sh.ActionSchema)
+		validationErrors = append(validationErrors, actionSchemaError...)
 	}
 
 	return validationErrors
 }
-func verifyPatternSchema(ps *patternSchema) []wscutils.ErrorMessage {
+func verifyPatternSchemaUpdate(ps *patternSchema) []wscutils.ErrorMessage {
 	var validationErrors []wscutils.ErrorMessage
 	re := regexp.MustCompile(cruxIDRegExp)
 
@@ -254,7 +213,7 @@ func verifyPatternSchema(ps *patternSchema) []wscutils.ErrorMessage {
 	return validationErrors
 }
 
-func verifyActionSchema(as *actionSchema) []wscutils.ErrorMessage {
+func verifyActionSchemaUpdate(as *actionSchema) []wscutils.ErrorMessage {
 	var validationErrors []wscutils.ErrorMessage
 	re := regexp.MustCompile(cruxIDRegExp)
 

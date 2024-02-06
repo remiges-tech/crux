@@ -122,14 +122,13 @@ type Ruleset struct {
 	Brwf       BrwfEnum         `json:"brwf"`
 	Class      string           `json:"class"`
 	Setname    string           `json:"setname"`
-	Schemaid   int32            `json:"schemaid"`
 	IsActive   pgtype.Bool      `json:"is_active"`
 	IsInternal bool             `json:"is_internal"`
 	Ruleset    []byte           `json:"ruleset"`
 	Createdat  pgtype.Timestamp `json:"createdat"`
 	Createdby  string           `json:"createdby"`
 	Editedat   pgtype.Timestamp `json:"editedat"`
-	Editedby   string           `json:"editedby"`
+	Editedby   pgtype.Text      `json:"editedby"`
 }
 
 type Schema struct {
@@ -144,7 +143,7 @@ type Schema struct {
 	Createdat     pgtype.Timestamp `json:"createdat"`
 	Createdby     string           `json:"createdby"`
 	Editedat      pgtype.Timestamp `json:"editedat"`
-	Editedby      string           `json:"editedby"`
+	Editedby      pgtype.Text      `json:"editedby"`
 }
 
 type Stepworkflow struct {

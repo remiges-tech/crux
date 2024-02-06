@@ -14,7 +14,11 @@ import (
 const getApp = `-- name: GetApp :one
 SELECT app
 FROM ruleset
-WHERE slice =$1 AND app = $2 AND class = $3 AND brwf = 'W'
+WHERE
+    slice = $1
+    AND app = $2
+    AND class = $3
+    AND brwf = 'W'
 `
 
 type GetAppParams struct {
@@ -31,9 +35,13 @@ func (q *Queries) GetApp(ctx context.Context, arg GetAppParams) (string, error) 
 }
 
 const getClass = `-- name: GetClass :one
-SELECT class 
+SELECT class
 FROM ruleset
-WHERE slice = $1 AND app =$2  AND class = $3 AND brwf ='W'
+WHERE
+    slice = $1
+    AND app = $2
+    AND class = $3
+    AND brwf = 'W'
 `
 
 type GetClassParams struct {
@@ -50,9 +58,14 @@ func (q *Queries) GetClass(ctx context.Context, arg GetClassParams) (string, err
 }
 
 const getWFActiveStatus = `-- name: GetWFActiveStatus :one
-SELECT is_active 
+SELECT is_active
 FROM ruleset
-WHERE slice = $1 AND app =$2  AND class = $3 AND brwf ='W' AND setname = $4
+WHERE
+    slice = $1
+    AND app = $2
+    AND class = $3
+    AND brwf = 'W'
+    AND setname = $4
 `
 
 type GetWFActiveStatusParams struct {
@@ -77,7 +90,12 @@ func (q *Queries) GetWFActiveStatus(ctx context.Context, arg GetWFActiveStatusPa
 const getWFInternalStatus = `-- name: GetWFInternalStatus :one
 SELECT is_internal
 FROM ruleset
-WHERE slice = $1 AND app =$2  AND class = $3 AND brwf ='W' AND setname = $4
+WHERE
+    slice = $1
+    AND app = $2
+    AND class = $3
+    AND brwf = 'W'
+    AND setname = $4
 `
 
 type GetWFInternalStatusParams struct {
@@ -97,6 +115,49 @@ func (q *Queries) GetWFInternalStatus(ctx context.Context, arg GetWFInternalStat
 	var is_internal bool
 	err := row.Scan(&is_internal)
 	return is_internal, err
+}
+
+const workFlowNew = `-- name: WorkFlowNew :one
+INSERT INTO
+    ruleset (
+        realm, slice, app, brwf, class, setname, is_active, is_internal, ruleset, createdat, createdby
+    )
+VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP, $10
+    )
+RETURNING
+    id
+`
+
+type WorkFlowNewParams struct {
+	Realm      int32       `json:"realm"`
+	Slice      int32       `json:"slice"`
+	App        string      `json:"app"`
+	Brwf       BrwfEnum    `json:"brwf"`
+	Class      string      `json:"class"`
+	Setname    string      `json:"setname"`
+	IsActive   pgtype.Bool `json:"is_active"`
+	IsInternal bool        `json:"is_internal"`
+	Ruleset    []byte      `json:"ruleset"`
+	Createdby  string      `json:"createdby"`
+}
+
+func (q *Queries) WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) (int32, error) {
+	row := q.db.QueryRow(ctx, workFlowNew,
+		arg.Realm,
+		arg.Slice,
+		arg.App,
+		arg.Brwf,
+		arg.Class,
+		arg.Setname,
+		arg.IsActive,
+		arg.IsInternal,
+		arg.Ruleset,
+		arg.Createdby,
+	)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
 }
 
 const workflowget = `-- name: Workflowget :one
@@ -140,7 +201,7 @@ type WorkflowgetRow struct {
 	Createdat  pgtype.Timestamp `json:"createdat"`
 	Createdby  string           `json:"createdby"`
 	Editedat   pgtype.Timestamp `json:"editedat"`
-	Editedby   string           `json:"editedby"`
+	Editedby   pgtype.Text      `json:"editedby"`
 }
 
 func (q *Queries) Workflowget(ctx context.Context, arg WorkflowgetParams) (WorkflowgetRow, error) {

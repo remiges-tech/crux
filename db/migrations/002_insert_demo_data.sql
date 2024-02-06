@@ -61,13 +61,18 @@ VALUES (
         3, 'MERCE', 'nedbank', 'nedbank', 'nedbank from canada', 'admin', '2024-01-29 00:00:00'
     );
 
-
 -- schema(schema table)
-INSERT INTO public.schema VALUES (10, 1, 1, 'retailbank', 'B', 'custonboarding', '[{"class":"inventoryitems","attr":[{"name":"cat","valtype":"enum","vals":["textbook","notebook","stationery","refbooks"]},{"name":"mrp","valtype":"float"},{"name":"fullname","valtype":"str"},{"name":"ageinstock","valtype":"int"},{"name":"inventoryqty","valtype":"int"}]}]', '[{"tasks":["invitefordiwali","allowretailsale","assigntotrash"],"properties":["discount","shipby"]}]', '2022-12-26T09:03:46Z', 'Mal Houndsom', '2023-07-12T01:33:32Z', 'Clerc Careless');
+INSERT INTO
+    public.schema
+VALUES (
+        10, 1, 1, 'retailbank', 'B', 'custonboarding', '[{"class":"inventoryitems","attr":[{"name":"cat","valtype":"enum","vals":["textbook","notebook","stationery","refbooks"]},{"name":"mrp","valtype":"float"},{"name":"fullname","valtype":"str"},{"name":"ageinstock","valtype":"int"},{"name":"inventoryqty","valtype":"int"}]}]', '[{"tasks":["invitefordiwali","allowretailsale","assigntotrash"],"properties":["discount","shipby"]}]', '2022-12-26T09:03:46Z', 'Mal Houndsom', '2023-07-12T01:33:32Z', 'Clerc Careless'
+    );
 
 INSERT INTO
     public.schema
-VALUES (11, 2, 2, 'nedbank', 'W', 'custonboarding', '[{"class":"inventoryitems","attr":[{"name":"cat","valtype":"enum","vals":["textbook","notebook","stationery","refbooks"]},{"name":"mrp","valtype":"float"},{"name":"fullname","valtype":"str"},{"name":"ageinstock","valtype":"int"},{"name":"inventoryqty","valtype":"int"}]}]', '[{"tasks":["invitefordiwali","allowretailsale","assigntotrash"],"properties":["discount","shipby"]}]', '2021-01-03T06:02:41Z', 'Marielle Strongitharm', '2021-06-07T02:28:17Z', 'Therese Roselli');
+VALUES (
+        11, 2, 2, 'nedbank', 'W', 'custonboarding', '[{"class":"inventoryitems","attr":[{"name":"cat","valtype":"enum","vals":["textbook","notebook","stationery","refbooks"]},{"name":"mrp","valtype":"float"},{"name":"fullname","valtype":"str"},{"name":"ageinstock","valtype":"int"},{"name":"inventoryqty","valtype":"int"}]}]', '[{"tasks":["invitefordiwali","allowretailsale","assigntotrash"],"properties":["discount","shipby"]}]', '2021-01-03T06:02:41Z', 'Marielle Strongitharm', '2021-06-07T02:28:17Z', 'Therese Roselli'
+    );
 
 insert into
     public.schema
@@ -93,17 +98,29 @@ VALUES (
         15, 2, 2, 'retailBANK', 'W', 'custon', '[{"class":"inventoryitems","attr":[{"name":"cat","valtype":"enum","vals":["textbook","notebook","stationery","refbooks"]},{"name":"mrp","valtype":"float"},{"name":"fullname","valtype":"str"},{"name":"ageinstock","valtype":"int"},{"name":"inventoryqty","valtype":"int"}]}]', '[{"tasks":["invitefordiwali","allowretailsale","assigntotrash"],"properties":["discount","shipby"]}]', '2020-03-10T12:06:40Z', 'Marigold Sherwin', '2023-10-21T17:39:11Z', 'Brunhilde Bampkin'
     );
 
-    -- ruleset
-INSERT INTO ruleset(id,realm,slice,app,class,brwf,setname,is_active,is_internal,schemaid,ruleset,createdat,createdby,editedat,editedby) VALUES(1,1,2,'retailbank','members','W','goldstatus',true,true,10,'{
+-- ruleset
+INSERT INTO
+    ruleset (
+        id, realm, slice, app, class, brwf, setname, is_active, is_internal, ruleset, createdat, createdby, editedat, editedby
+    )
+VALUES (
+        1, 1, 2, 'retailbank', 'members', 'W', 'goldstatus', true, true, '{
             "name": "step",
             "type": "enum",
             "vals": [ "START", "initialdoc", "aadhaarcheck", "creditbureauchk", "panchk", "bankdetails", "referencechk", "stage2done", "complete" ],
             "descr": "Current step completed"
-        }','2024-01-28 00:00:00','admin','2024-01-15 00:00:00','admin');
+        }', '2024-01-28 00:00:00', 'admin', '2024-01-15 00:00:00', 'admin'
+    );
 
-        INSERT INTO ruleset(id,realm,slice,app,class,brwf,setname,is_active,is_internal,schemaid,ruleset,createdat,createdby,editedat,editedby) VALUES(2,1,2,'retailBANK','members','W','temp_set',true,true,11,'{
+INSERT INTO
+    ruleset (
+        id, realm, slice, app, class, brwf, setname, is_active, is_internal, ruleset, createdat, createdby, editedat, editedby
+    )
+VALUES (
+        2, 1, 2, 'retailBANK', 'members', 'W', 'temp_set', true, true, '{
             "name": "step",
             "type": "enum1",
             "vals": [ "START", "initialdoc", "aadhaarcheck", "creditbureauchk", "panchk", "bankdetails", "referencechk", "stage2done", "complete" ],
             "descr": "Current step completed"
-        }','2024-01-28 00:00:00','admin','2024-01-15 00:00:00','admin');
+        }', '2024-01-28 00:00:00', 'admin', '2024-01-15 00:00:00', 'admin'
+    );
