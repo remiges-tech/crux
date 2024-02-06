@@ -57,7 +57,7 @@ type SchemaGetRow struct {
 	Class     string           `json:"class"`
 	Createdby string           `json:"createdby"`
 	Createdat pgtype.Timestamp `json:"createdat"`
-	Editedby  string           `json:"editedby"`
+	Editedby  pgtype.Text      `json:"editedby"`
 	Editedat  pgtype.Timestamp `json:"editedat"`
 }
 
@@ -115,7 +115,7 @@ type SchemaListRow struct {
 	Class     string           `json:"class"`
 	Createdby string           `json:"createdby"`
 	Createdat pgtype.Timestamp `json:"createdat"`
-	Editedby  string           `json:"editedby"`
+	Editedby  pgtype.Text      `json:"editedby"`
 	Editedat  pgtype.Timestamp `json:"editedat"`
 }
 
@@ -176,7 +176,7 @@ type SchemaListByAppRow struct {
 	Class     string           `json:"class"`
 	Createdby string           `json:"createdby"`
 	Createdat pgtype.Timestamp `json:"createdat"`
-	Editedby  string           `json:"editedby"`
+	Editedby  pgtype.Text      `json:"editedby"`
 	Editedat  pgtype.Timestamp `json:"editedat"`
 }
 
@@ -241,7 +241,7 @@ type SchemaListByAppAndClassRow struct {
 	Class     string           `json:"class"`
 	Createdby string           `json:"createdby"`
 	Createdat pgtype.Timestamp `json:"createdat"`
-	Editedby  string           `json:"editedby"`
+	Editedby  pgtype.Text      `json:"editedby"`
 	Editedat  pgtype.Timestamp `json:"editedat"`
 }
 
@@ -305,7 +305,7 @@ type SchemaListByAppAndSliceRow struct {
 	Class     string           `json:"class"`
 	Createdby string           `json:"createdby"`
 	Createdat pgtype.Timestamp `json:"createdat"`
-	Editedby  string           `json:"editedby"`
+	Editedby  pgtype.Text      `json:"editedby"`
 	Editedat  pgtype.Timestamp `json:"editedat"`
 }
 
@@ -363,7 +363,7 @@ type SchemaListByClassRow struct {
 	Class     string           `json:"class"`
 	Createdby string           `json:"createdby"`
 	Createdat pgtype.Timestamp `json:"createdat"`
-	Editedby  string           `json:"editedby"`
+	Editedby  pgtype.Text      `json:"editedby"`
 	Editedat  pgtype.Timestamp `json:"editedat"`
 }
 
@@ -427,7 +427,7 @@ type SchemaListByClassAndSliceRow struct {
 	Class     string           `json:"class"`
 	Createdby string           `json:"createdby"`
 	Createdat pgtype.Timestamp `json:"createdat"`
-	Editedby  string           `json:"editedby"`
+	Editedby  pgtype.Text      `json:"editedby"`
 	Editedat  pgtype.Timestamp `json:"editedat"`
 }
 
@@ -485,7 +485,7 @@ type SchemaListBySliceRow struct {
 	Class     string           `json:"class"`
 	Createdby string           `json:"createdby"`
 	Createdat pgtype.Timestamp `json:"createdat"`
-	Editedby  string           `json:"editedby"`
+	Editedby  pgtype.Text      `json:"editedby"`
 	Editedat  pgtype.Timestamp `json:"editedat"`
 }
 
@@ -521,10 +521,10 @@ func (q *Queries) SchemaListBySlice(ctx context.Context, slice int32) ([]SchemaL
 const schemaNew = `-- name: SchemaNew :one
 INSERT INTO
     schema (
-        realm, slice, app, brwf, class, patternschema, actionschema, createdat, createdby, editedby
+        realm, slice, app, brwf, class, patternschema, actionschema, createdat, createdby
     )
 VALUES (
-        $1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, $8, $9
+        $1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, $8
     )
 RETURNING
     id
@@ -539,7 +539,6 @@ type SchemaNewParams struct {
 	Patternschema []byte   `json:"patternschema"`
 	Actionschema  []byte   `json:"actionschema"`
 	Createdby     string   `json:"createdby"`
-	Editedby      string   `json:"editedby"`
 }
 
 func (q *Queries) SchemaNew(ctx context.Context, arg SchemaNewParams) (int32, error) {
@@ -552,7 +551,6 @@ func (q *Queries) SchemaNew(ctx context.Context, arg SchemaNewParams) (int32, er
 		arg.Patternschema,
 		arg.Actionschema,
 		arg.Createdby,
-		arg.Editedby,
 	)
 	var id int32
 	err := row.Scan(&id)
@@ -576,13 +574,13 @@ RETURNING
 `
 
 type SchemaUpdateParams struct {
-	Slice         int32    `json:"slice"`
-	Class         string   `json:"class"`
-	App           string   `json:"app"`
-	Brwf          BrwfEnum `json:"brwf"`
-	Patternschema []byte   `json:"patternschema"`
-	Actionschema  []byte   `json:"actionschema"`
-	Editedby      string   `json:"editedby"`
+	Slice         int32       `json:"slice"`
+	Class         string      `json:"class"`
+	App           string      `json:"app"`
+	Brwf          BrwfEnum    `json:"brwf"`
+	Patternschema []byte      `json:"patternschema"`
+	Actionschema  []byte      `json:"actionschema"`
+	Editedby      pgtype.Text `json:"editedby"`
 }
 
 func (q *Queries) SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) (int32, error) {
@@ -622,11 +620,11 @@ type UpdateSchemaWithLockParams struct {
 }
 
 type UpdateSchemaWithLockRow struct {
-	Brwf          BrwfEnum `json:"brwf"`
-	Patternschema []byte   `json:"patternschema"`
-	Actionschema  []byte   `json:"actionschema"`
-	Column4       bool     `json:"column_4"`
-	Editedby      string   `json:"editedby"`
+	Brwf          BrwfEnum    `json:"brwf"`
+	Patternschema []byte      `json:"patternschema"`
+	Actionschema  []byte      `json:"actionschema"`
+	Column4       bool        `json:"column_4"`
+	Editedby      pgtype.Text `json:"editedby"`
 }
 
 func (q *Queries) UpdateSchemaWithLock(ctx context.Context, arg UpdateSchemaWithLockParams) (UpdateSchemaWithLockRow, error) {
@@ -726,7 +724,7 @@ type WfschemagetRow struct {
 	Createdat     pgtype.Timestamp `json:"createdat"`
 	Createdby     string           `json:"createdby"`
 	Editedat      pgtype.Timestamp `json:"editedat"`
-	Editedby      string           `json:"editedby"`
+	Editedby      pgtype.Text      `json:"editedby"`
 }
 
 func (q *Queries) Wfschemaget(ctx context.Context, arg WfschemagetParams) (WfschemagetRow, error) {

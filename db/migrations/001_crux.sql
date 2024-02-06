@@ -78,8 +78,8 @@ CREATE TABLE schema (
     actionschema JSONB NOT NULL,
     createdat TIMESTAMP DEFAULT NOW() :: timestamp NOT NULL,
     createdby VARCHAR(255) NOT NULL,
-    editedat TIMESTAMP DEFAULT NOW() :: timestamp NOT NULL,
-    editedby VARCHAR(255) NOT NULL,
+    editedat TIMESTAMP DEFAULT NOW() :: timestamp,
+    editedby VARCHAR(255),
     UNIQUE (realm, slice, app, class)
 );
 
@@ -91,14 +91,13 @@ CREATE TABLE ruleset (
     brwf brwf_enum NOT NULL,
     class VARCHAR(255) CHECK (class ~ '^[a-z_]+$') NOT NULL,
     setname VARCHAR(255) CHECK (setname ~ '^[a-z_]+$') NOT NULL,
-    schemaid INTEGER REFERENCES schema (id) NOT NULL,
     is_active BOOLEAN DEFAULT false,
     is_internal BOOLEAN NOT NULL,
     ruleset JSONB NOT NULL,
     createdat TIMESTAMP DEFAULT NOW() :: timestamp NOT NULL,
     createdby VARCHAR(255) NOT NULL,
-    editedat TIMESTAMP DEFAULT NOW() :: timestamp NOT NULL,
-    editedby VARCHAR(255) NOT NULL
+    editedat TIMESTAMP DEFAULT NOW() :: timestamp,
+    editedby VARCHAR(255)
 );
 
 CREATE TABLE wfinstance (

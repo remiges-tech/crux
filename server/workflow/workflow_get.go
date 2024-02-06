@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/jackc/pgtype"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
@@ -32,7 +32,7 @@ type WorkflowgetRow struct {
 	Createdat  pgtype.Timestamp `json:"createdat"`
 	Createdby  string           `json:"createdby"`
 	Editedat   pgtype.Timestamp `json:"editedat"`
-	Editedby   string           `json:"editedby"`
+	Editedby   pgtype.Text      `json:"editedby"`
 }
 
 // WorkflowGet will be responsible for processing the /workflowget request that comes through as a POST

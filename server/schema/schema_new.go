@@ -2,37 +2,27 @@ package schema
 
 import (
 	"encoding/json"
+	"fmt"
+	"regexp"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
-	"github.com/remiges-tech/crux/server/utils"
+	"github.com/remiges-tech/crux/types"
+)
+
+const (
+	createdBy = "admin"
+	realmID   = 1
 )
 
 func SchemaNew(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
 	l.Log("Starting execution of SchemaNew()")
-	createdBy := "admin"
+
 	var sh Schema
-
-	// check the capgrant table to see if the calling user has the capability to perform the
-	// operation
-	// isCapable, _ := utils.Authz_check(types.OpReq{
-	// 	User:      username,
-	// 	CapNeeded: []string{"schema"},
-	// }, false)
-
-	// if !isCapable {
-	// 	l.Log("Unauthorized user:")
-	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(utils.ErrUnauthorized))
-	// 	return
-	// }
-
-	// The system will check whether there are any ruleSets in the ruleSet table whose
-	// (slice,app,class) match this record. If this is true, then the call will fail.
-	// In other words, updating a schema is not allowed once ruleSets referring to it are defined.
 
 	err := wscutils.BindJSON(c, &sh)
 	if err != nil {
@@ -70,7 +60,7 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(wscutils.ErrcodeInvalidJson, &actionSchema)}))
 		return
 	}
-	_, err = query.SchemaNew(c, sqlc.SchemaNewParams{Realm: 1, Slice: sh.Slice, Class: sh.Class, App: sh.App, Brwf: "W", Patternschema: patternSchema, Actionschema: actionSchema, Createdby: createdBy, Editedby: createdBy})
+	_, err = query.SchemaNew(c, sqlc.SchemaNewParams{Realm: realmID, Slice: sh.Slice, Class: sh.Class, App: sh.App, Brwf: "W", Patternschema: patternSchema, Actionschema: actionSchema, Createdby: createdBy})
 	if err != nil {
 		l.LogActivity("Error while creating schema", err.Error())
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
@@ -82,10 +72,55 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 
 func customValidationErrors(sh Schema) []wscutils.ErrorMessage {
 	var validationErrors []wscutils.ErrorMessage
-	patternSchemaError := utils.VerifyPatternSchema(sh.PatternSchema)
+	patternSchemaError := verifyPatternSchema(sh.PatternSchema)
 	validationErrors = append(validationErrors, patternSchemaError...)
 
-	actionSchemaError := utils.VerifyActionSchema(sh.ActionSchema)
+	actionSchemaError := verifyActionSchema(sh.ActionSchema)
 	validationErrors = append(validationErrors, actionSchemaError...)
+	return validationErrors
+}
+
+func verifyPatternSchema(ps types.PatternSchema) []wscutils.ErrorMessage {
+	var validationErrors []wscutils.ErrorMessage
+	re := regexp.MustCompile(cruxIDRegExp)
+
+	for i, attrSchema := range ps.Attr {
+		i++
+		if !re.MatchString(attrSchema.Name) {
+			fieldName := fmt.Sprintf("attrSchema[%d].Name", i)
+			vErr := wscutils.BuildErrorMessage("not_valid", &fieldName, attrSchema.Name)
+			validationErrors = append(validationErrors, vErr)
+		}
+		if !validTypes[attrSchema.ValType] {
+			fieldName := fmt.Sprintf("attrSchema[%d].ValType", i)
+			vErr := wscutils.BuildErrorMessage("not_valid", &fieldName, attrSchema.ValType)
+			validationErrors = append(validationErrors, vErr)
+		}
+		if attrSchema.ValType == "enum" && len(attrSchema.Vals) == 0 {
+			fieldName := fmt.Sprintf("attrSchema[%d].Vals", i)
+			vErr := wscutils.BuildErrorMessage("empty", &fieldName)
+			validationErrors = append(validationErrors, vErr)
+		}
+	}
+	return validationErrors
+}
+
+func verifyActionSchema(as types.ActionSchema) []wscutils.ErrorMessage {
+	var validationErrors []wscutils.ErrorMessage
+	re := regexp.MustCompile(cruxIDRegExp)
+	for i, task := range as.Tasks {
+		if !re.MatchString(task) {
+			fieldName := fmt.Sprintf("actionSchema.Tasks[%d]", i)
+			vErr := wscutils.BuildErrorMessage("not_valid", &fieldName, task)
+			validationErrors = append(validationErrors, vErr)
+		}
+	}
+	for i, propName := range as.Properties {
+		if !re.MatchString(propName) {
+			fieldName := fmt.Sprintf("actionSchema.Properties[%d]", i)
+			vErr := wscutils.BuildErrorMessage("not_valid", &fieldName, propName)
+			validationErrors = append(validationErrors, vErr)
+		}
+	}
 	return validationErrors
 }

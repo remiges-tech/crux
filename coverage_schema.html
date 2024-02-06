@@ -73,15 +73,13 @@
 				
 				<option value="file8">github.com/remiges-tech/crux/server/schema/schema_list.go (60.0%)</option>
 				
-				<option value="file9">github.com/remiges-tech/crux/server/schema/schema_new.go (68.9%)</option>
+				<option value="file9">github.com/remiges-tech/crux/server/schema/schema_new.go (81.1%)</option>
 				
-				<option value="file10">github.com/remiges-tech/crux/server/schema/schema_update.go (68.5%)</option>
+				<option value="file10">github.com/remiges-tech/crux/server/schema/schema_update.go (67.0%)</option>
 				
-				<option value="file11">github.com/remiges-tech/crux/server/utils/utils.go (100.0%)</option>
+				<option value="file11">github.com/remiges-tech/crux/testutils/test_utils.go (75.0%)</option>
 				
-				<option value="file12">github.com/remiges-tech/crux/testutils/test_utils.go (75.0%)</option>
-				
-				<option value="file13">github.com/remiges-tech/crux/types/types.go (40.9%)</option>
+				<option value="file12">github.com/remiges-tech/crux/types/types.go (40.9%)</option>
 				
 				</select>
 			</div>
@@ -275,14 +273,13 @@ type Ruleset struct {
         Brwf       BrwfEnum         `json:"brwf"`
         Class      string           `json:"class"`
         Setname    string           `json:"setname"`
-        Schemaid   int32            `json:"schemaid"`
         IsActive   pgtype.Bool      `json:"is_active"`
         IsInternal bool             `json:"is_internal"`
         Ruleset    []byte           `json:"ruleset"`
         Createdat  pgtype.Timestamp `json:"createdat"`
         Createdby  string           `json:"createdby"`
         Editedat   pgtype.Timestamp `json:"editedat"`
-        Editedby   string           `json:"editedby"`
+        Editedby   pgtype.Text      `json:"editedby"`
 }
 
 type Schema struct {
@@ -297,7 +294,7 @@ type Schema struct {
         Createdat     pgtype.Timestamp `json:"createdat"`
         Createdby     string           `json:"createdby"`
         Editedat      pgtype.Timestamp `json:"editedat"`
-        Editedby      string           `json:"editedby"`
+        Editedby      pgtype.Text      `json:"editedby"`
 }
 
 type Stepworkflow struct {
@@ -338,7 +335,11 @@ import (
 const getApp = `-- name: GetApp :one
 SELECT app
 FROM ruleset
-WHERE slice =$1 AND app = $2 AND class = $3 AND brwf = 'W'
+WHERE
+    slice = $1
+    AND app = $2
+    AND class = $3
+    AND brwf = 'W'
 `
 
 type GetAppParams struct {
@@ -355,9 +356,13 @@ func (q *Queries) GetApp(ctx context.Context, arg GetAppParams) (string, error) 
 }</span>
 
 const getClass = `-- name: GetClass :one
-SELECT class 
+SELECT class
 FROM ruleset
-WHERE slice = $1 AND app =$2  AND class = $3 AND brwf ='W'
+WHERE
+    slice = $1
+    AND app = $2
+    AND class = $3
+    AND brwf = 'W'
 `
 
 type GetClassParams struct {
@@ -374,9 +379,14 @@ func (q *Queries) GetClass(ctx context.Context, arg GetClassParams) (string, err
 }</span>
 
 const getWFActiveStatus = `-- name: GetWFActiveStatus :one
-SELECT is_active 
+SELECT is_active
 FROM ruleset
-WHERE slice = $1 AND app =$2  AND class = $3 AND brwf ='W' AND setname = $4
+WHERE
+    slice = $1
+    AND app = $2
+    AND class = $3
+    AND brwf = 'W'
+    AND setname = $4
 `
 
 type GetWFActiveStatusParams struct {
@@ -401,7 +411,12 @@ func (q *Queries) GetWFActiveStatus(ctx context.Context, arg GetWFActiveStatusPa
 const getWFInternalStatus = `-- name: GetWFInternalStatus :one
 SELECT is_internal
 FROM ruleset
-WHERE slice = $1 AND app =$2  AND class = $3 AND brwf ='W' AND setname = $4
+WHERE
+    slice = $1
+    AND app = $2
+    AND class = $3
+    AND brwf = 'W'
+    AND setname = $4
 `
 
 type GetWFInternalStatusParams struct {
@@ -421,6 +436,49 @@ func (q *Queries) GetWFInternalStatus(ctx context.Context, arg GetWFInternalStat
         var is_internal bool
         err := row.Scan(&amp;is_internal)
         return is_internal, err
+}</span>
+
+const workFlowNew = `-- name: WorkFlowNew :one
+INSERT INTO
+    ruleset (
+        realm, slice, app, brwf, class, setname, is_active, is_internal, ruleset, createdat, createdby
+    )
+VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP, $10
+    )
+RETURNING
+    id
+`
+
+type WorkFlowNewParams struct {
+        Realm      int32       `json:"realm"`
+        Slice      int32       `json:"slice"`
+        App        string      `json:"app"`
+        Brwf       BrwfEnum    `json:"brwf"`
+        Class      string      `json:"class"`
+        Setname    string      `json:"setname"`
+        IsActive   pgtype.Bool `json:"is_active"`
+        IsInternal bool        `json:"is_internal"`
+        Ruleset    []byte      `json:"ruleset"`
+        Createdby  string      `json:"createdby"`
+}
+
+func (q *Queries) WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) (int32, error) <span class="cov0" title="0">{
+        row := q.db.QueryRow(ctx, workFlowNew,
+                arg.Realm,
+                arg.Slice,
+                arg.App,
+                arg.Brwf,
+                arg.Class,
+                arg.Setname,
+                arg.IsActive,
+                arg.IsInternal,
+                arg.Ruleset,
+                arg.Createdby,
+        )
+        var id int32
+        err := row.Scan(&amp;id)
+        return id, err
 }</span>
 
 const workflowget = `-- name: Workflowget :one
@@ -464,7 +522,7 @@ type WorkflowgetRow struct {
         Createdat  pgtype.Timestamp `json:"createdat"`
         Createdby  string           `json:"createdby"`
         Editedat   pgtype.Timestamp `json:"editedat"`
-        Editedby   string           `json:"editedby"`
+        Editedby   pgtype.Text      `json:"editedby"`
 }
 
 func (q *Queries) Workflowget(ctx context.Context, arg WorkflowgetParams) (WorkflowgetRow, error) <span class="cov0" title="0">{
@@ -552,7 +610,7 @@ type SchemaGetRow struct {
         Class     string           `json:"class"`
         Createdby string           `json:"createdby"`
         Createdat pgtype.Timestamp `json:"createdat"`
-        Editedby  string           `json:"editedby"`
+        Editedby  pgtype.Text      `json:"editedby"`
         Editedat  pgtype.Timestamp `json:"editedat"`
 }
 
@@ -610,7 +668,7 @@ type SchemaListRow struct {
         Class     string           `json:"class"`
         Createdby string           `json:"createdby"`
         Createdat pgtype.Timestamp `json:"createdat"`
-        Editedby  string           `json:"editedby"`
+        Editedby  pgtype.Text      `json:"editedby"`
         Editedat  pgtype.Timestamp `json:"editedat"`
 }
 
@@ -671,7 +729,7 @@ type SchemaListByAppRow struct {
         Class     string           `json:"class"`
         Createdby string           `json:"createdby"`
         Createdat pgtype.Timestamp `json:"createdat"`
-        Editedby  string           `json:"editedby"`
+        Editedby  pgtype.Text      `json:"editedby"`
         Editedat  pgtype.Timestamp `json:"editedat"`
 }
 
@@ -736,7 +794,7 @@ type SchemaListByAppAndClassRow struct {
         Class     string           `json:"class"`
         Createdby string           `json:"createdby"`
         Createdat pgtype.Timestamp `json:"createdat"`
-        Editedby  string           `json:"editedby"`
+        Editedby  pgtype.Text      `json:"editedby"`
         Editedat  pgtype.Timestamp `json:"editedat"`
 }
 
@@ -800,7 +858,7 @@ type SchemaListByAppAndSliceRow struct {
         Class     string           `json:"class"`
         Createdby string           `json:"createdby"`
         Createdat pgtype.Timestamp `json:"createdat"`
-        Editedby  string           `json:"editedby"`
+        Editedby  pgtype.Text      `json:"editedby"`
         Editedat  pgtype.Timestamp `json:"editedat"`
 }
 
@@ -858,7 +916,7 @@ type SchemaListByClassRow struct {
         Class     string           `json:"class"`
         Createdby string           `json:"createdby"`
         Createdat pgtype.Timestamp `json:"createdat"`
-        Editedby  string           `json:"editedby"`
+        Editedby  pgtype.Text      `json:"editedby"`
         Editedat  pgtype.Timestamp `json:"editedat"`
 }
 
@@ -922,7 +980,7 @@ type SchemaListByClassAndSliceRow struct {
         Class     string           `json:"class"`
         Createdby string           `json:"createdby"`
         Createdat pgtype.Timestamp `json:"createdat"`
-        Editedby  string           `json:"editedby"`
+        Editedby  pgtype.Text      `json:"editedby"`
         Editedat  pgtype.Timestamp `json:"editedat"`
 }
 
@@ -980,7 +1038,7 @@ type SchemaListBySliceRow struct {
         Class     string           `json:"class"`
         Createdby string           `json:"createdby"`
         Createdat pgtype.Timestamp `json:"createdat"`
-        Editedby  string           `json:"editedby"`
+        Editedby  pgtype.Text      `json:"editedby"`
         Editedat  pgtype.Timestamp `json:"editedat"`
 }
 
@@ -1016,10 +1074,10 @@ func (q *Queries) SchemaListBySlice(ctx context.Context, slice int32) ([]SchemaL
 const schemaNew = `-- name: SchemaNew :one
 INSERT INTO
     schema (
-        realm, slice, app, brwf, class, patternschema, actionschema, createdat, createdby, editedby
+        realm, slice, app, brwf, class, patternschema, actionschema, createdat, createdby
     )
 VALUES (
-        $1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, $8, $9
+        $1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, $8
     )
 RETURNING
     id
@@ -1034,7 +1092,6 @@ type SchemaNewParams struct {
         Patternschema []byte   `json:"patternschema"`
         Actionschema  []byte   `json:"actionschema"`
         Createdby     string   `json:"createdby"`
-        Editedby      string   `json:"editedby"`
 }
 
 func (q *Queries) SchemaNew(ctx context.Context, arg SchemaNewParams) (int32, error) <span class="cov8" title="1">{
@@ -1047,7 +1104,6 @@ func (q *Queries) SchemaNew(ctx context.Context, arg SchemaNewParams) (int32, er
                 arg.Patternschema,
                 arg.Actionschema,
                 arg.Createdby,
-                arg.Editedby,
         )
         var id int32
         err := row.Scan(&amp;id)
@@ -1071,13 +1127,13 @@ RETURNING
 `
 
 type SchemaUpdateParams struct {
-        Slice         int32    `json:"slice"`
-        Class         string   `json:"class"`
-        App           string   `json:"app"`
-        Brwf          BrwfEnum `json:"brwf"`
-        Patternschema []byte   `json:"patternschema"`
-        Actionschema  []byte   `json:"actionschema"`
-        Editedby      string   `json:"editedby"`
+        Slice         int32       `json:"slice"`
+        Class         string      `json:"class"`
+        App           string      `json:"app"`
+        Brwf          BrwfEnum    `json:"brwf"`
+        Patternschema []byte      `json:"patternschema"`
+        Actionschema  []byte      `json:"actionschema"`
+        Editedby      pgtype.Text `json:"editedby"`
 }
 
 func (q *Queries) SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) (int32, error) <span class="cov8" title="1">{
@@ -1117,11 +1173,11 @@ type UpdateSchemaWithLockParams struct {
 }
 
 type UpdateSchemaWithLockRow struct {
-        Brwf          BrwfEnum `json:"brwf"`
-        Patternschema []byte   `json:"patternschema"`
-        Actionschema  []byte   `json:"actionschema"`
-        Column4       bool     `json:"column_4"`
-        Editedby      string   `json:"editedby"`
+        Brwf          BrwfEnum    `json:"brwf"`
+        Patternschema []byte      `json:"patternschema"`
+        Actionschema  []byte      `json:"actionschema"`
+        Column4       bool        `json:"column_4"`
+        Editedby      pgtype.Text `json:"editedby"`
 }
 
 func (q *Queries) UpdateSchemaWithLock(ctx context.Context, arg UpdateSchemaWithLockParams) (UpdateSchemaWithLockRow, error) <span class="cov8" title="1">{
@@ -1221,7 +1277,7 @@ type WfschemagetRow struct {
         Createdat     pgtype.Timestamp `json:"createdat"`
         Createdby     string           `json:"createdby"`
         Editedat      pgtype.Timestamp `json:"editedat"`
-        Editedby      string           `json:"editedby"`
+        Editedby      pgtype.Text      `json:"editedby"`
 }
 
 func (q *Queries) Wfschemaget(ctx context.Context, arg WfschemagetParams) (WfschemagetRow, error) <span class="cov8" title="1">{
@@ -1253,6 +1309,39 @@ package sqlc
 import (
         "context"
 )
+
+const addWFNewInstace = `-- name: AddWFNewInstace :one
+INSERT INTO 
+wfinstance
+(entityid,slice, app, class, workflow, step,loggedat, nextstep)
+VALUES ($1,$2,$3,$4,$5,$6,(NOW() :: timestamp),$7) 
+RETURNING id
+`
+
+type AddWFNewInstaceParams struct {
+        Entityid string `json:"entityid"`
+        Slice    int32  `json:"slice"`
+        App      string `json:"app"`
+        Class    string `json:"class"`
+        Workflow string `json:"workflow"`
+        Step     string `json:"step"`
+        Nextstep string `json:"nextstep"`
+}
+
+func (q *Queries) AddWFNewInstace(ctx context.Context, arg AddWFNewInstaceParams) (int32, error) <span class="cov0" title="0">{
+        row := q.db.QueryRow(ctx, addWFNewInstace,
+                arg.Entityid,
+                arg.Slice,
+                arg.App,
+                arg.Class,
+                arg.Workflow,
+                arg.Step,
+                arg.Nextstep,
+        )
+        var id int32
+        err := row.Scan(&amp;id)
+        return id, err
+}</span>
 
 const getWFINstance = `-- name: GetWFINstance :many
 
@@ -1551,37 +1640,27 @@ func SchemaList(c *gin.Context, s *service.Service) <span class="cov8" title="1"
 
 import (
         "encoding/json"
+        "fmt"
+        "regexp"
 
         "github.com/gin-gonic/gin"
         "github.com/go-playground/validator/v10"
         "github.com/remiges-tech/alya/service"
         "github.com/remiges-tech/alya/wscutils"
         "github.com/remiges-tech/crux/db/sqlc-gen"
-        "github.com/remiges-tech/crux/server/utils"
+        "github.com/remiges-tech/crux/types"
+)
+
+const (
+        createdBy = "admin"
+        realmID   = 1
 )
 
 func SchemaNew(c *gin.Context, s *service.Service) <span class="cov8" title="1">{
         l := s.LogHarbour
         l.Log("Starting execution of SchemaNew()")
-        createdBy := "admin"
+
         var sh Schema
-
-        // check the capgrant table to see if the calling user has the capability to perform the
-        // operation
-        // isCapable, _ := utils.Authz_check(types.OpReq{
-        //         User:      username,
-        //         CapNeeded: []string{"schema"},
-        // }, false)
-
-        // if !isCapable {
-        //         l.Log("Unauthorized user:")
-        //         wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(utils.ErrUnauthorized))
-        //         return
-        // }
-
-        // The system will check whether there are any ruleSets in the ruleSet table whose
-        // (slice,app,class) match this record. If this is true, then the call will fail.
-        // In other words, updating a schema is not allowed once ruleSets referring to it are defined.
 
         err := wscutils.BindJSON(c, &amp;sh)
         if err != nil </span><span class="cov8" title="1">{
@@ -1619,7 +1698,7 @@ func SchemaNew(c *gin.Context, s *service.Service) <span class="cov8" title="1">
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(wscutils.ErrcodeInvalidJson, &amp;actionSchema)}))
                 return
         }</span>
-        <span class="cov8" title="1">_, err = query.SchemaNew(c, sqlc.SchemaNewParams{Realm: 1, Slice: sh.Slice, Class: sh.Class, App: sh.App, Brwf: "W", Patternschema: patternSchema, Actionschema: actionSchema, Createdby: createdBy, Editedby: createdBy})
+        <span class="cov8" title="1">_, err = query.SchemaNew(c, sqlc.SchemaNewParams{Realm: realmID, Slice: sh.Slice, Class: sh.Class, App: sh.App, Brwf: "W", Patternschema: patternSchema, Actionschema: actionSchema, Createdby: createdBy})
         if err != nil </span><span class="cov0" title="0">{
                 l.LogActivity("Error while creating schema", err.Error())
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
@@ -1631,13 +1710,58 @@ func SchemaNew(c *gin.Context, s *service.Service) <span class="cov8" title="1">
 
 func customValidationErrors(sh Schema) []wscutils.ErrorMessage <span class="cov8" title="1">{
         var validationErrors []wscutils.ErrorMessage
-        patternSchemaError := utils.VerifyPatternSchema(sh.PatternSchema)
+        patternSchemaError := verifyPatternSchema(sh.PatternSchema)
         validationErrors = append(validationErrors, patternSchemaError...)
 
-        actionSchemaError := utils.VerifyActionSchema(sh.ActionSchema)
+        actionSchemaError := verifyActionSchema(sh.ActionSchema)
         validationErrors = append(validationErrors, actionSchemaError...)
         return validationErrors
 }</span>
+
+func verifyPatternSchema(ps types.PatternSchema) []wscutils.ErrorMessage <span class="cov8" title="1">{
+        var validationErrors []wscutils.ErrorMessage
+        re := regexp.MustCompile(cruxIDRegExp)
+
+        for i, attrSchema := range ps.Attr </span><span class="cov8" title="1">{
+                i++
+                if !re.MatchString(attrSchema.Name) </span><span class="cov8" title="1">{
+                        fieldName := fmt.Sprintf("attrSchema[%d].Name", i)
+                        vErr := wscutils.BuildErrorMessage("not_valid", &amp;fieldName, attrSchema.Name)
+                        validationErrors = append(validationErrors, vErr)
+                }</span>
+                <span class="cov8" title="1">if !validTypes[attrSchema.ValType] </span><span class="cov8" title="1">{
+                        fieldName := fmt.Sprintf("attrSchema[%d].ValType", i)
+                        vErr := wscutils.BuildErrorMessage("not_valid", &amp;fieldName, attrSchema.ValType)
+                        validationErrors = append(validationErrors, vErr)
+                }</span>
+                <span class="cov8" title="1">if attrSchema.ValType == "enum" &amp;&amp; len(attrSchema.Vals) == 0 </span><span class="cov8" title="1">{
+                        fieldName := fmt.Sprintf("attrSchema[%d].Vals", i)
+                        vErr := wscutils.BuildErrorMessage("empty", &amp;fieldName)
+                        validationErrors = append(validationErrors, vErr)
+                }</span>
+        }
+        <span class="cov8" title="1">return validationErrors</span>
+}
+
+func verifyActionSchema(as types.ActionSchema) []wscutils.ErrorMessage <span class="cov8" title="1">{
+        var validationErrors []wscutils.ErrorMessage
+        re := regexp.MustCompile(cruxIDRegExp)
+        for i, task := range as.Tasks </span><span class="cov8" title="1">{
+                if !re.MatchString(task) </span><span class="cov8" title="1">{
+                        fieldName := fmt.Sprintf("actionSchema.Tasks[%d]", i)
+                        vErr := wscutils.BuildErrorMessage("not_valid", &amp;fieldName, task)
+                        validationErrors = append(validationErrors, vErr)
+                }</span>
+        }
+        <span class="cov8" title="1">for i, propName := range as.Properties </span><span class="cov8" title="1">{
+                if !re.MatchString(propName) </span><span class="cov8" title="1">{
+                        fieldName := fmt.Sprintf("actionSchema.Properties[%d]", i)
+                        vErr := wscutils.BuildErrorMessage("not_valid", &amp;fieldName, propName)
+                        validationErrors = append(validationErrors, vErr)
+                }</span>
+        }
+        <span class="cov8" title="1">return validationErrors</span>
+}
 </pre>
 		
 		<pre class="file" id="file10" style="display: none">package schema
@@ -1650,6 +1774,7 @@ import (
 
         "github.com/gin-gonic/gin"
         "github.com/go-playground/validator/v10"
+        "github.com/jackc/pgx/v5/pgtype"
         "github.com/jackc/pgx/v5/pgxpool"
         "github.com/remiges-tech/alya/service"
         "github.com/remiges-tech/alya/wscutils"
@@ -1657,68 +1782,23 @@ import (
         "github.com/remiges-tech/logharbour/logharbour"
 )
 
-type attribute struct {
-        Name      string   `json:"name,omitempty"`
-        ShortDesc string   `json:"shortdesc,omitempty"`
-        LongDesc  string   `json:"longdesc,omitempty"`
-        ValType   string   `json:"valtype,omitempty"`
-        Vals      []string `json:"vals,omitempty"`
-        Enumdesc  []string `json:"enumdesc,omitempty"`
-        ValMax    int32    `json:"valmax,omitempty"`
-        ValMin    int32    `json:"valmin,omitempty"`
-        LenMax    int32    `json:"lenmax,omitempty"`
-        LenMin    int32    `json:"lenmin,omitempty"`
-}
-type patternSchema struct {
-        Class *string      `json:"class,omitempty"`
-        Attr  []*attribute `json:"attr,omitempty"`
-}
-type actionSchema struct {
-        Class      string   `json:"class,omitempty"`
-        Tasks      []string `json:"tasks,omitempty"`
-        Properties []string `json:"properties,omitempty"`
-}
-type updateSchema struct {
-        Slice         int32          `json:"slice" validate:"required,gt=0"`
-        App           string         `json:"App" validate:"required,alpha"`
-        Class         string         `json:"class" validate:"required,lowercase"`
-        PatternSchema *patternSchema `json:"patternSchema,omitempty"`
-        ActionSchema  *actionSchema  `json:"actionSchema,omitempty"`
-}
-
 const (
+        setBy        = "admin"
+        brwf         = "W"
+        editedBy     = "admin"
         cruxIDRegExp = `^[a-z][a-z0-9_]*$`
 )
 
-var (
-        editedBy   = "admin"
-        validTypes = map[string]bool{
-                "int": true, "float": true, "str": true, "enum": true, "bool": true, "timestamps": true,
-        }
-)
+var validTypes = map[string]bool{
+        "int": true, "float": true, "str": true, "enum": true, "bool": true, "timestamps": true,
+}
 
 func SchemaUpdate(c *gin.Context, s *service.Service) <span class="cov8" title="1">{
         l := s.LogHarbour
         l.Log("Starting execution of SchemaUpdate()")
 
         var sh updateSchema
-        // check the capgrant table to see if the calling user has the capability to perform the
-        // operation
-        // isCapable, _ := utils.Authz_check(types.OpReq{
-        //         User:      username,
-        //         CapNeeded: []string{"schema"},
-        // }, false)
-
-        // if !isCapable {
-        //         l.Log("Unauthorized user:")
-        //         wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(utils.ErrUnauthorized))
-        //         return
-        // }
-
-        // The system will check whether there are any rulesets in the ruleset table whose
-        // (slice,app,class) match this record. If this is true, then the call will fail.
-        // In other words, updating a schema is not allowed once rulesets referring to it are defined.
-
+        
         err := wscutils.BindJSON(c, &amp;sh)
         if err != nil </span><span class="cov8" title="1">{
                 l.LogActivity("Error Unmarshalling Query paramaeters to struct:", err.Error())
@@ -1786,43 +1866,43 @@ func schemaUpdateWithTX(c context.Context, query *sqlc.Queries, connpool *pgxpoo
                 tx.Rollback(c)
                 return err
         }</span>
-        <span class="cov8" title="1">if patternSchema != nil </span><span class="cov8" title="1">{
+        <span class="cov8" title="1">if patternSchema != nil &amp;&amp; actionSchema == nil </span><span class="cov0" title="0">{
                 _, err = qtx.SchemaUpdate(c, sqlc.SchemaUpdateParams{
                         Slice:         sh.Slice,
                         Class:         sh.Class,
                         App:           sh.App,
-                        Brwf:          "W",
+                        Brwf:          brwf,
                         Patternschema: schema.Patternschema,
                         Actionschema:  actionSchema,
-                        Editedby:      editedBy,
+                        Editedby:      pgtype.Text{String: editedBy},
                 })
                 if err != nil </span><span class="cov0" title="0">{
                         tx.Rollback(c)
                         return err
                 }</span>
-        } else<span class="cov0" title="0"> if actionSchema != nil </span><span class="cov0" title="0">{
+        } else<span class="cov8" title="1"> if actionSchema != nil &amp;&amp; patternSchema == nil </span><span class="cov0" title="0">{
                 _, err = qtx.SchemaUpdate(c, sqlc.SchemaUpdateParams{
                         Slice:         sh.Slice,
                         Class:         sh.Class,
                         App:           sh.App,
-                        Brwf:          "W",
+                        Brwf:          brwf,
                         Patternschema: schema.Patternschema,
                         Actionschema:  actionSchema,
-                        Editedby:      editedBy,
+                        Editedby:      pgtype.Text{String: editedBy},
                 })
                 if err != nil </span><span class="cov0" title="0">{
                         tx.Rollback(c)
                         return err
                 }</span>
-        } else<span class="cov0" title="0"> {
+        } else<span class="cov8" title="1"> {
                 _, err = qtx.SchemaUpdate(c, sqlc.SchemaUpdateParams{
                         Slice:         sh.Slice,
                         Class:         sh.Class,
                         App:           sh.App,
-                        Brwf:          "W",
+                        Brwf:          brwf,
                         Patternschema: schema.Patternschema,
                         Actionschema:  schema.Actionschema,
-                        Editedby:      editedBy,
+                        Editedby:      pgtype.Text{String: editedBy},
                 })
                 if err != nil </span><span class="cov0" title="0">{
                         tx.Rollback(c)
@@ -1855,23 +1935,26 @@ func schemaUpdateWithTX(c context.Context, query *sqlc.Queries, connpool *pgxpoo
 
 func customValidationErrorsForUpdate(sh updateSchema) []wscutils.ErrorMessage <span class="cov8" title="1">{
         var validationErrors []wscutils.ErrorMessage
-        if sh.PatternSchema != nil </span><span class="cov8" title="1">{
-                patternSchemaError := verifyPatternSchema(sh.PatternSchema)
+        if sh.PatternSchema != nil &amp;&amp; sh.ActionSchema == nil </span><span class="cov0" title="0">{
+                patternSchemaError := verifyPatternSchemaUpdate(sh.PatternSchema)
                 validationErrors = append(validationErrors, patternSchemaError...)
-        }</span>
-        <span class="cov8" title="1">if sh.ActionSchema != nil </span><span class="cov8" title="1">{
-                actionSchemaError := verifyActionSchema(sh.ActionSchema)
+        }</span> else<span class="cov8" title="1"> if sh.ActionSchema != nil &amp;&amp; sh.PatternSchema == nil </span><span class="cov0" title="0">{
+                actionSchemaError := verifyActionSchemaUpdate(sh.ActionSchema)
                 validationErrors = append(validationErrors, actionSchemaError...)
-        }</span>
-        <span class="cov8" title="1">if sh.PatternSchema == nil &amp;&amp; sh.ActionSchema == nil </span><span class="cov0" title="0">{
+        }</span> else<span class="cov8" title="1"> if sh.PatternSchema == nil &amp;&amp; sh.ActionSchema == nil </span><span class="cov0" title="0">{
                 fieldName := fmt.Sprintln("PatternSchema/ActionSchema")
                 vErr := wscutils.BuildErrorMessage("at_least_one_must_be_supplied", &amp;fieldName)
                 validationErrors = append(validationErrors, vErr)
+        }</span> else<span class="cov8" title="1"> {
+                patternSchemaError := verifyPatternSchemaUpdate(sh.PatternSchema)
+                validationErrors = append(validationErrors, patternSchemaError...)
+                actionSchemaError := verifyActionSchemaUpdate(sh.ActionSchema)
+                validationErrors = append(validationErrors, actionSchemaError...)
         }</span>
 
         <span class="cov8" title="1">return validationErrors</span>
 }
-func verifyPatternSchema(ps *patternSchema) []wscutils.ErrorMessage <span class="cov8" title="1">{
+func verifyPatternSchemaUpdate(ps *patternSchema) []wscutils.ErrorMessage <span class="cov8" title="1">{
         var validationErrors []wscutils.ErrorMessage
         re := regexp.MustCompile(cruxIDRegExp)
 
@@ -1896,7 +1979,7 @@ func verifyPatternSchema(ps *patternSchema) []wscutils.ErrorMessage <span class=
         <span class="cov8" title="1">return validationErrors</span>
 }
 
-func verifyActionSchema(as *actionSchema) []wscutils.ErrorMessage <span class="cov8" title="1">{
+func verifyActionSchemaUpdate(as *actionSchema) []wscutils.ErrorMessage <span class="cov8" title="1">{
         var validationErrors []wscutils.ErrorMessage
         re := regexp.MustCompile(cruxIDRegExp)
 
@@ -1918,71 +2001,7 @@ func verifyActionSchema(as *actionSchema) []wscutils.ErrorMessage <span class="c
 }
 </pre>
 		
-		<pre class="file" id="file11" style="display: none">package utils
-
-import (
-        "fmt"
-        "regexp"
-
-        "github.com/remiges-tech/alya/wscutils"
-        "github.com/remiges-tech/crux/types"
-)
-
-const (
-        cruxIDRegExp = `^[a-z][a-z0-9_]*$`
-)
-
-var validTypes = map[string]bool{
-        "int": true, "float": true, "str": true, "enum": true, "bool": true, "timestamps": true,
-}
-
-func VerifyPatternSchema(ps types.PatternSchema) []wscutils.ErrorMessage <span class="cov8" title="1">{
-        var validationErrors []wscutils.ErrorMessage
-        re := regexp.MustCompile(cruxIDRegExp)
-
-        for i, attrSchema := range ps.Attr </span><span class="cov8" title="1">{
-                i++
-                if !re.MatchString(attrSchema.Name) </span><span class="cov8" title="1">{
-                        fieldName := fmt.Sprintf("attrSchema[%d].Name", i)
-                        vErr := wscutils.BuildErrorMessage("not_valid", &amp;fieldName, attrSchema.Name)
-                        validationErrors = append(validationErrors, vErr)
-                }</span>
-                <span class="cov8" title="1">if !validTypes[attrSchema.ValType] </span><span class="cov8" title="1">{
-                        fieldName := fmt.Sprintf("attrSchema[%d].ValType", i)
-                        vErr := wscutils.BuildErrorMessage("not_valid", &amp;fieldName, attrSchema.ValType)
-                        validationErrors = append(validationErrors, vErr)
-                }</span>
-                <span class="cov8" title="1">if attrSchema.ValType == "enum" &amp;&amp; len(attrSchema.Vals) == 0 </span><span class="cov8" title="1">{
-                        fieldName := fmt.Sprintf("attrSchema[%d].Vals", i)
-                        vErr := wscutils.BuildErrorMessage("empty", &amp;fieldName)
-                        validationErrors = append(validationErrors, vErr)
-                }</span>
-        }
-        <span class="cov8" title="1">return validationErrors</span>
-}
-
-func VerifyActionSchema(as types.ActionSchema) []wscutils.ErrorMessage <span class="cov8" title="1">{
-        var validationErrors []wscutils.ErrorMessage
-        re := regexp.MustCompile(cruxIDRegExp)
-        for i, task := range as.Tasks </span><span class="cov8" title="1">{
-                if !re.MatchString(task) </span><span class="cov8" title="1">{
-                        fieldName := fmt.Sprintf("actionSchema.Tasks[%d]", i)
-                        vErr := wscutils.BuildErrorMessage("not_valid", &amp;fieldName, task)
-                        validationErrors = append(validationErrors, vErr)
-                }</span>
-        }
-        <span class="cov8" title="1">for i, propName := range as.Properties </span><span class="cov8" title="1">{
-                if !re.MatchString(propName) </span><span class="cov8" title="1">{
-                        fieldName := fmt.Sprintf("actionSchema.Properties[%d]", i)
-                        vErr := wscutils.BuildErrorMessage("not_valid", &amp;fieldName, propName)
-                        validationErrors = append(validationErrors, vErr)
-                }</span>
-        }
-        <span class="cov8" title="1">return validationErrors</span>
-}
-</pre>
-		
-		<pre class="file" id="file12" style="display: none">package testutils
+		<pre class="file" id="file11" style="display: none">package testutils
 
 import (
         "encoding/json"
@@ -2025,7 +2044,7 @@ type TestCasesStruct struct {
 }
 </pre>
 		
-		<pre class="file" id="file13" style="display: none">package types
+		<pre class="file" id="file12" style="display: none">package types
 
 import (
         "encoding/json"
@@ -2083,6 +2102,7 @@ type Attribute struct {
         LenMax    *int32   `json:"lenmax,omitempty"`
         LenMin    *int32   `json:"lenmin,omitempty"`
 }
+
 type PatternSchema struct {
         Class string      `json:"class" validate:"required,lowercase"`
         Attr  []Attribute `json:"attr" validate:"required,dive"`
@@ -2093,6 +2113,7 @@ type ActionSchema struct {
         Tasks      []string `json:"tasks" validate:"required"`
         Properties []string `json:"properties" validate:"required"`
 }
+
 
 func (env Environment) IsValid() bool <span class="cov0" title="0">{
         switch env </span>{
