@@ -56,6 +56,7 @@ type Attribute struct {
 	LenMax    *int32   `json:"lenmax,omitempty"`
 	LenMin    *int32   `json:"lenmin,omitempty"`
 }
+
 type PatternSchema struct {
 	Class string      `json:"class" validate:"required,lowercase"`
 	Attr  []Attribute `json:"attr" validate:"required,dive"`
@@ -66,6 +67,7 @@ type ActionSchema struct {
 	Tasks      []string `json:"tasks" validate:"required"`
 	Properties []string `json:"properties" validate:"required"`
 }
+
 
 func (env Environment) IsValid() bool {
 	switch env {

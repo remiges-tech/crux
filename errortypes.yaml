@@ -12,6 +12,8 @@
 "invalid_wf_internal_status": 305
 "instance_already_exist" : 306
 "schema_pattern_not_found": 307
+"invalid_property_attributes" : 308
+"insert_operation_failed" : 309
 "gt" : 101
 "lowercase": 107
 "not_valid": 108

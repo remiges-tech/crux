@@ -15,6 +15,9 @@ const (
 	INVALID_WORKFLOW_INTERNAL_STATUS = "invalid_wf_internal_status"
 	INSTANCE_ALREADY_EXIST           = "instance_already_exist"
 	SCHEMA_PATTERN_NOT_FOUND         = "schema_pattern_not_found"
+	INVALID_PATTERN                  = "entity_does_not_match_with_pattern"
+	INVALID_PROPERTY_ATTRIBUTES      = "invalid_property_attributes"
+	INSERT_OPERATION_FAILED          = "insert_operation_failed"
 
 	typeBool   = "bool"
 	typeInt    = "int"
@@ -26,3 +29,4 @@ const (
 )
 
 var APP, CLASS, SLICE, ENTITY, WORKFLOW, ENTITYID string = "app", "class", "slice", "entity", "workflow", "entityid"
+var ACTIONSET_PROPERTIES, TASK = "actionset_properties", "task"
