@@ -3,7 +3,11 @@
 package main
 
 func collectActions(actionSet ActionSet, ruleActions RuleActions) ActionSet {
-	newActionSet := ActionSet{}
+
+	newActionSet := ActionSet{
+		tasks:      []string{},
+		properties: make(map[string]string),
+	}
 
 	// Union-set of tasks
 	newActionSet.tasks = append(newActionSet.tasks, actionSet.tasks...)
@@ -20,20 +24,27 @@ func collectActions(actionSet ActionSet, ruleActions RuleActions) ActionSet {
 		}
 	}
 
+
 	// Perform "union-set" of properties, overwriting previous property values if needed
-	newActionSet.properties = append(newActionSet.properties, actionSet.properties...)
-	for _, newProperty := range ruleActions.properties {
+
+	for name, val := range actionSet.properties {
+		newActionSet.properties[name] = val
+	}
+
+	// Update properties from ruleActions
+	for propName, propertyVal := range ruleActions.properties {
 		found := false
-		for i, property := range newActionSet.properties {
-			if property.name == newProperty.name {
-				newActionSet.properties[i].val = newProperty.val
+		for existingPropName := range newActionSet.properties {
+			if existingPropName == propName {
+				newActionSet.properties[existingPropName] = propertyVal
 				found = true
 				break
 			}
 		}
 		if !found {
-			newActionSet.properties = append(newActionSet.properties, newProperty)
+			newActionSet.properties[propName] = propertyVal
 		}
 	}
+
 	return newActionSet
 }

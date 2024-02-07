@@ -17,14 +17,20 @@ var ruleSets = map[string]RuleSet{}
 
 func doMatch(entity Entity, ruleSet RuleSet, actionSet ActionSet, seenRuleSets map[string]bool) (ActionSet, bool, error) {
 	if seenRuleSets[ruleSet.setName] {
-		return ActionSet{}, false, errors.New("ruleset has already been traversed")
+		return ActionSet{
+			tasks:      []string{},
+			properties: make(map[string]string),
+		}, false, errors.New("ruleset has already been traversed")
 	}
 	seenRuleSets[ruleSet.setName] = true
 	for _, rule := range ruleSet.rules {
 		willExit := false
 		matched, err := matchPattern(entity, rule.rulePattern, actionSet)
 		if err != nil {
-			return ActionSet{}, false, err
+			return ActionSet{
+				tasks:      []string{},
+				properties: make(map[string]string),
+			}, false, err
 		}
 		if matched {
 			actionSet = collectActions(actionSet, rule.ruleActions)
@@ -36,7 +42,10 @@ func doMatch(entity Entity, ruleSet RuleSet, actionSet ActionSet, seenRuleSets m
 				var err error
 				actionSet, willExit, err = doMatch(entity, setToCall, actionSet, seenRuleSets)
 				if err != nil {
-					return ActionSet{}, false, err
+					return ActionSet{
+						tasks:      []string{},
+						properties: make(map[string]string),
+					}, false, err
 				}
 			}
 			if willExit || rule.ruleActions.willExit {
@@ -54,7 +63,10 @@ func doMatch(entity Entity, ruleSet RuleSet, actionSet ActionSet, seenRuleSets m
 			var err error
 			actionSet, willExit, err = doMatch(entity, setToCall, actionSet, seenRuleSets)
 			if err != nil {
-				return ActionSet{}, false, err
+				return ActionSet{
+					tasks:      []string{},
+					properties: make(map[string]string),
+				}, false, err
 			} else if willExit {
 				return actionSet, true, nil
 			}

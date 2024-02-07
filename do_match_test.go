@@ -26,6 +26,20 @@ type doMatchTest struct {
 	want      ActionSet
 }
 
+func deepEqualMap(actualResult, expectedResult ActionSet) bool {
+	// Check if tasks slices are both nil or empty
+	tasksEqual := (actualResult.tasks == nil && expectedResult.tasks == nil) ||
+		(len(actualResult.tasks) == 0 && len(expectedResult.tasks) == 0) ||
+		reflect.DeepEqual(actualResult.tasks, expectedResult.tasks)
+
+	// Check if properties maps are both nil or empty
+	propertiesEqual := (actualResult.properties == nil && expectedResult.properties == nil) ||
+		(len(actualResult.properties) == 0 && len(expectedResult.properties) == 0) ||
+		reflect.DeepEqual(actualResult.properties, expectedResult.properties)
+
+	// Return true if both tasks and properties are equal
+	return tasksEqual && propertiesEqual
+}
 func TestDoMatch(t *testing.T) {
 	tests := []doMatchTest{}
 
@@ -53,8 +67,11 @@ func TestDoMatch(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, _, _ := doMatch(tt.entity, tt.ruleSet, tt.actionSet, map[string]bool{})
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("\n\ndoMatch() = %v, \n\nwant        %v\n\n", got, tt.want)
+
+			if !deepEqualMap(got, tt.want) {
+
+				t.Errorf("\n\n  doMatch() = %v, \n\nwant        %v\n\n", got, tt.want)
+
 			}
 		})
 	}
@@ -71,7 +88,10 @@ func TestDoMatch(t *testing.T) {
 func testCycleError(t *testing.T) {
 	t.Log("Running cycle test")
 	setupRuleSetsForCycleError()
-	_, _, err := doMatch(sampleEntity, ruleSets[mainRS], ActionSet{}, map[string]bool{})
+	_, _, err := doMatch(sampleEntity, ruleSets[mainRS], ActionSet{
+		tasks:      []string{},
+		properties: make(map[string]string),
+	}, map[string]bool{})
 	if err == nil {
 		t.Errorf("test cycle: expected but did not get error")
 	}
@@ -137,9 +157,17 @@ func testThenCallWrongClass(t *testing.T) {
 			},
 		}},
 	}
-	entity := Entity{inventoryItemClass, []Attr{{"cat", "textbook"}}}
+	entity := Entity{
+		class: inventoryItemClass,
+		attrs: map[string]string{
+			"cat": "textbook",
+		},
+	}
 
-	_, _, err := doMatch(entity, ruleSets["wrongclassrs"], ActionSet{}, map[string]bool{})
+	_, _, err := doMatch(entity, ruleSets["wrongclassrs"], ActionSet{
+		tasks:      []string{},
+		properties: make(map[string]string),
+	}, map[string]bool{})
 	if err == nil {
 		t.Errorf("unexpected output when erroneously 'calling' ruleset of different class")
 	}

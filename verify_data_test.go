@@ -545,14 +545,14 @@ func testInvalidOp(t *testing.T) {
 // moving on to the next test.
 var correctRA RuleActions = RuleActions{
 	tasks:      []string{"freemug", "freejar", "freeplant"},
-	properties: []Property{{"discount", "20"}},
+	properties: map[string]string{"discount": "20"},
 }
 
 func testTaskNotInSchema(t *testing.T) {
 	ruleSets[mainRS].rules[3].ruleActions = RuleActions{
 		// freeeraser is not in the schema
 		tasks:      []string{"freemug", "freeeraser"},
-		properties: []Property{{"discount", "20"}},
+		properties: map[string]string{"discount": "20"},
 	}
 	ok, err := verifyRuleSet(ruleSets[mainRS], false)
 	if ok || err == nil {
@@ -565,7 +565,7 @@ func testPropNameNotInSchema(t *testing.T) {
 	ruleSets[mainRS].rules[3].ruleActions = RuleActions{
 		tasks: []string{"freemug", "freejar", "freeplant"},
 		// cashback is not a property in the action-schema
-		properties: []Property{{"cashback", "5"}},
+		properties: map[string]string{"cashback": "5"},
 	}
 	ok, err := verifyRuleSet(ruleSets[mainRS], false)
 	if ok || err == nil {
@@ -577,7 +577,7 @@ func testPropNameNotInSchema(t *testing.T) {
 func testBothReturnAndExit(t *testing.T) {
 	ruleSets[mainRS].rules[3].ruleActions = RuleActions{
 		tasks:      []string{"freemug", "freejar", "freeplant"},
-		properties: []Property{{"discount", "20"}},
+		properties: map[string]string{"discount": "20"},
 		// both WillReturn and WillExit below should not be true
 		willReturn: true,
 		willExit:   true,
@@ -619,14 +619,14 @@ func testWFRuleMissingStep(t *testing.T) {
 // moving on to the next test.
 var correctWorkflowRA RuleActions = RuleActions{
 	tasks:      []string{"aof", "kycvalid", "nomauth", "bankaccvalid"},
-	properties: []Property{{nextStep, "aof"}},
+	properties: map[string]string{nextStep: "aof"},
 }
 
 func testWFRuleMissingBothNSAndDone(t *testing.T) {
 	ruleSets[uccCreation].rules[1].ruleActions = RuleActions{
 		tasks: []string{"aof", "kycvalid", "nomauth", "bankaccvalid"},
 		// Properties below should contain at least one of "nextstep" and "done"
-		properties: []Property{},
+		properties: map[string]string{},
 	}
 	ok, err := verifyRuleSet(ruleSets[uccCreation], true)
 	if ok || err == nil {
@@ -639,7 +639,7 @@ func testWFNoTasksAndNotDone(t *testing.T) {
 	ruleSets[uccCreation].rules[1].ruleActions = RuleActions{
 		// Either Tasks below should not be empty, or Properties below should contain {"done", "true"}
 		tasks:      []string{},
-		properties: []Property{{nextStep, "abc"}},
+		properties: map[string]string{nextStep: "abc"},
 	}
 	ok, err := verifyRuleSet(ruleSets[uccCreation], true)
 	if ok || err == nil {
@@ -652,7 +652,7 @@ func testWFNextStepValNotInTasks(t *testing.T) {
 	ruleSets[uccCreation].rules[1].ruleActions = RuleActions{
 		tasks: []string{"aof", "kycvalid", "nomauth", "bankaccvalid"},
 		// "abcd" below is not in "Tasks" above
-		properties: []Property{{nextStep, "abcd"}},
+		properties: map[string]string{nextStep: "abcd"},
 	}
 	ok, err := verifyRuleSet(ruleSets[uccCreation], true)
 	if ok || err == nil {
@@ -709,11 +709,15 @@ func TestVerifyEntity(t *testing.T) {
 }
 
 func testCorrectEntity(t *testing.T) {
-	e := Entity{purchaseClass, []Attr{
-		{"product", "jacket"},
-		{"price", "50"},
-		{"ismember", trueStr},
-	}}
+	e := Entity{
+		class: purchaseClass,
+		attrs: map[string]string{
+			"product":  "jacket",
+			"price":    "50",
+			"ismember": trueStr,
+		},
+	}
+
 	ok, err := verifyEntity(e)
 	if !ok || err != nil {
 		t.Errorf(incorrectOutputEntity + "no issues")
@@ -721,9 +725,13 @@ func testCorrectEntity(t *testing.T) {
 }
 
 func testEntityWithoutSchema(t *testing.T) {
-	e := Entity{"wrongclass", []Attr{
-		{"product", "jacket"},
-	}}
+	e := Entity{
+		class: "wrongclass",
+		attrs: map[string]string{
+			"product": "jacket",
+		},
+	}
+
 	ok, err := verifyEntity(e)
 	if ok || err == nil {
 		t.Errorf(incorrectOutputEntity + "no schema")
@@ -731,12 +739,16 @@ func testEntityWithoutSchema(t *testing.T) {
 }
 
 func testEntityWrongAttr(t *testing.T) {
-	e := Entity{purchaseClass, []Attr{
-		{"product", "jacket"},
-		// discount is not in the schema
-		{"discount", "5"},
-		{"ismember", trueStr},
-	}}
+	e := Entity{
+		class: purchaseClass,
+		attrs: map[string]string{
+			"product": "jacket",
+			// discount is not in the schema
+			"discount": "5",
+			"ismember": trueStr,
+		},
+	}
+
 	ok, err := verifyEntity(e)
 	if ok || err == nil {
 		t.Errorf(incorrectOutputEntity + "an attribute not in the schema")
@@ -744,12 +756,16 @@ func testEntityWrongAttr(t *testing.T) {
 }
 
 func testEntityWrongType(t *testing.T) {
-	e := Entity{purchaseClass, []Attr{
-		{"product", "jacket"},
-		// price should be a float, not the string "fifty"
-		{"price", "fifty"},
-		{"ismember", trueStr},
-	}}
+	e := Entity{
+		class: purchaseClass,
+		attrs: map[string]string{
+			"product": "jacket",
+			// price should be a float, not the string "fifty"
+			"price":    "fifty",
+			"ismember": trueStr,
+		},
+	}
+
 	ok, err := verifyEntity(e)
 	if ok || err == nil {
 		t.Errorf(incorrectOutputEntity + "a wrongly-typed attribute")
@@ -757,11 +773,15 @@ func testEntityWrongType(t *testing.T) {
 }
 
 func testEntityMissingAttr(t *testing.T) {
-	e := Entity{purchaseClass, []Attr{
-		{"product", "jacket"},
-		// price is missing
-		{"ismember", trueStr},
-	}}
+	e := Entity{
+		class: purchaseClass,
+		attrs: map[string]string{
+			"product": "jacket",
+			// price is missing
+			"ismember": trueStr,
+		},
+	}
+
 	ok, err := verifyEntity(e)
 	if ok || err == nil {
 		t.Errorf(incorrectOutputEntity + "a missing attribute")

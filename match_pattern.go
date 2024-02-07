@@ -30,19 +30,21 @@ const (
 	falseStr = "false"
 )
 
+
+
 func matchPattern(entity Entity, rulePattern []RulePatternTerm, actionSet ActionSet) (bool, error) {
 	for _, term := range rulePattern {
 		valType := ""
 		entityAttrVal := ""
-		for _, entityAttr := range entity.attrs {
-			if entityAttr.name == term.attrName {
-				entityAttrVal = entityAttr.val
-				valType = getTypeFromSchema(entity.class, entityAttr.name)
-			}
+
+		// Check whether the attribute name in the pattern term exists in the entity attrs map
+		if val, ok := entity.attrs[term.attrName]; ok {
+			entityAttrVal = val
+			valType = getTypeFromSchema(entity.class, term.attrName)
 		}
+
+		// If the attribute value is still empty, check whether it matches any of the tasks in the action-set
 		if entityAttrVal == "" {
-			// Check whether the attribute name in the pattern term matches any of the tasks in
-			// the action-set
 			for _, task := range actionSet.tasks {
 				if task == term.attrName {
 					entityAttrVal = trueStr
@@ -50,18 +52,23 @@ func matchPattern(entity Entity, rulePattern []RulePatternTerm, actionSet Action
 				}
 			}
 		}
+
+		// If the attribute value is still empty, default to false
 		if entityAttrVal == "" {
 			entityAttrVal = falseStr
 			valType = typeBool
 		}
+
 		matched, err := makeComparison(entityAttrVal, term.attrVal, valType, term.op)
 		if err != nil {
 			return false, fmt.Errorf("error making comparison %w", err)
 		}
+
 		if !matched {
 			return false, nil
 		}
 	}
+
 	return true, nil
 }
 

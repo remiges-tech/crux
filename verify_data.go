@@ -245,6 +245,7 @@ func verifyType(val any, valType string) bool {
 	return ok
 }
 
+
 func verifyRuleActions(ruleSet RuleSet, schema RuleSchema, isWF bool) (bool, error) {
 	for _, rule := range ruleSet.rules {
 		for _, t := range rule.ruleActions.tasks {
@@ -252,9 +253,9 @@ func verifyRuleActions(ruleSet RuleSet, schema RuleSchema, isWF bool) (bool, err
 				return false, fmt.Errorf("task %v not found in action-schema", t)
 			}
 		}
-		for _, p := range rule.ruleActions.properties {
-			if !isStringInArray(p.name, schema.actionSchema.properties) {
-				return false, fmt.Errorf("property name %v not found in action-schema", p.name)
+		for propName := range rule.ruleActions.properties {
+			if !isStringInArray(propName, schema.actionSchema.properties) {
+				return false, fmt.Errorf("property name %v not found in action-schema", propName)
 			}
 		}
 		if rule.ruleActions.willReturn && rule.ruleActions.willExit {
@@ -278,23 +279,23 @@ func verifyRuleActions(ruleSet RuleSet, schema RuleSchema, isWF bool) (bool, err
 	return true, nil
 }
 
-func areNextStepAndDoneInProps(props []Property) (bool, bool) {
+func areNextStepAndDoneInProps(props map[string]string) (bool, bool) {
 	nsFound, doneFound := false, false
-	for _, p := range props {
-		if p.name == nextStep {
+	for name, val := range props {
+		if name == nextStep {
 			nsFound = true
 		}
-		if p.name == done && p.val == trueStr {
+		if name == done && val == trueStr {
 			doneFound = true
 		}
 	}
 	return nsFound, doneFound
 }
 
-func getNextStep(props []Property) string {
-	for _, p := range props {
-		if p.name == nextStep {
-			return p.val
+func getNextStep(props map[string]string) string {
+	for name, val := range props {
+		if name == nextStep {
+			return val
 		}
 	}
 	return ""
@@ -334,14 +335,14 @@ func verifyEntity(e Entity) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	for _, a := range e.attrs {
-		t := getType(rs, a.name)
+	for attrName, attrVal := range e.attrs {
+		t := getType(rs, attrName)
 		if t == "" {
-			return false, fmt.Errorf("schema does not contain attribute %v", a.name)
+			return false, fmt.Errorf("schema does not contain attribute %v", attrName)
 		}
-		_, err := convertEntityAttrVal(a.val, t)
+		_, err := convertEntityAttrVal(attrVal, t)
 		if err != nil {
-			return false, fmt.Errorf("attribute %v in entity has value of wrong type", a.name)
+			return false, fmt.Errorf("attribute %v in entity has value of wrong type", attrName)
 		}
 	}
 	if len(e.attrs) != len(rs.patternSchema) {

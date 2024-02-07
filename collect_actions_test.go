@@ -10,12 +10,12 @@ import (
 func TestCollectActionsBasic(t *testing.T) {
 	actionSet := ActionSet{
 		tasks:      []string{"dodiscount", "yearendsale"},
-		properties: []Property{{"discount", "7"}, {"shipby", "fedex"}},
+		properties: map[string]string{"discount": "7", "shipby": "fedex"},
 	}
 
 	ruleActions := RuleActions{
 		tasks:      []string{"yearendsale", "summersale"},
-		properties: []Property{{"cashback", "10"}, {"discount", "9"}},
+		properties: map[string]string{"cashback": "10", "discount": "9"},
 		thenCall:   "domesticpo",
 		willReturn: false,
 		willExit:   true,
@@ -23,7 +23,7 @@ func TestCollectActionsBasic(t *testing.T) {
 
 	want := ActionSet{
 		tasks:      []string{"dodiscount", "yearendsale", "summersale"},
-		properties: []Property{{"discount", "9"}, {"shipby", "fedex"}, {"cashback", "10"}},
+		properties: map[string]string{"discount": "9", "shipby": "fedex", "cashback": "10"},
 	}
 
 	res := collectActions(actionSet, ruleActions)
@@ -35,14 +35,14 @@ func TestCollectActionsBasic(t *testing.T) {
 func TestCollectActionsWithEmptyRuleActions(t *testing.T) {
 	actionSet := ActionSet{
 		tasks:      []string{"dodiscount", "yearendsale"},
-		properties: []Property{{"discount", "7"}, {"shipby", "fedex"}},
+		properties: map[string]string{"discount": "7", "shipby": "fedex"},
 	}
 
 	ruleActions := RuleActions{}
 
 	want := ActionSet{
 		tasks:      []string{"dodiscount", "yearendsale"},
-		properties: []Property{{"discount", "7"}, {"shipby", "fedex"}},
+		properties: map[string]string{"discount": "7", "shipby": "fedex"},
 	}
 
 	res := collectActions(actionSet, ruleActions)
@@ -52,11 +52,14 @@ func TestCollectActionsWithEmptyRuleActions(t *testing.T) {
 }
 
 func TestCollectActionsWithEmptyActionSet(t *testing.T) {
-	actionSet := ActionSet{}
+	actionSet := ActionSet{
+		tasks:      []string{},
+		properties: make(map[string]string),
+	}
 
 	ruleActions := RuleActions{
 		tasks:      []string{"dodiscount", "yearendsale"},
-		properties: []Property{{"discount", "7"}, {"shipby", "fedex"}},
+		properties: map[string]string{"discount": "7", "shipby": "fedex"},
 		thenCall:   "overseaspo",
 		willReturn: true,
 		willExit:   false,
@@ -64,7 +67,7 @@ func TestCollectActionsWithEmptyActionSet(t *testing.T) {
 
 	want := ActionSet{
 		tasks:      []string{"dodiscount", "yearendsale"},
-		properties: []Property{{"discount", "7"}, {"shipby", "fedex"}},
+		properties: map[string]string{"discount": "7", "shipby": "fedex"},
 	}
 
 	res := collectActions(actionSet, ruleActions)

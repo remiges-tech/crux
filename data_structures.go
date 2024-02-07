@@ -27,7 +27,7 @@ type ActionSchema struct {
 
 type Entity struct {
 	class string
-	attrs []Attr
+	attrs map[string]string
 }
 
 type Attr struct {
@@ -36,8 +36,9 @@ type Attr struct {
 }
 
 type ActionSet struct {
-	tasks      []string
-	properties []Property
+	tasks []string
+	properties map[string]string 
+
 }
 
 type Property struct {
@@ -64,8 +65,8 @@ type RulePatternTerm struct {
 }
 
 type RuleActions struct {
-	tasks      []string
-	properties []Property
+	tasks []string
+	properties map[string]string
 	thenCall   string
 	elseCall   string
 	willReturn bool
