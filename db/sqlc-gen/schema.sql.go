@@ -664,6 +664,43 @@ func (q *Queries) WfPatternSchemaGet(ctx context.Context, arg WfPatternSchemaGet
 	return patternschema, err
 }
 
+const wfSchemaGet = `-- name: WfSchemaGet :one
+SELECT
+    id, realm, slice, app, brwf, class, patternschema, actionschema, createdat, createdby, editedat, editedby
+FROM
+    public.schema
+WHERE
+    slice = $1
+    AND class = $2
+    AND app = $3
+`
+
+type WfSchemaGetParams struct {
+	Slice int32  `json:"slice"`
+	Class string `json:"class"`
+	App   string `json:"app"`
+}
+
+func (q *Queries) WfSchemaGet(ctx context.Context, arg WfSchemaGetParams) (Schema, error) {
+	row := q.db.QueryRow(ctx, wfSchemaGet, arg.Slice, arg.Class, arg.App)
+	var i Schema
+	err := row.Scan(
+		&i.ID,
+		&i.Realm,
+		&i.Slice,
+		&i.App,
+		&i.Brwf,
+		&i.Class,
+		&i.Patternschema,
+		&i.Actionschema,
+		&i.Createdat,
+		&i.Createdby,
+		&i.Editedat,
+		&i.Editedby,
+	)
+	return i, err
+}
+
 const wfschemadelete = `-- name: Wfschemadelete :exec
 DELETE from
     schema

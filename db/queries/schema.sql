@@ -225,3 +225,13 @@ WHERE
     slice = $1
     AND class = $2
     AND app = $3;
+
+-- name: WfSchemaGet :one
+SELECT
+    *
+FROM
+    public.schema
+WHERE
+    slice = $1
+    AND class = $2
+    AND app = $3;
