@@ -27,7 +27,7 @@ type AddWFNewInstaceParams struct {
 	Nextstep string `json:"nextstep"`
 }
 
-func (q *Queries) AddWFNewInstace(ctx context.Context, arg AddWFNewInstaceParams) (int32, error) {
+func (q *Queries) AddWFNewInstace(ctx context.Context, arg AddWFNewInstaceParams) (string, error) {
 	row := q.db.QueryRow(ctx, addWFNewInstace,
 		arg.Entityid,
 		arg.Slice,
@@ -37,7 +37,7 @@ func (q *Queries) AddWFNewInstace(ctx context.Context, arg AddWFNewInstaceParams
 		arg.Step,
 		arg.Nextstep,
 	)
-	var id int32
+	var id string
 	err := row.Scan(&id)
 	return id, err
 }

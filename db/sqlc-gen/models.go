@@ -122,6 +122,7 @@ type Ruleset struct {
 	Brwf       BrwfEnum         `json:"brwf"`
 	Class      string           `json:"class"`
 	Setname    string           `json:"setname"`
+	Schemaid   int32            `json:"schemaid"`
 	IsActive   pgtype.Bool      `json:"is_active"`
 	IsInternal bool             `json:"is_internal"`
 	Ruleset    []byte           `json:"ruleset"`
@@ -154,7 +155,7 @@ type Stepworkflow struct {
 }
 
 type Wfinstance struct {
-	ID       int32            `json:"id"`
+	ID       string           `json:"id"`
 	Entityid string           `json:"entityid"`
 	Slice    int32            `json:"slice"`
 	App      string           `json:"app"`

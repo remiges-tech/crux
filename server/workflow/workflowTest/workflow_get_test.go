@@ -104,6 +104,21 @@ func workflowGetTestCase() []TestCasesStruct {
 			expectedHttpCode: http.StatusOK,
 			testJsonFile:     "./testData/workflow_get_response.json",
 		},
+		// 3nd test case
+		{
+			name: "Failed- get workflow by invalid req ",
+			requestPayload: wscutils.Request{
+				Data: workflow.WorkflowGetReq{
+					Slice: sliceStr,
+					App:   "xyz",
+					Class: class,
+					Name:  tname,
+				},
+			},
+
+			expectedHttpCode: http.StatusBadRequest,
+			testJsonFile:     "./testData/workflow_get_failed_response.json",
+		},
 	}
 	return schemaNewTestcase
 }

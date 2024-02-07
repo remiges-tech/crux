@@ -91,17 +91,18 @@ CREATE TABLE ruleset (
     brwf brwf_enum NOT NULL,
     class VARCHAR(255) CHECK (class ~ '^[a-z_]+$') NOT NULL,
     setname VARCHAR(255) CHECK (setname ~ '^[a-z_]+$') NOT NULL,
+    schemaid INTEGER REFERENCES schema (id) NOT NULL,
     is_active BOOLEAN DEFAULT false,
     is_internal BOOLEAN NOT NULL,
     ruleset JSONB NOT NULL,
-    createdat TIMESTAMP DEFAULT NOW() :: timestamp NOT NULL,
+    createdat TIMESTAMP DEFAULT (NOW() :: timestamp) NOT NULL,
     createdby VARCHAR(255) NOT NULL,
-    editedat TIMESTAMP DEFAULT NOW() :: timestamp,
+    editedat TIMESTAMP DEFAULT (NOW() :: timestamp),
     editedby VARCHAR(255)
 );
 
 CREATE TABLE wfinstance (
-    id SERIAL PRIMARY KEY,
+    id VARCHAR(255) NOT NULL,
     entityid VARCHAR(255) NOT NULL,
     slice INTEGER REFERENCES realmslice (id) NOT NULL,
     app VARCHAR(255) REFERENCES app (shortname) NOT NULL,
@@ -112,6 +113,7 @@ CREATE TABLE wfinstance (
     doneat TIMESTAMP,
     nextstep VARCHAR(255) NOT NULL,
     parent INTEGER
+    -- UNIQUE (workflow, slice, app, id)
 );
 
 CREATE TABLE stepworkflow (
