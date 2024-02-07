@@ -120,10 +120,10 @@ func (q *Queries) GetWFInternalStatus(ctx context.Context, arg GetWFInternalStat
 const workFlowNew = `-- name: WorkFlowNew :one
 INSERT INTO
     ruleset (
-        realm, slice, app, brwf, class, setname, is_active, is_internal, ruleset, createdat, createdby
+        realm, slice, app, brwf, class, setname, schemaid, is_active, is_internal, ruleset, createdat, createdby
     )
 VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP, $10
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP, $11
     )
 RETURNING
     id
@@ -136,6 +136,7 @@ type WorkFlowNewParams struct {
 	Brwf       BrwfEnum    `json:"brwf"`
 	Class      string      `json:"class"`
 	Setname    string      `json:"setname"`
+	Schemaid   int32       `json:"schemaid"`
 	IsActive   pgtype.Bool `json:"is_active"`
 	IsInternal bool        `json:"is_internal"`
 	Ruleset    []byte      `json:"ruleset"`
@@ -150,6 +151,7 @@ func (q *Queries) WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) (int32
 		arg.Brwf,
 		arg.Class,
 		arg.Setname,
+		arg.Schemaid,
 		arg.IsActive,
 		arg.IsInternal,
 		arg.Ruleset,

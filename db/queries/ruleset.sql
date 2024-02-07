@@ -60,10 +60,10 @@ where
 -- name: WorkFlowNew :one
 INSERT INTO
     ruleset (
-        realm, slice, app, brwf, class, setname, is_active, is_internal, ruleset, createdat, createdby
+        realm, slice, app, brwf, class, setname, schemaid, is_active, is_internal, ruleset, createdat, createdby
     )
 VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP, $10
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP, $11
     )
 RETURNING
     id;
