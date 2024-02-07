@@ -101,26 +101,26 @@ VALUES (
 -- ruleset
 INSERT INTO
     ruleset (
-        id, realm, slice, app, class, brwf, setname, is_active, is_internal, ruleset, createdat, createdby, editedat, editedby
+        id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby, editedat, editedby
     )
 VALUES (
-        1, 1, 2, 'retailbank', 'members', 'W', 'goldstatus', true, true, '{
+        1, 1, 2, 'retailbank', 'members', 'W', 'goldstatus', true, true, 10, '{
             "name": "step",
             "type": "enum",
             "vals": [ "START", "initialdoc", "aadhaarcheck", "creditbureauchk", "panchk", "bankdetails", "referencechk", "stage2done", "complete" ],
             "descr": "Current step completed"
-        }', '2024-01-28 00:00:00', 'admin', '2024-01-15 00:00:00', 'admin'
+        }', '2024-01-28T00:00:00Z', 'admin', '2024-01-15T00:00:00Z', 'admin'
     );
 
 INSERT INTO
     ruleset (
-        id, realm, slice, app, class, brwf, setname, is_active, is_internal, ruleset, createdat, createdby, editedat, editedby
+        id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby, editedat, editedby
     )
 VALUES (
-        2, 1, 2, 'retailBANK', 'members', 'W', 'temp_set', true, true, '{
+        2, 1, 2, 'retailBANK', 'members', 'W', 'temp_set', true, true, 13, '{
             "name": "step",
             "type": "enum1",
             "vals": [ "START", "initialdoc", "aadhaarcheck", "creditbureauchk", "panchk", "bankdetails", "referencechk", "stage2done", "complete" ],
             "descr": "Current step completed"
-        }', '2024-01-28 00:00:00', 'admin', '2024-01-15 00:00:00', 'admin'
-    );
+        }', '2024-01-28T00:00:00Z', 'admin', '2024-01-15T00:00:00Z', 'admin'
+    )

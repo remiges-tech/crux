@@ -95,9 +95,9 @@ func responseBinding(dbResponse sqlc.WorkflowgetRow) WorkflowgetRow {
 		Name:       dbResponse.Name,
 		IsActive:   dbResponse.IsActive.Bool,
 		IsInternal: dbResponse.IsInternal,
-		Createdat:  pgtype.Timestamp{Time: dbResponse.Createdat.Time},
+		Createdat:  dbResponse.Createdat,
 		Createdby:  dbResponse.Createdby,
-		Editedat:   pgtype.Timestamp{Time: dbResponse.Editedat.Time},
+		Editedat:   dbResponse.Editedat,
 		Editedby:   dbResponse.Editedby,
 	}
 	return tempData
