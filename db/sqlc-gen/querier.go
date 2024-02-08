@@ -34,6 +34,7 @@ type Querier interface {
 	Wfschemadelete(ctx context.Context, arg WfschemadeleteParams) error
 	Wfschemaget(ctx context.Context, arg WfschemagetParams) (WfschemagetRow, error)
 	WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) (int32, error)
+	WorkflowList(ctx context.Context, arg WorkflowListParams) ([]WorkflowListRow, error)
 	Workflowget(ctx context.Context, arg WorkflowgetParams) (WorkflowgetRow, error)
 }
 

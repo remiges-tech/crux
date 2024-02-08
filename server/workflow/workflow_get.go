@@ -6,34 +6,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	"github.com/remiges-tech/crux/types"
 )
-
-type WorkflowGetReq struct {
-	Slice int32  `json:"slice" validate:"required,gt=0"`
-	App   string `json:"app" validate:"required,alpha"`
-	Class string `json:"class" validate:"required,alpha"`
-	Name  string `json:"name" validate:"required,alpha"`
-}
-
-type WorkflowgetRow struct {
-	ID         int32            `json:"id"`
-	Slice      int32            `json:"slice"`
-	App        string           `json:"app"`
-	Class      string           `json:"class"`
-	Name       string           `json:"name"`
-	IsActive   bool             `json:"is_active"`
-	IsInternal bool             `json:"is_internal"`
-	Flowrules  interface{}      `json:"flowrules"`
-	Createdat  pgtype.Timestamp `json:"createdat"`
-	Createdby  string           `json:"createdby"`
-	Editedat   pgtype.Timestamp `json:"editedat"`
-	Editedby   pgtype.Text      `json:"editedby"`
-}
 
 // WorkflowGet will be responsible for processing the /workflowget request that comes through as a POST
 func WorkflowGet(c *gin.Context, s *service.Service) {

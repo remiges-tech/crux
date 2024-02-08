@@ -129,9 +129,9 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/wfschemaUpdate", schema.SchemaUpdate)
 	// Workflow
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/workflowget", workflow.WorkflowGet)
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstancenew", wfinstanceserv.GetWFinstanceNew)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/workflowlist", workflow.WorkflowList)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/workflowNew", workflow.WorkFlowNew)
-
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstancenew", wfinstanceserv.GetWFinstanceNew)
 
 	appServerPortStr := strconv.Itoa(appServerPort)
 	r.Run(":" + appServerPortStr)

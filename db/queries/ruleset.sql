@@ -55,7 +55,8 @@ where
     slice = $1
     and app = $2
     and class = $3
-    and setname = $4;
+    and setname = $4
+    AND brwf = 'W';
 
 -- name: WorkFlowNew :one
 INSERT INTO
@@ -67,3 +68,26 @@ VALUES (
     )
 RETURNING
     id;
+
+-- name: WorkflowList :many
+select
+    id,
+    slice,
+    app,
+    class,
+    setname as name,
+    is_active,
+    is_internal,
+    createdat,
+    createdby,
+    editedat,
+    editedby
+from ruleset
+where
+    brwf = 'W'
+    AND (sqlc.narg('slice')::INTEGER is null OR slice = sqlc.narg('slice')::INTEGER)
+    AND (sqlc.narg('app')::VARCHAR(20) is null OR app = sqlc.narg('app')::VARCHAR(20))
+    AND (sqlc.narg('class')::VARCHAR(20) is null OR class = sqlc.narg('class')::VARCHAR(20))
+    AND (sqlc.narg('setname')::VARCHAR(20) is null OR setname = sqlc.narg('setname')::VARCHAR(20))
+    AND (sqlc.narg('is_active')::BOOLEAN is null OR is_active = sqlc.narg('is_active')::BOOLEAN)
+    AND (sqlc.narg('is_internal')::BOOLEAN is null OR is_internal = sqlc.narg('is_internal')::BOOLEAN);
