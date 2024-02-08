@@ -5,9 +5,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
-	"github.com/remiges-tech/crux/db/sqlc-gen"
 )
 
 // Incoming request format
@@ -18,16 +18,32 @@ type WFInstanceNewRequest struct {
 	Entity   map[string]string `json:"entity" validate:"required"`
 	Workflow *string           `json:"workflow" validate:"required"`
 	Trace    int               `json:"trace,omitempty"`
-	Parent   int               `json:"parent,omitempty"`
+	Parent   int32             `json:"parent,omitempty"`
+}
+
+// WFInstanceNew response format
+type WFInstanceNewResponse struct {
+	Tasks     []map[string]int32 `json:"tasks"  validate:"required"`
+	Nextstep  string             `json:"nextstep"`
+	Loggedat  pgtype.Timestamp   `json:"loggedat"`
+	Subflows  *map[string]string `json:"subflows"`
+	Tracedata *map[string]string `json:"tracedata"`
 }
 
 // GetWFinstanceNew will be responsible for processing the /wfinstanceNew request that comes through as a POST
 func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour
 	lh.Log("GetWFinstanceNew request received")
+	var wfinstanceNewreq WFInstanceNewRequest
+	var actionSet ActionSet
+	var ruleSet RuleSet
+	var entity = getEntity(wfinstanceNewreq.Entity)
+	var seenRuleSets map[string]bool
+	var response WFInstanceNewResponse
+	var attribute map[string]string
+	var done, nextStep string
 
 	// Bind request
-	var wfinstanceNewreq WFInstanceNewRequest
 	err := wscutils.BindJSON(c, &wfinstanceNewreq)
 	if err != nil {
 		lh.Debug0().LogActivity("error while binding json request error:", err)
@@ -44,7 +60,6 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	existingEntity := wfinstanceNewreq.Entity
 	isValidReq, errStr := validateWFInstanceNewReq(wfinstanceNewreq, s, c)
 	if len(errStr) > 0 || !isValidReq {
-		// lh.Debug0().LogActivity("Invalid request:", err.Error())
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, errStr))
 		return
 
@@ -55,10 +70,6 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	}
 
 	// call doMatch()
-	var actionSet ActionSet
-	var ruleSet RuleSet
-	var entity = getEntity(wfinstanceNewreq.Entity)
-	var seenRuleSets map[string]bool
 	actionSet, result, err := doMatch(entity, ruleSet, actionSet, seenRuleSets)
 	if err != nil {
 		lh.LogActivity("error while calling doMatch Method :", err.Error())
@@ -66,82 +77,88 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 		return
 	}
 	if !result {
+		lh.LogActivity("doMatch() returns false :", err.Error())
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(INVALID_PATTERN))
 		return
 	}
 
-	// call insertRecord()
-	errArray := insertRecord(actionSet, wfinstanceNewreq, s, c)
-	if len(errArray) > 0 {
-		lh.LogActivity("error while inserting data in wfinstance table:", errArray)
-		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, errArray))
+	// To verify actionSet Properties and get their values
+	attribute, error := getValidPropertyAttr(actionSet)
+	if error != nil {
+		lh.LogActivity("error while verifying actionset properties :", error.Error())
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(INVALID_PROPERTY_ATTRIBUTES))
 		return
 	}
+	if attribute["done"] == "true" {
+		done = attribute["done"]
+	} else {
+		nextStep = attribute["nextstep"]
+	}
 
-	lh.Log(fmt.Sprintf("Response : %v", map[string]any{"response": existingEntity}))
-	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(existingEntity))
+	// To add records in table
+	// if tasks of actionset contains only one task
+	if len(actionSet.tasks) == 1 && done == "" {
+		step := actionSet.tasks[0]
+		addRecordRequest := addRecordRequest{
+			Step:     step,
+			Nextstep: step,
+			Request:  wfinstanceNewreq,
+		}
+		response, err = addSingleTask(addRecordRequest, s, c)
+		if err != nil {
+			lh.LogActivity("error while adding single step in wfinstanvce table :", err.Error())
+			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(INSERT_OPERATION_FAILED))
+			return
+		}
+		lh.Log(fmt.Sprintf("Response : %v", map[string]any{"response": response}))
+		wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(response))
+
+	}
+	// if tasks of actionset contains multiple tasks
+	if len(actionSet.tasks) > 1 && done == "" {
+		var steps []string
+		var addMultiRecordReq []addRecordRequest
+		steps = append(steps, actionSet.tasks...)
+		for _, step := range steps {
+			addRecordRequest := addRecordRequest{
+				Step:     step,
+				Nextstep: nextStep,
+				Request:  wfinstanceNewreq,
+			}
+			addMultiRecordReq = append(addMultiRecordReq, addRecordRequest)
+		}
+		response, err = addMultipleTasks((addMultiRecordReq), s, c)
+		if err != nil {
+			lh.LogActivity("error while adding multiple steps in wfinstanvce table :", error.Error())
+			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(INSERT_OPERATION_FAILED))
+			return
+		}
+		lh.Log(fmt.Sprintf("Response : %v", map[string]any{"response": response}))
+		wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(response))
+	}
+
+	if done == "true" {
+		response := make(map[string]bool)
+		response[DONE] = true
+		lh.Log(fmt.Sprintf("Response : %v", map[string]any{"response": response}))
+		wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(response))
+	}
+
 }
 
-func insertRecord(a ActionSet, rq WFInstanceNewRequest, s *service.Service, c *gin.Context) []wscutils.ErrorMessage {
-	var errors []wscutils.ErrorMessage
-
-	lh := s.LogHarbour
-
-	lh.Log("Inside insertRecord()")
-
-	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
-	if !ok {
-		lh.Log("Error while getting query instance from service Dependencies")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
-		errors := append(errors, wscutils.BuildErrorMessage(wscutils.ErrcodeDatabaseError, nil))
-		return errors
-	}
-
-	// The properties object of actionset must always contain either an attribute called done or an
-	// attribute called nextstep.
-
-	var propertyAttr []string
-	var temp []string
-	var done, nextstep string
+// To verify whether actionset.properties attributes valid and get their values
+func getValidPropertyAttr(a ActionSet) (map[string]string, error) {
+	attribute := make(map[string]string)
 	attributes := a.properties
-	for attr, _ := range attributes {
-		if attr == "done" {
-			done = attr
-			propertyAttr = append(propertyAttr, attr)
-		} else if attr == "nextstep" {
-			nextstep = attr
-			propertyAttr = append(propertyAttr, attr)
+	for attr, val := range attributes {
+		if attr == DONE {
+			attribute[attr] = val
+		} else if attr == NEXTSTEP {
+			attribute[attr] = val
 		} else {
-			temp = append(temp, attr)
+			return nil, fmt.Errorf("property attributes does not contain either done or nextstep")
 		}
-	}
-	if len(propertyAttr) == 0 {
-		errors = append(errors, wscutils.BuildErrorMessage(INVALID_PROPERTY_ATTRIBUTES, &ACTIONSET_PROPERTIES, temp...))
-		return errors
-	}
-	fmt.Println(" nextstep ", nextstep)
-
-	// If there is only one name in tasks and done attribute is not there, only one record will be
-	// entered into the table
-	if done == "" && len(a.tasks) == 1 {
-
-		record, err := query.AddWFNewInstace(c, sqlc.AddWFNewInstaceParams{
-			Entityid: *rq.EntityID,
-			Slice:    *rq.Slice,
-			App:      *rq.App,
-			Class:    rq.Entity["class"],
-			Workflow: *rq.Workflow,
-			Step:     a.tasks[0],
-			Nextstep: a.tasks[0],
-		})
-		if err != nil {
-			lh.LogActivity("error while inserting a record in wfinstance table :", err.Error())
-			errors = append(errors, wscutils.BuildErrorMessage(INSERT_OPERATION_FAILED, &TASK, a.tasks[0]))
-
-		}
-		fmt.Println(" record inserted  ", record)
 
 	}
-
-	return errors
+	return attribute, nil
 }

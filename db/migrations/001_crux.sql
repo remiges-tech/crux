@@ -102,7 +102,7 @@ CREATE TABLE ruleset (
 );
 
 CREATE TABLE wfinstance (
-    id VARCHAR(255) NOT NULL,
+    id SERIAL PRIMARY KEY,
     entityid VARCHAR(255) NOT NULL,
     slice INTEGER REFERENCES realmslice (id) NOT NULL,
     app VARCHAR(255) REFERENCES app (shortname) NOT NULL,

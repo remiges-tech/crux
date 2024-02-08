@@ -75,31 +75,26 @@ func doMatch(entity Entity, ruleSet RuleSet, actionSet ActionSet, seenRuleSets m
 
 	// if task has only one task
 	actionSet = ActionSet{
-		tasks:      []string{"discount"}, //, "yearendsale"},
+		tasks:      []string{"yearendsale"},
 		properties: map[string]string{"nextstep": "passportchk"},
 	}
 
-	// if done attr  present
+	//if task has multiple tasks
 	// actionSet = ActionSet{
-	// 	tasks: []string{"discount", "yearendsale"},
-	// 	properties: Property{
-	// 		name: "done",
-	// 		val:  "true",
-	// 	},
+	// 	tasks:      []string{"discount", "yearendsale"},
+	// 	properties: map[string]string{"nextstep": "coupondistribution"},
 	// }
 
-	// if task has multiple tasks
+	// if task has only one task but no proper attri
 	// actionSet = ActionSet{
-	// 	tasks: []string{"discount", "yearendsale"},
-	// 	properties: Property{
-	// 		name: "nextstep",
-	// 		val:  "passportchk",
-	// 	},
+	// 	tasks:      []string{"discount"}, //, "yearendsale"},
+	// 	properties: map[string]string{"shipby": "fedex"},
 	// }
 
-	// "actionset": {
-	// 	"tasks": [ "dodiscount", "yearendsale" ],
-	// 	"properties": [ {"shipby": "fedex"} ],
+	//if done attr  present
+	// actionSet = ActionSet{
+	// 	tasks:      []string{"discount", "yearendsale"},
+	// 	properties: map[string]string{"done": "true"},
 	// }
 
 	return actionSet, true, nil
