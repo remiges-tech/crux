@@ -11,12 +11,14 @@ import (
 )
 
 type Querier interface {
-	AddWFNewInstace(ctx context.Context, arg AddWFNewInstaceParams) (string, error)
+	AddWFNewInstace(ctx context.Context, arg AddWFNewInstaceParams) (int32, error)
 	GetApp(ctx context.Context, arg GetAppParams) (string, error)
 	GetClass(ctx context.Context, arg GetClassParams) (string, error)
+	GetLoggedate(ctx context.Context, id int32) (pgtype.Timestamp, error)
 	GetWFActiveStatus(ctx context.Context, arg GetWFActiveStatusParams) (pgtype.Bool, error)
 	GetWFINstance(ctx context.Context, arg GetWFINstanceParams) ([]Wfinstance, error)
 	GetWFInternalStatus(ctx context.Context, arg GetWFInternalStatusParams) (bool, error)
+	GetWorkflow(ctx context.Context, step string) (string, error)
 	SchemaDelete(ctx context.Context, id int32) (int32, error)
 	SchemaGet(ctx context.Context, arg SchemaGetParams) ([]SchemaGetRow, error)
 	SchemaList(ctx context.Context) ([]SchemaListRow, error)

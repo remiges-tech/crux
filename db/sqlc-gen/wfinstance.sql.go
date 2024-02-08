@@ -7,27 +7,30 @@ package sqlc
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const addWFNewInstace = `-- name: AddWFNewInstace :one
 INSERT INTO 
 wfinstance
-(entityid,slice, app, class, workflow, step,loggedat, nextstep)
-VALUES ($1,$2,$3,$4,$5,$6,(NOW() :: timestamp),$7) 
+(entityid,slice, app, class, workflow, step,loggedat, nextstep,parent)
+VALUES ($1,$2,$3,$4,$5,$6,(NOW() :: timestamp),$7,$8) 
 RETURNING id
 `
 
 type AddWFNewInstaceParams struct {
-	Entityid string `json:"entityid"`
-	Slice    int32  `json:"slice"`
-	App      string `json:"app"`
-	Class    string `json:"class"`
-	Workflow string `json:"workflow"`
-	Step     string `json:"step"`
-	Nextstep string `json:"nextstep"`
+	Entityid string      `json:"entityid"`
+	Slice    int32       `json:"slice"`
+	App      string      `json:"app"`
+	Class    string      `json:"class"`
+	Workflow string      `json:"workflow"`
+	Step     string      `json:"step"`
+	Nextstep string      `json:"nextstep"`
+	Parent   pgtype.Int4 `json:"parent"`
 }
 
-func (q *Queries) AddWFNewInstace(ctx context.Context, arg AddWFNewInstaceParams) (string, error) {
+func (q *Queries) AddWFNewInstace(ctx context.Context, arg AddWFNewInstaceParams) (int32, error) {
 	row := q.db.QueryRow(ctx, addWFNewInstace,
 		arg.Entityid,
 		arg.Slice,
@@ -36,10 +39,24 @@ func (q *Queries) AddWFNewInstace(ctx context.Context, arg AddWFNewInstaceParams
 		arg.Workflow,
 		arg.Step,
 		arg.Nextstep,
+		arg.Parent,
 	)
-	var id string
+	var id int32
 	err := row.Scan(&id)
 	return id, err
+}
+
+const getLoggedate = `-- name: GetLoggedate :one
+SELECT loggedat 
+FROM wfinstance
+WHERE id = $1
+`
+
+func (q *Queries) GetLoggedate(ctx context.Context, id int32) (pgtype.Timestamp, error) {
+	row := q.db.QueryRow(ctx, getLoggedate, id)
+	var loggedat pgtype.Timestamp
+	err := row.Scan(&loggedat)
+	return loggedat, err
 }
 
 const getWFINstance = `-- name: GetWFINstance :many

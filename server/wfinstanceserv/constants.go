@@ -18,6 +18,7 @@ const (
 	INVALID_PATTERN                  = "entity_does_not_match_with_pattern"
 	INVALID_PROPERTY_ATTRIBUTES      = "invalid_property_attributes"
 	INSERT_OPERATION_FAILED          = "insert_operation_failed"
+	INVALID_DATABASE_DEPENDENCY      = "invalid_database_dependency"
 
 	typeBool   = "bool"
 	typeInt    = "int"
@@ -30,3 +31,4 @@ const (
 
 var APP, CLASS, SLICE, ENTITY, WORKFLOW, ENTITYID string = "app", "class", "slice", "entity", "workflow", "entityid"
 var ACTIONSET_PROPERTIES, TASK = "actionset_properties", "task"
+var DONE, NEXTSTEP = "done", "nextstep"
