@@ -1,4 +1,3 @@
-drop type IF EXISTS brwf_enum CASCADE;
 
 CREATE TABLE realm (
     id SERIAL PRIMARY KEY,
@@ -98,7 +97,8 @@ CREATE TABLE ruleset (
     createdat TIMESTAMP DEFAULT (NOW() :: timestamp) NOT NULL,
     createdby VARCHAR(255) NOT NULL,
     editedat TIMESTAMP DEFAULT (NOW() :: timestamp),
-    editedby VARCHAR(255)
+    editedby VARCHAR(255),
+    UNIQUE (realm, slice, app, class)
 );
 
 CREATE TABLE wfinstance (
@@ -124,21 +124,22 @@ CREATE TABLE stepworkflow (
 );
 
 ---- create above / drop below ----
-drop table realm;
+drop type IF EXISTS brwf_enum CASCADE;
+drop table stepworkflow;
+drop table wfinstance;
 
+drop table ruleset;
+
+drop table schema;
+
+drop table deactivated;
+
+drop table capgrant;
+
+drop table config;
 drop table app;
 
 drop table realmslice;
 
-drop table config;
 
-drop table capgrant;
-
-drop table deactivated;
-
-drop table schema;
-
-drop table ruleset;
-
-
-drop table wfinstance;
+drop table realm;

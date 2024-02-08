@@ -18,12 +18,18 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
 	l.Log("Starting execution of WorkFlowNew()")
 
-	var wf workflowNew
+	var wf WorkflowNew
 	var ruleSchema schema.Schema
 
 	err := wscutils.BindJSON(c, &wf)
 	if err != nil {
 		l.LogActivity("Error Unmarshalling Query parameters to struct:", err.Error())
+		return
+	}
+
+	validationErrors := wscutils.WscValidate(wf, func(err validator.FieldError) []string { return []string{} })
+	if len(validationErrors) > 0 {
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
 		return
 	}
 
@@ -60,8 +66,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	// Validate request
-	validationErrors := wscutils.WscValidate(wf, func(err validator.FieldError) []string { return []string{} })
+	// custom Validation
 	customValidationErrors := customValidationErrors(wf, ruleSchema)
 	validationErrors = append(validationErrors, customValidationErrors...)
 	if len(validationErrors) > 0 {
@@ -91,15 +96,15 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 		Createdby:  setBy,
 	})
 	if err != nil {
-		l.LogActivity("Error while creating schema", err.Error())
+		l.LogActivity("Error while querying WorkFlowNew", err.Error())
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
 		return
 	}
-	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: "Created successfully", Messages: nil})
-	l.Log("Finished execution of SchemaNew()")
+	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})
+	l.Log("Finished execution of WorkFlowNew()")
 }
 
-func customValidationErrors(wf workflowNew, ruleSchema schema.Schema) []wscutils.ErrorMessage {
+func customValidationErrors(wf WorkflowNew, ruleSchema schema.Schema) []wscutils.ErrorMessage {
 	var validationErrors []wscutils.ErrorMessage
 	if len(wf.Flowrules) == 0 {
 		fieldName := "flowrules"
@@ -114,40 +119,57 @@ func customValidationErrors(wf workflowNew, ruleSchema schema.Schema) []wscutils
 	return validationErrors
 }
 
-func verifyRulePatterns(ruleSet workflowNew, ruleSchema schema.Schema) []wscutils.ErrorMessage {
+func verifyRulePatterns(ruleSet WorkflowNew, ruleSchema schema.Schema) []wscutils.ErrorMessage {
 	var validationErrors []wscutils.ErrorMessage
 
-	for _, rule := range ruleSet.Flowrules {
-		for i, term := range rule.RulePattern {
-			i++
-			if !(rule.RulePattern[0].AttrName == step) {
-				fieldName := fmt.Sprintf("flowrules.rulepattern[%d].AttrName", i)
-				vErr := wscutils.BuildErrorMessage("step_not_exist", &fieldName)
-				validationErrors = append(validationErrors, vErr)
-			}
+	for i, rule := range ruleSet.Flowrules {
+		i++
+		for j, term := range rule.RulePattern {
+			j++
+			// if !(rule.RulePattern[0].AttrName == step) {
+			// 	fieldName := fmt.Sprintf("flowrules.rulepattern[%d].attr", 1)
+			// 	vErr := wscutils.BuildErrorMessage("step_not_exist", &fieldName)
+			// 	validationErrors = append(validationErrors, vErr)
+			// }
 			valType := getType(ruleSchema, term.AttrName)
 			if valType == "" {
 				// If the attribute name is not in the pattern-schema, we check if it's a task "tag"
 				// by checking for its presence in the action-schema
 				if !isStringInArray(term.AttrName, ruleSchema.ActionSchema.Tasks) {
-					fieldName := fmt.Sprintf("RulePattern[%d].AttrName", i)
+					fieldName := fmt.Sprintf("flowrules[%d].rulepattern[%d].attr", i, j)
 					vErr := wscutils.BuildErrorMessage("not_exist", &fieldName, term.AttrName)
 					validationErrors = append(validationErrors, vErr)
+				} else {
+					// If it is a tag, the value type is set to bool
+					term.AttrVal = typeBool
 				}
-				// If it is a tag, the value type is set to bool
-				valType = typeBool
 			}
-			if !verifyType(term.AttrVal, valType) {
-				fieldName := fmt.Sprintf("RulePattern[%d].AttrVal", i)
-				// term.AttrVal
-				vErr := wscutils.BuildErrorMessage("not_support", &fieldName)
-				validationErrors = append(validationErrors, vErr)
+			if len(valType) != 0 {
+				if !verifyType(term.AttrVal, valType) {
+					fieldName := fmt.Sprintf("flowrules[%d].rulepattern[%d].val", i, j)
+					// term.AttrVal
+					vErr := wscutils.BuildErrorMessage("not_support", &fieldName)
+					validationErrors = append(validationErrors, vErr)
+				}
 			}
 			if !validOps[term.Op] {
-				fieldName := fmt.Sprintf("RulePattern[%d].term.Op", i)
+				fieldName := fmt.Sprintf("flowrules[%d].rulepattern[%d].term.Op", i, j)
 				vErr := wscutils.BuildErrorMessage("not_support", &fieldName, term.Op)
 				validationErrors = append(validationErrors, vErr)
 			}
+		}
+
+		stepFound := false
+		for _, term := range rule.RulePattern {
+			if term.AttrName == step {
+				stepFound = true
+				break
+			}
+		}
+		if !stepFound {
+			fieldName := fmt.Sprintf("flowrules[%d].rulepattern", i)
+			vErr := wscutils.BuildErrorMessage("step_not_found", &fieldName)
+			validationErrors = append(validationErrors, vErr)
 		}
 	}
 	return validationErrors
@@ -191,53 +213,50 @@ func verifyType(val any, valType string) bool {
 	return ok
 }
 
-func verifyRuleActions(ruleSet workflowNew, ruleSchema schema.Schema) []wscutils.ErrorMessage {
+func verifyRuleActions(ruleSet WorkflowNew, ruleSchema schema.Schema) []wscutils.ErrorMessage {
 	var validationErrors []wscutils.ErrorMessage
-	for _, rule := range ruleSet.Flowrules {
-
-		for i, t := range rule.RuleActions.Tasks {
-			i++
+	for i, rule := range ruleSet.Flowrules {
+		i++
+		for j, t := range rule.RuleActions.Tasks {
+			j++
 			if !isStringInArray(t, ruleSchema.ActionSchema.Tasks) {
-				fieldName := fmt.Sprintf("Tasks[%d]", i)
-				vErr := wscutils.BuildErrorMessage("not_exist", &fieldName, t)
+				fieldName := fmt.Sprintf("flowrules[%d].tasks[%d]", i, j)
+				vErr := wscutils.BuildErrorMessage("not_found", &fieldName, t)
 				validationErrors = append(validationErrors, vErr)
 			}
 		}
 
-		for i, p := range rule.RuleActions.Properties {
-			i++
+		for j, p := range rule.RuleActions.Properties {
+			j++
 			if !isStringInArray(p.Name, ruleSchema.ActionSchema.Properties) {
-				fieldName := fmt.Sprintf("Properties[%d]", i)
-				vErr := wscutils.BuildErrorMessage("not_exist", &fieldName, p.Name)
+				fieldName := fmt.Sprintf("flowrules[%d].properties[%d]", i, j)
+				vErr := wscutils.BuildErrorMessage("not_found", &fieldName, p.Name)
 				validationErrors = append(validationErrors, vErr)
 			}
 		}
-		// if rule.RuleActions.WillReturn && rule.RuleActions.WillExit {
-		// 	// return false, fmt.Errorf("there is a rule with both the RETURN and EXIT instructions in ruleset %v", ruleSet.setName)
-		// }
+
+		if rule.RuleActions.WillReturn && rule.RuleActions.WillExit {
+			fieldName := fmt.Sprintf("flowrules[%d].ruleactions", i)
+			vErr := wscutils.BuildErrorMessage("both the RETURN and EXIT instructions in ruleset", &fieldName)
+			validationErrors = append(validationErrors, vErr)
+		}
 
 		nsFound, doneFound := areNextStepAndDoneInProps(rule.RuleActions.Properties)
-		if !nsFound {
-			fieldName := "Properties"
-			vErr := wscutils.BuildErrorMessage("nextstep_not_exist", &fieldName)
+		if !nsFound && !doneFound {
+			fieldName := "properties"
+			vErr := wscutils.BuildErrorMessage("rule found with neither 'nextstep' nor 'done'", &fieldName)
 			validationErrors = append(validationErrors, vErr)
 		}
-		if !doneFound {
-			fieldName := "Properties"
-			vErr := wscutils.BuildErrorMessage("done_not_exist", &fieldName)
-			validationErrors = append(validationErrors, vErr)
-		}
-		if !doneFound && len(rule.RuleActions.Tasks) == 0 {
-			// return false, fmt.Errorf("no tasks and no 'done=true' in a rule in ruleset %v", ruleSet.setName)
-			fieldName := "Properties"
+
+		if doneFound && !(len(rule.RuleActions.Tasks) == 0) {
+			fieldName := fmt.Sprintf("flowrules[%d].properties{done}", i)
 			vErr := wscutils.BuildErrorMessage("empty_task", &fieldName)
 			validationErrors = append(validationErrors, vErr)
 		}
 		currNS := getNextStep(rule.RuleActions.Properties)
 		if len(currNS) > 0 && !isStringInArray(currNS, rule.RuleActions.Tasks) {
-			// return false, fmt.Errorf("`nextstep` value not found in `tasks` in a rule in ruleset %v", ruleSet.setName)
-			fieldName := "Properties"
-			vErr := wscutils.BuildErrorMessage("task_not_exist", &fieldName)
+			fieldName := fmt.Sprintf("flowrules[%d].properties{nextstep}", i)
+			vErr := wscutils.BuildErrorMessage("not_found", &fieldName)
 			validationErrors = append(validationErrors, vErr)
 		}
 
