@@ -98,14 +98,11 @@ VALUES (
         15, 2, 2, 'retailBANK', 'W', 'custon', '{"class":"inventoryitems","attr":[{"name":"cat","valtype":"enum","vals":["textbook","notebook","stationery","refbooks"]},{"name":"mrp","valtype":"float"},{"name":"fullname","valtype":"str"},{"name":"ageinstock","valtype":"int"},{"name":"inventoryqty","valtype":"int"}]}', '{"tasks":["invitefordiwali","allowretailsale","assigntotrash"],"properties":["discount","shipby"]}', '2020-03-10T12:06:40Z', 'Marigold Sherwin', '2023-10-21T17:39:11Z', 'Brunhilde Bampkin'
     );
 
-
-INSERT INTO public.schema   
+INSERT INTO
+    public.schema
 VALUES (
-    16, 2, 2, 'retailBANK', 'B', 'retailcustomer',
-    '{"class":"retailcustomer","attr":[{"name":"step","valtype":"enum","vals":["START","initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"]},{"name":"acctholdertype","valtype":"enum","vals":["individual","joint","corporate","hinduundivided","partnership"]},{"name":"branchtype","valtype":"enum","vals":["urban","semirural","rural"]},{"name":"branchcode","valtype":"str"},{"name":"refererquality","valtype":"int","valmin":0,"valmax":5},{"name":"districtcode","valtype":"int"},{"name":"accttype","valtype":"enum","vals":["savings","current","recurring","fixeddeposit","ppf"]}]}',
-    '{"class":"retailcustomer","tasks":["initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"],"properties":["nextstep","done"]}', 
-    '2020-03-10T12:06:40Z', 'Marigold Sherwin', '2023-10-21T17:39:11Z', 'Brunhilde Bampkin'
-);
+        16, 2, 2, 'retailBANK', 'B', 'retailcustomer', '{"class":"retailcustomer","attr":[{"name":"step","valtype":"enum","vals":["START","initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"]},{"name":"acctholdertype","valtype":"enum","vals":["individual","joint","corporate","hinduundivided","partnership"]},{"name":"branchtype","valtype":"enum","vals":["urban","semirural","rural"]},{"name":"branchcode","valtype":"str"},{"name":"refererquality","valtype":"int","valmin":0,"valmax":5},{"name":"districtcode","valtype":"int"},{"name":"accttype","valtype":"enum","vals":["savings","current","recurring","fixeddeposit","ppf"]}]}', '{"class":"retailcustomer","tasks":["initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"],"properties":["nextstep","done"]}', '2020-03-10T12:06:40Z', 'Marigold Sherwin', '2023-10-21T17:39:11Z', 'Brunhilde Bampkin'
+    );
 -- ruleset
 INSERT INTO
     ruleset (
@@ -132,3 +129,5 @@ VALUES (
             "descr": "Current step completed"
         }', '2024-01-28T00:00:00Z', 'admin', '2024-01-15T00:00:00Z', 'admin'
     )
+---- create above / drop below ----
+SELECT 1;

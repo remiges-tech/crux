@@ -6,7 +6,7 @@ const (
 	setBy     = "admin"
 	realmID   = 1
 	brwf      = "W"
-	isActive  = true
+	isActive  = false
 	typeBool  = "bool"
 	typeInt   = "int"
 	typeFloat = "float"
@@ -47,17 +47,17 @@ var validOps = map[string]bool{
 	opEQ: true, opNE: true, opLT: true, opLE: true, opGT: true, opGE: true,
 }
 
-type workflowNew struct {
+type WorkflowNew struct {
 	Slice      int32   `json:"slice" validate:"required,gt=0"`
 	App        string  `json:"app" validate:"required,alpha"`
 	Class      string  `json:"class" validate:"required,lowercase"`
 	Name       string  `json:"name" validate:"required,lowercase"`
 	IsInternal bool    `json:"is_internal" validate:"required"`
-	Flowrules  []Rules `json:"flowrules" validate:"required"`
+	Flowrules  []Rules `json:"flowrules" validate:"required,dive"`
 }
 
 type Rules struct {
-	RulePattern []RulePattern `json:"rulepattern" validate:"required"`
+	RulePattern []RulePattern `json:"rulepattern" validate:"required,dive"`
 	RuleActions RuleActions   `json:"ruleactions" validate:"required"`
 }
 
@@ -68,7 +68,7 @@ type RulePattern struct {
 }
 type RuleActions struct {
 	Tasks      []string   `json:"tasks" validate:"required"`
-	Properties []Property `json:"properties" validate:"required"`
+	Properties []Property `json:"properties" validate:"required,dive"`
 	ThenCall   string     `json:"thenCall,omitempty"`
 	ElseCall   string     `json:"elseCall,omitempty"`
 	WillReturn bool       `json:"willReturn,omitempty"`
