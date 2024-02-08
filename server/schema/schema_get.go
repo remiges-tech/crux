@@ -11,12 +11,6 @@ import (
 	"github.com/remiges-tech/crux/types"
 )
 
-type SchemaGetReq struct {
-	Slice int32  `json:"slice" validate:"required,gt=0"`
-	App   string `json:"app" validate:"required,alpha"`
-	Class string `json:"class" validate:"required,alpha"`
-}
-
 // SchemaGet will be responsible for processing the /wfschemaget request that comes through as a POST
 func SchemaGet(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour

@@ -162,6 +162,92 @@ func (q *Queries) WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) (int32
 	return id, err
 }
 
+const workflowList = `-- name: WorkflowList :many
+select
+    id,
+    slice,
+    app,
+    class,
+    setname as name,
+    is_active,
+    is_internal,
+    createdat,
+    createdby,
+    editedat,
+    editedby
+from ruleset
+where
+    brwf = 'W'
+    AND ($1::INTEGER is null OR slice = $1::INTEGER)
+    AND ($2::VARCHAR(20) is null OR app = $2::VARCHAR(20))
+    AND ($3::VARCHAR(20) is null OR class = $3::VARCHAR(20))
+    AND ($4::VARCHAR(20) is null OR setname = $4::VARCHAR(20))
+    AND ($5::BOOLEAN is null OR is_active = $5::BOOLEAN)
+    AND ($6::BOOLEAN is null OR is_internal = $6::BOOLEAN)
+`
+
+type WorkflowListParams struct {
+	Slice      pgtype.Int4 `json:"slice"`
+	App        pgtype.Text `json:"app"`
+	Class      pgtype.Text `json:"class"`
+	Setname    pgtype.Text `json:"setname"`
+	IsActive   pgtype.Bool `json:"is_active"`
+	IsInternal pgtype.Bool `json:"is_internal"`
+}
+
+type WorkflowListRow struct {
+	ID         int32            `json:"id"`
+	Slice      int32            `json:"slice"`
+	App        string           `json:"app"`
+	Class      string           `json:"class"`
+	Name       string           `json:"name"`
+	IsActive   pgtype.Bool      `json:"is_active"`
+	IsInternal bool             `json:"is_internal"`
+	Createdat  pgtype.Timestamp `json:"createdat"`
+	Createdby  string           `json:"createdby"`
+	Editedat   pgtype.Timestamp `json:"editedat"`
+	Editedby   pgtype.Text      `json:"editedby"`
+}
+
+func (q *Queries) WorkflowList(ctx context.Context, arg WorkflowListParams) ([]WorkflowListRow, error) {
+	rows, err := q.db.Query(ctx, workflowList,
+		arg.Slice,
+		arg.App,
+		arg.Class,
+		arg.Setname,
+		arg.IsActive,
+		arg.IsInternal,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []WorkflowListRow
+	for rows.Next() {
+		var i WorkflowListRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Slice,
+			&i.App,
+			&i.Class,
+			&i.Name,
+			&i.IsActive,
+			&i.IsInternal,
+			&i.Createdat,
+			&i.Createdby,
+			&i.Editedat,
+			&i.Editedby,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const workflowget = `-- name: Workflowget :one
 select
     id,
@@ -182,6 +268,7 @@ where
     and app = $2
     and class = $3
     and setname = $4
+    AND brwf = 'W'
 `
 
 type WorkflowgetParams struct {
