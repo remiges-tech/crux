@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
@@ -41,7 +42,22 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	schema, err := query.WfSchemaGet(c, sqlc.WfSchemaGetParams{
+	connpool, ok := s.Database.(*pgxpool.Pool)
+	if !ok {
+		l.Log("Error while getting query instance from service Dependencies")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
+		return
+	}
+	tx, err := connpool.Begin(c)
+	if err != nil {
+		l.LogActivity("Error while Begin tx", err.Error())
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
+		return
+	}
+	defer tx.Rollback(c)
+	qtx := query.WithTx(tx)
+
+	schema, err := qtx.GetSchemaWithLock(c, sqlc.GetSchemaWithLockParams{
 		Slice: wf.Slice,
 		App:   wf.App,
 		Class: wf.Class,
@@ -51,9 +67,9 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
-	ruleSchema.Slice = schema.Slice
-	ruleSchema.App = schema.App
-	ruleSchema.Class = schema.Class
+	ruleSchema.Slice = wf.Slice
+	ruleSchema.App = wf.App
+	ruleSchema.Class = wf.Class
 	err = json.Unmarshal([]byte(schema.Patternschema), &ruleSchema.PatternSchema)
 	if err != nil {
 		l.LogActivity("Error while Unmarshalling PatternSchema", err)
@@ -83,7 +99,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	_, err = query.WorkFlowNew(c, sqlc.WorkFlowNewParams{
+	_, err = qtx.WorkFlowNew(c, sqlc.WorkFlowNewParams{
 		Realm:      realmID,
 		Slice:      wf.Slice,
 		App:        wf.App,
@@ -98,6 +114,11 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 	})
 	if err != nil {
 		l.LogActivity("Error while querying WorkFlowNew", err.Error())
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
+		return
+	}
+	if err := tx.Commit(c); err != nil {
+		l.LogActivity("Error while commits the transaction", err.Error())
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
