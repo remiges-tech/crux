@@ -1,3 +1,4 @@
+drop type IF EXISTS brwf_enum CASCADE;
 
 CREATE TABLE realm (
     id SERIAL PRIMARY KEY,
@@ -124,7 +125,6 @@ CREATE TABLE stepworkflow (
 );
 
 ---- create above / drop below ----
-drop type IF EXISTS brwf_enum CASCADE;
 drop table stepworkflow;
 drop table wfinstance;
 

@@ -86,8 +86,8 @@ from ruleset
 where
     brwf = 'W'
     AND (sqlc.narg('slice')::INTEGER is null OR slice = sqlc.narg('slice')::INTEGER)
-    AND (sqlc.narg('app')::VARCHAR(20) is null OR app = sqlc.narg('app')::VARCHAR(20))
-    AND (sqlc.narg('class')::VARCHAR(20) is null OR class = sqlc.narg('class')::VARCHAR(20))
-    AND (sqlc.narg('setname')::VARCHAR(20) is null OR setname = sqlc.narg('setname')::VARCHAR(20))
+    AND ( @app::text[] is null OR app = any( @app::text[]))
+    AND (sqlc.narg('class')::text is null OR class = sqlc.narg('class')::text)
+    AND (sqlc.narg('setname')::text is null OR setname = sqlc.narg('setname')::text)
     AND (sqlc.narg('is_active')::BOOLEAN is null OR is_active = sqlc.narg('is_active')::BOOLEAN)
     AND (sqlc.narg('is_internal')::BOOLEAN is null OR is_internal = sqlc.narg('is_internal')::BOOLEAN);

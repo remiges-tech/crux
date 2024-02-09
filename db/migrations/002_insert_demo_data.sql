@@ -128,6 +128,19 @@ VALUES (
             "vals": [ "START", "initialdoc", "aadhaarcheck", "creditbureauchk", "panchk", "bankdetails", "referencechk", "stage2done", "complete" ],
             "descr": "Current step completed"
         }', '2024-01-28T00:00:00Z', 'admin', '2024-01-15T00:00:00Z', 'admin'
+    );
+
+    INSERT INTO
+    ruleset (
+        id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby, editedat, editedby
     )
+VALUES (
+        7, 1, 3, 'nedbank', 'calls', 'W', 'vip', true, true, 13, '{
+            "name": "step",
+            "type": "enum1",
+            "vals": [ "START", "initialdoc", "aadhaarcheck", "creditbureauchk", "panchk", "bankdetails", "referencechk", "stage2done", "complete" ],
+            "descr": "Current step completed"
+        }', '2024-01-28T00:00:00Z', 'aniket', '2024-01-15T00:00:00Z', 'tushar'
+    );
 ---- create above / drop below ----
-SELECT 1;
+-- SELECT 1;
