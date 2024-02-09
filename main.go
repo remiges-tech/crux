@@ -82,20 +82,7 @@ func main() {
 		l.LogActivity("Error while getting data from rigel", err)
 		log.Fatalf("Failed to get data from rigel: %v", err)
 	}
-	errorTypeFile, err := rigel.GetString(ctx, "error_type_file")
-	if err != nil {
-		l.LogActivity("Error while getting data from rigel", err)
-		log.Fatalf("Failed to get data from rigel: %v", err)
-	}
 	l.Log("Retrieves the configuration data from rigel")
-
-	// Open the error types file
-	file, err := os.Open(errorTypeFile)
-	if err != nil {
-		l.LogDebug("Failed to open error types file:", err)
-		log.Fatalf("Failed to open error types file: %v", err)
-	}
-	defer file.Close()
 
 	// Database connection
 	connURL := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", dbHost, dbPort, dbUser, dbPassword, dbName)
@@ -151,7 +138,6 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/workflowget", workflow.WorkflowGet)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/workflowlist", workflow.WorkflowList)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/workflowNew", workflow.WorkFlowNew)
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/test", workflow.Test)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstancenew", wfinstanceserv.GetWFinstanceNew)
 
 	appServerPortStr := strconv.Itoa(appServerPort)

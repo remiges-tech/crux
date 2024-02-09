@@ -52,14 +52,14 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
 		l.Log("Error while getting query instance from service Dependencies")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Empty, server.ErrCode_Empty))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
 
 	connpool, ok := s.Database.(*pgxpool.Pool)
 	if !ok {
 		l.Log("Error while getting query instance from service Dependencies")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Empty, server.ErrCode_Empty))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
 
@@ -92,7 +92,7 @@ func schemaUpdateWithTX(c context.Context, query *sqlc.Queries, connpool *pgxpoo
 	}
 	defer tx.Rollback(c)
 	qtx := query.WithTx(tx)
-	schema, err := qtx.UpdateSchemaWithLock(c, sqlc.UpdateSchemaWithLockParams{
+	schema, err := qtx.GetSchemaWithLock(c, sqlc.GetSchemaWithLockParams{
 		Slice: sh.Slice,
 		Class: sh.Class,
 		App:   sh.App,

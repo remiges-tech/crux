@@ -11,6 +11,51 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const getSchemaWithLock = `-- name: GetSchemaWithLock :one
+SELECT
+    id,
+    brwf,
+    patternschema,
+    actionschema,
+    editedat = CURRENT_TIMESTAMP,
+    editedby
+FROM schema
+WHERE
+    slice = $1
+    AND class = $2
+    AND app = $3
+FOR UPDATE
+`
+
+type GetSchemaWithLockParams struct {
+	Slice int32  `json:"slice"`
+	Class string `json:"class"`
+	App   string `json:"app"`
+}
+
+type GetSchemaWithLockRow struct {
+	ID            int32       `json:"id"`
+	Brwf          BrwfEnum    `json:"brwf"`
+	Patternschema []byte      `json:"patternschema"`
+	Actionschema  []byte      `json:"actionschema"`
+	Column5       bool        `json:"column_5"`
+	Editedby      pgtype.Text `json:"editedby"`
+}
+
+func (q *Queries) GetSchemaWithLock(ctx context.Context, arg GetSchemaWithLockParams) (GetSchemaWithLockRow, error) {
+	row := q.db.QueryRow(ctx, getSchemaWithLock, arg.Slice, arg.Class, arg.App)
+	var i GetSchemaWithLockRow
+	err := row.Scan(
+		&i.ID,
+		&i.Brwf,
+		&i.Patternschema,
+		&i.Actionschema,
+		&i.Column5,
+		&i.Editedby,
+	)
+	return i, err
+}
+
 const schemaDelete = `-- name: SchemaDelete :one
 DELETE FROM
     schema
@@ -596,48 +641,6 @@ func (q *Queries) SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) (int
 	var id int32
 	err := row.Scan(&id)
 	return id, err
-}
-
-const updateSchemaWithLock = `-- name: UpdateSchemaWithLock :one
-SELECT
-    brwf,
-    patternschema,
-    actionschema,
-    editedat = CURRENT_TIMESTAMP,
-    editedby
-FROM schema
-WHERE
-    slice = $1
-    AND class = $2
-    AND app = $3
-FOR UPDATE
-`
-
-type UpdateSchemaWithLockParams struct {
-	Slice int32  `json:"slice"`
-	Class string `json:"class"`
-	App   string `json:"app"`
-}
-
-type UpdateSchemaWithLockRow struct {
-	Brwf          BrwfEnum    `json:"brwf"`
-	Patternschema []byte      `json:"patternschema"`
-	Actionschema  []byte      `json:"actionschema"`
-	Column4       bool        `json:"column_4"`
-	Editedby      pgtype.Text `json:"editedby"`
-}
-
-func (q *Queries) UpdateSchemaWithLock(ctx context.Context, arg UpdateSchemaWithLockParams) (UpdateSchemaWithLockRow, error) {
-	row := q.db.QueryRow(ctx, updateSchemaWithLock, arg.Slice, arg.Class, arg.App)
-	var i UpdateSchemaWithLockRow
-	err := row.Scan(
-		&i.Brwf,
-		&i.Patternschema,
-		&i.Actionschema,
-		&i.Column4,
-		&i.Editedby,
-	)
-	return i, err
 }
 
 const wfPatternSchemaGet = `-- name: WfPatternSchemaGet :one

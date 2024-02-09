@@ -24,8 +24,9 @@ WHERE
 RETURNING
     id;
 
--- name: UpdateSchemaWithLock :one
+-- name: GetSchemaWithLock :one
 SELECT
+    id,
     brwf,
     patternschema,
     actionschema,

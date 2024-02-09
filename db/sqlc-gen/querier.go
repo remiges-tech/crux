@@ -15,6 +15,7 @@ type Querier interface {
 	GetApp(ctx context.Context, arg GetAppParams) (string, error)
 	GetClass(ctx context.Context, arg GetClassParams) (string, error)
 	GetLoggedate(ctx context.Context, id int32) (pgtype.Timestamp, error)
+	GetSchemaWithLock(ctx context.Context, arg GetSchemaWithLockParams) (GetSchemaWithLockRow, error)
 	GetWFActiveStatus(ctx context.Context, arg GetWFActiveStatusParams) (pgtype.Bool, error)
 	GetWFINstance(ctx context.Context, arg GetWFINstanceParams) ([]Wfinstance, error)
 	GetWFInternalStatus(ctx context.Context, arg GetWFInternalStatusParams) (bool, error)
@@ -30,7 +31,6 @@ type Querier interface {
 	SchemaListBySlice(ctx context.Context, slice int32) ([]SchemaListBySliceRow, error)
 	SchemaNew(ctx context.Context, arg SchemaNewParams) (int32, error)
 	SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) (int32, error)
-	UpdateSchemaWithLock(ctx context.Context, arg UpdateSchemaWithLockParams) (UpdateSchemaWithLockRow, error)
 	WfPatternSchemaGet(ctx context.Context, arg WfPatternSchemaGetParams) ([]byte, error)
 	WfSchemaGet(ctx context.Context, arg WfSchemaGetParams) (Schema, error)
 	Wfschemadelete(ctx context.Context, arg WfschemadeleteParams) error
