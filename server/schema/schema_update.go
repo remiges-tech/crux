@@ -13,6 +13,7 @@ import (
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
+	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/logharbour/logharbour"
 )
 
@@ -32,7 +33,7 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 	l.Log("Starting execution of SchemaUpdate()")
 
 	var sh updateSchema
-	
+
 	err := wscutils.BindJSON(c, &sh)
 	if err != nil {
 		l.LogActivity("Error Unmarshalling Query paramaeters to struct:", err.Error())
@@ -51,24 +52,24 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
 		l.Log("Error while getting query instance from service Dependencies")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Empty, server.ErrCode_Empty))
 		return
 	}
 
 	connpool, ok := s.Database.(*pgxpool.Pool)
 	if !ok {
 		l.Log("Error while getting query instance from service Dependencies")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Empty, server.ErrCode_Empty))
 		return
 	}
 
 	err = schemaUpdateWithTX(c, query, connpool, l, sh)
 	if err != nil {
 		l.LogActivity("Error while Updating schema", err.Error())
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
-	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: "updated successfully", Messages: nil})
+	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})
 	l.Log("Starting execution of SchemaUpdate()")
 }
 
@@ -177,7 +178,7 @@ func customValidationErrorsForUpdate(sh updateSchema) []wscutils.ErrorMessage {
 		validationErrors = append(validationErrors, actionSchemaError...)
 	} else if sh.PatternSchema == nil && sh.ActionSchema == nil {
 		fieldName := fmt.Sprintln("PatternSchema/ActionSchema")
-		vErr := wscutils.BuildErrorMessage("at_least_one_must_be_supplied", &fieldName)
+		vErr := wscutils.BuildErrorMessage(server.MsgId_RequiredAtLeastOne, server.ErrCode_RequiredOne, &fieldName)
 		validationErrors = append(validationErrors, vErr)
 	} else {
 		patternSchemaError := verifyPatternSchemaUpdate(sh.PatternSchema)
@@ -196,17 +197,17 @@ func verifyPatternSchemaUpdate(ps *patternSchema) []wscutils.ErrorMessage {
 		i++
 		if !re.MatchString(attrSchema.Name) {
 			fieldName := fmt.Sprintf("attrSchema[%d].Name", i)
-			vErr := wscutils.BuildErrorMessage("not_valid", &fieldName, attrSchema.Name)
+			vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &fieldName, attrSchema.Name)
 			validationErrors = append(validationErrors, vErr)
 		}
 		if !validTypes[attrSchema.ValType] {
 			fieldName := fmt.Sprintf("attrSchema[%d].ValType", i)
-			vErr := wscutils.BuildErrorMessage("not_valid", &fieldName, attrSchema.ValType)
+			vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &fieldName, attrSchema.ValType)
 			validationErrors = append(validationErrors, vErr)
 		}
 		if attrSchema.ValType == "enum" && len(attrSchema.Vals) == 0 {
 			fieldName := fmt.Sprintf("attrSchema[%d].Vals", i)
-			vErr := wscutils.BuildErrorMessage("empty", &fieldName)
+			vErr := wscutils.BuildErrorMessage(server.MsgId_Empty, server.ErrCode_Empty, &fieldName)
 			validationErrors = append(validationErrors, vErr)
 		}
 	}
@@ -220,14 +221,14 @@ func verifyActionSchemaUpdate(as *actionSchema) []wscutils.ErrorMessage {
 	for i, task := range as.Tasks {
 		if !re.MatchString(task) {
 			fieldName := fmt.Sprintf("actionSchema.Tasks[%d]", i)
-			vErr := wscutils.BuildErrorMessage("not_valid", &fieldName, task)
+			vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &fieldName, task)
 			validationErrors = append(validationErrors, vErr)
 		}
 	}
 	for i, propName := range as.Properties {
 		if !re.MatchString(propName) {
 			fieldName := fmt.Sprintf("actionSchema.Properties[%d]", i)
-			vErr := wscutils.BuildErrorMessage("not_valid", &fieldName, propName)
+			vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &fieldName, propName)
 			validationErrors = append(validationErrors, vErr)
 		}
 	}

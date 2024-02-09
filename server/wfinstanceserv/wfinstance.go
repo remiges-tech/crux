@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
+	"github.com/remiges-tech/crux/server"
 )
 
 // Incoming request format
@@ -73,12 +74,12 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	actionSet, result, err := doMatch(entity, ruleSet, actionSet, seenRuleSets)
 	if err != nil {
 		lh.LogActivity("error while calling doMatch Method :", err.Error())
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(INVALID_PATTERN))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid))
 		return
 	}
 	if !result {
 		lh.LogActivity("doMatch() returns false :", err.Error())
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(INVALID_PATTERN))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid))
 		return
 	}
 
@@ -86,7 +87,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	attribute, error := getValidPropertyAttr(actionSet)
 	if error != nil {
 		lh.LogActivity("error while verifying actionset properties :", error.Error())
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(INVALID_PROPERTY_ATTRIBUTES))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid))
 		return
 	}
 	if attribute["done"] == "true" {
@@ -107,7 +108,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 		response, err = addSingleTask(addRecordRequest, s, c)
 		if err != nil {
 			lh.LogActivity("error while adding single step in wfinstanvce table :", err.Error())
-			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(INSERT_OPERATION_FAILED))
+			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 			return
 		}
 		lh.Log(fmt.Sprintf("Response : %v", map[string]any{"response": response}))
@@ -130,7 +131,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 		response, err = addMultipleTasks((addMultiRecordReq), s, c)
 		if err != nil {
 			lh.LogActivity("error while adding multiple steps in wfinstanvce table :", error.Error())
-			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(INSERT_OPERATION_FAILED))
+			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 			return
 		}
 		lh.Log(fmt.Sprintf("Response : %v", map[string]any{"response": response}))

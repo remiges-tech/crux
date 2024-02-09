@@ -9,7 +9,7 @@ import (
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
-	"github.com/remiges-tech/crux/types"
+	"github.com/remiges-tech/crux/server"
 )
 
 // WorkflowGet will be responsible for processing the /workflowget request that comes through as a POST
@@ -44,7 +44,7 @@ func WorkflowList(c *gin.Context, s *service.Service) {
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
 		lh.Log("Error while getting query instance from service Dependencies")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
 	if request.Slice != nil {
@@ -84,13 +84,13 @@ func WorkflowList(c *gin.Context, s *service.Service) {
 				})
 
 				if err != nil {
-					wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(types.RECORD_NOT_EXIST, nil)}))
+					wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_NotFound, server.ErrCode_NotFound, nil)}))
 					lh.LogActivity(DB_ERROR, err.Error)
 					return
 				}
 			} else {
 				// Generate "auth" error
-				wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(AUTH_ERROR, nil)}))
+				wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Unauthorized, server.ErrCode_Unauthorized, nil)}))
 				return
 			}
 		} else {
@@ -105,7 +105,7 @@ func WorkflowList(c *gin.Context, s *service.Service) {
 			})
 
 			if err != nil {
-				wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(types.RECORD_NOT_EXIST, nil)}))
+				wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_NotFound, server.ErrCode_NotFound, nil)}))
 				lh.LogActivity(DB_ERROR, err.Error)
 				return
 			}
@@ -123,7 +123,7 @@ func WorkflowList(c *gin.Context, s *service.Service) {
 			})
 
 			if err != nil {
-				wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(types.RECORD_NOT_EXIST, nil)}))
+				wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_NotFound, server.ErrCode_NotFound, nil)}))
 				lh.LogActivity(DB_ERROR, err.Error)
 				return
 			}
@@ -140,13 +140,13 @@ func WorkflowList(c *gin.Context, s *service.Service) {
 				})
 
 				if err != nil {
-					wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(types.RECORD_NOT_EXIST, nil)}))
+					wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_NotFound, server.ErrCode_NotFound, nil)}))
 					lh.LogActivity(DB_ERROR, err.Error)
 					return
 				}
 			} else {
 				// Generate "auth" error
-				wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(AUTH_ERROR, nil)}))
+				wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Unauthorized, server.ErrCode_Unauthorized, nil)}))
 				return
 			}
 		}

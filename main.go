@@ -96,8 +96,6 @@ func main() {
 		log.Fatalf("Failed to open error types file: %v", err)
 	}
 	defer file.Close()
-	// Load the error types
-	wscutils.LoadErrorTypes(file)
 
 	// Database connection
 	connURL := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", dbHost, dbPort, dbUser, dbPassword, dbName)
@@ -107,6 +105,28 @@ func main() {
 		log.Fatalln("Failed to establishes a connection with database", err)
 	}
 	queries := sqlc.New(connPool)
+
+	// Define a custom validation tag-to-message ID map
+	customValidationMap := map[string]int{
+		"required":  101,
+		"gt":        102,
+		"alpha":     103,
+		"lowercase": 104,
+	}
+	// Custom validation tag-to-error code map
+	customErrCodeMap := map[string]string{
+		"required":  "required",
+		"gt":        "grater",
+		"alpha":     "alphabet",
+		"lowercase": "lowercase",
+	}
+	// Register the custom map with wscutils
+	wscutils.SetValidationTagToMsgIDMap(customValidationMap)
+	wscutils.SetValidationTagToErrCodeMap(customErrCodeMap)
+
+	// Set default message ID and error code if needed
+	wscutils.SetDefaultMsgID(100)
+	wscutils.SetDefaultErrCode("validation_error")
 
 	// router
 	r := gin.Default()
@@ -131,6 +151,7 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/workflowget", workflow.WorkflowGet)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/workflowlist", workflow.WorkflowList)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/workflowNew", workflow.WorkFlowNew)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/test", workflow.Test)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstancenew", wfinstanceserv.GetWFinstanceNew)
 
 	appServerPortStr := strconv.Itoa(appServerPort)

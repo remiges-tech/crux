@@ -11,6 +11,7 @@ import (
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
+	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/server/schema"
 )
 
@@ -36,7 +37,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
 		l.Log("Error while getting query instance from service Dependencies")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
 
@@ -47,7 +48,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 	})
 	if err != nil {
 		l.LogActivity("failed to get data from DB:", err.Error())
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
 	ruleSchema.Slice = schema.Slice
@@ -56,13 +57,13 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 	err = json.Unmarshal([]byte(schema.Patternschema), &ruleSchema.PatternSchema)
 	if err != nil {
 		l.LogActivity("Error while Unmarshalling PatternSchema", err)
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
 	err = json.Unmarshal(schema.Actionschema, &ruleSchema.ActionSchema)
 	if err != nil {
 		l.LogActivity("Error while Unmarshaling ActionSchema", err)
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
 
@@ -78,7 +79,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 	if err != nil {
 		patternSchema := "flowrules"
 		l.LogDebug("Error while marshaling Flowrules", err)
-		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(wscutils.ErrcodeInvalidJson, &patternSchema)}))
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_InvalidRequest, &patternSchema)}))
 		return
 	}
 
@@ -90,14 +91,14 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 		Class:      wf.Class,
 		Setname:    setBy,
 		Schemaid:   schema.ID,
-		IsActive:   pgtype.Bool{Bool: isActive},
+		IsActive:   pgtype.Bool{Bool: false, Valid: false},
 		IsInternal: wf.IsInternal,
 		Ruleset:    ruleset,
 		Createdby:  setBy,
 	})
 	if err != nil {
 		l.LogActivity("Error while querying WorkFlowNew", err.Error())
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
 	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})
@@ -108,7 +109,7 @@ func customValidationErrors(wf WorkflowNew, ruleSchema schema.Schema) []wscutils
 	var validationErrors []wscutils.ErrorMessage
 	if len(wf.Flowrules) == 0 {
 		fieldName := "flowrules"
-		vErr := wscutils.BuildErrorMessage("empty", &fieldName)
+		vErr := wscutils.BuildErrorMessage(server.MsgId_Empty, server.ErrCode_Empty, &fieldName)
 		validationErrors = append(validationErrors, vErr)
 	}
 	rulePatternError := verifyRulePatterns(wf, ruleSchema)
@@ -137,7 +138,7 @@ func verifyRulePatterns(ruleSet WorkflowNew, ruleSchema schema.Schema) []wscutil
 				// by checking for its presence in the action-schema
 				if !isStringInArray(term.AttrName, ruleSchema.ActionSchema.Tasks) {
 					fieldName := fmt.Sprintf("flowrules[%d].rulepattern[%d].attr", i, j)
-					vErr := wscutils.BuildErrorMessage("not_exist", &fieldName, term.AttrName)
+					vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &fieldName, term.AttrName)
 					validationErrors = append(validationErrors, vErr)
 				} else {
 					// If it is a tag, the value type is set to bool
@@ -148,13 +149,13 @@ func verifyRulePatterns(ruleSet WorkflowNew, ruleSchema schema.Schema) []wscutil
 				if !verifyType(term.AttrVal, valType) {
 					fieldName := fmt.Sprintf("flowrules[%d].rulepattern[%d].val", i, j)
 					// term.AttrVal
-					vErr := wscutils.BuildErrorMessage("not_support", &fieldName)
+					vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &fieldName)
 					validationErrors = append(validationErrors, vErr)
 				}
 			}
 			if !validOps[term.Op] {
 				fieldName := fmt.Sprintf("flowrules[%d].rulepattern[%d].term.Op", i, j)
-				vErr := wscutils.BuildErrorMessage("not_support", &fieldName, term.Op)
+				vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &fieldName, term.Op)
 				validationErrors = append(validationErrors, vErr)
 			}
 		}
@@ -168,7 +169,7 @@ func verifyRulePatterns(ruleSet WorkflowNew, ruleSchema schema.Schema) []wscutil
 		}
 		if !stepFound {
 			fieldName := fmt.Sprintf("flowrules[%d].rulepattern", i)
-			vErr := wscutils.BuildErrorMessage("step_not_found", &fieldName)
+			vErr := wscutils.BuildErrorMessage(server.MsgId_StepNotFound, server.ErrCode_Invalid, &fieldName)
 			validationErrors = append(validationErrors, vErr)
 		}
 	}
@@ -221,7 +222,7 @@ func verifyRuleActions(ruleSet WorkflowNew, ruleSchema schema.Schema) []wscutils
 			j++
 			if !isStringInArray(t, ruleSchema.ActionSchema.Tasks) {
 				fieldName := fmt.Sprintf("flowrules[%d].tasks[%d]", i, j)
-				vErr := wscutils.BuildErrorMessage("not_found", &fieldName, t)
+				vErr := wscutils.BuildErrorMessage(server.MsgId_NotFound, server.ErrCode_NotFound, &fieldName, t)
 				validationErrors = append(validationErrors, vErr)
 			}
 		}
@@ -230,33 +231,33 @@ func verifyRuleActions(ruleSet WorkflowNew, ruleSchema schema.Schema) []wscutils
 			j++
 			if !isStringInArray(p.Name, ruleSchema.ActionSchema.Properties) {
 				fieldName := fmt.Sprintf("flowrules[%d].properties[%d]", i, j)
-				vErr := wscutils.BuildErrorMessage("not_found", &fieldName, p.Name)
+				vErr := wscutils.BuildErrorMessage(server.MsgId_NotFound, server.ErrCode_NotFound, &fieldName, p.Name)
 				validationErrors = append(validationErrors, vErr)
 			}
 		}
 
 		if rule.RuleActions.WillReturn && rule.RuleActions.WillExit {
-			fieldName := fmt.Sprintf("flowrules[%d].ruleactions", i)
-			vErr := wscutils.BuildErrorMessage("both the RETURN and EXIT instructions in ruleset", &fieldName)
+			fieldName := fmt.Sprintf("flowrules[%d].ruleactions(WillReturn/WillExit)", i)
+			vErr := wscutils.BuildErrorMessage(server.MsgId_RequiredAtLeastOne, server.ErrCode_RequiredOne, &fieldName)
 			validationErrors = append(validationErrors, vErr)
 		}
 
 		nsFound, doneFound := areNextStepAndDoneInProps(rule.RuleActions.Properties)
 		if !nsFound && !doneFound {
-			fieldName := "properties"
-			vErr := wscutils.BuildErrorMessage("rule found with neither 'nextstep' nor 'done'", &fieldName)
+			fieldName := "properties(nextstep/done)"
+			vErr := wscutils.BuildErrorMessage(server.MsgId_RequiredAtLeastOne, server.ErrCode_RequiredOne, &fieldName)
 			validationErrors = append(validationErrors, vErr)
 		}
 
 		if doneFound && !(len(rule.RuleActions.Tasks) == 0) {
 			fieldName := fmt.Sprintf("flowrules[%d].properties{done}", i)
-			vErr := wscutils.BuildErrorMessage("empty_task", &fieldName)
+			vErr := wscutils.BuildErrorMessage(server.MsgId_Empty, server.ErrCode_Empty, &fieldName)
 			validationErrors = append(validationErrors, vErr)
 		}
 		currNS := getNextStep(rule.RuleActions.Properties)
 		if len(currNS) > 0 && !isStringInArray(currNS, rule.RuleActions.Tasks) {
 			fieldName := fmt.Sprintf("flowrules[%d].properties{nextstep}", i)
-			vErr := wscutils.BuildErrorMessage("not_found", &fieldName)
+			vErr := wscutils.BuildErrorMessage(server.MsgId_NotFound, server.ErrCode_NotFound, &fieldName)
 			validationErrors = append(validationErrors, vErr)
 		}
 

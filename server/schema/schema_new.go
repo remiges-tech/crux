@@ -10,6 +10,7 @@ import (
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
+	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/types"
 )
 
@@ -42,14 +43,14 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
 		l.Log("Error while getting query instance from service Dependencies")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
 		return
 	}
 	patternSchema, err := json.Marshal(sh.PatternSchema)
 	if err != nil {
 		patternSchema := "patternSchema"
 		l.LogDebug("Error while marshaling patternSchema", err)
-		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(wscutils.ErrcodeInvalidJson, &patternSchema)}))
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_InvalidJson, &patternSchema)}))
 		return
 	}
 
@@ -57,13 +58,13 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 	if err != nil {
 		actionSchema := "actionSchema"
 		l.LogDebug("Error while marshaling actionSchema", err)
-		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(wscutils.ErrcodeInvalidJson, &actionSchema)}))
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_InvalidJson, &actionSchema)}))
 		return
 	}
 	_, err = query.SchemaNew(c, sqlc.SchemaNewParams{Realm: realmID, Slice: sh.Slice, Class: sh.Class, App: sh.App, Brwf: "W", Patternschema: patternSchema, Actionschema: actionSchema, Createdby: createdBy})
 	if err != nil {
 		l.LogActivity("Error while creating schema", err.Error())
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
 	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: "Created successfully", Messages: nil})
@@ -88,17 +89,17 @@ func verifyPatternSchema(ps types.PatternSchema) []wscutils.ErrorMessage {
 		i++
 		if !re.MatchString(attrSchema.Name) {
 			fieldName := fmt.Sprintf("attrSchema[%d].Name", i)
-			vErr := wscutils.BuildErrorMessage("not_valid", &fieldName, attrSchema.Name)
+			vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &fieldName, attrSchema.Name)
 			validationErrors = append(validationErrors, vErr)
 		}
 		if !validTypes[attrSchema.ValType] {
 			fieldName := fmt.Sprintf("attrSchema[%d].ValType", i)
-			vErr := wscutils.BuildErrorMessage("not_valid", &fieldName, attrSchema.ValType)
+			vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &fieldName, attrSchema.ValType)
 			validationErrors = append(validationErrors, vErr)
 		}
 		if attrSchema.ValType == "enum" && len(attrSchema.Vals) == 0 {
 			fieldName := fmt.Sprintf("attrSchema[%d].Vals", i)
-			vErr := wscutils.BuildErrorMessage("empty", &fieldName)
+			vErr := wscutils.BuildErrorMessage(server.MsgId_Empty, server.ErrCode_Empty, &fieldName)
 			validationErrors = append(validationErrors, vErr)
 		}
 	}
@@ -111,14 +112,14 @@ func verifyActionSchema(as types.ActionSchema) []wscutils.ErrorMessage {
 	for i, task := range as.Tasks {
 		if !re.MatchString(task) {
 			fieldName := fmt.Sprintf("actionSchema.Tasks[%d]", i)
-			vErr := wscutils.BuildErrorMessage("not_valid", &fieldName, task)
+			vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &fieldName, task)
 			validationErrors = append(validationErrors, vErr)
 		}
 	}
 	for i, propName := range as.Properties {
 		if !re.MatchString(propName) {
 			fieldName := fmt.Sprintf("actionSchema.Properties[%d]", i)
-			vErr := wscutils.BuildErrorMessage("not_valid", &fieldName, propName)
+			vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &fieldName, propName)
 			validationErrors = append(validationErrors, vErr)
 		}
 	}

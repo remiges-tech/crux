@@ -18,7 +18,6 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/tern/migrate"
 	"github.com/remiges-tech/alya/service"
-	"github.com/remiges-tech/alya/wscutils"
 	pg "github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	"github.com/remiges-tech/crux/server/schema"
@@ -124,7 +123,6 @@ func registerRoutes(pool *dockertest.Pool, databaseUrl string) (*gin.Engine, err
 		log.Fatalf("Failed to open error types file: %v", err)
 	}
 	defer file.Close()
-	wscutils.LoadErrorTypes(file)
 
 	connPool, err := pg.NewProvider(databaseUrl)
 	if err != nil {

@@ -8,7 +8,7 @@ import (
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
-	"github.com/remiges-tech/crux/types"
+	"github.com/remiges-tech/crux/server"
 )
 
 // SchemaDelete will be responsible for processing the /WFschemaDelete request that comes through as a POST
@@ -33,7 +33,7 @@ func SchemaDelete(c *gin.Context, s *service.Service) {
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
 		lh.Log("Error while getting query instance from service Dependencies")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
 	err = query.Wfschemadelete(c, sqlc.WfschemadeleteParams{
@@ -42,7 +42,7 @@ func SchemaDelete(c *gin.Context, s *service.Service) {
 		Class: request.Class,
 	})
 	if err != nil {
-		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(types.OPERATION_FAILED, nil)}))
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_DatabaseError, nil)}))
 		lh.Debug0().LogActivity("failed while deleting record:", err.Error)
 		return
 	}

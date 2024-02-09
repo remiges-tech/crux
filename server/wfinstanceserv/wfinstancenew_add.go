@@ -9,6 +9,7 @@ import (
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
+	"github.com/remiges-tech/crux/server"
 )
 
 type addRecordRequest struct {
@@ -106,7 +107,7 @@ func addRecord(r addRecordRequest, s *service.Service, c *gin.Context) (int32, s
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
 		lh.Log("Error while getting query instance from service Dependencies")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		//errors := wscutils.BuildErrorMessage(wscutils.ErrcodeDatabaseError, nil)
 		return 0, "", loggDate, errors.New(INVALID_DATABASE_DEPENDENCY)
 	}

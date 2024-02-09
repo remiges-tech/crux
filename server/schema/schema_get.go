@@ -8,7 +8,7 @@ import (
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
-	"github.com/remiges-tech/crux/types"
+	"github.com/remiges-tech/crux/server"
 )
 
 // SchemaGet will be responsible for processing the /wfschemaget request that comes through as a POST
@@ -34,7 +34,7 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
 		lh.Log("Error while getting query instance from service Dependencies")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
 	dbResponse, err := query.Wfschemaget(c, sqlc.WfschemagetParams{
@@ -43,7 +43,7 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 		Class: request.Class,
 	})
 	if err != nil {
-		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(types.RECORD_NOT_EXIST, nil)}))
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_NoSchemaFound, server.ErrCode_Invalid, nil)}))
 		lh.Debug0().LogActivity("failed to get data from DB:", err.Error())
 		return
 	}
