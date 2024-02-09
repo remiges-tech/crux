@@ -40,7 +40,7 @@ const (
 	ONLY_BOOL    = "only_boolean_allowed"
 	MARK         = "%"
 	DB_ERROR     = "failed to get data from DB"
-	AUTH_ERROR   = "Authorization error"
+	AUTH_ERROR   = "authorization_error"
 )
 
 var validOps = map[string]bool{

@@ -179,16 +179,16 @@ from ruleset
 where
     brwf = 'W'
     AND ($1::INTEGER is null OR slice = $1::INTEGER)
-    AND ($2::VARCHAR(20) is null OR app = $2::VARCHAR(20))
-    AND ($3::VARCHAR(20) is null OR class = $3::VARCHAR(20))
-    AND ($4::VARCHAR(20) is null OR setname = $4::VARCHAR(20))
+    AND ( $2::text[] is null OR app = any( $2::text[]))
+    AND ($3::text is null OR class = $3::text)
+    AND ($4::text is null OR setname = $4::text)
     AND ($5::BOOLEAN is null OR is_active = $5::BOOLEAN)
     AND ($6::BOOLEAN is null OR is_internal = $6::BOOLEAN)
 `
 
 type WorkflowListParams struct {
 	Slice      pgtype.Int4 `json:"slice"`
-	App        pgtype.Text `json:"app"`
+	App        []string    `json:"app"`
 	Class      pgtype.Text `json:"class"`
 	Setname    pgtype.Text `json:"setname"`
 	IsActive   pgtype.Bool `json:"is_active"`
