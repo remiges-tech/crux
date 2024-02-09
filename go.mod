@@ -9,7 +9,7 @@ require (
 	github.com/jackc/tern v1.13.0
 	github.com/lib/pq v1.10.9
 	github.com/ory/dockertest/v3 v3.10.0
-	github.com/remiges-tech/alya v0.8.0
+	github.com/remiges-tech/alya v0.8.1-0.20240209053535-9ea01e8b9e09
 	github.com/remiges-tech/logharbour v0.11.0
 	github.com/remiges-tech/rigel v0.12.0
 	github.com/stretchr/testify v1.8.4

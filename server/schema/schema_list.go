@@ -7,6 +7,7 @@ import (
 	"github.com/remiges-tech/alya/wscutils"
 
 	"github.com/remiges-tech/crux/db/sqlc-gen"
+	"github.com/remiges-tech/crux/server"
 )
 
 func SchemaList(c *gin.Context, s *service.Service) {
@@ -46,7 +47,7 @@ func SchemaList(c *gin.Context, s *service.Service) {
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
 		l.Log("Error while getting query instance from service Dependencies")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
 		return
 	}
 
@@ -55,7 +56,7 @@ func SchemaList(c *gin.Context, s *service.Service) {
 		schemaList, err := query.SchemaListByApp(c, *sh.App)
 		if err != nil || len(schemaList) == 0 {
 			l.LogActivity("Error while retrieving schema list by app", err)
-			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NoSchemaFound, server.ErrCode_Invalid))
 			return
 		}
 		wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: schemaList, Messages: nil})
@@ -63,7 +64,7 @@ func SchemaList(c *gin.Context, s *service.Service) {
 		schemaList, err := query.SchemaListByClass(c, *sh.Class)
 		if err != nil || len(schemaList) == 0 {
 			l.LogActivity("Error while retrieving schema list by class", err)
-			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NoSchemaFound, server.ErrCode_Invalid))
 			return
 		}
 		wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: schemaList, Messages: nil})
@@ -71,7 +72,7 @@ func SchemaList(c *gin.Context, s *service.Service) {
 		schemaList, err := query.SchemaListBySlice(c, *sh.Slice)
 		if err != nil || len(schemaList) == 0 {
 			l.LogActivity("Error while retrieving schema list by slice", err)
-			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NoSchemaFound, server.ErrCode_Invalid))
 			return
 		}
 		wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: schemaList, Messages: nil})
@@ -79,7 +80,7 @@ func SchemaList(c *gin.Context, s *service.Service) {
 		schemaList, err := query.SchemaListByAppAndClass(c, sqlc.SchemaListByAppAndClassParams{App: *sh.App, Class: *sh.Class})
 		if err != nil || len(schemaList) == 0 {
 			l.LogActivity("Error while retrieving schema list by app & class", err)
-			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NoSchemaFound, server.ErrCode_Invalid))
 			return
 		}
 		wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: schemaList, Messages: nil})
@@ -87,7 +88,7 @@ func SchemaList(c *gin.Context, s *service.Service) {
 		schemaList, err := query.SchemaListByAppAndSlice(c, sqlc.SchemaListByAppAndSliceParams{App: *sh.App, Slice: *sh.Slice})
 		if err != nil || len(schemaList) == 0 {
 			l.LogActivity("Error while retrieving schema list by app & slice", err)
-			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NoSchemaFound, server.ErrCode_Invalid))
 			return
 		}
 		wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: schemaList, Messages: nil})
@@ -95,7 +96,7 @@ func SchemaList(c *gin.Context, s *service.Service) {
 		schemaList, err := query.SchemaListByClassAndSlice(c, sqlc.SchemaListByClassAndSliceParams{Class: *sh.Class, Slice: *sh.Slice})
 		if err != nil || len(schemaList) == 0 {
 			l.LogActivity("Error while retrieving schema list by class & slice", err)
-			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NoSchemaFound, server.ErrCode_Invalid))
 			return
 		}
 		wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: schemaList, Messages: nil})
@@ -103,7 +104,7 @@ func SchemaList(c *gin.Context, s *service.Service) {
 		Schema, err := query.SchemaGet(c, sqlc.SchemaGetParams{App: *sh.App, Class: *sh.Class, Slice: *sh.Slice})
 		if err != nil {
 			l.LogActivity("Error while retrieving schema list by app, class & slice", err)
-			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NoSchemaFound, server.ErrCode_Invalid))
 			return
 		}
 		wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: Schema, Messages: nil})
@@ -112,7 +113,7 @@ func SchemaList(c *gin.Context, s *service.Service) {
 		schemaList, err := query.SchemaList(c)
 		if err != nil || len(schemaList) == 0 {
 			l.LogActivity("Error while retrieving schema list by app, class & slice", err)
-			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NoSchemaFound, server.ErrCode_Invalid))
 		}
 		wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: schemaList, Messages: nil})
 	}

@@ -11,6 +11,7 @@ import (
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
+	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/types"
 )
 
@@ -33,8 +34,8 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
 		lh.Log("Error while getting query instance from service Dependencies")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
-		errRes := append(errRes, wscutils.BuildErrorMessage(wscutils.ErrcodeDatabaseError, nil))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
+		errRes := append(errRes, wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_DatabaseError, nil))
 		return false, errRes
 	}
 	// Validate request
@@ -50,7 +51,7 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
 
 	if !(entity != nil && isKeyExist) {
 		lh.Log("Entity does not match with standard structure")
-		errRes = append(errRes, wscutils.BuildErrorMessage(INVALID_ENTITY, &ENTITY))
+		errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &ENTITY))
 		return false, errRes
 	}
 
@@ -63,7 +64,7 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
 	})
 	if err != nil {
 		lh.LogActivity("failed to get schema pattern  from DB:", err)
-		errRes = append(errRes, wscutils.BuildErrorMessage(SCHEMA_PATTERN_NOT_FOUND, nil))
+		errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, nil))
 		return false, errRes
 	}
 
@@ -71,7 +72,7 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
 	schmapattern, err := byteToPatternSchema(pattern)
 	if err != nil {
 		lh.Debug0().LogActivity(" error while converting byte patternschema to struct:", err)
-		errRes = append(errRes, wscutils.BuildErrorMessage(wscutils.ERRCODE_INVALID_REQUEST, nil, "failed to convert byte patternschema to struct"))
+		errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_InvalidRequest, nil))
 	}
 
 	// Forming  requested entity  into proper Entity struct
@@ -81,7 +82,7 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
 	isValidEntity, err := validateEntity(EntityStruct, schmapattern, s)
 	if !isValidEntity || err != nil {
 		lh.Debug0().LogActivity(" error while validating entity against patternschema:", err)
-		errRes = append(errRes, wscutils.BuildErrorMessage(INVALID_ENTITY, &ENTITY))
+		errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &ENTITY))
 		return false, errRes
 
 	}
@@ -98,8 +99,8 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
 		lh.Log("Error while getting query instance from service Dependencies")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
-		errors := append(errors, wscutils.BuildErrorMessage(wscutils.ErrcodeDatabaseError, nil))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
+		errors := append(errors, wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_DatabaseError, nil))
 		return false, errors
 	}
 
@@ -113,7 +114,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 
 	if err != nil {
 		lh.LogActivity("failed to get app from DB:", err.Error())
-		errors = append(errors, wscutils.BuildErrorMessage(INVALID_APP, &APP, *r.App))
+		errors = append(errors, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &APP, *r.App))
 	}
 
 	//2. The class of the workflow must match that of entity
@@ -126,7 +127,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 
 	if err != nil {
 		lh.LogActivity("failed to get class from DB:", err)
-		errors = append(errors, wscutils.BuildErrorMessage(INVALID_CLASS, &CLASS, entityClass))
+		errors = append(errors, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &CLASS, entityClass))
 	}
 
 	// 3.The workflow named has is_active == true and internal == false
@@ -142,7 +143,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 
 	if err != nil || !wfActiveStatus.Bool {
 		lh.LogActivity("Invalid workflow is_active status :", err)
-		errors = append(errors, wscutils.BuildErrorMessage(INVALID_WORKFLOW_ACTIVE_STATUS, &WORKFLOW, fmt.Sprintf("%v", wfActiveStatus.Bool)))
+		errors = append(errors, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &WORKFLOW, fmt.Sprintf("%v", wfActiveStatus.Bool)))
 	}
 
 	//To get worflow Internal status
@@ -156,7 +157,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 
 	if err != nil || wfInternalStatus {
 		lh.LogActivity("Invalid workflow is_internal status:", err)
-		errors = append(errors, wscutils.BuildErrorMessage(INVALID_WORKFLOW_INTERNAL_STATUS, &WORKFLOW, fmt.Sprintf("%v", wfInternalStatus)))
+		errors = append(errors, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &WORKFLOW, fmt.Sprintf("%v", wfInternalStatus)))
 
 	}
 
@@ -170,7 +171,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 
 	if err != nil || len(isRecordExist) > 0 {
 		lh.LogActivity("Record already exist in wfinstance table :", err)
-		errors = append(errors, wscutils.BuildErrorMessage(INSTANCE_ALREADY_EXIST, &ENTITYID))
+		errors = append(errors, wscutils.BuildErrorMessage(server.MsgId_AlreadyExist, server.ErrCode_AlreadyExist, &ENTITYID))
 	}
 
 	if len(errors) > 0 {

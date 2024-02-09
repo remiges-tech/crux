@@ -9,7 +9,7 @@ import (
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
-	"github.com/remiges-tech/crux/types"
+	"github.com/remiges-tech/crux/server"
 )
 
 // WorkflowGet will be responsible for processing the /workflowget request that comes through as a POST
@@ -35,7 +35,7 @@ func WorkflowGet(c *gin.Context, s *service.Service) {
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
 		lh.Log("Error while getting query instance from service Dependencies")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
 
@@ -46,7 +46,7 @@ func WorkflowGet(c *gin.Context, s *service.Service) {
 		Setname: request.Name,
 	})
 	if err != nil {
-		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(types.RECORD_NOT_EXIST, nil)}))
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, nil)}))
 		lh.LogActivity("failed to get data from DB:", err.Error)
 		return
 	}
@@ -55,7 +55,7 @@ func WorkflowGet(c *gin.Context, s *service.Service) {
 
 	err = json.Unmarshal(dbResponse.Flowrules, &tempData.Flowrules)
 	if err != nil {
-		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(types.OPERATION_FAILED, nil)}))
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, nil)}))
 		lh.LogActivity("failed to unmarshal data:", err.Error)
 		return
 	}
