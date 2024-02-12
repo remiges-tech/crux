@@ -23,6 +23,8 @@ type WorkflowListParams struct {
 	IsInternal bool
 }
 
+var TRIGGER bool = true
+
 // WorkflowGet will be responsible for processing the /workflowget request that comes through as a POST
 func WorkflowList(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour
@@ -177,7 +179,7 @@ func isStringEmpty(s *string) bool {
 
 // to check if the user has "ruleset" rights for the given app
 func HasRulesetRights(app string) bool {
-	return true
+	return TRIGGER
 }
 
 // to check if the caller has root capabilities
