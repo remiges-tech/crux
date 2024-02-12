@@ -41,8 +41,8 @@ func TestSchemaGet(t *testing.T) {
 }
 
 func schemaGetTestcase() []testutils.TestCasesStruct {
-	var sliceStr int32 = 1
-	app := "retailbank"
+	var sliceStr int32 = 2
+	app := "nedbank"
 	class := "custonboarding"
 	var slice int32 = -1
 	schemaNewTestcase := []testutils.TestCasesStruct{
@@ -60,8 +60,8 @@ func schemaGetTestcase() []testutils.TestCasesStruct {
 				Data:   nil,
 				Messages: []wscutils.ErrorMessage{
 					{
-						MsgID:   101,
-						ErrCode: "gt",
+						MsgID:   102,
+						ErrCode: "greater",
 						Field:   &types.SLICE,
 					}, {
 						MsgID:   101,

@@ -3,8 +3,8 @@
     "data": null,
     "messages": [
         {
-            "msgid": 500,
-            "errcode": "record_does_not_exist"
+            "msgid": 1003,
+            "errcode": "invalid"
         }
     ]
 }
