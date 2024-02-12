@@ -103,7 +103,7 @@ func main() {
 	// Custom validation tag-to-error code map
 	customErrCodeMap := map[string]string{
 		"required":  "required",
-		"gt":        "grater",
+		"gt":        "greater",
 		"alpha":     "alphabet",
 		"lowercase": "lowercase",
 	}

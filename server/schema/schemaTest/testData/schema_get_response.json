@@ -1,16 +1,16 @@
 {
     "status": "success",
     "data": {
-        "slice": 1,
-        "app": "retailbank",
+        "slice": 2,
+        "app": "nedbank",
         "class": "custonboarding",
-        "longname": "Bombay Stock Exchange",
-        "patternschema": "W3siYXR0ciI6IFt7Im5hbWUiOiAiY2F0IiwgInZhbHMiOiBbInRleHRib29rIiwgIm5vdGVib29rIiwgInN0YXRpb25lcnkiLCAicmVmYm9va3MiXSwgInZhbHR5cGUiOiAiZW51bSJ9LCB7Im5hbWUiOiAibXJwIiwgInZhbHR5cGUiOiAiZmxvYXQifSwgeyJuYW1lIjogImZ1bGxuYW1lIiwgInZhbHR5cGUiOiAic3RyIn0sIHsibmFtZSI6ICJhZ2VpbnN0b2NrIiwgInZhbHR5cGUiOiAiaW50In0sIHsibmFtZSI6ICJpbnZlbnRvcnlxdHkiLCAidmFsdHlwZSI6ICJpbnQifV0sICJjbGFzcyI6ICJpbnZlbnRvcnlpdGVtcyJ9XQ==",
-        "actionschema": "W3sidGFza3MiOiBbImludml0ZWZvcmRpd2FsaSIsICJhbGxvd3JldGFpbHNhbGUiLCAiYXNzaWdudG90cmFzaCJdLCAicHJvcGVydGllcyI6IFsiZGlzY291bnQiLCAic2hpcGJ5Il19XQ==",
-        "createdat": "2022-12-26T09:03:46Z",
-        "createdby": "Mal Houndsom",
-        "editedat": "2023-07-12T01:33:32Z",
-        "editedby": "Clerc Careless"
+        "longname": "National Stock Exchange",
+        "patternschema": "eyJhdHRyIjogW3sibmFtZSI6ICJjYXQiLCAidmFscyI6IFsidGV4dGJvb2siLCAibm90ZWJvb2siLCAic3RhdGlvbmVyeSIsICJyZWZib29rcyJdLCAidmFsdHlwZSI6ICJlbnVtIn0sIHsibmFtZSI6ICJtcnAiLCAidmFsdHlwZSI6ICJmbG9hdCJ9LCB7Im5hbWUiOiAiZnVsbG5hbWUiLCAidmFsdHlwZSI6ICJzdHIifSwgeyJuYW1lIjogImFnZWluc3RvY2siLCAidmFsdHlwZSI6ICJpbnQifSwgeyJuYW1lIjogImludmVudG9yeXF0eSIsICJ2YWx0eXBlIjogImludCJ9XSwgImNsYXNzIjogImludmVudG9yeWl0ZW1zIn0=",
+        "actionschema": "eyJ0YXNrcyI6IFsiaW52aXRlZm9yZGl3YWxpIiwgImFsbG93cmV0YWlsc2FsZSIsICJhc3NpZ250b3RyYXNoIl0sICJwcm9wZXJ0aWVzIjogWyJkaXNjb3VudCIsICJzaGlwYnkiXX0=",
+        "createdat": "2021-01-03T06:02:41Z",
+        "createdby": "Marielle Strongitharm",
+        "editedat": "2021-06-07T02:28:17Z",
+        "editedby": "Therese Roselli"
     },
     "messages": null
 }

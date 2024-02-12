@@ -60,8 +60,8 @@ func schemaDeleteTestCase() []testutils.TestCasesStruct {
 				Data:   nil,
 				Messages: []wscutils.ErrorMessage{
 					{
-						MsgID:   101,
-						ErrCode: "gt",
+						MsgID:   102,
+						ErrCode: "greater",
 						Field:   &types.SLICE,
 					}, {
 						MsgID:   101,

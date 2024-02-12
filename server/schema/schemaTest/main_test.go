@@ -18,6 +18,7 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/tern/migrate"
 	"github.com/remiges-tech/alya/service"
+	"github.com/remiges-tech/alya/wscutils"
 	pg "github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	"github.com/remiges-tech/crux/server/schema"
@@ -118,11 +119,27 @@ func registerRoutes(pool *dockertest.Pool, databaseUrl string) (*gin.Engine, err
 	lctx := logharbour.NewLoggerContext(logharbour.Info)
 	l := logharbour.NewLogger(lctx, "crux", fallbackWriter)
 
-	file, err := os.Open("../../../errortypes.yaml")
-	if err != nil {
-		log.Fatalf("Failed to open error types file: %v", err)
+	// Define a custom validation tag-to-message ID map
+	customValidationMap := map[string]int{
+		"required":  101,
+		"gt":        102,
+		"alpha":     103,
+		"lowercase": 104,
 	}
-	defer file.Close()
+	// Custom validation tag-to-error code map
+	customErrCodeMap := map[string]string{
+		"required":  "required",
+		"gt":        "greater",
+		"alpha":     "alphabet",
+		"lowercase": "lowercase",
+	}
+	// Register the custom map with wscutils
+	wscutils.SetValidationTagToMsgIDMap(customValidationMap)
+	wscutils.SetValidationTagToErrCodeMap(customErrCodeMap)
+
+	// Set default message ID and error code if needed
+	wscutils.SetDefaultMsgID(100)
+	wscutils.SetDefaultErrCode("validation_error")
 
 	connPool, err := pg.NewProvider(databaseUrl)
 	if err != nil {
