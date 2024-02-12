@@ -1,0 +1,77 @@
+{
+    "status": "error",
+    "data": null,
+    "messages": [
+      {
+        "msgid": 101,
+        "errcode": "gt",
+        "field": "Slice"
+      },
+      {
+        "msgid": 105,
+        "errcode": "alpha",
+        "field": "App"
+      },
+      {
+        "msgid": 107,
+        "errcode": "lowercase",
+        "field": "Class"
+      },
+      {
+        "msgid": 101,
+        "errcode": "required",
+        "field": "Class"
+      },
+      {
+        "msgid": 101,
+        "errcode": "required",
+        "field": "Name"
+      },
+      {
+        "msgid": 101,
+        "errcode": "required",
+        "field": "ShortDesc"
+      },
+      {
+        "msgid": 101,
+        "errcode": "required",
+        "field": "LongDesc"
+      },
+      {
+        "msgid": 101,
+        "errcode": "required",
+        "field": "ValType"
+      },
+      {
+        "msgid": 101,
+        "errcode": "required",
+        "field": "Class"
+      },
+      {
+        "msgid": 101,
+        "errcode": "required",
+        "field": "Tasks"
+      },
+      {
+        "msgid": 101,
+        "errcode": "required",
+        "field": "Properties"
+      },
+      {
+        "msgid": 108,
+        "errcode": "not_valid",
+        "field": "attrSchema[1].Name",
+        "vals": [
+          ""
+        ]
+      },
+      {
+        "msgid": 108,
+        "errcode": "not_valid",
+        "field": "attrSchema[1].ValType",
+        "vals": [
+          ""
+        ]
+      }
+    ]
+  }
