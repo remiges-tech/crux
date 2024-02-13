@@ -77,7 +77,7 @@ func schemaListTestcase() []testutils.TestCasesStruct {
 			},
 
 			ExpectedHttpCode: http.StatusBadRequest,
-			TestJsonFile:     "./testData/schema_list_validation_error.json",
+			TestJsonFile:     "./data/schema_list_validation_error.json",
 		},
 		{
 			Name: "Success- get schema by app slice class",
@@ -90,7 +90,7 @@ func schemaListTestcase() []testutils.TestCasesStruct {
 			},
 
 			ExpectedHttpCode: http.StatusOK,
-			TestJsonFile:     "./testData/schema_list_by_app_class_slice.json",
+			TestJsonFile:     "./data/schema_list_by_app_class_slice.json",
 		},
 		{
 			Name: "Success- get schema by app",
@@ -101,7 +101,7 @@ func schemaListTestcase() []testutils.TestCasesStruct {
 			},
 
 			ExpectedHttpCode: http.StatusOK,
-			TestJsonFile:     "./testData/schema_list_by_app.json",
+			TestJsonFile:     "./data/schema_list_by_app.json",
 		},
 		{
 			Name: "Success- get schema by slice",
@@ -112,7 +112,7 @@ func schemaListTestcase() []testutils.TestCasesStruct {
 			},
 
 			ExpectedHttpCode: http.StatusOK,
-			TestJsonFile:     "./testData/schema_list_by_slice.json",
+			TestJsonFile:     "./data/schema_list_by_slice.json",
 		},
 		{
 			Name: "Success- get schema by class",
@@ -123,7 +123,7 @@ func schemaListTestcase() []testutils.TestCasesStruct {
 			},
 
 			ExpectedHttpCode: http.StatusOK,
-			TestJsonFile:     "./testData/schema_list_by_class.json",
+			TestJsonFile:     "./data/schema_list_by_class.json",
 		},
 		{
 			Name: "Success- get schema by app slice",
@@ -135,7 +135,7 @@ func schemaListTestcase() []testutils.TestCasesStruct {
 			},
 
 			ExpectedHttpCode: http.StatusOK,
-			TestJsonFile:     "./testData/schema_list_by_app_slice.json",
+			TestJsonFile:     "./data/schema_list_by_app_slice.json",
 		},
 		{
 			Name: "Success- get schema by slice class",
@@ -147,7 +147,7 @@ func schemaListTestcase() []testutils.TestCasesStruct {
 			},
 
 			ExpectedHttpCode: http.StatusOK,
-			TestJsonFile:     "./testData/schema_list_by_class_slice.json",
+			TestJsonFile:     "./data/schema_list_by_class_slice.json",
 		},
 		{
 			Name: "Success- get schema by app class",
@@ -159,7 +159,7 @@ func schemaListTestcase() []testutils.TestCasesStruct {
 			},
 
 			ExpectedHttpCode: http.StatusOK,
-			TestJsonFile:     "./testData/schema_list_by_app_class.json",
+			TestJsonFile:     "./data/schema_list_by_app_class.json",
 		},
 		{
 			Name: "Success- get schema list",
@@ -168,7 +168,7 @@ func schemaListTestcase() []testutils.TestCasesStruct {
 			},
 
 			ExpectedHttpCode: http.StatusOK,
-			TestJsonFile:     "./testData/schema_list.json",
+			TestJsonFile:     "./data/schema_list.json",
 		},
 	}
 	return schemaListTestcase

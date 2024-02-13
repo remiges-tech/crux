@@ -155,8 +155,8 @@ func registerRoutes(pool *dockertest.Pool, databaseUrl string) (*gin.Engine, err
 		WithDatabase(connPool).
 		WithDependency("queries", queries)
 
-	s.RegisterRoute(http.MethodGet, "/workflowget", workflow.WorkflowGet)
-	s.RegisterRoute(http.MethodGet, "/workflowlist", workflow.WorkflowList)
+	s.RegisterRoute(http.MethodPost, "/workflowget", workflow.WorkflowGet)
+	s.RegisterRoute(http.MethodPost, "/workflowlist", workflow.WorkflowList)
 	s.RegisterRoute(http.MethodPost, "/workflowNew", workflow.WorkFlowNew)
 
 	return r, nil

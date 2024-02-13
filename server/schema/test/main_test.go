@@ -157,7 +157,7 @@ func registerRoutes(pool *dockertest.Pool, databaseUrl string) (*gin.Engine, err
 	s.RegisterRoute(http.MethodPost, "/wfschemaList", schema.SchemaList)
 	s.RegisterRoute(http.MethodPost, "/wfschemaNew", schema.SchemaNew)
 	s.RegisterRoute(http.MethodPut, "/wfschemaUpdate", schema.SchemaUpdate)
-	s.RegisterRoute(http.MethodGet, "/wfschemaget", schema.SchemaGet)
+	s.RegisterRoute(http.MethodPost, "/wfschemaget", schema.SchemaGet)
 	s.RegisterRoute(http.MethodDelete, "/wfschemadelete", schema.SchemaDelete)
 
 	return r, nil

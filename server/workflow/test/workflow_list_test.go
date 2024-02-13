@@ -23,7 +23,7 @@ func TestWorkflowList(t *testing.T) {
 			if tc.name == "ERROR- has no HasRulesetRights() = false" {
 				workflow.TRIGGER = false
 			}
-			req, err := http.NewRequest(http.MethodGet, "/workflowlist", payload)
+			req, err := http.NewRequest(http.MethodPost, "/workflowlist", payload)
 			require.NoError(t, err)
 
 			r.ServeHTTP(res, req)
@@ -65,7 +65,7 @@ func workflowListTestCase() []TestCasesStruct {
 			},
 
 			expectedHttpCode: http.StatusOK,
-			testJsonFile:     "./testData/workflow_list_with_app_response.json",
+			testJsonFile:     "./data/workflow_list_with_app_response.json",
 		},
 		// 2nd test case
 		{
@@ -80,7 +80,7 @@ func workflowListTestCase() []TestCasesStruct {
 				},
 			},
 			expectedHttpCode: http.StatusOK,
-			testJsonFile:     "./testData/workflow_list_no_app_response.json",
+			testJsonFile:     "./data/workflow_list_no_app_response.json",
 		},
 
 		// 3rd test case

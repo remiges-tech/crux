@@ -13,15 +13,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSchemaDelete(t *testing.T) {
-	testCases := schemaDeleteTestCase()
+func TestSchemaGet(t *testing.T) {
+	testCases := schemaGetTestcase()
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			// Setting up buffer
 			payload := bytes.NewBuffer(types.MarshalJson(tc.RequestPayload))
 
 			res := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodDelete, "/wfschemadelete", payload)
+			req, err := http.NewRequest(http.MethodPost, "/wfschemaget", payload)
 			require.NoError(t, err)
 
 			r.ServeHTTP(res, req)
@@ -40,10 +40,10 @@ func TestSchemaDelete(t *testing.T) {
 
 }
 
-func schemaDeleteTestCase() []testutils.TestCasesStruct {
-	var sliceStr int32 = 1
-	app := "retailbank"
-	class := "tempclass"
+func schemaGetTestcase() []testutils.TestCasesStruct {
+	var sliceStr int32 = 2
+	app := "nedbank"
+	class := "custonboarding"
 	var slice int32 = -1
 	schemaNewTestcase := []testutils.TestCasesStruct{
 		// 1st test case
@@ -78,7 +78,7 @@ func schemaDeleteTestCase() []testutils.TestCasesStruct {
 
 		// 2nd test case
 		{
-			Name: "SUCCESS- delete schema by valid req ",
+			Name: "SUCCESS- get schema by valid req ",
 			RequestPayload: wscutils.Request{
 				Data: schema.SchemaListStruct{
 					Slice: &sliceStr,
@@ -88,7 +88,7 @@ func schemaDeleteTestCase() []testutils.TestCasesStruct {
 			},
 
 			ExpectedHttpCode: http.StatusOK,
-			TestJsonFile:     "./testData/schema_delete_response.json",
+			TestJsonFile:     "./data/schema_get_response.json",
 		},
 	}
 	return schemaNewTestcase
