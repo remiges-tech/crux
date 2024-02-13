@@ -28,13 +28,14 @@ type Querier interface {
 	SchemaListByClass(ctx context.Context, class string) ([]SchemaListByClassRow, error)
 	SchemaListByClassAndSlice(ctx context.Context, arg SchemaListByClassAndSliceParams) ([]SchemaListByClassAndSliceRow, error)
 	SchemaListBySlice(ctx context.Context, slice int32) ([]SchemaListBySliceRow, error)
-	SchemaNew(ctx context.Context, arg SchemaNewParams) (int32, error)
-	SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) (int32, error)
+	SchemaNew(ctx context.Context, arg SchemaNewParams) error
+	SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) error
 	WfPatternSchemaGet(ctx context.Context, arg WfPatternSchemaGetParams) ([]byte, error)
 	WfSchemaGet(ctx context.Context, arg WfSchemaGetParams) (Schema, error)
 	Wfschemadelete(ctx context.Context, arg WfschemadeleteParams) error
 	Wfschemaget(ctx context.Context, arg WfschemagetParams) (WfschemagetRow, error)
-	WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) (int32, error)
+	WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) error
+	WorkFlowUpdate(ctx context.Context, arg WorkFlowUpdateParams) error
 	WorkflowList(ctx context.Context, arg WorkflowListParams) ([]WorkflowListRow, error)
 	Workflowget(ctx context.Context, arg WorkflowgetParams) (WorkflowgetRow, error)
 }

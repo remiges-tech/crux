@@ -13,7 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
-	pg "github.com/remiges-tech/crux/db"
+	"github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	"github.com/remiges-tech/crux/server/schema"
 	"github.com/remiges-tech/crux/server/wfinstance"
@@ -86,7 +86,7 @@ func main() {
 
 	// Database connection
 	connURL := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", dbHost, dbPort, dbUser, dbPassword, dbName)
-	connPool, err := pg.NewProvider(connURL)
+	connPool, err := db.NewProvider(connURL)
 	if err != nil {
 		l.LogActivity("Error while establishes a connection with database", err)
 		log.Fatalln("Failed to establishes a connection with database", err)
@@ -138,6 +138,7 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/workflowget", workflow.WorkflowGet)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/workflowlist", workflow.WorkflowList)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/workflowNew", workflow.WorkFlowNew)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/workflowUpdate", workflow.WorkFlowUpdate)
 	// s.RegisterRouteWithGroup(apiV1Group, http.MethodDelete, "/workflowdelete", workflow.WorkflowDelete)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstancenew", wfinstance.GetWFinstanceNew)
 

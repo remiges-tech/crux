@@ -11,10 +11,20 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
+	"github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/server/schema"
 )
+
+type WorkflowNew struct {
+	Slice      int32   `json:"slice" validate:"required,gt=0"`
+	App        string  `json:"app" validate:"required,alpha"`
+	Class      string  `json:"class" validate:"required,lowercase"`
+	Name       string  `json:"name" validate:"required,lowercase"`
+	IsInternal bool    `json:"is_internal" validate:"required"`
+	Flowrules  []Rules `json:"flowrules" validate:"required,dive"`
+}
 
 func WorkFlowNew(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
@@ -44,7 +54,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 
 	connpool, ok := s.Database.(*pgxpool.Pool)
 	if !ok {
-		l.Log("Error while getting query instance from service Dependencies")
+		l.Log("Error while getting connection pool instance from service Dependencies")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
@@ -63,8 +73,9 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 		Class: wf.Class,
 	})
 	if err != nil {
-		l.LogActivity("failed to get data from DB:", err.Error())
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
+		l.LogActivity("failed to get schema from DB:", err.Error())
+		errmsg := db.ErrorMessage(err)
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
 	ruleSchema.Slice = wf.Slice
@@ -99,7 +110,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	_, err = qtx.WorkFlowNew(c, sqlc.WorkFlowNewParams{
+	err = qtx.WorkFlowNew(c, sqlc.WorkFlowNewParams{
 		Realm:      realmID,
 		Slice:      wf.Slice,
 		App:        wf.App,
@@ -107,14 +118,15 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 		Class:      wf.Class,
 		Setname:    setBy,
 		Schemaid:   schema.ID,
-		IsActive:   pgtype.Bool{Bool: false, Valid: false},
+		IsActive:   pgtype.Bool{Bool: false, Valid: true},
 		IsInternal: wf.IsInternal,
 		Ruleset:    ruleset,
 		Createdby:  setBy,
 	})
 	if err != nil {
-		l.LogActivity("Error while querying WorkFlowNew", err.Error())
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
+		l.LogActivity("Error while Inserting data in ruleset", err.Error())
+		errmsg := db.ErrorMessage(err)
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
 	if err := tx.Commit(c); err != nil {
@@ -148,28 +160,23 @@ func verifyRulePatterns(ruleSet WorkflowNew, ruleSchema schema.Schema) []wscutil
 		i++
 		for j, term := range rule.RulePattern {
 			j++
-			// if !(rule.RulePattern[0].AttrName == step) {
-			// 	fieldName := fmt.Sprintf("flowrules.rulepattern[%d].attr", 1)
-			// 	vErr := wscutils.BuildErrorMessage("step_not_exist", &fieldName)
-			// 	validationErrors = append(validationErrors, vErr)
-			// }
-			valType := getType(ruleSchema, term.AttrName)
+			valType := getType(ruleSchema, term.Attr)
 			if valType == "" {
 				// If the attribute name is not in the pattern-schema, we check if it's a task "tag"
 				// by checking for its presence in the action-schema
-				if !isStringInArray(term.AttrName, ruleSchema.ActionSchema.Tasks) {
+				if !isStringInArray(term.Attr, ruleSchema.ActionSchema.Tasks) {
 					fieldName := fmt.Sprintf("flowrules[%d].rulepattern[%d].attr", i, j)
-					vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &fieldName, term.AttrName)
+					vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &fieldName, term.Attr)
 					validationErrors = append(validationErrors, vErr)
 				} else {
 					// If it is a tag, the value type is set to bool
-					term.AttrVal = typeBool
+					term.Val = typeBool
 				}
 			}
 			if len(valType) != 0 {
-				if !verifyType(term.AttrVal, valType) {
+				if !verifyType(term.Val, valType) {
 					fieldName := fmt.Sprintf("flowrules[%d].rulepattern[%d].val", i, j)
-					// term.AttrVal
+					// term.Val
 					vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &fieldName)
 					validationErrors = append(validationErrors, vErr)
 				}
@@ -183,7 +190,7 @@ func verifyRulePatterns(ruleSet WorkflowNew, ruleSchema schema.Schema) []wscutil
 
 		stepFound := false
 		for _, term := range rule.RulePattern {
-			if term.AttrName == step {
+			if term.Attr == step {
 				stepFound = true
 				break
 			}
@@ -259,14 +266,14 @@ func verifyRuleActions(ruleSet WorkflowNew, ruleSchema schema.Schema) []wscutils
 
 		if rule.RuleActions.WillReturn && rule.RuleActions.WillExit {
 			fieldName := fmt.Sprintf("flowrules[%d].ruleactions(WillReturn/WillExit)", i)
-			vErr := wscutils.BuildErrorMessage(server.MsgId_RequiredAtLeastOne, server.ErrCode_RequiredOne, &fieldName)
+			vErr := wscutils.BuildErrorMessage(server.MsgId_RequiredOneOf, server.ErrCode_RequiredOne, &fieldName)
 			validationErrors = append(validationErrors, vErr)
 		}
 
 		nsFound, doneFound := areNextStepAndDoneInProps(rule.RuleActions.Properties)
 		if !nsFound && !doneFound {
 			fieldName := "properties(nextstep/done)"
-			vErr := wscutils.BuildErrorMessage(server.MsgId_RequiredAtLeastOne, server.ErrCode_RequiredOne, &fieldName)
+			vErr := wscutils.BuildErrorMessage(server.MsgId_RequiredOneOf, server.ErrCode_RequiredOne, &fieldName)
 			validationErrors = append(validationErrors, vErr)
 		}
 

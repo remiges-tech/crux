@@ -82,7 +82,7 @@ func schemaUpdateTestcase() []testutils.TestCasesStruct {
 				Data:   nil,
 				Messages: []wscutils.ErrorMessage{
 					{
-						MsgID:   0,
+						MsgID:   1001,
 						ErrCode: wscutils.ErrcodeInvalidJson,
 					},
 				},
@@ -115,7 +115,7 @@ func schemaUpdateTestcase() []testutils.TestCasesStruct {
 			ExpectedHttpCode: http.StatusOK,
 			ExpectedResult: &wscutils.Response{
 				Status:   wscutils.SuccessStatus,
-				Data:     "updated successfully",
+				Data:     nil,
 				Messages: nil,
 			},
 		},

@@ -137,7 +137,7 @@ func (q *Queries) GetWFInternalStatus(ctx context.Context, arg GetWFInternalStat
 	return is_internal, err
 }
 
-const workFlowNew = `-- name: WorkFlowNew :one
+const workFlowNew = `-- name: WorkFlowNew :exec
 INSERT INTO
     ruleset (
         realm, slice, app, brwf, class, setname, schemaid, is_active, is_internal, ruleset, createdat, createdby
@@ -145,8 +145,6 @@ INSERT INTO
 VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP, $11
     )
-RETURNING
-    id
 `
 
 type WorkFlowNewParams struct {
@@ -163,8 +161,8 @@ type WorkFlowNewParams struct {
 	Createdby  string      `json:"createdby"`
 }
 
-func (q *Queries) WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) (int32, error) {
-	row := q.db.QueryRow(ctx, workFlowNew,
+func (q *Queries) WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) error {
+	_, err := q.db.Exec(ctx, workFlowNew,
 		arg.Realm,
 		arg.Slice,
 		arg.App,
@@ -177,9 +175,44 @@ func (q *Queries) WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) (int32
 		arg.Ruleset,
 		arg.Createdby,
 	)
-	var id int32
-	err := row.Scan(&id)
-	return id, err
+	return err
+}
+
+const workFlowUpdate = `-- name: WorkFlowUpdate :exec
+UPDATE ruleset
+SET
+    brwf = $4,
+    setname = $5,
+    ruleset = $6,
+    editedat = CURRENT_TIMESTAMP,
+    editedby = $7
+WHERE
+    slice = $1
+    AND class = $2
+    AND app = $3
+`
+
+type WorkFlowUpdateParams struct {
+	Slice    int32       `json:"slice"`
+	Class    string      `json:"class"`
+	App      string      `json:"app"`
+	Brwf     BrwfEnum    `json:"brwf"`
+	Setname  string      `json:"setname"`
+	Ruleset  []byte      `json:"ruleset"`
+	Editedby pgtype.Text `json:"editedby"`
+}
+
+func (q *Queries) WorkFlowUpdate(ctx context.Context, arg WorkFlowUpdateParams) error {
+	_, err := q.db.Exec(ctx, workFlowUpdate,
+		arg.Slice,
+		arg.Class,
+		arg.App,
+		arg.Brwf,
+		arg.Setname,
+		arg.Ruleset,
+		arg.Editedby,
+	)
+	return err
 }
 
 const workflowList = `-- name: WorkflowList :many

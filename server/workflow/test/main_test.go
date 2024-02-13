@@ -19,7 +19,7 @@ import (
 	"github.com/jackc/tern/migrate"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
-	pg "github.com/remiges-tech/crux/db"
+	"github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	"github.com/remiges-tech/crux/server/workflow"
 	"github.com/remiges-tech/logharbour/logharbour"
@@ -142,12 +142,20 @@ func registerRoutes(pool *dockertest.Pool, databaseUrl string) (*gin.Engine, err
 	wscutils.SetDefaultErrCode("validation_error")
 
 	// Database connection
-	connPool, err := pg.NewProvider(databaseUrl)
+	connPool, err := db.NewProvider(databaseUrl)
 	if err != nil {
 		l.LogActivity("Error while establishes a connection with database", err)
 		log.Fatalln("Failed to establishes a connection with database", err)
 	}
 	queries := sqlc.New(connPool)
+
+	// Register the custom map with wscutils
+	wscutils.SetValidationTagToMsgIDMap(customValidationMap)
+	wscutils.SetValidationTagToErrCodeMap(customErrCodeMap)
+
+	// Set default message ID and error code if needed
+	wscutils.SetDefaultMsgID(100)
+	wscutils.SetDefaultErrCode("validation_error")
 
 	// schema services
 	s := service.NewService(r).
@@ -158,6 +166,7 @@ func registerRoutes(pool *dockertest.Pool, databaseUrl string) (*gin.Engine, err
 	s.RegisterRoute(http.MethodPost, "/workflowget", workflow.WorkflowGet)
 	s.RegisterRoute(http.MethodPost, "/workflowlist", workflow.WorkflowList)
 	s.RegisterRoute(http.MethodPost, "/workflowNew", workflow.WorkFlowNew)
+	s.RegisterRoute(http.MethodPut, "/workflowUpdate", workflow.WorkFlowUpdate)
 
 	return r, nil
 

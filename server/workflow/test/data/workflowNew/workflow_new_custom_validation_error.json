@@ -3,43 +3,43 @@
     "data": null,
     "messages": [
         {
-            "msgid": 0,
-            "errcode": "not_exist",
+            "msgid": 1003,
+            "errcode": "invalid",
             "field": "flowrules[1].rulepattern[1].attr",
             "vals": [
                 "branchtypeNotInSchema"
             ]
         },
         {
-            "msgid": 0,
-            "errcode": "not_support",
+            "msgid": 1003,
+            "errcode": "invalid",
             "field": "flowrules[1].rulepattern[2].val"
         },
         {
-            "msgid": 0,
-            "errcode": "not_support",
+            "msgid": 1003,
+            "errcode": "invalid",
             "field": "flowrules[1].rulepattern[2].term.Op",
             "vals": [
                 "equal"
             ]
         },
         {
-            "msgid": 0,
-            "errcode": "step_not_found",
+            "msgid": 1011,
+            "errcode": "invalid",
             "field": "flowrules[1].rulepattern"
         },
         {
-            "msgid": 0,
-            "errcode": "step_not_found",
+            "msgid": 1011,
+            "errcode": "invalid",
             "field": "flowrules[3].rulepattern"
         },
         {
-            "msgid": 0,
-            "errcode": "step_not_found",
+            "msgid": 1011,
+            "errcode": "invalid",
             "field": "flowrules[4].rulepattern"
         },
         {
-            "msgid": 100,
+            "msgid": 1009,
             "errcode": "not_found",
             "field": "flowrules[2].tasks[2]",
             "vals": [
@@ -47,7 +47,7 @@
             ]
         },
         {
-            "msgid": 100,
+            "msgid": 1009,
             "errcode": "not_found",
             "field": "flowrules[2].properties[1]",
             "vals": [
@@ -55,22 +55,22 @@
             ]
         },
         {
-            "msgid": 0,
-            "errcode": "rule found with neither 'nextstep' nor 'done'",
-            "field": "properties"
+            "msgid": 1007,
+            "errcode": "required_one_field",
+            "field": "properties(nextstep/done)"
         },
         {
-            "msgid": 0,
-            "errcode": "empty_task",
+            "msgid": 1005,
+            "errcode": "empty",
             "field": "flowrules[3].properties{done}"
         },
         {
-            "msgid": 0,
-            "errcode": "both the RETURN and EXIT instructions in ruleset",
-            "field": "flowrules[4].ruleactions"
+            "msgid": 1007,
+            "errcode": "required_one_field",
+            "field": "flowrules[4].ruleactions(WillReturn/WillExit)"
         },
         {
-            "msgid": 100,
+            "msgid": 1009,
             "errcode": "not_found",
             "field": "flowrules[4].properties{nextstep}"
         }

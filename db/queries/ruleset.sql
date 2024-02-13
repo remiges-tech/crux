@@ -62,16 +62,27 @@ where
     and setname = $4
     AND brwf = 'W';
 
--- name: WorkFlowNew :one
+-- name: WorkFlowNew :exec
 INSERT INTO
     ruleset (
         realm, slice, app, brwf, class, setname, schemaid, is_active, is_internal, ruleset, createdat, createdby
     )
 VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP, $11
-    )
-RETURNING
-    id;
+    );
+
+-- name: WorkFlowUpdate :exec
+UPDATE ruleset
+SET
+    brwf = $4,
+    setname = $5,
+    ruleset = $6,
+    editedat = CURRENT_TIMESTAMP,
+    editedby = $7
+WHERE
+    slice = $1
+    AND class = $2
+    AND app = $3;
 
 -- name: WorkflowList :many
 select
