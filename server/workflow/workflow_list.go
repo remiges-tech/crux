@@ -2,6 +2,7 @@ package workflow
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -23,21 +24,16 @@ type WorkflowListParams struct {
 	IsInternal bool
 }
 
-var TRIGGER bool = true
+// this is for test cases
+var TRIGGER bool = false
 
-// WorkflowGet will be responsible for processing the /workflowget request that comes through as a POST
+// WorkflowList will be responsible for processing the /WorkflowList request that comes through as a POST
 func WorkflowList(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour
 	lh.Log("WorkflowList request received")
 	var (
-		request WorkflowListReq
-		params  WorkflowListParams
-		// slice      int32
-		// app        string
-		// class      string
-		// name       string
-		// active     bool
-		// intrnl     bool
+		request    WorkflowListReq
+		params     WorkflowListParams
 		dbResponse []sqlc.WorkflowListRow
 	)
 
@@ -70,14 +66,6 @@ func WorkflowList(c *gin.Context, s *service.Service) {
 
 	// Process the request based on the provided BRD
 	dbResponse, err = processRequest(c, lh, hasRootCapabilities, query, params, &request)
-	// dbResponse, err = query.WorkflowList(c, sqlc.WorkflowListParams{
-	// 	Slice:      pgtype.Int4{Int32: *request.Slice, Valid: request.Slice != nil},
-	// 	App:        pgtype.Text{String: *request.App, Valid: !isStringEmpty(request.App)},
-	// 	Class:      pgtype.Text{String: *request.Class, Valid: !isStringEmpty(request.Class)},
-	// 	Setname:    pgtype.Text{String: *request.Name, Valid: !isStringEmpty(request.Name)},
-	// 	IsActive:   pgtype.Bool{Bool: *request.IsActive, Valid: request.IsActive != nil},
-	// 	IsInternal: pgtype.Bool{Bool: *request.IsInternal, Valid: request.IsInternal != nil},
-	// })
 
 	if err != nil {
 		if err.Error() == AUTH_ERROR {
@@ -86,7 +74,6 @@ func WorkflowList(c *gin.Context, s *service.Service) {
 			return
 		}
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
-		// wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(types.RECORD_NOT_EXIST, nil)}))
 		lh.LogActivity(DB_ERROR, err.Error)
 		return
 	}
@@ -132,8 +119,7 @@ func processRequest(c *gin.Context, lh *logharbour.Logger, hasRootCapabilities b
 				lh.Log("User has app rights")
 
 				return query.WorkflowList(c, sqlc.WorkflowListParams{
-					Slice: pgtype.Int4{Int32: *request.Slice, Valid: request.Slice != nil},
-					// App:        pgtype.Text{String: *request.App, Valid: !isStringEmpty(request.App)},
+					Slice:      pgtype.Int4{Int32: *request.Slice, Valid: request.Slice != nil},
 					App:        []string{*request.App},
 					Class:      pgtype.Text{String: *request.Class, Valid: !isStringEmpty(request.Class)},
 					Setname:    pgtype.Text{String: *request.Name, Valid: !isStringEmpty(request.Name)},
@@ -147,10 +133,8 @@ func processRequest(c *gin.Context, lh *logharbour.Logger, hasRootCapabilities b
 		}
 		// show the workflows of all the apps for which the user has "ruleset" rights
 		app := GetWorkflowsByRulesetRights()
-		// appStr := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(fmt.Sprint(app), "[", "\""), "]", "\""), " ", "\",\"")
 		lh.LogActivity("app not present hence all user 'ruleset' rights:", app)
 		return query.WorkflowList(c, sqlc.WorkflowListParams{
-			// App: pgtype.Text{String: app, Valid: isStringEmpty(request.App)},
 			App: app,
 		})
 	}
@@ -179,16 +163,16 @@ func isStringEmpty(s *string) bool {
 
 // to check if the user has "ruleset" rights for the given app
 func HasRulesetRights(app string) bool {
-	return TRIGGER
+	userRights := GetWorkflowsByRulesetRights()
+	return slices.Contains(userRights, app)
 }
 
 // to check if the caller has root capabilities
 func HasRootCapabilities() bool {
-	return false
+	return TRIGGER
 }
 
 // to get workflows for all apps for which the user has "ruleset" rights
 func GetWorkflowsByRulesetRights() []string {
 	return []string{"retailBANK", "nedbank"}
-	// return "nedbank"
 }
