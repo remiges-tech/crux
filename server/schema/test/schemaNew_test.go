@@ -42,7 +42,7 @@ func TestSchemaNew(t *testing.T) {
 }
 
 func schemaNewTestcase() []testutils.TestCasesStruct {
-	valTestJson, err := testutils.ReadJsonFromFile("./testData/schema_new_validation_payload.json")
+	valTestJson, err := testutils.ReadJsonFromFile("./data/schema_new_validation_payload.json")
 	if err != nil {
 		log.Fatalln("Error reading JSON file:", err)
 	}
@@ -51,7 +51,7 @@ func schemaNewTestcase() []testutils.TestCasesStruct {
 		log.Fatalln("Error unmarshalling JSON:", err)
 	}
 
-	cusValTestJson, err := testutils.ReadJsonFromFile("./testData/schema_new_custom_validation_payload.json")
+	cusValTestJson, err := testutils.ReadJsonFromFile("./data/schema_new_custom_validation_payload.json")
 	if err != nil {
 		log.Fatalln("Error reading JSON file:", err)
 	}
@@ -60,7 +60,7 @@ func schemaNewTestcase() []testutils.TestCasesStruct {
 		log.Fatalln("Error unmarshalling JSON:", err)
 	}
 
-	successTestJson, err := testutils.ReadJsonFromFile("./testData/schema_new_success_payload.json")
+	successTestJson, err := testutils.ReadJsonFromFile("./data/schema_new_success_payload.json")
 	if err != nil {
 		log.Fatalln("Error reading JSON file:", err)
 	}
@@ -95,7 +95,7 @@ func schemaNewTestcase() []testutils.TestCasesStruct {
 			},
 
 			ExpectedHttpCode: http.StatusBadRequest,
-			TestJsonFile:     "./testData/schema_new_validation_error.json",
+			TestJsonFile:     "./data/schema_new_validation_error.json",
 		},
 		{
 			Name: "err- custom validation",
@@ -104,7 +104,7 @@ func schemaNewTestcase() []testutils.TestCasesStruct {
 			},
 
 			ExpectedHttpCode: http.StatusBadRequest,
-			TestJsonFile:     "./testData/schema_new_custom_validation_error.json",
+			TestJsonFile:     "./data/schema_new_custom_validation_error.json",
 		},
 		{
 			Name: "Success- create schema ",

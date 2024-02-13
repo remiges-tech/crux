@@ -1,4 +1,4 @@
-package workflow_test
+package schema_test
 
 import (
 	"bytes"
@@ -9,20 +9,20 @@ import (
 	"testing"
 
 	"github.com/remiges-tech/alya/wscutils"
-	"github.com/remiges-tech/crux/server/workflow"
+	"github.com/remiges-tech/crux/server/schema"
 	"github.com/remiges-tech/crux/testutils"
 	"github.com/stretchr/testify/require"
 )
 
-func TestWorkFlowNew(t *testing.T) {
-	testCases := workFlowNewTestcase()
+func TestSchemaUpdate(t *testing.T) {
+	testCases := schemaUpdateTestcase()
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-
+			// Setting up buffer
 			payload := bytes.NewBuffer(testutils.MarshalJson(tc.RequestPayload))
 
 			res := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodPost, "/workflowNew", payload)
+			req, err := http.NewRequest(http.MethodPut, "/wfschemaUpdate", payload)
 			require.NoError(t, err)
 
 			r.ServeHTTP(res, req)
@@ -41,30 +41,30 @@ func TestWorkFlowNew(t *testing.T) {
 
 }
 
-func workFlowNewTestcase() []testutils.TestCasesStruct {
-	valTestJson, err := testutils.ReadJsonFromFile("./testData/workflowNew/workFlow_new_validation_payload.json")
+func schemaUpdateTestcase() []testutils.TestCasesStruct {
+	valTestJson, err := testutils.ReadJsonFromFile("./data/schema_update_validation_payload .json")
 	if err != nil {
 		log.Fatalln("Error reading JSON file:", err)
 	}
-	var valPayload workflow.WorkflowNew
-	if err := json.Unmarshal(valTestJson, &valPayload); err != nil {
+	var payload schema.Schema
+	if err := json.Unmarshal(valTestJson, &payload); err != nil {
 		log.Fatalln("Error unmarshalling JSON:", err)
 	}
 
-	cusValTestJson, err := testutils.ReadJsonFromFile("./testData/workflowNew/workflow_new_custom_validation_payload.json")
+	cusValTestJson, err := testutils.ReadJsonFromFile("./data/schema_update_custom_validation_payload.json")
 	if err != nil {
 		log.Fatalln("Error reading JSON file:", err)
 	}
-	var cusValPayload workflow.WorkflowNew
+	var cusValPayload schema.Schema
 	if err := json.Unmarshal(cusValTestJson, &cusValPayload); err != nil {
 		log.Fatalln("Error unmarshalling JSON:", err)
 	}
 
-	successTestJson, err := testutils.ReadJsonFromFile("./testData/workflowNew/workflow_new_success_payload.json")
+	successTestJson, err := testutils.ReadJsonFromFile("./data/schema_update_success_payload.json")
 	if err != nil {
 		log.Fatalln("Error reading JSON file:", err)
 	}
-	var successPayload workflow.WorkflowNew
+	var successPayload schema.Schema
 	if err := json.Unmarshal(successTestJson, &successPayload); err != nil {
 		log.Fatalln("Error unmarshalling JSON:", err)
 	}
@@ -91,11 +91,11 @@ func workFlowNewTestcase() []testutils.TestCasesStruct {
 		{
 			Name: "err- standard validation",
 			RequestPayload: wscutils.Request{
-				Data: valPayload,
+				Data: payload,
 			},
 
 			ExpectedHttpCode: http.StatusBadRequest,
-			TestJsonFile:     "./testData/workflowNew/workflow_new_validation_error.json",
+			TestJsonFile:     "./data/schema_update_validation_error.json",
 		},
 		{
 			Name: "err- custom validation",
@@ -104,10 +104,10 @@ func workFlowNewTestcase() []testutils.TestCasesStruct {
 			},
 
 			ExpectedHttpCode: http.StatusBadRequest,
-			TestJsonFile:     "./testData/workflowNew/workflow_new_custom_validation_error.json",
+			TestJsonFile:     "./data/schema_update_custom_validation_error.json",
 		},
 		{
-			Name: "Success- create workflow new",
+			Name: "Success- Update schema",
 			RequestPayload: wscutils.Request{
 				Data: successPayload,
 			},
@@ -115,7 +115,7 @@ func workFlowNewTestcase() []testutils.TestCasesStruct {
 			ExpectedHttpCode: http.StatusOK,
 			ExpectedResult: &wscutils.Response{
 				Status:   wscutils.SuccessStatus,
-				Data:     nil,
+				Data:     "updated successfully",
 				Messages: nil,
 			},
 		},

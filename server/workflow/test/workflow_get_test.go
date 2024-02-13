@@ -28,7 +28,7 @@ func TestWorkflowGet(t *testing.T) {
 			payload := bytes.NewBuffer(types.MarshalJson(tc.requestPayload))
 
 			res := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodGet, "/workflowget", payload)
+			req, err := http.NewRequest(http.MethodPost, "/workflowget", payload)
 			require.NoError(t, err)
 
 			r.ServeHTTP(res, req)
@@ -102,7 +102,7 @@ func workflowGetTestCase() []TestCasesStruct {
 			},
 
 			expectedHttpCode: http.StatusOK,
-			testJsonFile:     "./testData/workflow_get_response.json",
+			testJsonFile:     "./data/workflow_get_response.json",
 		},
 		// 3nd test case
 		{
@@ -117,7 +117,7 @@ func workflowGetTestCase() []TestCasesStruct {
 			},
 
 			expectedHttpCode: http.StatusBadRequest,
-			testJsonFile:     "./testData/workflow_get_failed_response.json",
+			testJsonFile:     "./data/workflow_get_failed_response.json",
 		},
 	}
 	return schemaNewTestcase
