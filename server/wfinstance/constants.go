@@ -1,6 +1,7 @@
-package wfinstanceserv
+package wfinstance
 
 const (
+	// error messages
 	SLICE_REQUIRED                   = "slice is required"
 	ENTITY_REQUIRED                  = "Entity is required"
 	ENTITYID_REQUIRED                = "Entity ID is required"
@@ -20,6 +21,7 @@ const (
 	INSERT_OPERATION_FAILED          = "insert_operation_failed"
 	INVALID_DATABASE_DEPENDENCY      = "invalid_database_dependency"
 
+	// types constants
 	typeBool   = "bool"
 	typeInt    = "int"
 	typeFloat  = "float"
@@ -27,8 +29,18 @@ const (
 	typeEnum   = "enum"
 	typeTS     = "ts"
 	timeLayout = "2006-01-02T15:04:05Z"
+
+	// feilds
+	STEP      = "step"
+	STEPFALED = "stepfailed"
+	DONE      = "done"
+	NEXTSTEP  = "nextstep"
+	START     = "START"
+	FALSE     = "false"
+	TRUE      = "true"
+	REALM     = 1
 )
 
+// feilds for error messages
 var APP, CLASS, SLICE, ENTITY, WORKFLOW, ENTITYID string = "app", "class", "slice", "entity", "workflow", "entityid"
 var ACTIONSET_PROPERTIES, TASK = "actionset_properties", "task"
-var DONE, NEXTSTEP = "done", "nextstep"

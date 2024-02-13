@@ -5,6 +5,7 @@ WHERE
     slice = $1
     AND app = $2
     AND class = $3
+    AND realm = $4
     AND brwf = 'W';
 
 -- name: GetClass :one
@@ -14,6 +15,7 @@ WHERE
     slice = $1
     AND app = $2
     AND class = $3
+    AND realm = $4
     AND brwf = 'W';
 
 -- name: GetWFActiveStatus :one
@@ -23,8 +25,9 @@ WHERE
     slice = $1
     AND app = $2
     AND class = $3
+    AND realm = $4
     AND brwf = 'W'
-    AND setname = $4;
+    AND setname = $5;
 
 -- name: GetWFInternalStatus :one
 SELECT is_internal
@@ -33,8 +36,9 @@ WHERE
     slice = $1
     AND app = $2
     AND class = $3
+    AND realm = $4
     AND brwf = 'W'
-    AND setname = $4;
+    AND setname = $5;
 
 -- name: Workflowget :one
 select

@@ -16,7 +16,7 @@ import (
 	pg "github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	"github.com/remiges-tech/crux/server/schema"
-	"github.com/remiges-tech/crux/server/wfinstanceserv"
+	"github.com/remiges-tech/crux/server/wfinstance"
 	"github.com/remiges-tech/crux/server/workflow"
 	"github.com/remiges-tech/logharbour/logharbour"
 	"github.com/remiges-tech/rigel"
@@ -139,7 +139,7 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/workflowlist", workflow.WorkflowList)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/workflowNew", workflow.WorkFlowNew)
 	// s.RegisterRouteWithGroup(apiV1Group, http.MethodDelete, "/workflowdelete", workflow.WorkflowDelete)
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstancenew", wfinstanceserv.GetWFinstanceNew)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstancenew", wfinstance.GetWFinstanceNew)
 
 	appServerPortStr := strconv.Itoa(appServerPort)
 	r.Run(":" + appServerPortStr)
