@@ -18,6 +18,7 @@ WHERE
     slice = $1
     AND app = $2
     AND class = $3
+    AND realm = $4
     AND brwf = 'W'
 `
 
@@ -25,10 +26,16 @@ type GetAppParams struct {
 	Slice int32  `json:"slice"`
 	App   string `json:"app"`
 	Class string `json:"class"`
+	Realm int32  `json:"realm"`
 }
 
 func (q *Queries) GetApp(ctx context.Context, arg GetAppParams) (string, error) {
-	row := q.db.QueryRow(ctx, getApp, arg.Slice, arg.App, arg.Class)
+	row := q.db.QueryRow(ctx, getApp,
+		arg.Slice,
+		arg.App,
+		arg.Class,
+		arg.Realm,
+	)
 	var app string
 	err := row.Scan(&app)
 	return app, err
@@ -41,6 +48,7 @@ WHERE
     slice = $1
     AND app = $2
     AND class = $3
+    AND realm = $4
     AND brwf = 'W'
 `
 
@@ -48,10 +56,16 @@ type GetClassParams struct {
 	Slice int32  `json:"slice"`
 	App   string `json:"app"`
 	Class string `json:"class"`
+	Realm int32  `json:"realm"`
 }
 
 func (q *Queries) GetClass(ctx context.Context, arg GetClassParams) (string, error) {
-	row := q.db.QueryRow(ctx, getClass, arg.Slice, arg.App, arg.Class)
+	row := q.db.QueryRow(ctx, getClass,
+		arg.Slice,
+		arg.App,
+		arg.Class,
+		arg.Realm,
+	)
 	var class string
 	err := row.Scan(&class)
 	return class, err
@@ -64,14 +78,16 @@ WHERE
     slice = $1
     AND app = $2
     AND class = $3
+    AND realm = $4
     AND brwf = 'W'
-    AND setname = $4
+    AND setname = $5
 `
 
 type GetWFActiveStatusParams struct {
 	Slice   int32  `json:"slice"`
 	App     string `json:"app"`
 	Class   string `json:"class"`
+	Realm   int32  `json:"realm"`
 	Setname string `json:"setname"`
 }
 
@@ -80,6 +96,7 @@ func (q *Queries) GetWFActiveStatus(ctx context.Context, arg GetWFActiveStatusPa
 		arg.Slice,
 		arg.App,
 		arg.Class,
+		arg.Realm,
 		arg.Setname,
 	)
 	var is_active pgtype.Bool
@@ -94,14 +111,16 @@ WHERE
     slice = $1
     AND app = $2
     AND class = $3
+    AND realm = $4
     AND brwf = 'W'
-    AND setname = $4
+    AND setname = $5
 `
 
 type GetWFInternalStatusParams struct {
 	Slice   int32  `json:"slice"`
 	App     string `json:"app"`
 	Class   string `json:"class"`
+	Realm   int32  `json:"realm"`
 	Setname string `json:"setname"`
 }
 
@@ -110,6 +129,7 @@ func (q *Queries) GetWFInternalStatus(ctx context.Context, arg GetWFInternalStat
 		arg.Slice,
 		arg.App,
 		arg.Class,
+		arg.Realm,
 		arg.Setname,
 	)
 	var is_internal bool

@@ -1,8 +1,7 @@
-package wfinstanceserv
+package wfinstance
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -27,7 +26,7 @@ func addSingleTask(r addRecordRequest, s *service.Service, c *gin.Context) (WFIn
 	lh.Log("Inside addSingleTask()")
 
 	// Add record in wfinstance table
-	id, workflow, loggDate, error := addRecord(r, s, c)
+	id, workflow, loggedDate, error := addRecord(r, s, c)
 	if error != nil {
 		lh.LogActivity("error while adding single steps in wfinstance table :", error.Error())
 		return response, error
@@ -49,7 +48,7 @@ func addSingleTask(r addRecordRequest, s *service.Service, c *gin.Context) (WFIn
 	// response
 	response = WFInstanceNewResponse{
 		Tasks:    tasks,
-		Loggedat: loggDate,
+		Loggedat: loggedDate,
 		Subflows: &subflow,
 	}
 
@@ -112,14 +111,14 @@ func addRecord(r addRecordRequest, s *service.Service, c *gin.Context) (int32, s
 		return 0, "", loggDate, errors.New(INVALID_DATABASE_DEPENDENCY)
 	}
 
-	parent := ConvertToPGType(r.Request.Parent)
+	parent := ConvertToPGType(*r.Request.Parent)
 
 	recordID, err := query.AddWFNewInstace(c, sqlc.AddWFNewInstaceParams{
-		Entityid: *r.Request.EntityID,
-		Slice:    *r.Request.Slice,
-		App:      *r.Request.App,
-		Class:    r.Request.Entity["class"],
-		Workflow: *r.Request.Workflow,
+		Entityid: r.Request.EntityID,
+		Slice:    r.Request.Slice,
+		App:      r.Request.App,
+		Class:    r.Request.Entity[CLASS],
+		Workflow: r.Request.Workflow,
 		Step:     r.Step,
 		Nextstep: r.Nextstep,
 		Parent:   parent,
@@ -133,15 +132,7 @@ func addRecord(r addRecordRequest, s *service.Service, c *gin.Context) (int32, s
 	// To get workflow if step is present in stepworkflow table
 	workflow, _ := query.GetWorkflow(c, r.Step)
 
-	//To get Loggedat from  wfinstance table
-	loggDate, err = query.GetLoggedate(c, recordID)
-	if err != nil {
-		lh.LogActivity("error while getting loggedat from wfinstance table :", err.Error())
-		return 0, "", loggDate, fmt.Errorf("error while fetching loggedat from wfinstance table")
-
-	}
-
-	return recordID, workflow, loggDate, nil
+	return recordID.ID, workflow, recordID.Loggedat, nil
 
 }
 

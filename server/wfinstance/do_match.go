@@ -1,4 +1,4 @@
-package wfinstanceserv
+package wfinstance
 
 /*
 This file contains doMatch() and a helper function called by doMatch().
@@ -73,10 +73,10 @@ func doMatch(entity Entity, ruleSet RuleSet, actionSet ActionSet, seenRuleSets m
 
 	// Initializing the ActionSet struct
 
-	// if task has only one task
+	//if task has only one task
 	actionSet = ActionSet{
-		tasks:      []string{"yearendsale"},
-		properties: map[string]string{"nextstep": "passportchk"},
+		tasks:      []string{"discount"},
+		properties: map[string]string{"nextstep": "coupondistribution"},
 	}
 
 	//if task has multiple tasks

@@ -1,0 +1,20 @@
+{
+    "status": "success",
+    "data": {
+        "tasks": [
+            {
+                "discount": 5
+            },
+            {
+                "yearendsale": 6
+            }
+        ],
+        "nextstep": "coupondistribution",
+        "loggedat": "2024-02-13T12:18:36.542319Z",
+        "subflows": {
+            "yearendsale": "doyearendsalechk"
+        },
+        "tracedata": null
+    },
+    "messages": null
+}

@@ -1,4 +1,4 @@
-package wfinstanceserv
+package wfinstance
 
 import (
 	"fmt"
@@ -13,13 +13,13 @@ import (
 
 // Incoming request format
 type WFInstanceNewRequest struct {
-	Slice    *int32            `json:"slice" validate:"required"`
-	App      *string           `json:"app" validate:"required,alpha"`
-	EntityID *string           `json:"entityid" validate:"required"`
+	Slice    int32             `json:"slice" validate:"required"`
+	App      string            `json:"app" validate:"required,alpha"`
+	EntityID string            `json:"entityid" validate:"required"`
 	Entity   map[string]string `json:"entity" validate:"required"`
-	Workflow *string           `json:"workflow" validate:"required"`
-	Trace    int               `json:"trace,omitempty"`
-	Parent   int32             `json:"parent,omitempty"`
+	Workflow string            `json:"workflow" validate:"required"`
+	Trace    *int              `json:"trace,omitempty"`
+	Parent   *int32            `json:"parent,omitempty"`
 }
 
 // WFInstanceNew response format
@@ -66,19 +66,14 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 
 	} else {
 		// Additional attributes to append
-		existingEntity["step"] = "START"
-		existingEntity["stepfailed"] = "false"
+		existingEntity[STEP] = START
+		existingEntity[STEPFALED] = FALSE
 	}
 
 	// call doMatch()
-	actionSet, result, err := doMatch(entity, ruleSet, actionSet, seenRuleSets)
+	actionSet, _, err = doMatch(entity, ruleSet, actionSet, seenRuleSets)
 	if err != nil {
 		lh.LogActivity("error while calling doMatch Method :", err.Error())
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid))
-		return
-	}
-	if !result {
-		lh.LogActivity("doMatch() returns false :", err.Error())
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid))
 		return
 	}
@@ -87,13 +82,20 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	attribute, error := getValidPropertyAttr(actionSet)
 	if error != nil {
 		lh.LogActivity("error while verifying actionset properties :", error.Error())
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid_property_attributes))
 		return
 	}
-	if attribute["done"] == "true" {
-		done = attribute["done"]
+	if attribute[DONE] == TRUE {
+		done = attribute[DONE]
 	} else {
-		nextStep = attribute["nextstep"]
+		nextStep = attribute[NEXTSTEP]
+	}
+
+	if done == TRUE {
+		response := make(map[string]bool)
+		response[DONE] = true
+		lh.Log(fmt.Sprintf("Response : %v", map[string]any{"response": response}))
+		wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(response))
 	}
 
 	// To add records in table
@@ -134,13 +136,6 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 			return
 		}
-		lh.Log(fmt.Sprintf("Response : %v", map[string]any{"response": response}))
-		wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(response))
-	}
-
-	if done == "true" {
-		response := make(map[string]bool)
-		response[DONE] = true
 		lh.Log(fmt.Sprintf("Response : %v", map[string]any{"response": response}))
 		wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(response))
 	}
