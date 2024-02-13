@@ -20,14 +20,12 @@ func TestWorkflowList(t *testing.T) {
 			payload := bytes.NewBuffer(types.MarshalJson(tc.requestPayload))
 
 			res := httptest.NewRecorder()
-			if tc.name == "ERROR- has no HasRulesetRights() = false" {
-				workflow.TRIGGER = false
+			if tc.name == "SUCCESS- with app name but HasRulesetRights = false & HasRootCapabilities = true" {
+				workflow.TRIGGER = true
 			}
 			req, err := http.NewRequest(http.MethodPost, "/workflowlist", payload)
 			require.NoError(t, err)
-
 			r.ServeHTTP(res, req)
-
 			require.Equal(t, tc.expectedHttpCode, res.Code)
 			if tc.expectedResult != nil {
 				jsonData := types.MarshalJson(tc.expectedResult)
@@ -48,44 +46,10 @@ func workflowListTestCase() []TestCasesStruct {
 	class := "members"
 	tname := "goldstatus"
 	isActive := true
-	// var slice int32 = -1
 	schemaNewTestcase := []TestCasesStruct{
 		// 1st test case
 		{
-			name: "SUCCESS- with app name but HasRulesetRights = true",
-			requestPayload: wscutils.Request{
-				Data: workflow.WorkflowListReq{
-					Slice:      &sliceStr,
-					App:        &app,
-					Class:      &class,
-					Name:       &tname,
-					IsActive:   &isActive,
-					IsInternal: &isActive,
-				},
-			},
-
-			expectedHttpCode: http.StatusOK,
-			testJsonFile:     "./data/workflow_list_with_app_response.json",
-		},
-		// 2nd test case
-		{
-			name: "SUCCESS- No app name but HasRulesetRights = true",
-			requestPayload: wscutils.Request{
-				Data: workflow.WorkflowListReq{
-					Slice:      &sliceStr,
-					Class:      &class,
-					Name:       &tname,
-					IsActive:   &isActive,
-					IsInternal: &isActive,
-				},
-			},
-			expectedHttpCode: http.StatusOK,
-			testJsonFile:     "./data/workflow_list_no_app_response.json",
-		},
-
-		// 3rd test case
-		{
-			name: "ERROR- has no HasRulesetRights() = false",
+			name: "ERROR- App + HasRootCapabilities()= false & HasRulesetRights()= false",
 			requestPayload: wscutils.Request{
 				Data: workflow.WorkflowListReq{
 					Slice:      &sliceStr,
@@ -107,6 +71,32 @@ func workflowListTestCase() []TestCasesStruct {
 					},
 				},
 			},
+		},
+
+		// 2nd test case
+		{
+			name: "SUCCESS- No app name but HasRulesetRights = false & HasRootCapabilities = false",
+			requestPayload: wscutils.Request{
+				Data: workflow.WorkflowListReq{
+					Slice:      &sliceStr,
+					Class:      &class,
+					Name:       &tname,
+					IsActive:   &isActive,
+					IsInternal: &isActive,
+				},
+			},
+			expectedHttpCode: http.StatusOK,
+			testJsonFile:     "./data/workflow_list_no_app_response.json",
+		},
+
+		// 3rd test case
+		{
+			name: "SUCCESS- with app name but HasRulesetRights = false & HasRootCapabilities = true",
+			requestPayload: wscutils.Request{
+				Data: workflow.WorkflowListReq{},
+			},
+			expectedHttpCode: http.StatusOK,
+			testJsonFile:     "./data/workflow_list_with_app_response.json",
 		},
 	}
 	return schemaNewTestcase
