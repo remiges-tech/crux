@@ -163,3 +163,23 @@ INSERT INTO
 VALUES (
         2, 'retailBANK', 'yearendsale', 'doyearendsalechk'
     );
+
+---- create above / drop below ----
+
+-- realm
+DELETE FROM public.realm WHERE id IN (1, 2, 3, 4);
+
+-- realmslice
+DELETE FROM public.realmslice WHERE id IN (1, 2, 3);
+
+-- app
+DELETE FROM public.app WHERE id IN (1, 2, 3);
+
+-- schema
+DELETE FROM public.schema WHERE id IN (10, 11);
+
+-- ruleset
+DELETE FROM ruleset WHERE id = 5;
+
+-- stepworkflow
+DELETE FROM public.stepworkflow WHERE id = 2;

@@ -3,17 +3,17 @@
     "data": null,
     "messages": [
         {
-            "msgid": 101,
-            "errcode": "gt",
+            "msgid": 102,
+            "errcode": "greater",
             "field": "Slice"
         },
         {
-            "msgid": 105,
-            "errcode": "alpha",
+            "msgid": 103,
+            "errcode": "alphabet",
             "field": "App"
         },
         {
-            "msgid": 107,
+            "msgid": 104,
             "errcode": "lowercase",
             "field": "Class"
         }

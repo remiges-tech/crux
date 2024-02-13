@@ -1,13 +1,13 @@
--- name: SchemaNew :one
+-- name: SchemaNew :exec
 INSERT INTO
-    schema(
+    schema (
         realm, slice, app, brwf, class, patternschema, actionschema, createdat, createdby
     )
 VALUES (
         $1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, $8
-    ) RETURNING id;
+    );
 
--- name: SchemaUpdate :one
+-- name: SchemaUpdate :exec
 UPDATE schema
 SET
     brwf = $4,
@@ -18,7 +18,7 @@ SET
 WHERE
     slice = $1
     AND class = $2
-    AND app = $3 RETURNING id;
+    AND app = $3;
 
 -- name: GetSchemaWithLock :one
 SELECT
@@ -32,10 +32,12 @@ FROM schema
 WHERE
     slice = $1
     AND class = $2
-    AND app = $3 FOR
-UPDATE;
+    AND app = $3
+FOR UPDATE;
 
 -- name: SchemaDelete :one
+DELETE FROM schema WHERE id = $1 RETURNING id;
+
 DELETE FROM schema WHERE id = $1 RETURNING id;
 
 -- name: SchemaList :many

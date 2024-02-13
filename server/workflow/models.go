@@ -4,6 +4,7 @@ import "github.com/jackc/pgx/v5/pgtype"
 
 const (
 	setBy     = "admin"
+	editedBy  = "admin"
 	realmID   = 1
 	brwf      = "W"
 	isActive  = false
@@ -47,24 +48,15 @@ var validOps = map[string]bool{
 	opEQ: true, opNE: true, opLT: true, opLE: true, opGT: true, opGE: true,
 }
 
-type WorkflowNew struct {
-	Slice      int32   `json:"slice" validate:"required,gt=0"`
-	App        string  `json:"app" validate:"required,alpha"`
-	Class      string  `json:"class" validate:"required,lowercase"`
-	Name       string  `json:"name" validate:"required,lowercase"`
-	IsInternal bool    `json:"is_internal" validate:"required"`
-	Flowrules  []Rules `json:"flowrules" validate:"required,dive"`
-}
-
 type Rules struct {
 	RulePattern []RulePattern `json:"rulepattern" validate:"required,dive"`
 	RuleActions RuleActions   `json:"ruleactions" validate:"required"`
 }
 
 type RulePattern struct {
-	AttrName string `json:"attr" validate:"required"`
-	Op       string `json:"op" validate:"required"`
-	AttrVal  any    `json:"val" validate:"required"`
+	Attr string `json:"attr" validate:"required"`
+	Op   string `json:"op" validate:"required"`
+	Val  any    `json:"val" validate:"required"`
 }
 type RuleActions struct {
 	Tasks      []string   `json:"tasks" validate:"required"`

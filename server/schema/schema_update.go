@@ -102,7 +102,7 @@ func schemaUpdateWithTX(c context.Context, query *sqlc.Queries, connpool *pgxpoo
 		return err
 	}
 	if patternSchema != nil && actionSchema == nil {
-		_, err = qtx.SchemaUpdate(c, sqlc.SchemaUpdateParams{
+		err = qtx.SchemaUpdate(c, sqlc.SchemaUpdateParams{
 			Slice:         sh.Slice,
 			Class:         sh.Class,
 			App:           sh.App,
@@ -116,7 +116,7 @@ func schemaUpdateWithTX(c context.Context, query *sqlc.Queries, connpool *pgxpoo
 			return err
 		}
 	} else if actionSchema != nil && patternSchema == nil {
-		_, err = qtx.SchemaUpdate(c, sqlc.SchemaUpdateParams{
+		err = qtx.SchemaUpdate(c, sqlc.SchemaUpdateParams{
 			Slice:         sh.Slice,
 			Class:         sh.Class,
 			App:           sh.App,
@@ -130,7 +130,7 @@ func schemaUpdateWithTX(c context.Context, query *sqlc.Queries, connpool *pgxpoo
 			return err
 		}
 	} else {
-		_, err = qtx.SchemaUpdate(c, sqlc.SchemaUpdateParams{
+		err = qtx.SchemaUpdate(c, sqlc.SchemaUpdateParams{
 			Slice:         sh.Slice,
 			Class:         sh.Class,
 			App:           sh.App,
@@ -178,7 +178,7 @@ func customValidationErrorsForUpdate(sh updateSchema) []wscutils.ErrorMessage {
 		validationErrors = append(validationErrors, actionSchemaError...)
 	} else if sh.PatternSchema == nil && sh.ActionSchema == nil {
 		fieldName := fmt.Sprintln("PatternSchema/ActionSchema")
-		vErr := wscutils.BuildErrorMessage(server.MsgId_RequiredAtLeastOne, server.ErrCode_RequiredOne, &fieldName)
+		vErr := wscutils.BuildErrorMessage(server.MsgId_RequiredOneOf, server.ErrCode_RequiredOne, &fieldName)
 		validationErrors = append(validationErrors, vErr)
 	} else {
 		patternSchemaError := verifyPatternSchemaUpdate(sh.PatternSchema)

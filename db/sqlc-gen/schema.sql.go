@@ -23,8 +23,8 @@ FROM schema
 WHERE
     slice = $1
     AND class = $2
-    AND app = $3 FOR
-UPDATE
+    AND app = $3
+FOR UPDATE
 `
 
 type GetSchemaWithLockParams struct {
@@ -486,14 +486,14 @@ func (q *Queries) SchemaListBySlice(ctx context.Context, slice int32) ([]SchemaL
 	return items, nil
 }
 
-const schemaNew = `-- name: SchemaNew :one
+const schemaNew = `-- name: SchemaNew :exec
 INSERT INTO
-    schema(
+    schema (
         realm, slice, app, brwf, class, patternschema, actionschema, createdat, createdby
     )
 VALUES (
         $1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, $8
-    ) RETURNING id
+    )
 `
 
 type SchemaNewParams struct {
@@ -507,8 +507,8 @@ type SchemaNewParams struct {
 	Createdby     string   `json:"createdby"`
 }
 
-func (q *Queries) SchemaNew(ctx context.Context, arg SchemaNewParams) (int32, error) {
-	row := q.db.QueryRow(ctx, schemaNew,
+func (q *Queries) SchemaNew(ctx context.Context, arg SchemaNewParams) error {
+	_, err := q.db.Exec(ctx, schemaNew,
 		arg.Realm,
 		arg.Slice,
 		arg.App,
@@ -518,12 +518,10 @@ func (q *Queries) SchemaNew(ctx context.Context, arg SchemaNewParams) (int32, er
 		arg.Actionschema,
 		arg.Createdby,
 	)
-	var id int32
-	err := row.Scan(&id)
-	return id, err
+	return err
 }
 
-const schemaUpdate = `-- name: SchemaUpdate :one
+const schemaUpdate = `-- name: SchemaUpdate :exec
 UPDATE schema
 SET
     brwf = $4,
@@ -534,7 +532,7 @@ SET
 WHERE
     slice = $1
     AND class = $2
-    AND app = $3 RETURNING id
+    AND app = $3
 `
 
 type SchemaUpdateParams struct {
@@ -547,8 +545,8 @@ type SchemaUpdateParams struct {
 	Editedby      pgtype.Text `json:"editedby"`
 }
 
-func (q *Queries) SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) (int32, error) {
-	row := q.db.QueryRow(ctx, schemaUpdate,
+func (q *Queries) SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) error {
+	_, err := q.db.Exec(ctx, schemaUpdate,
 		arg.Slice,
 		arg.Class,
 		arg.App,
@@ -557,9 +555,7 @@ func (q *Queries) SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) (int
 		arg.Actionschema,
 		arg.Editedby,
 	)
-	var id int32
-	err := row.Scan(&id)
-	return id, err
+	return err
 }
 
 const wfPatternSchemaGet = `-- name: WfPatternSchemaGet :one

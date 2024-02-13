@@ -82,7 +82,7 @@ func workFlowNewTestcase() []testutils.TestCasesStruct {
 				Data:   nil,
 				Messages: []wscutils.ErrorMessage{
 					{
-						MsgID:   0,
+						MsgID:   1001,
 						ErrCode: wscutils.ErrcodeInvalidJson,
 					},
 				},
