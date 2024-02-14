@@ -74,7 +74,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 	})
 	if err != nil {
 		l.LogActivity("failed to get schema from DB:", err.Error())
-		errmsg := db.ErrorMessage(err)
+		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
@@ -125,7 +125,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 	})
 	if err != nil {
 		l.LogActivity("Error while Inserting data in ruleset", err.Error())
-		errmsg := db.ErrorMessage(err)
+		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}

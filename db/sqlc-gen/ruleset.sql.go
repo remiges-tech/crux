@@ -138,6 +138,45 @@ func (q *Queries) GetWFInternalStatus(ctx context.Context, arg GetWFInternalStat
 	return is_internal, err
 }
 
+const rulesetRowLock = `-- name: RulesetRowLock :one
+SELECT id, realm, slice, app, brwf, class, setname, schemaid, is_active, is_internal, ruleset, createdat, createdby, editedat, editedby 
+FROM ruleset 
+WHERE
+    slice = $1
+    AND class = $2
+    AND app = $3
+FOR UPDATE
+`
+
+type RulesetRowLockParams struct {
+	Slice int32  `json:"slice"`
+	Class string `json:"class"`
+	App   string `json:"app"`
+}
+
+func (q *Queries) RulesetRowLock(ctx context.Context, arg RulesetRowLockParams) (Ruleset, error) {
+	row := q.db.QueryRow(ctx, rulesetRowLock, arg.Slice, arg.Class, arg.App)
+	var i Ruleset
+	err := row.Scan(
+		&i.ID,
+		&i.Realm,
+		&i.Slice,
+		&i.App,
+		&i.Brwf,
+		&i.Class,
+		&i.Setname,
+		&i.Schemaid,
+		&i.IsActive,
+		&i.IsInternal,
+		&i.Ruleset,
+		&i.Createdat,
+		&i.Createdby,
+		&i.Editedat,
+		&i.Editedby,
+	)
+	return i, err
+}
+
 const workFlowNew = `-- name: WorkFlowNew :exec
 INSERT INTO
     ruleset (
@@ -179,7 +218,7 @@ func (q *Queries) WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) error 
 	return err
 }
 
-const workFlowUpdate = `-- name: WorkFlowUpdate :exec
+const workFlowUpdate = `-- name: WorkFlowUpdate :execresult
 UPDATE ruleset
 SET
     brwf = $4,
@@ -203,8 +242,8 @@ type WorkFlowUpdateParams struct {
 	Editedby pgtype.Text `json:"editedby"`
 }
 
-func (q *Queries) WorkFlowUpdate(ctx context.Context, arg WorkFlowUpdateParams) error {
-	_, err := q.db.Exec(ctx, workFlowUpdate,
+func (q *Queries) WorkFlowUpdate(ctx context.Context, arg WorkFlowUpdateParams) (pgconn.CommandTag, error) {
+	return q.db.Exec(ctx, workFlowUpdate,
 		arg.Slice,
 		arg.Class,
 		arg.App,
@@ -213,7 +252,6 @@ func (q *Queries) WorkFlowUpdate(ctx context.Context, arg WorkFlowUpdateParams) 
 		arg.Ruleset,
 		arg.Editedby,
 	)
-	return err
 }
 
 const workflowDelete = `-- name: WorkflowDelete :execresult

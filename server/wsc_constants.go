@@ -9,7 +9,7 @@ const (
 	MsgId_Invalid_Request = 1006
 	MsgId_RequiredOneOf   = 1007 // Field <field> must have either <val1> or <val2>
 	MsgId_AlreadyExist    = 1008
-	MsgId_NotFound        = 1009
+	MsgId_NotFound        = 1009 //Field <field> is not found
 	MsgId_Unauthorized    = 1010
 	MsgId_StepNotFound    = 1011
 )

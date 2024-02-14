@@ -20,6 +20,7 @@ type Querier interface {
 	GetWFINstance(ctx context.Context, arg GetWFINstanceParams) (int64, error)
 	GetWFInternalStatus(ctx context.Context, arg GetWFInternalStatusParams) (bool, error)
 	GetWorkflow(ctx context.Context, step string) (string, error)
+	RulesetRowLock(ctx context.Context, arg RulesetRowLockParams) (Ruleset, error)
 	SchemaDelete(ctx context.Context, id int32) (int32, error)
 	SchemaGet(ctx context.Context, arg SchemaGetParams) ([]SchemaGetRow, error)
 	SchemaList(ctx context.Context) ([]SchemaListRow, error)
@@ -36,7 +37,7 @@ type Querier interface {
 	Wfschemadelete(ctx context.Context, arg WfschemadeleteParams) error
 	Wfschemaget(ctx context.Context, arg WfschemagetParams) (WfschemagetRow, error)
 	WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) error
-	WorkFlowUpdate(ctx context.Context, arg WorkFlowUpdateParams) error
+	WorkFlowUpdate(ctx context.Context, arg WorkFlowUpdateParams) (pgconn.CommandTag, error)
 	WorkflowDelete(ctx context.Context, arg WorkflowDeleteParams) (pgconn.CommandTag, error)
 	WorkflowList(ctx context.Context, arg WorkflowListParams) ([]WorkflowListRow, error)
 	Workflowget(ctx context.Context, arg WorkflowgetParams) (WorkflowgetRow, error)

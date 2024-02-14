@@ -72,7 +72,7 @@ VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP, $11
     );
 
--- name: WorkFlowUpdate :exec
+-- name: WorkFlowUpdate :execresult
 UPDATE ruleset
 SET
     brwf = $4,
@@ -119,3 +119,12 @@ where
     and class = $3
     and setname = $4
     AND realm = $5;
+
+-- name: RulesetRowLock :one
+SELECT * 
+FROM ruleset 
+WHERE
+    slice = $1
+    AND class = $2
+    AND app = $3
+FOR UPDATE; 
