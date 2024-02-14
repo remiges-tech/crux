@@ -1,8 +1,9 @@
 package workflow
 
 import (
-	"encoding/json"
 	"fmt"
+	"slices"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -10,12 +11,13 @@ import (
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	"github.com/remiges-tech/crux/server"
+	"github.com/remiges-tech/crux/types"
 )
 
-// WorkflowGet will be responsible for processing the /workflowget request that comes through as a POST
-func WorkflowGet(c *gin.Context, s *service.Service) {
+// WorkflowDelete will be responsible for processing the /workflowdelete request that comes through as a DELETE
+func WorkflowDelete(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour
-	lh.Log("WorkflowGet request received")
+	lh.Log("WorkflowDelete request received")
 
 	var (
 		request WorkflowGetReq
@@ -35,6 +37,11 @@ func WorkflowGet(c *gin.Context, s *service.Service) {
 		lh.LogActivity("validation error:", valError)
 		return
 	}
+	if !HasSchemaCap(request.App) {
+		// Generate "auth" error if no
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Unauthorized, server.ErrCode_Unauthorized, nil)}))
+		return
+	}
 
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
@@ -43,7 +50,7 @@ func WorkflowGet(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	dbResponse, err := query.Workflowget(c, sqlc.WorkflowgetParams{
+	tag, err := query.WorkflowDelete(c, sqlc.WorkflowDeleteParams{
 		Slice:   request.Slice,
 		App:     request.App,
 		Class:   request.Class,
@@ -52,35 +59,20 @@ func WorkflowGet(c *gin.Context, s *service.Service) {
 	})
 	if err != nil {
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, nil)}))
-		lh.LogActivity("failed to get data from DB:", err.Error)
+		lh.LogActivity("failed to delete data from DB:", err.Error)
 		return
 	}
-
-	tempData := responseBinding(dbResponse)
-
-	err = json.Unmarshal(dbResponse.Flowrules, &tempData.Flowrules)
-	if err != nil {
-		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, nil)}))
-		lh.LogActivity("failed to unmarshal data:", err.Error)
+	if strings.Contains(tag.String(), "1") {
+		lh.Log(fmt.Sprintf("Record found: %v", map[string]any{"response": tag.String()}))
+		wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse("record_deleted_success"))
 		return
 	}
-	lh.Log(fmt.Sprintf("Record found: %v", map[string]any{"response": tempData}))
-	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(tempData))
+	wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_InvalidRequest, nil)}))
+	lh.LogActivity("failed to delete data from DB:", tag.String())
 }
 
-func responseBinding(dbResponse sqlc.WorkflowgetRow) WorkflowgetRow {
-	tempData := WorkflowgetRow{
-		ID:         dbResponse.ID,
-		Slice:      dbResponse.Slice,
-		App:        dbResponse.App,
-		Class:      dbResponse.Class,
-		Name:       dbResponse.Name,
-		IsActive:   dbResponse.IsActive.Bool,
-		IsInternal: dbResponse.IsInternal,
-		Createdat:  dbResponse.Createdat,
-		Createdby:  dbResponse.Createdby,
-		Editedat:   dbResponse.Editedat,
-		Editedby:   dbResponse.Editedby,
-	}
-	return tempData
+// to check if the user has "schema" capability for the app this workflow belongs to
+func HasSchemaCap(app string) bool {
+	userRights := types.GetWorkflowsByRulesetRights()
+	return slices.Contains(userRights, app)
 }

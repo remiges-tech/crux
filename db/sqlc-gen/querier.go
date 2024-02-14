@@ -7,6 +7,7 @@ package sqlc
 import (
 	"context"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -36,6 +37,7 @@ type Querier interface {
 	Wfschemaget(ctx context.Context, arg WfschemagetParams) (WfschemagetRow, error)
 	WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) error
 	WorkFlowUpdate(ctx context.Context, arg WorkFlowUpdateParams) error
+	WorkflowDelete(ctx context.Context, arg WorkflowDeleteParams) (pgconn.CommandTag, error)
 	WorkflowList(ctx context.Context, arg WorkflowListParams) ([]WorkflowListRow, error)
 	Workflowget(ctx context.Context, arg WorkflowgetParams) (WorkflowgetRow, error)
 }

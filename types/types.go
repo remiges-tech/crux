@@ -6,6 +6,8 @@ import (
 	"io"
 	"log"
 	"os"
+	"slices"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -68,8 +70,6 @@ type ActionSchema struct {
 	Properties []string `json:"properties" validate:"required"`
 }
 
-
-
 func (env Environment) IsValid() bool {
 	switch env {
 	case DevEnv, ProdEnv, UATEnv:
@@ -116,4 +116,20 @@ func ReadJsonFromFile(filepath string) ([]byte, error) {
 		return nil, err
 	}
 	return jsonData, nil
+}
+
+// to check given string is nil or not
+func IsStringEmpty(s *string) bool {
+	return s == nil || strings.TrimSpace(*s) == ""
+}
+
+// to check if the user has "ruleset" rights for the given app
+func HasRulesetRights(app string) bool {
+	userRights := GetWorkflowsByRulesetRights()
+	return slices.Contains(userRights, app)
+}
+
+// to get workflows for all apps for which the user has "ruleset" rights
+func GetWorkflowsByRulesetRights() []string {
+	return []string{"retailBANK", "nedbank"}
 }

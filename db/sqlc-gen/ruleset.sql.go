@@ -8,6 +8,7 @@ package sqlc
 import (
 	"context"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -215,6 +216,36 @@ func (q *Queries) WorkFlowUpdate(ctx context.Context, arg WorkFlowUpdateParams) 
 	return err
 }
 
+const workflowDelete = `-- name: WorkflowDelete :execresult
+DELETE from ruleset
+where
+    brwf = 'W'
+    AND is_active = false
+    and slice = $1
+    and app = $2
+    and class = $3
+    and setname = $4
+    AND realm = $5
+`
+
+type WorkflowDeleteParams struct {
+	Slice   int32  `json:"slice"`
+	App     string `json:"app"`
+	Class   string `json:"class"`
+	Setname string `json:"setname"`
+	Realm   int32  `json:"realm"`
+}
+
+func (q *Queries) WorkflowDelete(ctx context.Context, arg WorkflowDeleteParams) (pgconn.CommandTag, error) {
+	return q.db.Exec(ctx, workflowDelete,
+		arg.Slice,
+		arg.App,
+		arg.Class,
+		arg.Setname,
+		arg.Realm,
+	)
+}
+
 const workflowList = `-- name: WorkflowList :many
 select
     id,
@@ -231,15 +262,17 @@ select
 from ruleset
 where
     brwf = 'W'
-    AND ($1::INTEGER is null OR slice = $1::INTEGER)
-    AND ( $2::text[] is null OR app = any( $2::text[]))
-    AND ($3::text is null OR class = $3::text)
-    AND ($4::text is null OR setname = $4::text)
-    AND ($5::BOOLEAN is null OR is_active = $5::BOOLEAN)
-    AND ($6::BOOLEAN is null OR is_internal = $6::BOOLEAN)
+    AND realm = $1
+    AND ($2::INTEGER is null OR slice = $2::INTEGER)
+    AND ( $3::text[] is null OR app = any( $3::text[]))
+    AND ($4::text is null OR class = $4::text)
+    AND ($5::text is null OR setname = $5::text)
+    AND ($6::BOOLEAN is null OR is_active = $6::BOOLEAN)
+    AND ($7::BOOLEAN is null OR is_internal = $7::BOOLEAN)
 `
 
 type WorkflowListParams struct {
+	Realm      int32       `json:"realm"`
 	Slice      pgtype.Int4 `json:"slice"`
 	App        []string    `json:"app"`
 	Class      pgtype.Text `json:"class"`
@@ -264,6 +297,7 @@ type WorkflowListRow struct {
 
 func (q *Queries) WorkflowList(ctx context.Context, arg WorkflowListParams) ([]WorkflowListRow, error) {
 	rows, err := q.db.Query(ctx, workflowList,
+		arg.Realm,
 		arg.Slice,
 		arg.App,
 		arg.Class,
@@ -321,6 +355,7 @@ where
     and app = $2
     and class = $3
     and setname = $4
+    and realm = $5
     AND brwf = 'W'
 `
 
@@ -329,6 +364,7 @@ type WorkflowgetParams struct {
 	App     string `json:"app"`
 	Class   string `json:"class"`
 	Setname string `json:"setname"`
+	Realm   int32  `json:"realm"`
 }
 
 type WorkflowgetRow struct {
@@ -352,6 +388,7 @@ func (q *Queries) Workflowget(ctx context.Context, arg WorkflowgetParams) (Workf
 		arg.App,
 		arg.Class,
 		arg.Setname,
+		arg.Realm,
 	)
 	var i WorkflowgetRow
 	err := row.Scan(
