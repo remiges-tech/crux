@@ -3,6 +3,7 @@ package workflow
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -14,6 +15,7 @@ import (
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/server/schema"
+	"github.com/remiges-tech/logharbour/logharbour"
 )
 
 type WorkflowUpdate struct {
@@ -72,7 +74,7 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 	})
 	if err != nil {
 		l.LogActivity("failed to get schema from DB:", err.Error())
-		errmsg := db.ErrorMessage(err)
+		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
@@ -100,7 +102,7 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	ruleset, err := json.Marshal(wf.Flowrules)
+	flowrules, err := json.Marshal(wf.Flowrules)
 	if err != nil {
 		patternSchema := "flowrules"
 		l.LogDebug("Error while marshaling Flowrules", err)
@@ -108,19 +110,36 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	err = qtx.WorkFlowUpdate(c, sqlc.WorkFlowUpdateParams{
+	ruleset, err := qtx.RulesetRowLock(c, sqlc.RulesetRowLockParams{
+		Slice: wf.Slice,
+		App:   wf.App,
+		Class: wf.Class,
+	})
+	if err != nil {
+		l.LogActivity("Error while locking row of ruleset", err.Error())
+		errmsg := db.HandleDatabaseError(err)
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+		return
+	}
+
+	tag, err := qtx.WorkFlowUpdate(c, sqlc.WorkFlowUpdateParams{
 		Slice:    wf.Slice,
 		App:      wf.App,
 		Brwf:     brwf,
 		Class:    wf.Class,
-		Setname:  setBy,
-		Ruleset:  ruleset,
+		Setname:  wf.Name,
+		Ruleset:  flowrules,
 		Editedby: pgtype.Text{String: editedBy, Valid: true},
 	})
 	if err != nil {
 		l.LogActivity("Error while Updating data in ruleset", err.Error())
-		errmsg := db.ErrorMessage(err)
+		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+		return
+	}
+	if strings.Contains(tag.String(), "0") {
+		l.Log("no row found to update")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ErrCode_NotFound))
 		return
 	}
 	if err := tx.Commit(c); err != nil {
@@ -128,6 +147,24 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
+	l.LogDataChange("Updated ruleset", logharbour.ChangeInfo{
+		Entity:    "ruleset",
+		Operation: "Update",
+		Changes: []logharbour.ChangeDetail{
+			{
+				Field:    "brwf",
+				OldValue: ruleset.Brwf,
+				NewValue: brwf},
+			{
+				Field:    "setname",
+				OldValue: ruleset.Setname,
+				NewValue: wf.Name},
+			{
+				Field:    "ruleset",
+				OldValue: string(ruleset.Ruleset),
+				NewValue: string(flowrules)},
+		},
+	})
 	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})
 	l.Log("Finished execution of WorkflowUpdate()")
 

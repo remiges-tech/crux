@@ -166,20 +166,20 @@ VALUES (
 
 ---- create above / drop below ----
 
--- realm
-DELETE FROM public.realm WHERE id IN (1, 2, 3, 4);
+-- stepworkflow
+DELETE FROM public.stepworkflow WHERE slice = 2;
 
--- realmslice
-DELETE FROM public.realmslice WHERE id IN (1, 2, 3);
+-- ruleset
+DELETE FROM public.ruleset WHERE id IN (5, 6, 7, 8);
+
+-- schema
+DELETE FROM public.schema WHERE id IN (10, 11, 12, 13, 14, 15, 16);
 
 -- app
 DELETE FROM public.app WHERE id IN (1, 2, 3);
 
--- schema
-DELETE FROM public.schema WHERE id IN (10, 11);
+-- realmslice
+DELETE FROM public.realmslice WHERE id IN (1, 2, 3);
 
--- ruleset
-DELETE FROM ruleset WHERE id = 5;
-
--- stepworkflow
-DELETE FROM public.stepworkflow WHERE id = 2;
+-- realm
+DELETE FROM public.realm WHERE id IN (1, 2, 3, 4);
