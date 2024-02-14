@@ -17,8 +17,12 @@ func WorkflowGet(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour
 	lh.Log("WorkflowGet request received")
 
-	// var response schemaGetResp
-	var request WorkflowGetReq
+	var (
+		request WorkflowGetReq
+		// implement the user realm here
+		userRealm int32 = 1
+	)
+
 	err := wscutils.BindJSON(c, &request)
 	if err != nil {
 		lh.LogActivity("error while binding json request error:", err.Error)
@@ -44,6 +48,7 @@ func WorkflowGet(c *gin.Context, s *service.Service) {
 		App:     request.App,
 		Class:   request.Class,
 		Setname: request.Name,
+		Realm:   userRealm,
 	})
 	if err != nil {
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, nil)}))
