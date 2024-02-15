@@ -123,7 +123,7 @@ INSERT INTO
         id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby, editedat, editedby
     )
 VALUES (
-        6, 1, 2, 'retailBANK', 'members', 'W', 'temp_set', true, false, 13, '{
+        6, 1, 2, 'retailBANK', 'members', 'W', 'tempset', false, false, 13, '{
             "name": "step",
             "type": "enum1",
             "vals": [ "START", "initialdoc", "aadhaarcheck", "creditbureauchk", "panchk", "bankdetails", "referencechk", "stage2done", "complete" ],
@@ -167,19 +167,19 @@ VALUES (
 ---- create above / drop below ----
 
 -- stepworkflow
-DELETE FROM public.stepworkflow WHERE slice = 2;
+DELETE FROM public.stepworkflow;
 
 -- ruleset
-DELETE FROM public.ruleset WHERE id IN (5, 6, 7, 8);
+DELETE FROM public.ruleset;
 
 -- schema
-DELETE FROM public.schema WHERE id IN (10, 11, 12, 13, 14, 15, 16);
+DELETE FROM public.schema;
 
 -- app
-DELETE FROM public.app WHERE id IN (1, 2, 3);
+DELETE FROM public.app;
 
 -- realmslice
-DELETE FROM public.realmslice WHERE id IN (1, 2, 3);
+DELETE FROM public.realmslice ;
 
 -- realm
-DELETE FROM public.realm WHERE id IN (1, 2, 3, 4);
+DELETE FROM public.realm;

@@ -56,7 +56,6 @@ func WorkflowList(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
-
 	// Populate parameters
 	populateParams(&request, &params)
 

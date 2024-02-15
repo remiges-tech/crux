@@ -14,10 +14,11 @@ generate:
 etcd:
 	cd; cd etcd/bin; ./etcd
 
-jaadu: generate tern
 
 pg-drop-all:
 	cd db/migrations/; tern migrate --destination 0
+
+jaadu: pg-drop-all generate tern
 
 db-migrate-generate: pg-drop-all tern generate
 
