@@ -11,37 +11,39 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const addWFNewInstace = `-- name: AddWFNewInstace :one
+const addWFNewInstances = `-- name: AddWFNewInstances :many
 INSERT INTO
     public.wfinstance (
         entityid, slice, app, class, workflow, step, loggedat, nextstep, parent
     )
 VALUES (
-        $1, $2, $3, $4, $5, $6, (NOW()::timestamp), $7, $8
+        $1, $2, $3, $4, $5, unnest($6::text []), (NOW()::timestamp), $7, $8
     )
 RETURNING
     id,
-    loggedat
+    loggedat,
+    step
 `
 
-type AddWFNewInstaceParams struct {
+type AddWFNewInstancesParams struct {
 	Entityid string      `json:"entityid"`
 	Slice    int32       `json:"slice"`
 	App      string      `json:"app"`
 	Class    string      `json:"class"`
 	Workflow string      `json:"workflow"`
-	Step     string      `json:"step"`
+	Step     []string    `json:"step"`
 	Nextstep string      `json:"nextstep"`
 	Parent   pgtype.Int4 `json:"parent"`
 }
 
-type AddWFNewInstaceRow struct {
+type AddWFNewInstancesRow struct {
 	ID       int32            `json:"id"`
 	Loggedat pgtype.Timestamp `json:"loggedat"`
+	Step     string           `json:"step"`
 }
 
-func (q *Queries) AddWFNewInstace(ctx context.Context, arg AddWFNewInstaceParams) (AddWFNewInstaceRow, error) {
-	row := q.db.QueryRow(ctx, addWFNewInstace,
+func (q *Queries) AddWFNewInstances(ctx context.Context, arg AddWFNewInstancesParams) ([]AddWFNewInstancesRow, error) {
+	rows, err := q.db.Query(ctx, addWFNewInstances,
 		arg.Entityid,
 		arg.Slice,
 		arg.App,
@@ -51,13 +53,25 @@ func (q *Queries) AddWFNewInstace(ctx context.Context, arg AddWFNewInstaceParams
 		arg.Nextstep,
 		arg.Parent,
 	)
-	var i AddWFNewInstaceRow
-	err := row.Scan(&i.ID, &i.Loggedat)
-	return i, err
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AddWFNewInstancesRow
+	for rows.Next() {
+		var i AddWFNewInstancesRow
+		if err := rows.Scan(&i.ID, &i.Loggedat, &i.Step); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getWFINstance = `-- name: GetWFINstance :one
-
 SELECT count(1)
 FROM public.wfinstance
 WHERE

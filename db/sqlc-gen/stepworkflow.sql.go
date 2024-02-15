@@ -9,14 +9,31 @@ import (
 	"context"
 )
 
-const getWorkflow = `-- name: GetWorkflow :one
-SELECT workflow FROM stepworkflow
-WHERE step =$1
+const getWorkflow = `-- name: GetWorkflow :many
+SELECT workflow, step FROM stepworkflow WHERE step = $1
 `
 
-func (q *Queries) GetWorkflow(ctx context.Context, step string) (string, error) {
-	row := q.db.QueryRow(ctx, getWorkflow, step)
-	var workflow string
-	err := row.Scan(&workflow)
-	return workflow, err
+type GetWorkflowRow struct {
+	Workflow string `json:"workflow"`
+	Step     string `json:"step"`
+}
+
+func (q *Queries) GetWorkflow(ctx context.Context, step string) ([]GetWorkflowRow, error) {
+	rows, err := q.db.Query(ctx, getWorkflow, step)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetWorkflowRow
+	for rows.Next() {
+		var i GetWorkflowRow
+		if err := rows.Scan(&i.Workflow, &i.Step); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

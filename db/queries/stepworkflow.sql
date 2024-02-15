@@ -1,4 +1,2 @@
--- name: GetWorkflow :one 
-SELECT workflow FROM stepworkflow
-WHERE step =$1;
-
+-- name: GetWorkflow :many
+SELECT workflow, step FROM stepworkflow WHERE step = $1;

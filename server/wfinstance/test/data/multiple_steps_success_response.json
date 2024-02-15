@@ -3,16 +3,17 @@
     "data": {
         "tasks": [
             {
-                "discount": 5
+                "discount": 74
             },
             {
-                "yearendsale": 6
+                "yearendsale": 75
             }
         ],
         "nextstep": "coupondistribution",
-        "loggedat": "2024-02-13T12:18:36.542319Z",
+        "loggedat": "2024-02-15T15:14:33.6553Z",
         "subflows": {
-            "yearendsale": "doyearendsalechk"
+            "discount": "dodiscountcheck",
+            "yearendsale": "doyearendsalecheck"
         },
         "tracedata": null
     },
