@@ -17,6 +17,6 @@ go tool cover -html=./coverage/coverage_schema.out -o ./coverage/coverage_schema
 
 
 2. coverage_workflow :
-go test -coverprofile=./coverage/coverage_workflow.out -coverpkg=./... server/workflow/test/workflow_get_test.go server/workflow/test/workflow_new_test.go server/workflow/test/workflow_update_test.go  server/workflow/test/main_test.go
+go test -coverprofile=./coverage/coverage_workflow.out -coverpkg=./... server/workflow/test/workflow_delete_test.go server/workflow/test/workflow_get_test.go server/workflow/test/workflow_list_test.go server/workflow/test/workflow_new_test.go server/workflow/test/workflow_update_test.go  server/workflow/test/main_test.go
 
 go tool cover -html=./coverage/coverage_workflow.out -o ./coverage/coverage_workflow.html -html=./coverage/coverage_schema.out -o ./coverage/coverage_schema.html

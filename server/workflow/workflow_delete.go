@@ -64,7 +64,8 @@ func WorkflowDelete(c *gin.Context, s *service.Service) {
 	}
 	if strings.Contains(tag.String(), "1") {
 		lh.Log(fmt.Sprintf("Record found: %v", map[string]any{"response": tag.String()}))
-		wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse("record_deleted_success"))
+		wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(nil))
+		// wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse("record_deleted_success"))
 		return
 	}
 	wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_InvalidRequest, nil)}))

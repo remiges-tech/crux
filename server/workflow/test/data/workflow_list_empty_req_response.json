@@ -16,13 +16,26 @@
                 "editedby": "admin"
             },
             {
+                "id": 8,
+                "slice": 2,
+                "app": "retailBANK",
+                "class": "inventoryitems",
+                "name": "discountcheck",
+                "is_active": true,
+                "is_internal": false,
+                "createdat": "2024-01-28T00:00:00Z",
+                "createdby": "admin",
+                "editedat": "2024-01-15T00:00:00Z",
+                "editedby": "admin"
+            },
+            {
                 "id": 6,
                 "slice": 2,
                 "app": "retailBANK",
                 "class": "members",
-                "name": "temp_set",
-                "is_active": true,
-                "is_internal": true,
+                "name": "tempset",
+                "is_active": false,
+                "is_internal": false,
                 "createdat": "2024-01-28T00:00:00Z",
                 "createdby": "admin",
                 "editedat": "2024-01-15T00:00:00Z",
@@ -40,19 +53,6 @@
                 "createdby": "aniket",
                 "editedat": "2024-01-15T00:00:00Z",
                 "editedby": "tushar"
-            },
-            {
-                "id": 8,
-                "slice": 2,
-                "app": "retailBANK",
-                "class": "inventoryitems",
-                "name": "discountcheck",
-                "is_active": true,
-                "is_internal": false,
-                "createdat": "2024-01-28T00:00:00Z",
-                "createdby": "admin",
-                "editedat": "2024-01-15T00:00:00Z",
-                "editedby": "admin"
             }
         ]
     },

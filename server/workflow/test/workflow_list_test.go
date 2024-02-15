@@ -12,6 +12,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	TestWorkflowList_test_1 = "ERROR- App + HasRootCapabilities()= false & HasRulesetRights()= false"
+	TestWorkflowList_test_2 = "SUCCESS- No app name but HasRulesetRights = false & HasRootCapabilities = false"
+	TestWorkflowList_test_3 = "SUCCESS- empty req with HasRulesetRights = false & HasRootCapabilities = true"
+)
+
 func TestWorkflowList(t *testing.T) {
 	testCases := workflowListTestCase()
 	for _, tc := range testCases {
@@ -20,7 +26,7 @@ func TestWorkflowList(t *testing.T) {
 			payload := bytes.NewBuffer(types.MarshalJson(tc.requestPayload))
 
 			res := httptest.NewRecorder()
-			if tc.name == "SUCCESS- with app name but HasRulesetRights = false & HasRootCapabilities = true" {
+			if tc.name == TestWorkflowList_test_3 {
 				workflow.TRIGGER = true
 			}
 			req, err := http.NewRequest(http.MethodPost, "/workflowlist", payload)
@@ -49,7 +55,7 @@ func workflowListTestCase() []TestCasesStruct {
 	schemaNewTestcase := []TestCasesStruct{
 		// 1st test case
 		{
-			name: "ERROR- App + HasRootCapabilities()= false & HasRulesetRights()= false",
+			name: TestWorkflowList_test_1,
 			requestPayload: wscutils.Request{
 				Data: workflow.WorkflowListReq{
 					Slice:      &sliceStr,
@@ -75,7 +81,7 @@ func workflowListTestCase() []TestCasesStruct {
 
 		// 2nd test case
 		{
-			name: "SUCCESS- No app name but HasRulesetRights = false & HasRootCapabilities = false",
+			name: TestWorkflowList_test_2,
 			requestPayload: wscutils.Request{
 				Data: workflow.WorkflowListReq{
 					Slice:      &sliceStr,
@@ -91,12 +97,12 @@ func workflowListTestCase() []TestCasesStruct {
 
 		// 3rd test case
 		{
-			name: "SUCCESS- with app name but HasRulesetRights = false & HasRootCapabilities = true",
+			name: TestWorkflowList_test_3,
 			requestPayload: wscutils.Request{
 				Data: workflow.WorkflowListReq{},
 			},
 			expectedHttpCode: http.StatusOK,
-			testJsonFile:     "./data/workflow_list_with_app_response.json",
+			testJsonFile:     "./data/workflow_list_empty_req_response.json",
 		},
 	}
 	return schemaNewTestcase
