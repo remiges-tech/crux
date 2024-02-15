@@ -3,12 +3,14 @@
   "data": {
     "tasks": [
       {
-        "discount": 1
+        "yearendsale": 78
       }
     ],
     "nextstep": "",
-    "loggedat": "2024-02-13T12:51:11.807469Z",
-    "subflows": {},
+    "loggedat": "2024-02-15T15:16:08.406569Z",
+    "subflows": {
+      "yearendsale": "doyearendsalecheck"
+    },
     "tracedata": null
   },
   "messages": null

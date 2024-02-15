@@ -43,6 +43,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	var response WFInstanceNewResponse
 	var attribute map[string]string
 	var done, nextStep string
+	var steps []string
 
 	// Bind request
 	err := wscutils.BindJSON(c, &wfinstanceNewreq)
@@ -99,17 +100,17 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	}
 
 	// To add records in table
+	steps = actionSet.tasks
 	// if tasks of actionset contains only one task
 	if len(actionSet.tasks) == 1 && done == "" {
-		step := actionSet.tasks[0]
-		addRecordRequest := addRecordRequest{
-			Step:     step,
-			Nextstep: step,
+		addTaskRequest := AddTaskRequest{
+			Steps:    steps,
+			Nextstep: steps[0],
 			Request:  wfinstanceNewreq,
 		}
-		response, err = addSingleTask(addRecordRequest, s, c)
+		response, err = addTasks(addTaskRequest, s, c)
 		if err != nil {
-			lh.LogActivity("error while adding single step in wfinstanvce table :", err.Error())
+			lh.LogActivity("error while adding single step in wfinstance table :", err.Error())
 			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 			return
 		}
@@ -119,18 +120,12 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	}
 	// if tasks of actionset contains multiple tasks
 	if len(actionSet.tasks) > 1 && done == "" {
-		var steps []string
-		var addMultiRecordReq []addRecordRequest
-		steps = append(steps, actionSet.tasks...)
-		for _, step := range steps {
-			addRecordRequest := addRecordRequest{
-				Step:     step,
-				Nextstep: nextStep,
-				Request:  wfinstanceNewreq,
-			}
-			addMultiRecordReq = append(addMultiRecordReq, addRecordRequest)
+		addTaskRequest := AddTaskRequest{
+			Steps:    steps,
+			Nextstep: nextStep,
+			Request:  wfinstanceNewreq,
 		}
-		response, err = addMultipleTasks((addMultiRecordReq), s, c)
+		response, err = addTasks(addTaskRequest, s, c)
 		if err != nil {
 			lh.LogActivity("error while adding multiple steps in wfinstanvce table :", error.Error())
 			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))

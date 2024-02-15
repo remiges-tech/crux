@@ -11,129 +11,78 @@ import (
 	"github.com/remiges-tech/crux/server"
 )
 
-type addRecordRequest struct {
-	Step     string
+// Task request
+type AddTaskRequest struct {
+	Steps    []string
 	Nextstep string
 	Request  WFInstanceNewRequest
 }
 
-// To add single record in wfinstance table
-func addSingleTask(r addRecordRequest, s *service.Service, c *gin.Context) (WFInstanceNewResponse, error) {
-	lh := s.LogHarbour
-	var response WFInstanceNewResponse
-	var step = r.Step
-
-	lh.Log("Inside addSingleTask()")
-
-	// Add record in wfinstance table
-	id, workflow, loggedDate, error := addRecord(r, s, c)
-	if error != nil {
-		lh.LogActivity("error while adding single steps in wfinstance table :", error.Error())
-		return response, error
-	}
-
-	// To form task array for respose with step name and id
-	var tasks []map[string]int32
-	task := map[string]int32{
-		step: id,
-	}
-	tasks = append(tasks, task)
-
-	//To form subflow for respose if present step is another workflow
-	subflow := make(map[string]string)
-	if workflow != "" {
-		subflow[step] = workflow
-	}
-
-	// response
-	response = WFInstanceNewResponse{
-		Tasks:    tasks,
-		Loggedat: loggedDate,
-		Subflows: &subflow,
-	}
-
-	return response, nil
+// getResponse request
+type ResponseRequest struct {
+	Subflow      map[string]string
+	NextStep     string
+	ResponseData []sqlc.AddWFNewInstancesRow
+	Service      *service.Service
 }
 
 // To add multiple records in wfinstance table
-func addMultipleTasks(r []addRecordRequest, s *service.Service, c *gin.Context) (WFInstanceNewResponse, error) {
+func addTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanceNewResponse, error) {
 	var response WFInstanceNewResponse
-	var tasks []map[string]int32
+	var parent pgtype.Int4
 	subflow := make(map[string]string)
-	var loggdates []pgtype.Timestamp
-	var nextStep string
+
 	lh := s.LogHarbour
-	lh.Log("Inside addMultipleTasks()")
-
-	// Add record in wfinstance table
-	for _, req := range r {
-		id, workflow, loggDate, error := addRecord(req, s, c)
-		if error != nil {
-			lh.LogActivity("error while adding multiple steps in wfinstance table :", error.Error())
-			return response, error
-		}
-		// adding tasks
-		tasks = append(tasks, map[string]int32{req.Step: id})
-
-		// workflow if step require another workflow
-		if workflow != "" {
-			subflow[req.Step] = workflow
-		}
-		nextStep = req.Nextstep
-
-		//loggingdates
-		loggdates = append(loggdates, loggDate)
-
-	}
-	// response
-	response = WFInstanceNewResponse{
-		Tasks:    tasks,
-		Nextstep: nextStep,
-		Loggedat: loggdates[len(loggdates)-1],
-		Subflows: &subflow,
-	}
-
-	return response, nil
-}
-
-// To add new instance in wfinstance table
-func addRecord(r addRecordRequest, s *service.Service, c *gin.Context) (int32, string, pgtype.Timestamp, error) {
-	//var errors []wscutils.ErrorMessage
-	lh := s.LogHarbour
-	lh.Log("Inside addRecord()")
-	var loggDate pgtype.Timestamp
+	lh.Log("Inside addTasks()")
 
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
 		lh.Log("Error while getting query instance from service Dependencies")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		//errors := wscutils.BuildErrorMessage(wscutils.ErrcodeDatabaseError, nil)
-		return 0, "", loggDate, errors.New(INVALID_DATABASE_DEPENDENCY)
+		return WFInstanceNewResponse{}, errors.New(INVALID_DATABASE_DEPENDENCY)
 	}
 
-	parent := ConvertToPGType(*r.Request.Parent)
+	// convert int32 tp pgtype.Int4
+	parent = ConvertToPGType(*req.Request.Parent)
 
-	recordID, err := query.AddWFNewInstace(c, sqlc.AddWFNewInstaceParams{
-		Entityid: r.Request.EntityID,
-		Slice:    r.Request.Slice,
-		App:      r.Request.App,
-		Class:    r.Request.Entity[CLASS],
-		Workflow: r.Request.Workflow,
-		Step:     r.Step,
-		Nextstep: r.Nextstep,
+	// Add record in wfinstance table
+	responseData, error := query.AddWFNewInstances(c, sqlc.AddWFNewInstancesParams{
+		Entityid: req.Request.EntityID,
+		Slice:    req.Request.Slice,
+		App:      req.Request.App,
+		Class:    req.Request.Entity[CLASS],
+		Workflow: req.Request.Workflow,
+		Step:     req.Steps,
+		Nextstep: req.Nextstep,
 		Parent:   parent,
 	})
-	if err != nil {
-		lh.LogActivity("error while inserting a record in wfinstance table :", err.Error())
-		return 0, "", loggDate, errors.New(INSERT_OPERATION_FAILED)
-
+	if error != nil {
+		lh.LogActivity("error while adding Task steps in wfinstance table :", error.Error())
+		return response, error
 	}
 
 	// To get workflow if step is present in stepworkflow table
-	workflow, _ := query.GetWorkflow(c, r.Step)
+	for _, step := range req.Steps {
+		workflowData, _ := query.GetWorkflow(c, step)
 
-	return recordID.ID, workflow, recordID.Loggedat, nil
+		if len(workflowData) > 0 && workflowData[0].Workflow != "" {
+			subflow[workflowData[0].Step] = workflowData[0].Workflow
+		}
 
+	}
+
+	// to get response
+	responseRequest := ResponseRequest{
+		Subflow:      subflow,
+		NextStep:     req.Nextstep,
+		ResponseData: responseData,
+		Service:      s,
+	}
+
+	response = getResponse(responseRequest)
+
+	return response, nil
 }
 
 // To convert int to pgtype.Int4
@@ -145,4 +94,43 @@ func ConvertToPGType(value int32) pgtype.Int4 {
 		}
 	}
 	return pgtype.Int4{Int32: value, Valid: false}
+}
+
+// response structure
+func getResponse(r ResponseRequest) WFInstanceNewResponse {
+	var tasks []map[string]int32
+	var loggdates []pgtype.Timestamp
+	var response WFInstanceNewResponse
+
+	lh := r.Service.LogHarbour
+	lh.Log("Inside addTasks()")
+
+	for _, val := range r.ResponseData {
+		// adding tasks
+		task := make(map[string]int32)
+		task[val.Step] = val.ID
+		tasks = append(tasks, task)
+		//loggingdates
+		loggdates = append(loggdates, val.Loggedat)
+
+	}
+
+	//var response WFInstanceNewResponse
+	if len(tasks) > 1 {
+		// response for multiple task steps
+		response = WFInstanceNewResponse{
+			Tasks:    tasks,
+			Nextstep: r.NextStep,
+			Loggedat: loggdates[len(loggdates)-1],
+			Subflows: &r.Subflow,
+		}
+	} else {
+		//response for single task step
+		response = WFInstanceNewResponse{
+			Tasks:    tasks,
+			Loggedat: loggdates[len(loggdates)-1],
+			Subflows: &r.Subflow,
+		}
+	}
+	return response
 }
