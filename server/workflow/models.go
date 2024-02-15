@@ -3,9 +3,8 @@ package workflow
 import "github.com/jackc/pgx/v5/pgtype"
 
 const (
-	setBy     = "admin"
 	editedBy  = "admin"
-	realmID   = 1
+	
 	brwf      = "W"
 	isActive  = false
 	typeBool  = "bool"

@@ -5,16 +5,6 @@
             "slice": 1,
             "app": "retailBANK",
             "longname": "retailbank pvt ltd",
-            "class": "custonboarding",
-            "createdby": "Mireille Slidders",
-            "createdat": "2020-08-25T13:17:49Z",
-            "editedby": "Spencer Jaffra",
-            "editedat": "2021-01-22T15:53:49Z"
-        },
-        {
-            "slice": 1,
-            "app": "retailBANK",
-            "longname": "retailbank pvt ltd",
             "class": "tempclass",
             "createdby": "Olly Gerrish",
             "createdat": "2022-12-24T19:38:52Z",

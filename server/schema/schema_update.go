@@ -14,23 +14,36 @@ import (
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	"github.com/remiges-tech/crux/server"
+	"github.com/remiges-tech/crux/types"
 	"github.com/remiges-tech/logharbour/logharbour"
 )
 
 const (
-	setBy        = "admin"
-	brwf         = "W"
-	editedBy     = "admin"
 	cruxIDRegExp = `^[a-z][a-z0-9_]*$`
 )
 
-var validTypes = map[string]bool{
-	"int": true, "float": true, "str": true, "enum": true, "bool": true, "timestamps": true,
-}
+var (
+	validTypes = map[string]bool{
+		"int": true, "float": true, "str": true, "enum": true, "bool": true, "timestamps": true,
+	}
+	capForUpdate = []string{"schema"}
+	re           = regexp.MustCompile(cruxIDRegExp)
+)
 
 func SchemaUpdate(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
-	l.Log("Starting execution of SchemaUpdate()")
+	l.Debug0().Log("Starting execution of SchemaUpdate()")
+
+	isCapable, _ := types.Authz_check(types.OpReq{
+		User:      userID,
+		CapNeeded: capForUpdate,
+	}, false)
+
+	if !isCapable {
+		l.Info().LogActivity("Unauthorized user:", userID)
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
+		return
+	}
 
 	var sh updateSchema
 
@@ -45,20 +58,21 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 	customValidationErrors := customValidationErrorsForUpdate(sh)
 	validationErrors = append(validationErrors, customValidationErrors...)
 	if len(validationErrors) > 0 {
+		l.Debug0().LogDebug("standard validation errors", validationErrors)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
 		return
 	}
 
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
-		l.Log("Error while getting query instance from service Dependencies")
+		l.Debug0().Log("Error while getting query instance from service Dependencies")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
 
 	connpool, ok := s.Database.(*pgxpool.Pool)
 	if !ok {
-		l.Log("Error while getting query instance from service Dependencies")
+		l.Debug0().Log("Error while getting query instance from service Database")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
@@ -70,19 +84,19 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 		return
 	}
 	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})
-	l.Log("Starting execution of SchemaUpdate()")
+	l.Debug0().Log("Starting execution of SchemaUpdate()")
 }
 
 func schemaUpdateWithTX(c context.Context, query *sqlc.Queries, connpool *pgxpool.Pool, l *logharbour.Logger, sh updateSchema) error {
 	patternSchema, err := json.Marshal(sh.PatternSchema)
 	if err != nil {
-		l.LogDebug("Error while marshaling patternSchema", err)
+		l.Debug1().LogDebug("Error while marshaling patternSchema", err)
 		return err
 	}
 
 	actionSchema, err := json.Marshal(sh.ActionSchema)
 	if err != nil {
-		l.LogDebug("Error while marshaling actionSchema", err)
+		l.Debug1().LogDebug("Error while marshaling actionSchema", err)
 		return err
 	}
 
@@ -106,10 +120,10 @@ func schemaUpdateWithTX(c context.Context, query *sqlc.Queries, connpool *pgxpoo
 			Slice:         sh.Slice,
 			Class:         sh.Class,
 			App:           sh.App,
-			Brwf:          brwf,
+			Brwf:          sqlc.BrwfEnumW,
 			Patternschema: schema.Patternschema,
 			Actionschema:  actionSchema,
-			Editedby:      pgtype.Text{String: editedBy},
+			Editedby:      pgtype.Text{String: userID},
 		})
 		if err != nil {
 			tx.Rollback(c)
@@ -120,10 +134,10 @@ func schemaUpdateWithTX(c context.Context, query *sqlc.Queries, connpool *pgxpoo
 			Slice:         sh.Slice,
 			Class:         sh.Class,
 			App:           sh.App,
-			Brwf:          brwf,
+			Brwf:          sqlc.BrwfEnumW,
 			Patternschema: schema.Patternschema,
 			Actionschema:  actionSchema,
-			Editedby:      pgtype.Text{String: editedBy},
+			Editedby:      pgtype.Text{String: userID},
 		})
 		if err != nil {
 			tx.Rollback(c)
@@ -134,10 +148,10 @@ func schemaUpdateWithTX(c context.Context, query *sqlc.Queries, connpool *pgxpoo
 			Slice:         sh.Slice,
 			Class:         sh.Class,
 			App:           sh.App,
-			Brwf:          brwf,
+			Brwf:          sqlc.BrwfEnumW,
 			Patternschema: schema.Patternschema,
 			Actionschema:  schema.Actionschema,
-			Editedby:      pgtype.Text{String: editedBy},
+			Editedby:      pgtype.Text{String: userID},
 		})
 		if err != nil {
 			tx.Rollback(c)
@@ -191,7 +205,6 @@ func customValidationErrorsForUpdate(sh updateSchema) []wscutils.ErrorMessage {
 }
 func verifyPatternSchemaUpdate(ps *patternSchema) []wscutils.ErrorMessage {
 	var validationErrors []wscutils.ErrorMessage
-	re := regexp.MustCompile(cruxIDRegExp)
 
 	for i, attrSchema := range ps.Attr {
 		i++

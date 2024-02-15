@@ -14,14 +14,26 @@ import (
 	"github.com/remiges-tech/crux/types"
 )
 
-const (
-	createdBy = "admin"
-	realmID   = 1
+var (
+	userID    = "1234"
+	capForNew = []string{"schema"}
+	realmID   = int32(1)
 )
 
 func SchemaNew(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
-	l.Log("Starting execution of SchemaNew()")
+	l.Debug0().Log("Starting execution of SchemaNew()")
+
+	isCapable, _ := types.Authz_check(types.OpReq{
+		User:      userID,
+		CapNeeded: capForNew,
+	}, false)
+
+	if !isCapable {
+		l.Info().LogActivity("Unauthorized user:", userID)
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
+		return
+	}
 
 	var sh Schema
 
@@ -36,20 +48,21 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 	customValidationErrors := customValidationErrors(sh)
 	validationErrors = append(validationErrors, customValidationErrors...)
 	if len(validationErrors) > 0 {
+		l.Debug0().LogDebug("validation errors", validationErrors)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
 		return
 	}
 
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
-		l.Log("Error while getting query instance from service Dependencies")
+		l.Debug0().Log("Error while getting query instance from service Dependencies")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
 		return
 	}
 	patternSchema, err := json.Marshal(sh.PatternSchema)
 	if err != nil {
 		patternSchema := "patternSchema"
-		l.LogDebug("Error while marshaling patternSchema", err)
+		l.Debug1().LogDebug("Error while marshaling patternSchema", err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_InvalidJson, &patternSchema)}))
 		return
 	}
@@ -57,18 +70,27 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 	actionSchema, err := json.Marshal(sh.ActionSchema)
 	if err != nil {
 		actionSchema := "actionSchema"
-		l.LogDebug("Error while marshaling actionSchema", err)
+		l.Debug1().LogDebug("Error while marshaling actionSchema", err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_InvalidJson, &actionSchema)}))
 		return
 	}
-	err = query.SchemaNew(c, sqlc.SchemaNewParams{Realm: realmID, Slice: sh.Slice, Class: sh.Class, App: sh.App, Brwf: "W", Patternschema: patternSchema, Actionschema: actionSchema, Createdby: createdBy})
+	err = query.SchemaNew(c, sqlc.SchemaNewParams{
+		Realm:         realmID,
+		Slice:         sh.Slice,
+		Class:         sh.Class,
+		App:           sh.App,
+		Brwf:          sqlc.BrwfEnumW,
+		Patternschema: patternSchema,
+		Actionschema:  actionSchema,
+		Createdby:     userID,
+	})
 	if err != nil {
-		l.LogActivity("Error while creating schema", err.Error())
+		l.Info().LogActivity("Error while creating schema", err.Error())
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
-	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: "Created successfully", Messages: nil})
-	l.Log("Finished execution of SchemaNew()")
+	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})
+	l.Debug0().Log("Finished execution of SchemaNew()")
 }
 
 func customValidationErrors(sh Schema) []wscutils.ErrorMessage {

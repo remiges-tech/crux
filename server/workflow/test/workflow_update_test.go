@@ -60,7 +60,7 @@ func workFlowUpdateTestcase() []testutils.TestCasesStruct {
 		log.Fatalln("Error unmarshalling JSON:", err)
 	}
 
-	successTestJson, err := testutils.ReadJsonFromFile("./data/workflowNew/workflow_new_success_payload.json")
+	successTestJson, err := testutils.ReadJsonFromFile("./data/workflowNew/workflow_update_success_payload.json")
 	if err != nil {
 		log.Fatalln("Error reading JSON file:", err)
 	}

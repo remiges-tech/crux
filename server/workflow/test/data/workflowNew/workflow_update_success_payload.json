@@ -1,0 +1,72 @@
+{
+    "slice": 2,
+    "app": "retailBANK",
+    "class": "inventoryitems",
+    "name": "workflow",
+    "flowrules": [
+        {
+            "rulepattern": [
+                {
+                    "attr": "step",
+                    "op": "eq",
+                    "val": "initialdoc"
+                },
+                {
+                    "attr": "branchtype",
+                    "op": "eq",
+                    "val": "rural"
+                },
+                {
+                    "attr": "accttype",
+                    "op": "eq",
+                    "val": "savings"
+                }
+            ],
+            "ruleactions": {
+                "tasks": [
+                    "aadhaarcheck"
+                ],
+                "properties": [
+                    {
+                        "name": "nextstep",
+                        "val": "aadhaarcheck"
+                    }
+                ],
+                "exit": true
+            }
+        },
+        {
+            "rulepattern": [
+                {
+                    "attr": "step",
+                    "op": "eq",
+                    "val": "initialdoc"
+                },
+                {
+                    "attr": "branchtype",
+                    "op": "eq",
+                    "val": "semirural"
+                },
+                {
+                    "attr": "accttype",
+                    "op": "ne",
+                    "val": "ppf"
+                }
+            ],
+            "ruleactions": {
+                "tasks": [
+                    "creditbureauchk",
+                    "bankdetails",
+                    "panchk"
+                ],
+                "properties": [
+                    {
+                        "name": "nextstep",
+                        "val": "creditbureauchk"
+                    }
+                ],
+                "exit": true
+            }
+        }
+    ]
+}

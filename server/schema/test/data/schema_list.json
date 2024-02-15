@@ -15,17 +15,6 @@
         {
             "slice": 1,
             "descr": "Stock Market",
-            "app": "retailBANK",
-            "longname": "retailbank pvt ltd",
-            "class": "custonboarding",
-            "createdby": "Mireille Slidders",
-            "createdat": "2020-08-25T13:17:49Z",
-            "editedby": "Spencer Jaffra",
-            "editedat": "2021-01-22T15:53:49Z"
-        },
-        {
-            "slice": 1,
-            "descr": "Stock Market",
             "app": "retailbank",
             "longname": "retailbank pvt ltd",
             "class": "custonboarding",
@@ -39,7 +28,18 @@
             "descr": "Stock Market",
             "app": "retailBANK",
             "longname": "retailbank pvt ltd",
-            "class": "custon",
+            "class": "retailcustomer",
+            "createdby": "Marigold Sherwin",
+            "createdat": "2020-03-10T12:06:40Z",
+            "editedby": "Brunhilde Bampkin",
+            "editedat": "2023-10-21T17:39:11Z"
+        },
+        {
+            "slice": 2,
+            "descr": "Stock Market",
+            "app": "retailBANK",
+            "longname": "retailbank pvt ltd",
+            "class": "members",
             "createdby": "Marigold Sherwin",
             "createdat": "2020-03-10T12:06:40Z",
             "editedby": "Brunhilde Bampkin",
@@ -55,6 +55,17 @@
             "createdat": "2023-01-27T12:12:15Z",
             "editedby": "Imogene Iaduccelli",
             "editedat": "2023-01-04T22:00:12Z"
+        },
+        {
+            "slice": 2,
+            "descr": "Stock Market",
+            "app": "retailBANK",
+            "longname": "retailbank pvt ltd",
+            "class": "inventoryitems",
+            "createdby": "Marigold Sherwin",
+            "createdat": "2020-03-10T12:06:40Z",
+            "editedby": "Brunhilde Bampkin",
+            "editedat": "2023-10-21T17:39:11Z"
         },
         {
             "slice": 2,
