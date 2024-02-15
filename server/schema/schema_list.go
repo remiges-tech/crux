@@ -8,45 +8,44 @@ import (
 
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	"github.com/remiges-tech/crux/server"
+	"github.com/remiges-tech/crux/types"
 )
+
+var capForList = []string{"report", "ruleset", "schema"}
 
 func SchemaList(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
-	l.Log("Starting execution of SchemaList()")
+	l.Debug0().Log("Starting execution of SchemaList()")
+
+	isCapable, _ := types.Authz_check(types.OpReq{
+		User:      userID,
+		CapNeeded: capForList,
+	}, false)
+
+	if !isCapable {
+		l.Info().LogActivity("Unauthorized user:", userID)
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
+		return
+	}
+
 	var sh SchemaListStruct
-
-	//check the deactivated table to check whether first, the realm and then, the user has been
-	//  deactivated
-	// isDeactivated()
-
-	// check the capgrant table to see if the calling user has the capability to perform the
-	// operation
-	// isCapable, _ := utils.Authz_check(types.OpReq{
-	// 	User:      username,
-	// 	CapNeeded: []string{"report","ruleset","schema"},
-	// }, false)
-
-	// if !isCapable {
-	// 	l.Log("Unauthorized user:")
-	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(utils.ErrUnauthorized))
-	// 	return
-	// }
 
 	err := wscutils.BindJSON(c, &sh)
 	if err != nil {
-		l.LogActivity("Error Unmarshalling Query paramaeters to struct:", err.Error())
+		l.LogActivity("Error Unmarshalling request payload to struct:", err.Error())
 		return
 	}
 
 	// Validate request
 	validationErrors := wscutils.WscValidate(sh, func(err validator.FieldError) []string { return []string{} })
 	if len(validationErrors) > 0 {
+		l.Debug0().LogDebug("standard validation errors", validationErrors)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
 		return
 	}
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
-		l.Log("Error while getting query instance from service Dependencies")
+		l.Debug0().Log("Error while getting query instance from service Dependencies")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
 		return
 	}
@@ -117,5 +116,5 @@ func SchemaList(c *gin.Context, s *service.Service) {
 		}
 		wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: schemaList, Messages: nil})
 	}
-
+	l.Debug0().Log("Finished execution of SchemaNew()")
 }

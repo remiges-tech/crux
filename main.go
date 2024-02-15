@@ -26,7 +26,7 @@ import (
 func main() {
 	// logger setup
 	fallbackWriter := logharbour.NewFallbackWriter(os.Stdout, os.Stdout)
-	lctx := logharbour.NewLoggerContext(logharbour.Info)
+	lctx := logharbour.NewLoggerContext(logharbour.Debug0)
 	l := logharbour.NewLogger(lctx, "crux", fallbackWriter)
 
 	rigelAppName := flag.String("appName", "crux", "The name of the application")

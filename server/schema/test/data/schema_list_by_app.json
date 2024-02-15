@@ -2,15 +2,15 @@
     "status": "success",
     "data": [
         {
-            "slice": 1,
+            "slice": 2,
             "descr": "Stock Market",
             "app": "retailBANK",
             "longname": "retailbank pvt ltd",
-            "class": "custonboarding",
-            "createdby": "Mireille Slidders",
-            "createdat": "2020-08-25T13:17:49Z",
-            "editedby": "Spencer Jaffra",
-            "editedat": "2021-01-22T15:53:49Z"
+            "class": "inventoryitems",
+            "createdby": "Marigold Sherwin",
+            "createdat": "2020-03-10T12:06:40Z",
+            "editedby": "Brunhilde Bampkin",
+            "editedat": "2023-10-21T17:39:11Z"
         },
         {
             "slice": 2,
@@ -39,7 +39,18 @@
             "descr": "Stock Market",
             "app": "retailBANK",
             "longname": "retailbank pvt ltd",
-            "class": "custon",
+            "class": "members",
+            "createdby": "Marigold Sherwin",
+            "createdat": "2020-03-10T12:06:40Z",
+            "editedby": "Brunhilde Bampkin",
+            "editedat": "2023-10-21T17:39:11Z"
+        },
+        {
+            "slice": 2,
+            "descr": "Stock Market",
+            "app": "retailBANK",
+            "longname": "retailbank pvt ltd",
+            "class": "retailcustomer",
             "createdby": "Marigold Sherwin",
             "createdat": "2020-03-10T12:06:40Z",
             "editedby": "Brunhilde Bampkin",

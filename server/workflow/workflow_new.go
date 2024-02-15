@@ -15,6 +15,13 @@ import (
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/server/schema"
+	"github.com/remiges-tech/crux/types"
+)
+
+var (
+	username     = "admin"
+	capabilities = []string{"ruleset"}
+	realmID      = int32(1)
 )
 
 type WorkflowNew struct {
@@ -28,8 +35,18 @@ type WorkflowNew struct {
 
 func WorkFlowNew(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
-	l.Log("Starting execution of WorkFlowNew()")
+	l.Debug0().Log("Starting execution of WorkFlowNew()")
 
+	isCapable, _ := types.Authz_check(types.OpReq{
+		User:      username,
+		CapNeeded: capabilities,
+	}, false)
+
+	if !isCapable {
+		l.Info().LogActivity("Unauthorized user:", username)
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
+		return
+	}
 	var wf WorkflowNew
 	var ruleSchema schema.Schema
 
@@ -41,26 +58,27 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 
 	validationErrors := wscutils.WscValidate(wf, func(err validator.FieldError) []string { return []string{} })
 	if len(validationErrors) > 0 {
+		l.Debug0().LogDebug("standard validation errors", validationErrors)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
 		return
 	}
 
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
-		l.Log("Error while getting query instance from service Dependencies")
+		l.Debug0().Log("Error while getting query instance from service Dependencies")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
 
 	connpool, ok := s.Database.(*pgxpool.Pool)
 	if !ok {
-		l.Log("Error while getting connection pool instance from service Dependencies")
+		l.Debug0().Log("Error while getting connection pool instance from service Database")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
 	tx, err := connpool.Begin(c)
 	if err != nil {
-		l.LogActivity("Error while Begin tx", err.Error())
+		l.Info().LogActivity("Error while Begin tx", err.Error())
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
@@ -73,7 +91,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 		Class: wf.Class,
 	})
 	if err != nil {
-		l.LogActivity("failed to get schema from DB:", err.Error())
+		l.Info().LogActivity("failed to get schema from DB:", err.Error())
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
@@ -83,13 +101,13 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 	ruleSchema.Class = wf.Class
 	err = json.Unmarshal([]byte(schema.Patternschema), &ruleSchema.PatternSchema)
 	if err != nil {
-		l.LogActivity("Error while Unmarshalling PatternSchema", err)
+		l.Debug1().LogDebug("Error while Unmarshalling PatternSchema", err)
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
 	err = json.Unmarshal(schema.Actionschema, &ruleSchema.ActionSchema)
 	if err != nil {
-		l.LogActivity("Error while Unmarshaling ActionSchema", err)
+		l.Debug1().LogDebug("Error while Unmarshaling ActionSchema", err)
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
@@ -98,6 +116,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 	customValidationErrors := customValidationErrors(wf, ruleSchema)
 	validationErrors = append(validationErrors, customValidationErrors...)
 	if len(validationErrors) > 0 {
+		l.Debug0().LogDebug("custom validation errors", validationErrors)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
 		return
 	}
@@ -105,7 +124,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 	ruleset, err := json.Marshal(wf.Flowrules)
 	if err != nil {
 		patternSchema := "flowrules"
-		l.LogDebug("Error while marshaling Flowrules", err)
+		l.Debug1().LogDebug("Error while marshaling Flowrules", err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_InvalidRequest, &patternSchema)}))
 		return
 	}
@@ -116,26 +135,26 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 		App:        wf.App,
 		Brwf:       brwf,
 		Class:      wf.Class,
-		Setname:    setBy,
+		Setname:    wf.Name,
 		Schemaid:   schema.ID,
 		IsActive:   pgtype.Bool{Bool: false, Valid: true},
 		IsInternal: wf.IsInternal,
 		Ruleset:    ruleset,
-		Createdby:  setBy,
+		Createdby:  username,
 	})
 	if err != nil {
-		l.LogActivity("Error while Inserting data in ruleset", err.Error())
+		l.Info().LogActivity("Error while Inserting data in ruleset", err.Error())
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
 	if err := tx.Commit(c); err != nil {
-		l.LogActivity("Error while commits the transaction", err.Error())
+		l.Info().LogActivity("Error while commits the transaction", err.Error())
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
 	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})
-	l.Log("Finished execution of WorkFlowNew()")
+	l.Debug0().Log("Finished execution of WorkFlowNew()")
 }
 
 func customValidationErrors(wf WorkflowNew, ruleSchema schema.Schema) []wscutils.ErrorMessage {

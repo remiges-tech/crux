@@ -115,7 +115,7 @@ func schemaNewTestcase() []testutils.TestCasesStruct {
 			ExpectedHttpCode: http.StatusOK,
 			ExpectedResult: &wscutils.Response{
 				Status:   wscutils.SuccessStatus,
-				Data:     "Created successfully",
+				Data:     nil,
 				Messages: nil,
 			},
 		},

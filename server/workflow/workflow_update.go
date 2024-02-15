@@ -28,7 +28,7 @@ type WorkflowUpdate struct {
 
 func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
-	l.Log("Starting execution of WorkflowUpdate()")
+	l.Debug0().Log("Starting execution of WorkflowUpdate()")
 
 	var wf WorkflowUpdate
 	var ruleSchema schema.Schema
@@ -41,20 +41,21 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 
 	validationErrors := wscutils.WscValidate(wf, func(err validator.FieldError) []string { return []string{} })
 	if len(validationErrors) > 0 {
+		l.Debug0().LogDebug("standard validation errors", validationErrors)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
 		return
 	}
 
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
-		l.Log("Error while getting query instance from service Dependencies")
+		l.Debug0().Log("Error while getting query instance from service Dependencies")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
 
 	connpool, ok := s.Database.(*pgxpool.Pool)
 	if !ok {
-		l.Log("Error while getting connection pool instance from service Dependencies")
+		l.Debug0().Log("Error while getting connection pool instance from service Database")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
@@ -83,13 +84,13 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 	ruleSchema.Class = wf.Class
 	err = json.Unmarshal([]byte(schema.Patternschema), &ruleSchema.PatternSchema)
 	if err != nil {
-		l.LogActivity("Error while Unmarshalling PatternSchema", err)
+		l.Debug1().LogDebug("Error while Unmarshalling PatternSchema", err)
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
 	err = json.Unmarshal(schema.Actionschema, &ruleSchema.ActionSchema)
 	if err != nil {
-		l.LogActivity("Error while Unmarshaling ActionSchema", err)
+		l.Debug1().LogDebug("Error while Unmarshaling ActionSchema", err)
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
@@ -98,6 +99,7 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 	customValidationErrors := customValidationErrorsForUpdate(wf, ruleSchema)
 	validationErrors = append(validationErrors, customValidationErrors...)
 	if len(validationErrors) > 0 {
+		l.Debug0().LogDebug("custom validation errors", validationErrors)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
 		return
 	}
@@ -105,7 +107,7 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 	flowrules, err := json.Marshal(wf.Flowrules)
 	if err != nil {
 		patternSchema := "flowrules"
-		l.LogDebug("Error while marshaling Flowrules", err)
+		l.Debug1().LogDebug("Error while marshaling Flowrules", err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_InvalidRequest, &patternSchema)}))
 		return
 	}
@@ -147,7 +149,8 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
-	l.LogDataChange("Updated ruleset", logharbour.ChangeInfo{
+	dclog := l.WithWhatClass("ruleset").WithWhatInstanceId(string(ruleset.ID))
+	dclog.LogDataChange("Updated ruleset", logharbour.ChangeInfo{
 		Entity:    "ruleset",
 		Operation: "Update",
 		Changes: []logharbour.ChangeDetail{
@@ -166,7 +169,7 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 		},
 	})
 	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})
-	l.Log("Finished execution of WorkflowUpdate()")
+	l.Debug0().Log("Finished execution of WorkflowUpdate()")
 
 }
 

@@ -133,3 +133,8 @@ func HasRulesetRights(app string) bool {
 func GetWorkflowsByRulesetRights() []string {
 	return []string{"retailBANK", "nedbank"}
 }
+
+func Authz_check(op OpReq, trace bool) (bool, []string) {
+	var caplist []string
+	return true, caplist
+}
