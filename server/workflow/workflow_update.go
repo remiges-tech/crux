@@ -165,7 +165,7 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 			{
 				Field:    "ruleset",
 				OldValue: string(ruleset.Ruleset),
-				NewValue: string(flowrules)},
+				NewValue: wf.Flowrules},
 		},
 	})
 	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})

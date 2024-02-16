@@ -4,8 +4,8 @@ github.com/remiges-tech/crux/db/error.go:21.28,22.21 1 0
 github.com/remiges-tech/crux/db/error.go:23.16,24.119 1 0
 github.com/remiges-tech/crux/db/error.go:25.16,26.115 1 0
 github.com/remiges-tech/crux/db/error.go:27.16,28.112 1 0
-github.com/remiges-tech/crux/db/error.go:29.16,30.99 1 0
-github.com/remiges-tech/crux/db/error.go:31.16,32.99 1 0
+github.com/remiges-tech/crux/db/error.go:29.16,31.99 1 0
+github.com/remiges-tech/crux/db/error.go:32.16,33.99 1 0
 github.com/remiges-tech/crux/db/error.go:35.8,35.51 1 0
 github.com/remiges-tech/crux/db/error.go:35.51,38.3 2 0
 github.com/remiges-tech/crux/db/error.go:38.8,40.3 1 0
@@ -269,7 +269,7 @@ github.com/remiges-tech/crux/server/schema/schema_update.go:146.8,156.17 2 0
 github.com/remiges-tech/crux/server/schema/schema_update.go:156.17,159.4 2 0
 github.com/remiges-tech/crux/server/schema/schema_update.go:163.2,163.37 1 0
 github.com/remiges-tech/crux/server/schema/schema_update.go:163.37,165.3 1 0
-github.com/remiges-tech/crux/server/schema/schema_update.go:167.2,182.12 2 0
+github.com/remiges-tech/crux/server/schema/schema_update.go:166.2,182.12 3 0
 github.com/remiges-tech/crux/server/schema/schema_update.go:185.79,187.55 2 0
 github.com/remiges-tech/crux/server/schema/schema_update.go:187.55,190.3 2 0
 github.com/remiges-tech/crux/server/schema/schema_update.go:190.8,190.62 1 0

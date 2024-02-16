@@ -63,7 +63,7 @@
 				
 				<option value="file3">github.com/remiges-tech/crux/db/sqlc-gen/models.go (23.1%)</option>
 				
-				<option value="file4">github.com/remiges-tech/crux/db/sqlc-gen/ruleset.sql.go (21.6%)</option>
+				<option value="file4">github.com/remiges-tech/crux/db/sqlc-gen/ruleset.sql.go (53.7%)</option>
 				
 				<option value="file5">github.com/remiges-tech/crux/db/sqlc-gen/schema.sql.go (3.1%)</option>
 				
@@ -81,17 +81,19 @@
 				
 				<option value="file12">github.com/remiges-tech/crux/server/schema/schema_update.go (0.0%)</option>
 				
-				<option value="file13">github.com/remiges-tech/crux/server/workflow/workflow_get.go (75.8%)</option>
+				<option value="file13">github.com/remiges-tech/crux/server/workflow/workflow_delete.go (70.6%)</option>
 				
-				<option value="file14">github.com/remiges-tech/crux/server/workflow/workflow_list.go (0.0%)</option>
+				<option value="file14">github.com/remiges-tech/crux/server/workflow/workflow_get.go (75.8%)</option>
 				
-				<option value="file15">github.com/remiges-tech/crux/server/workflow/workflow_new.go (77.3%)</option>
+				<option value="file15">github.com/remiges-tech/crux/server/workflow/workflow_list.go (74.2%)</option>
 				
-				<option value="file16">github.com/remiges-tech/crux/server/workflow/workflow_update.go (76.9%)</option>
+				<option value="file16">github.com/remiges-tech/crux/server/workflow/workflow_new.go (76.5%)</option>
 				
-				<option value="file17">github.com/remiges-tech/crux/testutils/test_utils.go (75.0%)</option>
+				<option value="file17">github.com/remiges-tech/crux/server/workflow/workflow_update.go (74.5%)</option>
 				
-				<option value="file18">github.com/remiges-tech/crux/types/types.go (40.9%)</option>
+				<option value="file18">github.com/remiges-tech/crux/testutils/test_utils.go (75.0%)</option>
+				
+				<option value="file19">github.com/remiges-tech/crux/types/types.go (53.6%)</option>
 				
 				</select>
 			</div>
@@ -115,24 +117,35 @@ import (
         "github.com/remiges-tech/crux/server"
 )
 
-// var ErrRecordNotFound = pgx.ErrNoRows
-
-func ErrorMessage(err error) wscutils.ErrorMessage <span class="cov0" title="0">{
+// The function HandleDatabaseError first checks if the error is a PostgreSQL-specific error
+//
+//        by attempting to cast it to a *pgconn.PgError. If successful, it examines the PostgreSQL
+//        error code to determine the nature of the error.If none of the above conditions are met,
+//        it constructs a generic error message indicating an internal server error related to
+//
+// the database.
+func HandleDatabaseError(err error) wscutils.ErrorMessage <span class="cov0" title="0">{
         var pgErr *pgconn.PgError
 
         if errors.As(err, &amp;pgErr) </span><span class="cov0" title="0">{
                 switch pgErr.Code </span>{
-                case "23505":<span class="cov0" title="0">
+                case "23505":<span class="cov0" title="0"> //unique_violation
                         return wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_AlreadyExist, &amp;pgErr.ConstraintName)</span>
-                case "23503":<span class="cov0" title="0">
+                case "23503":<span class="cov0" title="0"> //foreign_key_violation
                         return wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_NotFound, &amp;pgErr.ConstraintName)</span>
+                case "23502":<span class="cov0" title="0"> //not_null_violation
+                        return wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_Empty, &amp;pgErr.ConstraintName)</span>
+                case "0A000":<span class="cov0" title="0"> //ERROR: cached plan must not change result type (SQLSTATE 0A000)
+
+                        return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_Internal_Retry, nil)</span>
+                case "XX000":<span class="cov0" title="0"> //ERROR: cache lookup failed for type 67119 (SQLSTATE XX000)
+                        return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_Internal_Retry, nil)</span>
                 }
         } else<span class="cov0" title="0"> if err.Error() == "no rows in result set" </span><span class="cov0" title="0">{
-                feild := "slice/app/class"
-                return wscutils.BuildErrorMessage(1006, server.ErrCode_InvalidRequest, &amp;feild)
+                field := "slice/app/class"
+                return wscutils.BuildErrorMessage(1006, server.ErrCode_InvalidRequest, &amp;field)
         }</span> else<span class="cov0" title="0"> {
                 return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_DatabaseError, nil)
-
         }</span>
         <span class="cov0" title="0">return wscutils.ErrorMessage{}</span>
 }
@@ -375,6 +388,7 @@ package sqlc
 import (
         "context"
 
+        "github.com/jackc/pgx/v5/pgconn"
         "github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -504,6 +518,45 @@ func (q *Queries) GetWFInternalStatus(ctx context.Context, arg GetWFInternalStat
         return is_internal, err
 }</span>
 
+const rulesetRowLock = `-- name: RulesetRowLock :one
+SELECT id, realm, slice, app, brwf, class, setname, schemaid, is_active, is_internal, ruleset, createdat, createdby, editedat, editedby 
+FROM ruleset 
+WHERE
+    slice = $1
+    AND class = $2
+    AND app = $3
+FOR UPDATE
+`
+
+type RulesetRowLockParams struct {
+        Slice int32  `json:"slice"`
+        Class string `json:"class"`
+        App   string `json:"app"`
+}
+
+func (q *Queries) RulesetRowLock(ctx context.Context, arg RulesetRowLockParams) (Ruleset, error) <span class="cov8" title="1">{
+        row := q.db.QueryRow(ctx, rulesetRowLock, arg.Slice, arg.Class, arg.App)
+        var i Ruleset
+        err := row.Scan(
+                &amp;i.ID,
+                &amp;i.Realm,
+                &amp;i.Slice,
+                &amp;i.App,
+                &amp;i.Brwf,
+                &amp;i.Class,
+                &amp;i.Setname,
+                &amp;i.Schemaid,
+                &amp;i.IsActive,
+                &amp;i.IsInternal,
+                &amp;i.Ruleset,
+                &amp;i.Createdat,
+                &amp;i.Createdby,
+                &amp;i.Editedat,
+                &amp;i.Editedby,
+        )
+        return i, err
+}</span>
+
 const workFlowNew = `-- name: WorkFlowNew :exec
 INSERT INTO
     ruleset (
@@ -545,7 +598,7 @@ func (q *Queries) WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) error 
         return err
 }</span>
 
-const workFlowUpdate = `-- name: WorkFlowUpdate :exec
+const workFlowUpdate = `-- name: WorkFlowUpdate :execresult
 UPDATE ruleset
 SET
     brwf = $4,
@@ -569,8 +622,8 @@ type WorkFlowUpdateParams struct {
         Editedby pgtype.Text `json:"editedby"`
 }
 
-func (q *Queries) WorkFlowUpdate(ctx context.Context, arg WorkFlowUpdateParams) error <span class="cov8" title="1">{
-        _, err := q.db.Exec(ctx, workFlowUpdate,
+func (q *Queries) WorkFlowUpdate(ctx context.Context, arg WorkFlowUpdateParams) (pgconn.CommandTag, error) <span class="cov8" title="1">{
+        return q.db.Exec(ctx, workFlowUpdate,
                 arg.Slice,
                 arg.Class,
                 arg.App,
@@ -579,7 +632,36 @@ func (q *Queries) WorkFlowUpdate(ctx context.Context, arg WorkFlowUpdateParams) 
                 arg.Ruleset,
                 arg.Editedby,
         )
-        return err
+}</span>
+
+const workflowDelete = `-- name: WorkflowDelete :execresult
+DELETE from ruleset
+where
+    brwf = 'W'
+    AND is_active = false
+    and slice = $1
+    and app = $2
+    and class = $3
+    and setname = $4
+    AND realm = $5
+`
+
+type WorkflowDeleteParams struct {
+        Slice   int32  `json:"slice"`
+        App     string `json:"app"`
+        Class   string `json:"class"`
+        Setname string `json:"setname"`
+        Realm   int32  `json:"realm"`
+}
+
+func (q *Queries) WorkflowDelete(ctx context.Context, arg WorkflowDeleteParams) (pgconn.CommandTag, error) <span class="cov8" title="1">{
+        return q.db.Exec(ctx, workflowDelete,
+                arg.Slice,
+                arg.App,
+                arg.Class,
+                arg.Setname,
+                arg.Realm,
+        )
 }</span>
 
 const workflowList = `-- name: WorkflowList :many
@@ -598,15 +680,17 @@ select
 from ruleset
 where
     brwf = 'W'
-    AND ($1::INTEGER is null OR slice = $1::INTEGER)
-    AND ( $2::text[] is null OR app = any( $2::text[]))
-    AND ($3::text is null OR class = $3::text)
-    AND ($4::text is null OR setname = $4::text)
-    AND ($5::BOOLEAN is null OR is_active = $5::BOOLEAN)
-    AND ($6::BOOLEAN is null OR is_internal = $6::BOOLEAN)
+    AND realm = $1
+    AND ($2::INTEGER is null OR slice = $2::INTEGER)
+    AND ( $3::text[] is null OR app = any( $3::text[]))
+    AND ($4::text is null OR class = $4::text)
+    AND ($5::text is null OR setname = $5::text)
+    AND ($6::BOOLEAN is null OR is_active = $6::BOOLEAN)
+    AND ($7::BOOLEAN is null OR is_internal = $7::BOOLEAN)
 `
 
 type WorkflowListParams struct {
+        Realm      int32       `json:"realm"`
         Slice      pgtype.Int4 `json:"slice"`
         App        []string    `json:"app"`
         Class      pgtype.Text `json:"class"`
@@ -629,8 +713,9 @@ type WorkflowListRow struct {
         Editedby   pgtype.Text      `json:"editedby"`
 }
 
-func (q *Queries) WorkflowList(ctx context.Context, arg WorkflowListParams) ([]WorkflowListRow, error) <span class="cov0" title="0">{
+func (q *Queries) WorkflowList(ctx context.Context, arg WorkflowListParams) ([]WorkflowListRow, error) <span class="cov8" title="1">{
         rows, err := q.db.Query(ctx, workflowList,
+                arg.Realm,
                 arg.Slice,
                 arg.App,
                 arg.Class,
@@ -641,9 +726,9 @@ func (q *Queries) WorkflowList(ctx context.Context, arg WorkflowListParams) ([]W
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
-        <span class="cov0" title="0">defer rows.Close()
+        <span class="cov8" title="1">defer rows.Close()
         var items []WorkflowListRow
-        for rows.Next() </span><span class="cov0" title="0">{
+        for rows.Next() </span><span class="cov8" title="1">{
                 var i WorkflowListRow
                 if err := rows.Scan(
                         &amp;i.ID,
@@ -660,12 +745,12 @@ func (q *Queries) WorkflowList(ctx context.Context, arg WorkflowListParams) ([]W
                 ); err != nil </span><span class="cov0" title="0">{
                         return nil, err
                 }</span>
-                <span class="cov0" title="0">items = append(items, i)</span>
+                <span class="cov8" title="1">items = append(items, i)</span>
         }
-        <span class="cov0" title="0">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
-        <span class="cov0" title="0">return items, nil</span>
+        <span class="cov8" title="1">return items, nil</span>
 }
 
 const workflowget = `-- name: Workflowget :one
@@ -688,6 +773,7 @@ where
     and app = $2
     and class = $3
     and setname = $4
+    and realm = $5
     AND brwf = 'W'
 `
 
@@ -696,6 +782,7 @@ type WorkflowgetParams struct {
         App     string `json:"app"`
         Class   string `json:"class"`
         Setname string `json:"setname"`
+        Realm   int32  `json:"realm"`
 }
 
 type WorkflowgetRow struct {
@@ -719,6 +806,7 @@ func (q *Queries) Workflowget(ctx context.Context, arg WorkflowgetParams) (Workf
                 arg.App,
                 arg.Class,
                 arg.Setname,
+                arg.Realm,
         )
         var i WorkflowgetRow
         err := row.Scan(
@@ -1451,17 +1539,34 @@ import (
         "context"
 )
 
-const getWorkflow = `-- name: GetWorkflow :one
-SELECT workflow FROM stepworkflow
-WHERE step =$1
+const getWorkflow = `-- name: GetWorkflow :many
+SELECT workflow, step FROM stepworkflow WHERE step = $1
 `
 
-func (q *Queries) GetWorkflow(ctx context.Context, step string) (string, error) <span class="cov0" title="0">{
-        row := q.db.QueryRow(ctx, getWorkflow, step)
-        var workflow string
-        err := row.Scan(&amp;workflow)
-        return workflow, err
-}</span>
+type GetWorkflowRow struct {
+        Workflow string `json:"workflow"`
+        Step     string `json:"step"`
+}
+
+func (q *Queries) GetWorkflow(ctx context.Context, step string) ([]GetWorkflowRow, error) <span class="cov0" title="0">{
+        rows, err := q.db.Query(ctx, getWorkflow, step)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">defer rows.Close()
+        var items []GetWorkflowRow
+        for rows.Next() </span><span class="cov0" title="0">{
+                var i GetWorkflowRow
+                if err := rows.Scan(&amp;i.Workflow, &amp;i.Step); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov0" title="0">items = append(items, i)</span>
+        }
+        <span class="cov0" title="0">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return items, nil</span>
+}
 </pre>
 		
 		<pre class="file" id="file7" style="display: none">// Code generated by sqlc. DO NOT EDIT.
@@ -1477,37 +1582,39 @@ import (
         "github.com/jackc/pgx/v5/pgtype"
 )
 
-const addWFNewInstace = `-- name: AddWFNewInstace :one
+const addWFNewInstances = `-- name: AddWFNewInstances :many
 INSERT INTO
     public.wfinstance (
         entityid, slice, app, class, workflow, step, loggedat, nextstep, parent
     )
 VALUES (
-        $1, $2, $3, $4, $5, $6, (NOW()::timestamp), $7, $8
+        $1, $2, $3, $4, $5, unnest($6::text []), (NOW()::timestamp), $7, $8
     )
 RETURNING
     id,
-    loggedat
+    loggedat,
+    step
 `
 
-type AddWFNewInstaceParams struct {
+type AddWFNewInstancesParams struct {
         Entityid string      `json:"entityid"`
         Slice    int32       `json:"slice"`
         App      string      `json:"app"`
         Class    string      `json:"class"`
         Workflow string      `json:"workflow"`
-        Step     string      `json:"step"`
+        Step     []string    `json:"step"`
         Nextstep string      `json:"nextstep"`
         Parent   pgtype.Int4 `json:"parent"`
 }
 
-type AddWFNewInstaceRow struct {
+type AddWFNewInstancesRow struct {
         ID       int32            `json:"id"`
         Loggedat pgtype.Timestamp `json:"loggedat"`
+        Step     string           `json:"step"`
 }
 
-func (q *Queries) AddWFNewInstace(ctx context.Context, arg AddWFNewInstaceParams) (AddWFNewInstaceRow, error) <span class="cov0" title="0">{
-        row := q.db.QueryRow(ctx, addWFNewInstace,
+func (q *Queries) AddWFNewInstances(ctx context.Context, arg AddWFNewInstancesParams) ([]AddWFNewInstancesRow, error) <span class="cov0" title="0">{
+        rows, err := q.db.Query(ctx, addWFNewInstances,
                 arg.Entityid,
                 arg.Slice,
                 arg.App,
@@ -1517,13 +1624,25 @@ func (q *Queries) AddWFNewInstace(ctx context.Context, arg AddWFNewInstaceParams
                 arg.Nextstep,
                 arg.Parent,
         )
-        var i AddWFNewInstaceRow
-        err := row.Scan(&amp;i.ID, &amp;i.Loggedat)
-        return i, err
-}</span>
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">defer rows.Close()
+        var items []AddWFNewInstancesRow
+        for rows.Next() </span><span class="cov0" title="0">{
+                var i AddWFNewInstancesRow
+                if err := rows.Scan(&amp;i.ID, &amp;i.Loggedat, &amp;i.Step); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov0" title="0">items = append(items, i)</span>
+        }
+        <span class="cov0" title="0">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return items, nil</span>
+}
 
 const getWFINstance = `-- name: GetWFINstance :one
-
 SELECT count(1)
 FROM public.wfinstance
 WHERE
@@ -1673,45 +1792,44 @@ import (
 
         "github.com/remiges-tech/crux/db/sqlc-gen"
         "github.com/remiges-tech/crux/server"
+        "github.com/remiges-tech/crux/types"
 )
+
+var capForList = []string{"report", "ruleset", "schema"}
 
 func SchemaList(c *gin.Context, s *service.Service) <span class="cov0" title="0">{
         l := s.LogHarbour
-        l.Log("Starting execution of SchemaList()")
-        var sh SchemaListStruct
+        l.Debug0().Log("Starting execution of SchemaList()")
 
-        //check the deactivated table to check whether first, the realm and then, the user has been
-        //  deactivated
-        // isDeactivated()
+        isCapable, _ := types.Authz_check(types.OpReq{
+                User:      userID,
+                CapNeeded: capForList,
+        }, false)
 
-        // check the capgrant table to see if the calling user has the capability to perform the
-        // operation
-        // isCapable, _ := utils.Authz_check(types.OpReq{
-        //         User:      username,
-        //         CapNeeded: []string{"report","ruleset","schema"},
-        // }, false)
+        if !isCapable </span><span class="cov0" title="0">{
+                l.Info().LogActivity("Unauthorized user:", userID)
+                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
+                return
+        }</span>
 
-        // if !isCapable {
-        //         l.Log("Unauthorized user:")
-        //         wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(utils.ErrUnauthorized))
-        //         return
-        // }
+        <span class="cov0" title="0">var sh SchemaListStruct
 
         err := wscutils.BindJSON(c, &amp;sh)
         if err != nil </span><span class="cov0" title="0">{
-                l.LogActivity("Error Unmarshalling Query paramaeters to struct:", err.Error())
+                l.LogActivity("Error Unmarshalling request payload to struct:", err.Error())
                 return
         }</span>
 
         // Validate request
         <span class="cov0" title="0">validationErrors := wscutils.WscValidate(sh, func(err validator.FieldError) []string </span><span class="cov0" title="0">{ return []string{} }</span>)
         <span class="cov0" title="0">if len(validationErrors) &gt; 0 </span><span class="cov0" title="0">{
+                l.Debug0().LogDebug("standard validation errors", validationErrors)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
                 return
         }</span>
         <span class="cov0" title="0">query, ok := s.Dependencies["queries"].(*sqlc.Queries)
         if !ok </span><span class="cov0" title="0">{
-                l.Log("Error while getting query instance from service Dependencies")
+                l.Debug0().Log("Error while getting query instance from service Dependencies")
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
                 return
         }</span>
@@ -1782,7 +1900,7 @@ func SchemaList(c *gin.Context, s *service.Service) <span class="cov0" title="0"
                 }</span>
                 <span class="cov0" title="0">wscutils.SendSuccessResponse(c, &amp;wscutils.Response{Status: wscutils.SuccessStatus, Data: schemaList, Messages: nil})</span>
         }
-
+        <span class="cov0" title="0">l.Debug0().Log("Finished execution of SchemaNew()")</span>
 }
 </pre>
 		
@@ -1802,16 +1920,28 @@ import (
         "github.com/remiges-tech/crux/types"
 )
 
-const (
-        createdBy = "admin"
-        realmID   = 1
+var (
+        userID    = "1234"
+        capForNew = []string{"schema"}
+        realmID   = int32(1)
 )
 
 func SchemaNew(c *gin.Context, s *service.Service) <span class="cov0" title="0">{
         l := s.LogHarbour
-        l.Log("Starting execution of SchemaNew()")
+        l.Debug0().Log("Starting execution of SchemaNew()")
 
-        var sh Schema
+        isCapable, _ := types.Authz_check(types.OpReq{
+                User:      userID,
+                CapNeeded: capForNew,
+        }, false)
+
+        if !isCapable </span><span class="cov0" title="0">{
+                l.Info().LogActivity("Unauthorized user:", userID)
+                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
+                return
+        }</span>
+
+        <span class="cov0" title="0">var sh Schema
 
         err := wscutils.BindJSON(c, &amp;sh)
         if err != nil </span><span class="cov0" title="0">{
@@ -1824,20 +1954,21 @@ func SchemaNew(c *gin.Context, s *service.Service) <span class="cov0" title="0">
         <span class="cov0" title="0">customValidationErrors := customValidationErrors(sh)
         validationErrors = append(validationErrors, customValidationErrors...)
         if len(validationErrors) &gt; 0 </span><span class="cov0" title="0">{
+                l.Debug0().LogDebug("validation errors", validationErrors)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
                 return
         }</span>
 
         <span class="cov0" title="0">query, ok := s.Dependencies["queries"].(*sqlc.Queries)
         if !ok </span><span class="cov0" title="0">{
-                l.Log("Error while getting query instance from service Dependencies")
+                l.Debug0().Log("Error while getting query instance from service Dependencies")
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
                 return
         }</span>
         <span class="cov0" title="0">patternSchema, err := json.Marshal(sh.PatternSchema)
         if err != nil </span><span class="cov0" title="0">{
                 patternSchema := "patternSchema"
-                l.LogDebug("Error while marshaling patternSchema", err)
+                l.Debug1().LogDebug("Error while marshaling patternSchema", err)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_InvalidJson, &amp;patternSchema)}))
                 return
         }</span>
@@ -1845,18 +1976,27 @@ func SchemaNew(c *gin.Context, s *service.Service) <span class="cov0" title="0">
         <span class="cov0" title="0">actionSchema, err := json.Marshal(sh.ActionSchema)
         if err != nil </span><span class="cov0" title="0">{
                 actionSchema := "actionSchema"
-                l.LogDebug("Error while marshaling actionSchema", err)
+                l.Debug1().LogDebug("Error while marshaling actionSchema", err)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_InvalidJson, &amp;actionSchema)}))
                 return
         }</span>
-        <span class="cov0" title="0">err = query.SchemaNew(c, sqlc.SchemaNewParams{Realm: realmID, Slice: sh.Slice, Class: sh.Class, App: sh.App, Brwf: "W", Patternschema: patternSchema, Actionschema: actionSchema, Createdby: createdBy})
+        <span class="cov0" title="0">err = query.SchemaNew(c, sqlc.SchemaNewParams{
+                Realm:         realmID,
+                Slice:         sh.Slice,
+                Class:         sh.Class,
+                App:           sh.App,
+                Brwf:          sqlc.BrwfEnumW,
+                Patternschema: patternSchema,
+                Actionschema:  actionSchema,
+                Createdby:     userID,
+        })
         if err != nil </span><span class="cov0" title="0">{
-                l.LogActivity("Error while creating schema", err.Error())
+                l.Info().LogActivity("Error while creating schema", err.Error())
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
                 return
         }</span>
-        <span class="cov0" title="0">wscutils.SendSuccessResponse(c, &amp;wscutils.Response{Status: wscutils.SuccessStatus, Data: "Created successfully", Messages: nil})
-        l.Log("Finished execution of SchemaNew()")</span>
+        <span class="cov0" title="0">wscutils.SendSuccessResponse(c, &amp;wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})
+        l.Debug0().Log("Finished execution of SchemaNew()")</span>
 }
 
 func customValidationErrors(sh Schema) []wscutils.ErrorMessage <span class="cov0" title="0">{
@@ -1931,25 +2071,38 @@ import (
         "github.com/remiges-tech/alya/wscutils"
         "github.com/remiges-tech/crux/db/sqlc-gen"
         "github.com/remiges-tech/crux/server"
+        "github.com/remiges-tech/crux/types"
         "github.com/remiges-tech/logharbour/logharbour"
 )
 
 const (
-        setBy        = "admin"
-        brwf         = "W"
-        editedBy     = "admin"
         cruxIDRegExp = `^[a-z][a-z0-9_]*$`
 )
 
-var validTypes = map[string]bool{
-        "int": true, "float": true, "str": true, "enum": true, "bool": true, "timestamps": true,
-}
+var (
+        validTypes = map[string]bool{
+                "int": true, "float": true, "str": true, "enum": true, "bool": true, "timestamps": true,
+        }
+        capForUpdate = []string{"schema"}
+        re           = regexp.MustCompile(cruxIDRegExp)
+)
 
 func SchemaUpdate(c *gin.Context, s *service.Service) <span class="cov0" title="0">{
         l := s.LogHarbour
-        l.Log("Starting execution of SchemaUpdate()")
+        l.Debug0().Log("Starting execution of SchemaUpdate()")
 
-        var sh updateSchema
+        isCapable, _ := types.Authz_check(types.OpReq{
+                User:      userID,
+                CapNeeded: capForUpdate,
+        }, false)
+
+        if !isCapable </span><span class="cov0" title="0">{
+                l.Info().LogActivity("Unauthorized user:", userID)
+                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
+                return
+        }</span>
+
+        <span class="cov0" title="0">var sh updateSchema
 
         err := wscutils.BindJSON(c, &amp;sh)
         if err != nil </span><span class="cov0" title="0">{
@@ -1962,20 +2115,21 @@ func SchemaUpdate(c *gin.Context, s *service.Service) <span class="cov0" title="
         <span class="cov0" title="0">customValidationErrors := customValidationErrorsForUpdate(sh)
         validationErrors = append(validationErrors, customValidationErrors...)
         if len(validationErrors) &gt; 0 </span><span class="cov0" title="0">{
+                l.Debug0().LogDebug("standard validation errors", validationErrors)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
                 return
         }</span>
 
         <span class="cov0" title="0">query, ok := s.Dependencies["queries"].(*sqlc.Queries)
         if !ok </span><span class="cov0" title="0">{
-                l.Log("Error while getting query instance from service Dependencies")
+                l.Debug0().Log("Error while getting query instance from service Dependencies")
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
                 return
         }</span>
 
         <span class="cov0" title="0">connpool, ok := s.Database.(*pgxpool.Pool)
         if !ok </span><span class="cov0" title="0">{
-                l.Log("Error while getting query instance from service Dependencies")
+                l.Debug0().Log("Error while getting query instance from service Database")
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
                 return
         }</span>
@@ -1987,19 +2141,19 @@ func SchemaUpdate(c *gin.Context, s *service.Service) <span class="cov0" title="
                 return
         }</span>
         <span class="cov0" title="0">wscutils.SendSuccessResponse(c, &amp;wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})
-        l.Log("Starting execution of SchemaUpdate()")</span>
+        l.Debug0().Log("Starting execution of SchemaUpdate()")</span>
 }
 
 func schemaUpdateWithTX(c context.Context, query *sqlc.Queries, connpool *pgxpool.Pool, l *logharbour.Logger, sh updateSchema) error <span class="cov0" title="0">{
         patternSchema, err := json.Marshal(sh.PatternSchema)
         if err != nil </span><span class="cov0" title="0">{
-                l.LogDebug("Error while marshaling patternSchema", err)
+                l.Debug1().LogDebug("Error while marshaling patternSchema", err)
                 return err
         }</span>
 
         <span class="cov0" title="0">actionSchema, err := json.Marshal(sh.ActionSchema)
         if err != nil </span><span class="cov0" title="0">{
-                l.LogDebug("Error while marshaling actionSchema", err)
+                l.Debug1().LogDebug("Error while marshaling actionSchema", err)
                 return err
         }</span>
 
@@ -2023,10 +2177,10 @@ func schemaUpdateWithTX(c context.Context, query *sqlc.Queries, connpool *pgxpoo
                         Slice:         sh.Slice,
                         Class:         sh.Class,
                         App:           sh.App,
-                        Brwf:          brwf,
+                        Brwf:          sqlc.BrwfEnumW,
                         Patternschema: schema.Patternschema,
                         Actionschema:  actionSchema,
-                        Editedby:      pgtype.Text{String: editedBy},
+                        Editedby:      pgtype.Text{String: userID},
                 })
                 if err != nil </span><span class="cov0" title="0">{
                         tx.Rollback(c)
@@ -2037,10 +2191,10 @@ func schemaUpdateWithTX(c context.Context, query *sqlc.Queries, connpool *pgxpoo
                         Slice:         sh.Slice,
                         Class:         sh.Class,
                         App:           sh.App,
-                        Brwf:          brwf,
+                        Brwf:          sqlc.BrwfEnumW,
                         Patternschema: schema.Patternschema,
                         Actionschema:  actionSchema,
-                        Editedby:      pgtype.Text{String: editedBy},
+                        Editedby:      pgtype.Text{String: userID},
                 })
                 if err != nil </span><span class="cov0" title="0">{
                         tx.Rollback(c)
@@ -2051,10 +2205,10 @@ func schemaUpdateWithTX(c context.Context, query *sqlc.Queries, connpool *pgxpoo
                         Slice:         sh.Slice,
                         Class:         sh.Class,
                         App:           sh.App,
-                        Brwf:          brwf,
+                        Brwf:          sqlc.BrwfEnumW,
                         Patternschema: schema.Patternschema,
                         Actionschema:  schema.Actionschema,
-                        Editedby:      pgtype.Text{String: editedBy},
+                        Editedby:      pgtype.Text{String: userID},
                 })
                 if err != nil </span><span class="cov0" title="0">{
                         tx.Rollback(c)
@@ -2066,8 +2220,8 @@ func schemaUpdateWithTX(c context.Context, query *sqlc.Queries, connpool *pgxpoo
         <span class="cov0" title="0">if err := tx.Commit(c); err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
-
-        <span class="cov0" title="0">l.LogDataChange("Updated schema", logharbour.ChangeInfo{
+        <span class="cov0" title="0">dclog := l.WithWhatClass("schema").WithWhatInstanceId(string(schema.ID))
+        dclog.LogDataChange("Updated schema", logharbour.ChangeInfo{
                 Entity:    "schema",
                 Operation: "Update",
                 Changes: []logharbour.ChangeDetail{
@@ -2108,7 +2262,6 @@ func customValidationErrorsForUpdate(sh updateSchema) []wscutils.ErrorMessage <s
 }
 func verifyPatternSchemaUpdate(ps *patternSchema) []wscutils.ErrorMessage <span class="cov0" title="0">{
         var validationErrors []wscutils.ErrorMessage
-        re := regexp.MustCompile(cruxIDRegExp)
 
         for i, attrSchema := range ps.Attr </span><span class="cov0" title="0">{
                 i++
@@ -2156,6 +2309,87 @@ func verifyActionSchemaUpdate(as *actionSchema) []wscutils.ErrorMessage <span cl
 		<pre class="file" id="file13" style="display: none">package workflow
 
 import (
+        "fmt"
+        "slices"
+        "strings"
+
+        "github.com/gin-gonic/gin"
+        "github.com/go-playground/validator/v10"
+        "github.com/remiges-tech/alya/service"
+        "github.com/remiges-tech/alya/wscutils"
+        "github.com/remiges-tech/crux/db/sqlc-gen"
+        "github.com/remiges-tech/crux/server"
+        "github.com/remiges-tech/crux/types"
+)
+
+// WorkflowDelete will be responsible for processing the /workflowdelete request that comes through as a DELETE
+func WorkflowDelete(c *gin.Context, s *service.Service) <span class="cov8" title="1">{
+        lh := s.LogHarbour
+        lh.Log("WorkflowDelete request received")
+
+        var (
+                request WorkflowGetReq
+                // implement the user realm here
+                userRealm int32 = 1
+        )
+
+        err := wscutils.BindJSON(c, &amp;request)
+        if err != nil </span><span class="cov0" title="0">{
+                lh.LogActivity("error while binding json request error:", err.Error)
+                return
+        }</span>
+
+        <span class="cov8" title="1">valError := wscutils.WscValidate(request, func(err validator.FieldError) []string </span><span class="cov8" title="1">{ return []string{} }</span>)
+        <span class="cov8" title="1">if len(valError) &gt; 0 </span><span class="cov8" title="1">{
+                wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, valError))
+                lh.LogActivity("validation error:", valError)
+                return
+        }</span>
+        <span class="cov8" title="1">if !HasSchemaCap(request.App) </span><span class="cov0" title="0">{
+                // Generate "auth" error if no
+                wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Unauthorized, server.ErrCode_Unauthorized, nil)}))
+                return
+        }</span>
+
+        <span class="cov8" title="1">query, ok := s.Dependencies["queries"].(*sqlc.Queries)
+        if !ok </span><span class="cov0" title="0">{
+                lh.Log("Error while getting query instance from service Dependencies")
+                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
+                return
+        }</span>
+
+        <span class="cov8" title="1">tag, err := query.WorkflowDelete(c, sqlc.WorkflowDeleteParams{
+                Slice:   request.Slice,
+                App:     request.App,
+                Class:   request.Class,
+                Setname: request.Name,
+                Realm:   userRealm,
+        })
+        if err != nil </span><span class="cov0" title="0">{
+                wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, nil)}))
+                lh.LogActivity("failed to delete data from DB:", err.Error)
+                return
+        }</span>
+        <span class="cov8" title="1">if strings.Contains(tag.String(), "1") </span><span class="cov8" title="1">{
+                lh.Log(fmt.Sprintf("Record found: %v", map[string]any{"response": tag.String()}))
+                wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(nil))
+                // wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse("record_deleted_success"))
+                return
+        }</span>
+        <span class="cov8" title="1">wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_InvalidRequest, nil)}))
+        lh.LogActivity("failed to delete data from DB:", tag.String())</span>
+}
+
+// to check if the user has "schema" capability for the app this workflow belongs to
+func HasSchemaCap(app string) bool <span class="cov8" title="1">{
+        userRights := types.GetWorkflowsByRulesetRights()
+        return slices.Contains(userRights, app)
+}</span>
+</pre>
+		
+		<pre class="file" id="file14" style="display: none">package workflow
+
+import (
         "encoding/json"
         "fmt"
 
@@ -2172,8 +2406,12 @@ func WorkflowGet(c *gin.Context, s *service.Service) <span class="cov8" title="1
         lh := s.LogHarbour
         lh.Log("WorkflowGet request received")
 
-        // var response schemaGetResp
-        var request WorkflowGetReq
+        var (
+                request WorkflowGetReq
+                // implement the user realm here
+                userRealm int32 = 1
+        )
+
         err := wscutils.BindJSON(c, &amp;request)
         if err != nil </span><span class="cov0" title="0">{
                 lh.LogActivity("error while binding json request error:", err.Error)
@@ -2199,6 +2437,7 @@ func WorkflowGet(c *gin.Context, s *service.Service) <span class="cov8" title="1
                 App:     request.App,
                 Class:   request.Class,
                 Setname: request.Name,
+                Realm:   userRealm,
         })
         if err != nil </span><span class="cov8" title="1">{
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, nil)}))
@@ -2236,12 +2475,10 @@ func responseBinding(dbResponse sqlc.WorkflowgetRow) WorkflowgetRow <span class=
 }</span>
 </pre>
 		
-		<pre class="file" id="file14" style="display: none">package workflow
+		<pre class="file" id="file15" style="display: none">package workflow
 
 import (
         "fmt"
-        "slices"
-        "strings"
 
         "github.com/gin-gonic/gin"
         "github.com/go-playground/validator/v10"
@@ -2250,6 +2487,7 @@ import (
         "github.com/remiges-tech/alya/wscutils"
         "github.com/remiges-tech/crux/db/sqlc-gen"
         "github.com/remiges-tech/crux/server"
+        "github.com/remiges-tech/crux/types"
         "github.com/remiges-tech/logharbour/logharbour"
 )
 
@@ -2262,11 +2500,11 @@ type WorkflowListParams struct {
         IsInternal bool
 }
 
-// this is for test cases
+// this is for test cases where 'HasRootCapabilities()' = value of 'TRIGGER'
 var TRIGGER bool = false
 
 // WorkflowList will be responsible for processing the /WorkflowList request that comes through as a POST
-func WorkflowList(c *gin.Context, s *service.Service) <span class="cov0" title="0">{
+func WorkflowList(c *gin.Context, s *service.Service) <span class="cov8" title="1">{
         lh := s.LogHarbour
         lh.Log("WorkflowList request received")
         var (
@@ -2282,22 +2520,21 @@ func WorkflowList(c *gin.Context, s *service.Service) <span class="cov0" title="
         }</span>
 
         // Check for validation error
-        <span class="cov0" title="0">valError := wscutils.WscValidate(request, func(err validator.FieldError) []string </span><span class="cov0" title="0">{ return []string{} }</span>)
-        <span class="cov0" title="0">if len(valError) &gt; 0 </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">valError := wscutils.WscValidate(request, func(err validator.FieldError) []string </span><span class="cov0" title="0">{ return []string{} }</span>)
+        <span class="cov8" title="1">if len(valError) &gt; 0 </span><span class="cov0" title="0">{
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, valError))
                 lh.LogActivity("validation error:", valError)
                 return
         }</span>
 
-        <span class="cov0" title="0">query, ok := s.Dependencies["queries"].(*sqlc.Queries)
+        <span class="cov8" title="1">query, ok := s.Dependencies["queries"].(*sqlc.Queries)
         if !ok </span><span class="cov0" title="0">{
                 lh.Log("Error while getting query instance from service Dependencies")
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
                 return
         }</span>
-
         // Populate parameters
-        <span class="cov0" title="0">populateParams(&amp;request, &amp;params)
+        <span class="cov8" title="1">populateParams(&amp;request, &amp;params)
 
         // Check if the caller has root capabilities
         hasRootCapabilities := HasRootCapabilities()
@@ -2305,8 +2542,8 @@ func WorkflowList(c *gin.Context, s *service.Service) <span class="cov0" title="
         // Process the request based on the provided BRD
         dbResponse, err = processRequest(c, lh, hasRootCapabilities, query, params, &amp;request)
 
-        if err != nil </span><span class="cov0" title="0">{
-                if err.Error() == AUTH_ERROR </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
+                if err.Error() == AUTH_ERROR </span><span class="cov8" title="1">{
                         // Generate "auth" error
                         wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Unauthorized, server.ErrCode_Unauthorized, nil)}))
                         return
@@ -2316,107 +2553,96 @@ func WorkflowList(c *gin.Context, s *service.Service) <span class="cov0" title="
                 return</span>
         }
 
-        <span class="cov0" title="0">lh.Log(fmt.Sprintf("Record found: %v", map[string]any{"workflows": dbResponse}))
+        <span class="cov8" title="1">lh.Log(fmt.Sprintf("Record found: %v", map[string]any{"workflows": dbResponse}))
 
         wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(map[string][]sqlc.WorkflowListRow{"workflows": dbResponse}))</span>
 }
 
 // Function to populate parameters from the request
-func populateParams(request *WorkflowListReq, params *WorkflowListParams) <span class="cov0" title="0">{
-        if request.Slice != nil </span><span class="cov0" title="0">{
+func populateParams(request *WorkflowListReq, params *WorkflowListParams) <span class="cov8" title="1">{
+        if request.Slice != nil </span><span class="cov8" title="1">{
                 params.Slice = *request.Slice
         }</span>
 
-        <span class="cov0" title="0">if request.App != nil </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if request.App != nil </span><span class="cov8" title="1">{
                 params.App = *request.App
         }</span>
-        <span class="cov0" title="0">if request.Class != nil </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if request.Class != nil </span><span class="cov8" title="1">{
                 params.Class = *request.Class
         }</span>
-        <span class="cov0" title="0">if request.Name != nil </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if request.Name != nil </span><span class="cov8" title="1">{
                 params.Name = *request.Name
         }</span>
-        <span class="cov0" title="0">if request.IsActive != nil </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if request.IsActive != nil </span><span class="cov8" title="1">{
                 params.IsActive = *request.IsActive
         }</span>
-        <span class="cov0" title="0">if request.IsInternal != nil </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if request.IsInternal != nil </span><span class="cov8" title="1">{
                 params.IsInternal = *request.IsInternal
         }</span>
 }
 
 // Function to process the request and get the workflows
-func processRequest(c *gin.Context, lh *logharbour.Logger, hasRootCapabilities bool, query *sqlc.Queries, params WorkflowListParams, request *WorkflowListReq) ([]sqlc.WorkflowListRow, error) <span class="cov0" title="0">{
+func processRequest(c *gin.Context, lh *logharbour.Logger, hasRootCapabilities bool, query *sqlc.Queries, params WorkflowListParams, request *WorkflowListReq) ([]sqlc.WorkflowListRow, error) <span class="cov8" title="1">{
         lh.Log("processRequest request received")
-        if !hasRootCapabilities </span><span class="cov0" title="0">{
+        // implement the user realm here
+        var userRealm int32 = 1
+
+        if !hasRootCapabilities </span><span class="cov8" title="1">{
                 lh.Log("User not have root cap")
                 //  if app parameter is present then
-                if !isStringEmpty(request.App) </span><span class="cov0" title="0">{
+                if !types.IsStringEmpty(request.App) </span><span class="cov8" title="1">{
                         lh.Log("User has app params present")
                         // check if named app matches = user has "ruleset" rights
-                        if HasRulesetRights(*request.App) </span><span class="cov0" title="0">{
+                        if types.HasRulesetRights(*request.App) </span><span class="cov0" title="0">{
                                 lh.Log("User has app rights")
-
                                 return query.WorkflowList(c, sqlc.WorkflowListParams{
                                         Slice:      pgtype.Int4{Int32: *request.Slice, Valid: request.Slice != nil},
                                         App:        []string{*request.App},
-                                        Class:      pgtype.Text{String: *request.Class, Valid: !isStringEmpty(request.Class)},
-                                        Setname:    pgtype.Text{String: *request.Name, Valid: !isStringEmpty(request.Name)},
+                                        Realm:      userRealm,
+                                        Class:      pgtype.Text{String: *request.Class, Valid: !types.IsStringEmpty(request.Class)},
+                                        Setname:    pgtype.Text{String: *request.Name, Valid: !types.IsStringEmpty(request.Name)},
                                         IsActive:   pgtype.Bool{Bool: *request.IsActive, Valid: request.IsActive != nil},
                                         IsInternal: pgtype.Bool{Bool: *request.IsInternal, Valid: request.IsInternal != nil},
                                 })
                         }</span>
-                        <span class="cov0" title="0">lh.Log("User not have 'ruleset' rights")
+                        <span class="cov8" title="1">lh.Log("User not have 'ruleset' rights")
                         // if user doesn't have "ruleset" rights then -&gt; "auth" error
                         return nil, fmt.Errorf(AUTH_ERROR)</span>
                 }
                 // show the workflows of all the apps for which the user has "ruleset" rights
-                <span class="cov0" title="0">app := GetWorkflowsByRulesetRights()
+                <span class="cov8" title="1">app := types.GetWorkflowsByRulesetRights()
                 lh.LogActivity("app not present hence all user 'ruleset' rights:", app)
                 return query.WorkflowList(c, sqlc.WorkflowListParams{
-                        App: app,
+                        App:   app,
+                        Realm: userRealm,
                 })</span>
         }
 
-        <span class="cov0" title="0">if !isStringEmpty(request.App) </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if !types.IsStringEmpty(request.App) </span><span class="cov0" title="0">{
                 lh.Log("User have root cap with 'app'")
                 // the workflows of that app
                 return query.WorkflowList(c, sqlc.WorkflowListParams{
                         Slice:      pgtype.Int4{Int32: *request.Slice, Valid: request.Slice != nil},
                         App:        []string{*request.App},
-                        Class:      pgtype.Text{String: *request.Class, Valid: !isStringEmpty(request.Class)},
-                        Setname:    pgtype.Text{String: *request.Name, Valid: !isStringEmpty(request.Name)},
+                        Realm:      userRealm,
+                        Class:      pgtype.Text{String: *request.Class, Valid: !types.IsStringEmpty(request.Class)},
+                        Setname:    pgtype.Text{String: *request.Name, Valid: !types.IsStringEmpty(request.Name)},
                         IsActive:   pgtype.Bool{Bool: *request.IsActive, Valid: request.IsActive != nil},
                         IsInternal: pgtype.Bool{Bool: *request.IsInternal, Valid: request.IsInternal != nil},
                 })
         }</span>
-        <span class="cov0" title="0">lh.Log("User have root cap and 'app' is nil")
+        <span class="cov8" title="1">lh.Log("User have root cap and 'app' is nil")
         // the workflows of all the apps in the realm
-        return query.WorkflowList(c, sqlc.WorkflowListParams{})</span>
+        return query.WorkflowList(c, sqlc.WorkflowListParams{Realm: userRealm})</span>
 }
 
-// to check given string is nil or not
-func isStringEmpty(s *string) bool <span class="cov0" title="0">{
-        return s == nil || strings.TrimSpace(*s) == ""
-}</span>
-
-// to check if the user has "ruleset" rights for the given app
-func HasRulesetRights(app string) bool <span class="cov0" title="0">{
-        userRights := GetWorkflowsByRulesetRights()
-        return slices.Contains(userRights, app)
-}</span>
-
 // to check if the caller has root capabilities
-func HasRootCapabilities() bool <span class="cov0" title="0">{
+func HasRootCapabilities() bool <span class="cov8" title="1">{
         return TRIGGER
-}</span>
-
-// to get workflows for all apps for which the user has "ruleset" rights
-func GetWorkflowsByRulesetRights() []string <span class="cov0" title="0">{
-        return []string{"retailBANK", "nedbank"}
 }</span>
 </pre>
 		
-		<pre class="file" id="file15" style="display: none">package workflow
+		<pre class="file" id="file16" style="display: none">package workflow
 
 import (
         "encoding/json"
@@ -2433,6 +2659,13 @@ import (
         "github.com/remiges-tech/crux/db/sqlc-gen"
         "github.com/remiges-tech/crux/server"
         "github.com/remiges-tech/crux/server/schema"
+        "github.com/remiges-tech/crux/types"
+)
+
+var (
+        username     = "admin"
+        capabilities = []string{"ruleset"}
+        realmID      = int32(1)
 )
 
 type WorkflowNew struct {
@@ -2446,9 +2679,19 @@ type WorkflowNew struct {
 
 func WorkFlowNew(c *gin.Context, s *service.Service) <span class="cov8" title="1">{
         l := s.LogHarbour
-        l.Log("Starting execution of WorkFlowNew()")
+        l.Debug0().Log("Starting execution of WorkFlowNew()")
 
-        var wf WorkflowNew
+        isCapable, _ := types.Authz_check(types.OpReq{
+                User:      username,
+                CapNeeded: capabilities,
+        }, false)
+
+        if !isCapable </span><span class="cov0" title="0">{
+                l.Info().LogActivity("Unauthorized user:", username)
+                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
+                return
+        }</span>
+        <span class="cov8" title="1">var wf WorkflowNew
         var ruleSchema schema.Schema
 
         err := wscutils.BindJSON(c, &amp;wf)
@@ -2459,26 +2702,27 @@ func WorkFlowNew(c *gin.Context, s *service.Service) <span class="cov8" title="1
 
         <span class="cov8" title="1">validationErrors := wscutils.WscValidate(wf, func(err validator.FieldError) []string </span><span class="cov8" title="1">{ return []string{} }</span>)
         <span class="cov8" title="1">if len(validationErrors) &gt; 0 </span><span class="cov8" title="1">{
+                l.Debug0().LogDebug("standard validation errors", validationErrors)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
                 return
         }</span>
 
         <span class="cov8" title="1">query, ok := s.Dependencies["queries"].(*sqlc.Queries)
         if !ok </span><span class="cov0" title="0">{
-                l.Log("Error while getting query instance from service Dependencies")
+                l.Debug0().Log("Error while getting query instance from service Dependencies")
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
                 return
         }</span>
 
         <span class="cov8" title="1">connpool, ok := s.Database.(*pgxpool.Pool)
         if !ok </span><span class="cov0" title="0">{
-                l.Log("Error while getting connection pool instance from service Dependencies")
+                l.Debug0().Log("Error while getting connection pool instance from service Database")
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
                 return
         }</span>
         <span class="cov8" title="1">tx, err := connpool.Begin(c)
         if err != nil </span><span class="cov0" title="0">{
-                l.LogActivity("Error while Begin tx", err.Error())
+                l.Info().LogActivity("Error while Begin tx", err.Error())
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
                 return
         }</span>
@@ -2491,8 +2735,8 @@ func WorkFlowNew(c *gin.Context, s *service.Service) <span class="cov8" title="1
                 Class: wf.Class,
         })
         if err != nil </span><span class="cov0" title="0">{
-                l.LogActivity("failed to get schema from DB:", err.Error())
-                errmsg := db.ErrorMessage(err)
+                l.Info().LogActivity("failed to get schema from DB:", err.Error())
+                errmsg := db.HandleDatabaseError(err)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
                 return
         }</span>
@@ -2501,13 +2745,13 @@ func WorkFlowNew(c *gin.Context, s *service.Service) <span class="cov8" title="1
         ruleSchema.Class = wf.Class
         err = json.Unmarshal([]byte(schema.Patternschema), &amp;ruleSchema.PatternSchema)
         if err != nil </span><span class="cov0" title="0">{
-                l.LogActivity("Error while Unmarshalling PatternSchema", err)
+                l.Debug1().LogDebug("Error while Unmarshalling PatternSchema", err)
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
                 return
         }</span>
         <span class="cov8" title="1">err = json.Unmarshal(schema.Actionschema, &amp;ruleSchema.ActionSchema)
         if err != nil </span><span class="cov0" title="0">{
-                l.LogActivity("Error while Unmarshaling ActionSchema", err)
+                l.Debug1().LogDebug("Error while Unmarshaling ActionSchema", err)
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
                 return
         }</span>
@@ -2516,6 +2760,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) <span class="cov8" title="1
         <span class="cov8" title="1">customValidationErrors := customValidationErrors(wf, ruleSchema)
         validationErrors = append(validationErrors, customValidationErrors...)
         if len(validationErrors) &gt; 0 </span><span class="cov8" title="1">{
+                l.Debug0().LogDebug("custom validation errors", validationErrors)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
                 return
         }</span>
@@ -2523,7 +2768,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) <span class="cov8" title="1
         <span class="cov8" title="1">ruleset, err := json.Marshal(wf.Flowrules)
         if err != nil </span><span class="cov0" title="0">{
                 patternSchema := "flowrules"
-                l.LogDebug("Error while marshaling Flowrules", err)
+                l.Debug1().LogDebug("Error while marshaling Flowrules", err)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_InvalidRequest, &amp;patternSchema)}))
                 return
         }</span>
@@ -2534,26 +2779,26 @@ func WorkFlowNew(c *gin.Context, s *service.Service) <span class="cov8" title="1
                 App:        wf.App,
                 Brwf:       brwf,
                 Class:      wf.Class,
-                Setname:    setBy,
+                Setname:    wf.Name,
                 Schemaid:   schema.ID,
                 IsActive:   pgtype.Bool{Bool: false, Valid: true},
                 IsInternal: wf.IsInternal,
                 Ruleset:    ruleset,
-                Createdby:  setBy,
+                Createdby:  username,
         })
         if err != nil </span><span class="cov0" title="0">{
-                l.LogActivity("Error while Inserting data in ruleset", err.Error())
-                errmsg := db.ErrorMessage(err)
+                l.Info().LogActivity("Error while Inserting data in ruleset", err.Error())
+                errmsg := db.HandleDatabaseError(err)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
                 return
         }</span>
         <span class="cov8" title="1">if err := tx.Commit(c); err != nil </span><span class="cov0" title="0">{
-                l.LogActivity("Error while commits the transaction", err.Error())
+                l.Info().LogActivity("Error while commits the transaction", err.Error())
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
                 return
         }</span>
         <span class="cov8" title="1">wscutils.SendSuccessResponse(c, &amp;wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})
-        l.Log("Finished execution of WorkFlowNew()")</span>
+        l.Debug0().Log("Finished execution of WorkFlowNew()")</span>
 }
 
 func customValidationErrors(wf WorkflowNew, ruleSchema schema.Schema) []wscutils.ErrorMessage <span class="cov8" title="1">{
@@ -2734,11 +2979,12 @@ func getNextStep(props []Property) string <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file16" style="display: none">package workflow
+		<pre class="file" id="file17" style="display: none">package workflow
 
 import (
         "encoding/json"
         "fmt"
+        "strings"
 
         "github.com/gin-gonic/gin"
         "github.com/go-playground/validator/v10"
@@ -2750,6 +2996,7 @@ import (
         "github.com/remiges-tech/crux/db/sqlc-gen"
         "github.com/remiges-tech/crux/server"
         "github.com/remiges-tech/crux/server/schema"
+        "github.com/remiges-tech/logharbour/logharbour"
 )
 
 type WorkflowUpdate struct {
@@ -2762,7 +3009,7 @@ type WorkflowUpdate struct {
 
 func WorkFlowUpdate(c *gin.Context, s *service.Service) <span class="cov8" title="1">{
         l := s.LogHarbour
-        l.Log("Starting execution of WorkflowUpdate()")
+        l.Debug0().Log("Starting execution of WorkflowUpdate()")
 
         var wf WorkflowUpdate
         var ruleSchema schema.Schema
@@ -2775,20 +3022,21 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) <span class="cov8" title
 
         <span class="cov8" title="1">validationErrors := wscutils.WscValidate(wf, func(err validator.FieldError) []string </span><span class="cov8" title="1">{ return []string{} }</span>)
         <span class="cov8" title="1">if len(validationErrors) &gt; 0 </span><span class="cov8" title="1">{
+                l.Debug0().LogDebug("standard validation errors", validationErrors)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
                 return
         }</span>
 
         <span class="cov8" title="1">query, ok := s.Dependencies["queries"].(*sqlc.Queries)
         if !ok </span><span class="cov0" title="0">{
-                l.Log("Error while getting query instance from service Dependencies")
+                l.Debug0().Log("Error while getting query instance from service Dependencies")
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
                 return
         }</span>
 
         <span class="cov8" title="1">connpool, ok := s.Database.(*pgxpool.Pool)
         if !ok </span><span class="cov0" title="0">{
-                l.Log("Error while getting connection pool instance from service Dependencies")
+                l.Debug0().Log("Error while getting connection pool instance from service Database")
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
                 return
         }</span>
@@ -2808,7 +3056,7 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) <span class="cov8" title
         })
         if err != nil </span><span class="cov0" title="0">{
                 l.LogActivity("failed to get schema from DB:", err.Error())
-                errmsg := db.ErrorMessage(err)
+                errmsg := db.HandleDatabaseError(err)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
                 return
         }</span>
@@ -2817,13 +3065,13 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) <span class="cov8" title
         ruleSchema.Class = wf.Class
         err = json.Unmarshal([]byte(schema.Patternschema), &amp;ruleSchema.PatternSchema)
         if err != nil </span><span class="cov0" title="0">{
-                l.LogActivity("Error while Unmarshalling PatternSchema", err)
+                l.Debug1().LogDebug("Error while Unmarshalling PatternSchema", err)
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
                 return
         }</span>
         <span class="cov8" title="1">err = json.Unmarshal(schema.Actionschema, &amp;ruleSchema.ActionSchema)
         if err != nil </span><span class="cov0" title="0">{
-                l.LogActivity("Error while Unmarshaling ActionSchema", err)
+                l.Debug1().LogDebug("Error while Unmarshaling ActionSchema", err)
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
                 return
         }</span>
@@ -2832,31 +3080,49 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) <span class="cov8" title
         <span class="cov8" title="1">customValidationErrors := customValidationErrorsForUpdate(wf, ruleSchema)
         validationErrors = append(validationErrors, customValidationErrors...)
         if len(validationErrors) &gt; 0 </span><span class="cov8" title="1">{
+                l.Debug0().LogDebug("custom validation errors", validationErrors)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
                 return
         }</span>
 
-        <span class="cov8" title="1">ruleset, err := json.Marshal(wf.Flowrules)
+        <span class="cov8" title="1">flowrules, err := json.Marshal(wf.Flowrules)
         if err != nil </span><span class="cov0" title="0">{
                 patternSchema := "flowrules"
-                l.LogDebug("Error while marshaling Flowrules", err)
+                l.Debug1().LogDebug("Error while marshaling Flowrules", err)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_InvalidRequest, &amp;patternSchema)}))
                 return
         }</span>
 
-        <span class="cov8" title="1">err = qtx.WorkFlowUpdate(c, sqlc.WorkFlowUpdateParams{
+        <span class="cov8" title="1">ruleset, err := qtx.RulesetRowLock(c, sqlc.RulesetRowLockParams{
+                Slice: wf.Slice,
+                App:   wf.App,
+                Class: wf.Class,
+        })
+        if err != nil </span><span class="cov0" title="0">{
+                l.LogActivity("Error while locking row of ruleset", err.Error())
+                errmsg := db.HandleDatabaseError(err)
+                wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+                return
+        }</span>
+
+        <span class="cov8" title="1">tag, err := qtx.WorkFlowUpdate(c, sqlc.WorkFlowUpdateParams{
                 Slice:    wf.Slice,
                 App:      wf.App,
                 Brwf:     brwf,
                 Class:    wf.Class,
-                Setname:  setBy,
-                Ruleset:  ruleset,
+                Setname:  wf.Name,
+                Ruleset:  flowrules,
                 Editedby: pgtype.Text{String: editedBy, Valid: true},
         })
         if err != nil </span><span class="cov0" title="0">{
                 l.LogActivity("Error while Updating data in ruleset", err.Error())
-                errmsg := db.ErrorMessage(err)
+                errmsg := db.HandleDatabaseError(err)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+                return
+        }</span>
+        <span class="cov8" title="1">if strings.Contains(tag.String(), "0") </span><span class="cov0" title="0">{
+                l.Log("no row found to update")
+                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ErrCode_NotFound))
                 return
         }</span>
         <span class="cov8" title="1">if err := tx.Commit(c); err != nil </span><span class="cov0" title="0">{
@@ -2864,8 +3130,27 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) <span class="cov8" title
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
                 return
         }</span>
-        <span class="cov8" title="1">wscutils.SendSuccessResponse(c, &amp;wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})
-        l.Log("Finished execution of WorkflowUpdate()")</span>
+        <span class="cov8" title="1">dclog := l.WithWhatClass("ruleset").WithWhatInstanceId(string(ruleset.ID))
+        dclog.LogDataChange("Updated ruleset", logharbour.ChangeInfo{
+                Entity:    "ruleset",
+                Operation: "Update",
+                Changes: []logharbour.ChangeDetail{
+                        {
+                                Field:    "brwf",
+                                OldValue: ruleset.Brwf,
+                                NewValue: brwf},
+                        {
+                                Field:    "setname",
+                                OldValue: ruleset.Setname,
+                                NewValue: wf.Name},
+                        {
+                                Field:    "ruleset",
+                                OldValue: string(ruleset.Ruleset),
+                                NewValue: wf.Flowrules},
+                },
+        })
+        wscutils.SendSuccessResponse(c, &amp;wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})
+        l.Debug0().Log("Finished execution of WorkflowUpdate()")</span>
 
 }
 
@@ -2987,7 +3272,7 @@ func verifyRuleActionsForUpdate(ruleSet WorkflowUpdate, ruleSchema schema.Schema
 }
 </pre>
 		
-		<pre class="file" id="file17" style="display: none">package testutils
+		<pre class="file" id="file18" style="display: none">package testutils
 
 import (
         "encoding/json"
@@ -3030,7 +3315,7 @@ type TestCasesStruct struct {
 }
 </pre>
 		
-		<pre class="file" id="file18" style="display: none">package types
+		<pre class="file" id="file19" style="display: none">package types
 
 import (
         "encoding/json"
@@ -3038,6 +3323,8 @@ import (
         "io"
         "log"
         "os"
+        "slices"
+        "strings"
 
         "github.com/go-playground/validator/v10"
 )
@@ -3100,8 +3387,6 @@ type ActionSchema struct {
         Properties []string `json:"properties" validate:"required"`
 }
 
-
-
 func (env Environment) IsValid() bool <span class="cov0" title="0">{
         switch env </span>{
         case DevEnv, ProdEnv, UATEnv:<span class="cov0" title="0">
@@ -3149,6 +3434,27 @@ func ReadJsonFromFile(filepath string) ([]byte, error) <span class="cov8" title=
         }</span>
         <span class="cov8" title="1">return jsonData, nil</span>
 }
+
+// to check given string is nil or not
+func IsStringEmpty(s *string) bool <span class="cov8" title="1">{
+        return s == nil || strings.TrimSpace(*s) == ""
+}</span>
+
+// to check if the user has "ruleset" rights for the given app
+func HasRulesetRights(app string) bool <span class="cov8" title="1">{
+        userRights := GetWorkflowsByRulesetRights()
+        return slices.Contains(userRights, app)
+}</span>
+
+// to get workflows for all apps for which the user has "ruleset" rights
+func GetWorkflowsByRulesetRights() []string <span class="cov8" title="1">{
+        return []string{"retailBANK", "nedbank"}
+}</span>
+
+func Authz_check(op OpReq, trace bool) (bool, []string) <span class="cov8" title="1">{
+        var caplist []string
+        return true, caplist
+}</span>
 </pre>
 		
 		</div>
