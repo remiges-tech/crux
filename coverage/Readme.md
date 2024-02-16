@@ -19,4 +19,11 @@ go test -coverprofile=./coverage/coverage_schema.out -coverpkg=./... server/sche
 2. coverage_workflow :
 go test -coverprofile=./coverage/coverage_workflow.out -coverpkg=./... server/workflow/test/workflow_delete_test.go server/workflow/test/workflow_get_test.go server/workflow/test/workflow_list_test.go server/workflow/test/workflow_new_test.go server/workflow/test/workflow_update_test.go  server/workflow/test/main_test.go
 
-go tool cover -html=./coverage/coverage_workflow.out -o ./coverage/coverage_workflow.html
+go tool cover -html=./coverage/coverage_workflow.out -o ./coverage/coverage_workflow.html -html=./coverage/coverage_schema.out -o ./coverage/coverage_schema.html
+
+
+3. coverage_wfinstancenew :
+go test -coverprofile=./coverage/coverage_wfinstancenew.out -coverpkg=./... server/wfinstance/test/wfinstance_test.go server/wfinstance/test/main_test.go
+
+go tool cover -html=./coverage/coverage_wfinstancenew.out -o ./coverage/coverage_wfinstancenew.html -html=./coverage/coverage_wfinstancenew.out -o ./coverage/coverage_wfinstancenew.html
+

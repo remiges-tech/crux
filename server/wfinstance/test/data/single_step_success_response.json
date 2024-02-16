@@ -3,13 +3,13 @@
   "data": {
     "tasks": [
       {
-        "yearendsale": 78
+        "diwalisale": 1
       }
     ],
     "nextstep": "",
-    "loggedat": "2024-02-15T15:16:08.406569Z",
+    "loggedat": "2024-02-16T18:28:45.855894Z",
     "subflows": {
-      "yearendsale": "doyearendsalecheck"
+      "diwalisale": "dodiscountcheck"
     },
     "tracedata": null
   },

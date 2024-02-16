@@ -99,11 +99,11 @@ func ConvertToPGType(value int32) pgtype.Int4 {
 // response structure
 func getResponse(r ResponseRequest) WFInstanceNewResponse {
 	var tasks []map[string]int32
-	var loggdates []pgtype.Timestamp
+	var loggedDate pgtype.Timestamp
 	var response WFInstanceNewResponse
 
 	lh := r.Service.LogHarbour
-	lh.Log("Inside addTasks()")
+	lh.Log("Inside getResponse()")
 
 	for _, val := range r.ResponseData {
 		// adding tasks
@@ -111,24 +111,22 @@ func getResponse(r ResponseRequest) WFInstanceNewResponse {
 		task[val.Step] = val.ID
 		tasks = append(tasks, task)
 		//loggingdates
-		loggdates = append(loggdates, val.Loggedat)
-
+		loggedDate = val.Loggedat
 	}
-
 	//var response WFInstanceNewResponse
 	if len(tasks) > 1 {
 		// response for multiple task steps
 		response = WFInstanceNewResponse{
 			Tasks:    tasks,
 			Nextstep: r.NextStep,
-			Loggedat: loggdates[len(loggdates)-1],
+			Loggedat: loggedDate,
 			Subflows: &r.Subflow,
 		}
 	} else {
 		//response for single task step
 		response = WFInstanceNewResponse{
 			Tasks:    tasks,
-			Loggedat: loggdates[len(loggdates)-1],
+			Loggedat: loggedDate,
 			Subflows: &r.Subflow,
 		}
 	}

@@ -34,7 +34,7 @@ type WFInstanceNewResponse struct {
 // GetWFinstanceNew will be responsible for processing the /wfinstanceNew request that comes through as a POST
 func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour
-	lh.Log("GetWFinstanceNew request received")
+	lh.Debug0().Log("GetWFinstanceNew request received")
 	var wfinstanceNewreq WFInstanceNewRequest
 	var actionSet ActionSet
 	var ruleSet RuleSet
@@ -62,6 +62,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	existingEntity := wfinstanceNewreq.Entity
 	isValidReq, errStr := validateWFInstanceNewReq(wfinstanceNewreq, s, c)
 	if len(errStr) > 0 || !isValidReq {
+		lh.Debug0().LogActivity("request validation error:", errStr)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, errStr))
 		return
 
@@ -82,7 +83,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	// To verify actionSet Properties and get their values
 	attribute, error := getValidPropertyAttr(actionSet)
 	if error != nil {
-		lh.LogActivity("error while verifying actionset properties :", error.Error())
+		lh.Debug0().LogActivity("error while verifying actionset properties :", error.Error())
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid_property_attributes))
 		return
 	}
@@ -100,9 +101,9 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	}
 
 	// To add records in table
-	steps = actionSet.tasks
+	steps = actionSet.Tasks
 	// if tasks of actionset contains only one task
-	if len(actionSet.tasks) == 1 && done == "" {
+	if len(actionSet.Tasks) == 1 && done == "" {
 		addTaskRequest := AddTaskRequest{
 			Steps:    steps,
 			Nextstep: steps[0],
@@ -119,7 +120,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 
 	}
 	// if tasks of actionset contains multiple tasks
-	if len(actionSet.tasks) > 1 && done == "" {
+	if len(actionSet.Tasks) > 1 && done == "" {
 		addTaskRequest := AddTaskRequest{
 			Steps:    steps,
 			Nextstep: nextStep,
@@ -140,7 +141,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 // To verify whether actionset.properties attributes valid and get their values
 func getValidPropertyAttr(a ActionSet) (map[string]string, error) {
 	attribute := make(map[string]string)
-	attributes := a.properties
+	attributes := a.Properties
 	for attr, val := range attributes {
 		if attr == DONE {
 			attribute[attr] = val
