@@ -27,14 +27,14 @@ func HandleDatabaseError(err error) wscutils.ErrorMessage {
 		case "23502": //not_null_violation
 			return wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_Empty, &pgErr.ConstraintName)
 		case "0A000": //ERROR: cached plan must not change result type (SQLSTATE 0A000)
+
 			return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_Internal_Retry, nil)
 		case "XX000": //ERROR: cache lookup failed for type 67119 (SQLSTATE XX000)
 			return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_Internal_Retry, nil)
-
 		}
 	} else if err.Error() == "no rows in result set" {
-		feild := "slice/app/class"
-		return wscutils.BuildErrorMessage(1006, server.ErrCode_InvalidRequest, &feild)
+		field := "slice/app/class"
+		return wscutils.BuildErrorMessage(1006, server.ErrCode_InvalidRequest, &field)
 	} else {
 		return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_DatabaseError, nil)
 	}

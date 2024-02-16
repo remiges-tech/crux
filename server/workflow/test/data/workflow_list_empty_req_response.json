@@ -20,12 +20,12 @@
                 "slice": 2,
                 "app": "retailBANK",
                 "class": "inventoryitems",
-                "name": "discountcheck",
+                "name": "workflow",
                 "is_active": true,
                 "is_internal": false,
                 "createdat": "2024-01-28T00:00:00Z",
                 "createdby": "admin",
-                "editedat": "2024-01-15T00:00:00Z",
+                "editedat": "2024-02-16T12:36:32.319973Z",
                 "editedby": "admin"
             },
             {
@@ -40,6 +40,19 @@
                 "createdby": "admin",
                 "editedat": "2024-01-15T00:00:00Z",
                 "editedby": "admin"
+            },
+            {
+                "id": 1,
+                "slice": 2,
+                "app": "retailBANK",
+                "class": "retailcustomer",
+                "name": "workflow",
+                "is_active": false,
+                "is_internal": true,
+                "createdat": "2024-02-16T12:36:40.532922Z",
+                "createdby": "admin",
+                "editedat": "2024-02-16T12:36:40.532922Z",
+                "editedby": null
             },
             {
                 "id": 7,

@@ -79,7 +79,7 @@
 				
 				<option value="file11">github.com/remiges-tech/crux/server/schema/schema_new.go (78.8%)</option>
 				
-				<option value="file12">github.com/remiges-tech/crux/server/schema/schema_update.go (65.8%)</option>
+				<option value="file12">github.com/remiges-tech/crux/server/schema/schema_update.go (66.1%)</option>
 				
 				<option value="file13">github.com/remiges-tech/crux/testutils/test_utils.go (75.0%)</option>
 				
@@ -126,14 +126,14 @@ func HandleDatabaseError(err error) wscutils.ErrorMessage <span class="cov0" tit
                 case "23502":<span class="cov0" title="0"> //not_null_violation
                         return wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_Empty, &amp;pgErr.ConstraintName)</span>
                 case "0A000":<span class="cov0" title="0"> //ERROR: cached plan must not change result type (SQLSTATE 0A000)
+
                         return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_Internal_Retry, nil)</span>
                 case "XX000":<span class="cov0" title="0"> //ERROR: cache lookup failed for type 67119 (SQLSTATE XX000)
                         return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_Internal_Retry, nil)</span>
-
                 }
         } else<span class="cov0" title="0"> if err.Error() == "no rows in result set" </span><span class="cov0" title="0">{
-                feild := "slice/app/class"
-                return wscutils.BuildErrorMessage(1006, server.ErrCode_InvalidRequest, &amp;feild)
+                field := "slice/app/class"
+                return wscutils.BuildErrorMessage(1006, server.ErrCode_InvalidRequest, &amp;field)
         }</span> else<span class="cov0" title="0"> {
                 return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_DatabaseError, nil)
         }</span>
@@ -2210,8 +2210,8 @@ func schemaUpdateWithTX(c context.Context, query *sqlc.Queries, connpool *pgxpoo
         <span class="cov8" title="1">if err := tx.Commit(c); err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
-
-        <span class="cov8" title="1">l.LogDataChange("Updated schema", logharbour.ChangeInfo{
+        <span class="cov8" title="1">dclog := l.WithWhatClass("schema").WithWhatInstanceId(string(schema.ID))
+        dclog.LogDataChange("Updated schema", logharbour.ChangeInfo{
                 Entity:    "schema",
                 Operation: "Update",
                 Changes: []logharbour.ChangeDetail{
