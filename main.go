@@ -126,7 +126,13 @@ func main() {
 		WithDatabase(connPool).
 		WithDependency("queries", queries)
 
+	serviceBRE := service.NewService(r).
+		WithLogHarbour(l).
+		WithDatabase(connPool).
+		WithDependency("queries", queries)
+
 	apiV1Group := r.Group("/api/v1/")
+	apiV1GroupBRE := r.Group("/api/v1") // maybe use a different group-name here
 
 	// Schema
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfschemaget", schema.SchemaGet)
@@ -143,11 +149,18 @@ func main() {
 
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstancenew", wfinstance.GetWFinstanceNew)
 
+	// -------- schema for BRE ---------------
+	serviceBRE.RegisterRouteWithGroup(apiV1GroupBRE, http.MethodPost, "/BREschemaget", schema.SchemaGet)
+	serviceBRE.RegisterRouteWithGroup(apiV1GroupBRE, http.MethodDelete, "/BREschemadelete", schema.SchemaDelete)
+	serviceBRE.RegisterRouteWithGroup(apiV1GroupBRE, http.MethodPost, "/BREschemaList", schema.SchemaList)
+	serviceBRE.RegisterRouteWithGroup(apiV1GroupBRE, http.MethodPost, "/BREschemaNew", schema.SchemaNew)
+	serviceBRE.RegisterRouteWithGroup(apiV1GroupBRE, http.MethodPut, "/BREschemaUpdate", schema.SchemaUpdate)
+	// ------- schema for BRE Ends here -------
+
 	appServerPortStr := strconv.Itoa(appServerPort)
 	r.Run(":" + appServerPortStr)
 	if err != nil {
 		l.LogActivity("Failed to start server", err)
 		log.Fatalf("Failed to start server: %v", err)
 	}
-
 }
