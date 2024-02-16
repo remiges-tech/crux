@@ -1,0 +1,2563 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>db: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/remiges-tech/crux/db/error.go (0.0%)</option>
+				
+				<option value="file1">github.com/remiges-tech/crux/db/pg.go (75.0%)</option>
+				
+				<option value="file2">github.com/remiges-tech/crux/db/sqlc-gen/db.go (50.0%)</option>
+				
+				<option value="file3">github.com/remiges-tech/crux/db/sqlc-gen/models.go (0.0%)</option>
+				
+				<option value="file4">github.com/remiges-tech/crux/db/sqlc-gen/ruleset.sql.go (39.0%)</option>
+				
+				<option value="file5">github.com/remiges-tech/crux/db/sqlc-gen/schema.sql.go (3.1%)</option>
+				
+				<option value="file6">github.com/remiges-tech/crux/db/sqlc-gen/stepworkflow.sql.go (76.9%)</option>
+				
+				<option value="file7">github.com/remiges-tech/crux/db/sqlc-gen/wfinstance.sql.go (82.4%)</option>
+				
+				<option value="file8">github.com/remiges-tech/crux/server/wfinstance/do_match.go (66.7%)</option>
+				
+				<option value="file9">github.com/remiges-tech/crux/server/wfinstance/wfinstance.go (63.5%)</option>
+				
+				<option value="file10">github.com/remiges-tech/crux/server/wfinstance/wfinstancenew_add.go (84.6%)</option>
+				
+				<option value="file11">github.com/remiges-tech/crux/server/wfinstance/wfinstancenew_validation.go (63.7%)</option>
+				
+				<option value="file12">github.com/remiges-tech/crux/testutils/test_utils.go (0.0%)</option>
+				
+				<option value="file13">github.com/remiges-tech/crux/types/types.go (34.6%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package db
+
+import (
+        "errors"
+
+        "github.com/jackc/pgx/v5/pgconn"
+        "github.com/remiges-tech/alya/wscutils"
+        "github.com/remiges-tech/crux/server"
+)
+
+// The function HandleDatabaseError first checks if the error is a PostgreSQL-specific error
+//        by attempting to cast it to a *pgconn.PgError. If successful, it examines the PostgreSQL
+//        error code to determine the nature of the error.If none of the above conditions are met,
+//        it constructs a generic error message indicating an internal server error related to
+
+// the database.
+func HandleDatabaseError(err error) wscutils.ErrorMessage <span class="cov0" title="0">{
+        var pgErr *pgconn.PgError
+
+        if errors.As(err, &amp;pgErr) </span><span class="cov0" title="0">{
+                switch pgErr.Code </span>{
+                case "23505":<span class="cov0" title="0"> //unique_violation
+                        return wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_AlreadyExist, &amp;pgErr.ConstraintName)</span>
+                case "23503":<span class="cov0" title="0"> //foreign_key_violation
+                        return wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_NotFound, &amp;pgErr.ConstraintName)</span>
+                case "23502":<span class="cov0" title="0"> //not_null_violation
+                        return wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_Empty, &amp;pgErr.ConstraintName)</span>
+                case "40001":<span class="cov0" title="0"> //serialization_failure
+                        return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_Internal_Retry, &amp;pgErr.ConstraintName)</span>
+                case "40P01":<span class="cov0" title="0"> //        deadlock_detected
+                        return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_Internal_Retry, &amp;pgErr.ConstraintName)</span>
+                case "08006":<span class="cov0" title="0"> //        connection_failure
+                        return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_Internal_Retry, &amp;pgErr.ConstraintName)</span>
+                case "57P01":<span class="cov0" title="0"> //        admin_shutdown
+                        return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_Internal_Retry, &amp;pgErr.ConstraintName)</span>
+                case "55P03":<span class="cov0" title="0"> //        lock_not_available  Occurs when a transaction waits too long for a lock to be released, exceeding the configured timeout period.
+                        return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_Internal_Retry, &amp;pgErr.ConstraintName)</span>
+                }
+        } else<span class="cov0" title="0"> if err.Error() == "no rows in result set" </span><span class="cov0" title="0">{
+                feild := "slice/app/class"
+                return wscutils.BuildErrorMessage(1006, server.ErrCode_InvalidRequest, &amp;feild)
+        }</span> else<span class="cov0" title="0"> {
+                return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_DatabaseError, nil)
+        }</span>
+        <span class="cov0" title="0">return wscutils.ErrorMessage{}</span>
+}</pre>
+		
+		<pre class="file" id="file1" style="display: none">package db
+
+import (
+        "context"
+
+        "github.com/jackc/pgx/v5/pgxpool"
+)
+
+func NewProvider(connString string) (*pgxpool.Pool, error) <span class="cov8" title="1">{
+        ctx := context.Background()
+        connPool, err := pgxpool.New(ctx, connString)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">err = connPool.Ping(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return connPool, err</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">// Code generated by sqlc. DO NOT EDIT.
+// versions:
+//   sqlc v1.25.0
+
+package sqlc
+
+import (
+        "context"
+
+        "github.com/jackc/pgx/v5"
+        "github.com/jackc/pgx/v5/pgconn"
+)
+
+type DBTX interface {
+        Exec(context.Context, string, ...interface{}) (pgconn.CommandTag, error)
+        Query(context.Context, string, ...interface{}) (pgx.Rows, error)
+        QueryRow(context.Context, string, ...interface{}) pgx.Row
+}
+
+func New(db DBTX) *Queries <span class="cov8" title="1">{
+        return &amp;Queries{db: db}
+}</span>
+
+type Queries struct {
+        db DBTX
+}
+
+func (q *Queries) WithTx(tx pgx.Tx) *Queries <span class="cov0" title="0">{
+        return &amp;Queries{
+                db: tx,
+        }
+}</span>
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">// Code generated by sqlc. DO NOT EDIT.
+// versions:
+//   sqlc v1.25.0
+
+package sqlc
+
+import (
+        "database/sql/driver"
+        "fmt"
+
+        "github.com/jackc/pgx/v5/pgtype"
+)
+
+type BrwfEnum string
+
+const (
+        BrwfEnumB BrwfEnum = "B"
+        BrwfEnumW BrwfEnum = "W"
+)
+
+func (e *BrwfEnum) Scan(src interface{}) error <span class="cov0" title="0">{
+        switch s := src.(type) </span>{
+        case []byte:<span class="cov0" title="0">
+                *e = BrwfEnum(s)</span>
+        case string:<span class="cov0" title="0">
+                *e = BrwfEnum(s)</span>
+        default:<span class="cov0" title="0">
+                return fmt.Errorf("unsupported scan type for BrwfEnum: %T", src)</span>
+        }
+        <span class="cov0" title="0">return nil</span>
+}
+
+type NullBrwfEnum struct {
+        BrwfEnum BrwfEnum `json:"brwf_enum"`
+        Valid    bool     `json:"valid"` // Valid is true if BrwfEnum is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullBrwfEnum) Scan(value interface{}) error <span class="cov0" title="0">{
+        if value == nil </span><span class="cov0" title="0">{
+                ns.BrwfEnum, ns.Valid = "", false
+                return nil
+        }</span>
+        <span class="cov0" title="0">ns.Valid = true
+        return ns.BrwfEnum.Scan(value)</span>
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullBrwfEnum) Value() (driver.Value, error) <span class="cov0" title="0">{
+        if !ns.Valid </span><span class="cov0" title="0">{
+                return nil, nil
+        }</span>
+        <span class="cov0" title="0">return string(ns.BrwfEnum), nil</span>
+}
+
+type App struct {
+        ID          int32            `json:"id"`
+        Realm       string           `json:"realm"`
+        Shortname   string           `json:"shortname"`
+        Shortnamelc string           `json:"shortnamelc"`
+        Longname    string           `json:"longname"`
+        Setby       string           `json:"setby"`
+        Setat       pgtype.Timestamp `json:"setat"`
+}
+
+type Capgrant struct {
+        ID        int32            `json:"id"`
+        Realm     int32            `json:"realm"`
+        User      string           `json:"user"`
+        App       pgtype.Text      `json:"app"`
+        Cap       string           `json:"cap"`
+        From      pgtype.Timestamp `json:"from"`
+        To        pgtype.Timestamp `json:"to"`
+        Setat     pgtype.Timestamp `json:"setat"`
+        Setby     string           `json:"setby"`
+        Isdeleted pgtype.Bool      `json:"isdeleted"`
+}
+
+type Config struct {
+        Realm int32            `json:"realm"`
+        Slice int32            `json:"slice"`
+        Name  string           `json:"name"`
+        Descr string           `json:"descr"`
+        Val   pgtype.Text      `json:"val"`
+        Ver   pgtype.Int4      `json:"ver"`
+        Setby string           `json:"setby"`
+        Setat pgtype.Timestamp `json:"setat"`
+}
+
+type Deactivated struct {
+        ID      int32            `json:"id"`
+        Realm   string           `json:"realm"`
+        User    pgtype.Text      `json:"user"`
+        Deactby string           `json:"deactby"`
+        Deactat pgtype.Timestamp `json:"deactat"`
+}
+
+type Realm struct {
+        ID          int32            `json:"id"`
+        Shortname   string           `json:"shortname"`
+        Shortnamelc string           `json:"shortnamelc"`
+        Longname    string           `json:"longname"`
+        Setby       string           `json:"setby"`
+        Setat       pgtype.Timestamp `json:"setat"`
+        Payload     []byte           `json:"payload"`
+}
+
+type Realmslice struct {
+        ID           int32            `json:"id"`
+        Realm        string           `json:"realm"`
+        Descr        string           `json:"descr"`
+        Active       bool             `json:"active"`
+        Activateat   pgtype.Timestamp `json:"activateat"`
+        Deactivateat pgtype.Timestamp `json:"deactivateat"`
+}
+
+type Ruleset struct {
+        ID         int32            `json:"id"`
+        Realm      int32            `json:"realm"`
+        Slice      int32            `json:"slice"`
+        App        string           `json:"app"`
+        Brwf       BrwfEnum         `json:"brwf"`
+        Class      string           `json:"class"`
+        Setname    string           `json:"setname"`
+        Schemaid   int32            `json:"schemaid"`
+        IsActive   pgtype.Bool      `json:"is_active"`
+        IsInternal bool             `json:"is_internal"`
+        Ruleset    []byte           `json:"ruleset"`
+        Createdat  pgtype.Timestamp `json:"createdat"`
+        Createdby  string           `json:"createdby"`
+        Editedat   pgtype.Timestamp `json:"editedat"`
+        Editedby   pgtype.Text      `json:"editedby"`
+}
+
+type Schema struct {
+        ID            int32            `json:"id"`
+        Realm         int32            `json:"realm"`
+        Slice         int32            `json:"slice"`
+        App           string           `json:"app"`
+        Brwf          BrwfEnum         `json:"brwf"`
+        Class         string           `json:"class"`
+        Patternschema []byte           `json:"patternschema"`
+        Actionschema  []byte           `json:"actionschema"`
+        Createdat     pgtype.Timestamp `json:"createdat"`
+        Createdby     string           `json:"createdby"`
+        Editedat      pgtype.Timestamp `json:"editedat"`
+        Editedby      pgtype.Text      `json:"editedby"`
+}
+
+type Stepworkflow struct {
+        Slice    int32       `json:"slice"`
+        App      pgtype.Text `json:"app"`
+        Step     string      `json:"step"`
+        Workflow string      `json:"workflow"`
+}
+
+type Wfinstance struct {
+        ID       int32            `json:"id"`
+        Entityid string           `json:"entityid"`
+        Slice    int32            `json:"slice"`
+        App      string           `json:"app"`
+        Class    string           `json:"class"`
+        Workflow string           `json:"workflow"`
+        Step     string           `json:"step"`
+        Loggedat pgtype.Timestamp `json:"loggedat"`
+        Doneat   pgtype.Timestamp `json:"doneat"`
+        Nextstep string           `json:"nextstep"`
+        Parent   pgtype.Int4      `json:"parent"`
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">// Code generated by sqlc. DO NOT EDIT.
+// versions:
+//   sqlc v1.25.0
+// source: ruleset.sql
+
+package sqlc
+
+import (
+        "context"
+
+        "github.com/jackc/pgx/v5/pgconn"
+        "github.com/jackc/pgx/v5/pgtype"
+)
+
+const getApp = `-- name: GetApp :one
+SELECT app
+FROM ruleset
+WHERE
+    slice = $1
+    AND app = $2
+    AND class = $3
+    AND realm = $4
+    AND brwf = 'W'
+`
+
+type GetAppParams struct {
+        Slice int32  `json:"slice"`
+        App   string `json:"app"`
+        Class string `json:"class"`
+        Realm int32  `json:"realm"`
+}
+
+func (q *Queries) GetApp(ctx context.Context, arg GetAppParams) (string, error) <span class="cov8" title="1">{
+        row := q.db.QueryRow(ctx, getApp,
+                arg.Slice,
+                arg.App,
+                arg.Class,
+                arg.Realm,
+        )
+        var app string
+        err := row.Scan(&amp;app)
+        return app, err
+}</span>
+
+const getClass = `-- name: GetClass :one
+SELECT class
+FROM ruleset
+WHERE
+    slice = $1
+    AND app = $2
+    AND class = $3
+    AND realm = $4
+    AND brwf = 'W'
+`
+
+type GetClassParams struct {
+        Slice int32  `json:"slice"`
+        App   string `json:"app"`
+        Class string `json:"class"`
+        Realm int32  `json:"realm"`
+}
+
+func (q *Queries) GetClass(ctx context.Context, arg GetClassParams) (string, error) <span class="cov8" title="1">{
+        row := q.db.QueryRow(ctx, getClass,
+                arg.Slice,
+                arg.App,
+                arg.Class,
+                arg.Realm,
+        )
+        var class string
+        err := row.Scan(&amp;class)
+        return class, err
+}</span>
+
+const getWFActiveStatus = `-- name: GetWFActiveStatus :one
+SELECT is_active
+FROM ruleset
+WHERE
+    slice = $1
+    AND app = $2
+    AND class = $3
+    AND realm = $4
+    AND brwf = 'W'
+    AND setname = $5
+`
+
+type GetWFActiveStatusParams struct {
+        Slice   int32  `json:"slice"`
+        App     string `json:"app"`
+        Class   string `json:"class"`
+        Realm   int32  `json:"realm"`
+        Setname string `json:"setname"`
+}
+
+func (q *Queries) GetWFActiveStatus(ctx context.Context, arg GetWFActiveStatusParams) (pgtype.Bool, error) <span class="cov8" title="1">{
+        row := q.db.QueryRow(ctx, getWFActiveStatus,
+                arg.Slice,
+                arg.App,
+                arg.Class,
+                arg.Realm,
+                arg.Setname,
+        )
+        var is_active pgtype.Bool
+        err := row.Scan(&amp;is_active)
+        return is_active, err
+}</span>
+
+const getWFInternalStatus = `-- name: GetWFInternalStatus :one
+SELECT is_internal
+FROM ruleset
+WHERE
+    slice = $1
+    AND app = $2
+    AND class = $3
+    AND realm = $4
+    AND brwf = 'W'
+    AND setname = $5
+`
+
+type GetWFInternalStatusParams struct {
+        Slice   int32  `json:"slice"`
+        App     string `json:"app"`
+        Class   string `json:"class"`
+        Realm   int32  `json:"realm"`
+        Setname string `json:"setname"`
+}
+
+func (q *Queries) GetWFInternalStatus(ctx context.Context, arg GetWFInternalStatusParams) (bool, error) <span class="cov8" title="1">{
+        row := q.db.QueryRow(ctx, getWFInternalStatus,
+                arg.Slice,
+                arg.App,
+                arg.Class,
+                arg.Realm,
+                arg.Setname,
+        )
+        var is_internal bool
+        err := row.Scan(&amp;is_internal)
+        return is_internal, err
+}</span>
+
+const rulesetRowLock = `-- name: RulesetRowLock :one
+SELECT id, realm, slice, app, brwf, class, setname, schemaid, is_active, is_internal, ruleset, createdat, createdby, editedat, editedby 
+FROM ruleset 
+WHERE
+    slice = $1
+    AND class = $2
+    AND app = $3
+FOR UPDATE
+`
+
+type RulesetRowLockParams struct {
+        Slice int32  `json:"slice"`
+        Class string `json:"class"`
+        App   string `json:"app"`
+}
+
+func (q *Queries) RulesetRowLock(ctx context.Context, arg RulesetRowLockParams) (Ruleset, error) <span class="cov0" title="0">{
+        row := q.db.QueryRow(ctx, rulesetRowLock, arg.Slice, arg.Class, arg.App)
+        var i Ruleset
+        err := row.Scan(
+                &amp;i.ID,
+                &amp;i.Realm,
+                &amp;i.Slice,
+                &amp;i.App,
+                &amp;i.Brwf,
+                &amp;i.Class,
+                &amp;i.Setname,
+                &amp;i.Schemaid,
+                &amp;i.IsActive,
+                &amp;i.IsInternal,
+                &amp;i.Ruleset,
+                &amp;i.Createdat,
+                &amp;i.Createdby,
+                &amp;i.Editedat,
+                &amp;i.Editedby,
+        )
+        return i, err
+}</span>
+
+const workFlowNew = `-- name: WorkFlowNew :exec
+INSERT INTO
+    ruleset (
+        realm, slice, app, brwf, class, setname, schemaid, is_active, is_internal, ruleset, createdat, createdby
+    )
+VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP, $11
+    )
+`
+
+type WorkFlowNewParams struct {
+        Realm      int32       `json:"realm"`
+        Slice      int32       `json:"slice"`
+        App        string      `json:"app"`
+        Brwf       BrwfEnum    `json:"brwf"`
+        Class      string      `json:"class"`
+        Setname    string      `json:"setname"`
+        Schemaid   int32       `json:"schemaid"`
+        IsActive   pgtype.Bool `json:"is_active"`
+        IsInternal bool        `json:"is_internal"`
+        Ruleset    []byte      `json:"ruleset"`
+        Createdby  string      `json:"createdby"`
+}
+
+func (q *Queries) WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) error <span class="cov0" title="0">{
+        _, err := q.db.Exec(ctx, workFlowNew,
+                arg.Realm,
+                arg.Slice,
+                arg.App,
+                arg.Brwf,
+                arg.Class,
+                arg.Setname,
+                arg.Schemaid,
+                arg.IsActive,
+                arg.IsInternal,
+                arg.Ruleset,
+                arg.Createdby,
+        )
+        return err
+}</span>
+
+const workFlowUpdate = `-- name: WorkFlowUpdate :execresult
+UPDATE ruleset
+SET
+    brwf = $4,
+    setname = $5,
+    ruleset = $6,
+    editedat = CURRENT_TIMESTAMP,
+    editedby = $7
+WHERE
+    slice = $1
+    AND class = $2
+    AND app = $3
+`
+
+type WorkFlowUpdateParams struct {
+        Slice    int32       `json:"slice"`
+        Class    string      `json:"class"`
+        App      string      `json:"app"`
+        Brwf     BrwfEnum    `json:"brwf"`
+        Setname  string      `json:"setname"`
+        Ruleset  []byte      `json:"ruleset"`
+        Editedby pgtype.Text `json:"editedby"`
+}
+
+func (q *Queries) WorkFlowUpdate(ctx context.Context, arg WorkFlowUpdateParams) (pgconn.CommandTag, error) <span class="cov0" title="0">{
+        return q.db.Exec(ctx, workFlowUpdate,
+                arg.Slice,
+                arg.Class,
+                arg.App,
+                arg.Brwf,
+                arg.Setname,
+                arg.Ruleset,
+                arg.Editedby,
+        )
+}</span>
+
+const workflowDelete = `-- name: WorkflowDelete :execresult
+DELETE from ruleset
+where
+    brwf = 'W'
+    AND is_active = false
+    and slice = $1
+    and app = $2
+    and class = $3
+    and setname = $4
+    AND realm = $5
+`
+
+type WorkflowDeleteParams struct {
+        Slice   int32  `json:"slice"`
+        App     string `json:"app"`
+        Class   string `json:"class"`
+        Setname string `json:"setname"`
+        Realm   int32  `json:"realm"`
+}
+
+func (q *Queries) WorkflowDelete(ctx context.Context, arg WorkflowDeleteParams) (pgconn.CommandTag, error) <span class="cov0" title="0">{
+        return q.db.Exec(ctx, workflowDelete,
+                arg.Slice,
+                arg.App,
+                arg.Class,
+                arg.Setname,
+                arg.Realm,
+        )
+}</span>
+
+const workflowList = `-- name: WorkflowList :many
+select
+    id,
+    slice,
+    app,
+    class,
+    setname as name,
+    is_active,
+    is_internal,
+    createdat,
+    createdby,
+    editedat,
+    editedby
+from ruleset
+where
+    brwf = 'W'
+    AND realm = $1
+    AND ($2::INTEGER is null OR slice = $2::INTEGER)
+    AND ( $3::text[] is null OR app = any( $3::text[]))
+    AND ($4::text is null OR class = $4::text)
+    AND ($5::text is null OR setname = $5::text)
+    AND ($6::BOOLEAN is null OR is_active = $6::BOOLEAN)
+    AND ($7::BOOLEAN is null OR is_internal = $7::BOOLEAN)
+`
+
+type WorkflowListParams struct {
+        Realm      int32       `json:"realm"`
+        Slice      pgtype.Int4 `json:"slice"`
+        App        []string    `json:"app"`
+        Class      pgtype.Text `json:"class"`
+        Setname    pgtype.Text `json:"setname"`
+        IsActive   pgtype.Bool `json:"is_active"`
+        IsInternal pgtype.Bool `json:"is_internal"`
+}
+
+type WorkflowListRow struct {
+        ID         int32            `json:"id"`
+        Slice      int32            `json:"slice"`
+        App        string           `json:"app"`
+        Class      string           `json:"class"`
+        Name       string           `json:"name"`
+        IsActive   pgtype.Bool      `json:"is_active"`
+        IsInternal bool             `json:"is_internal"`
+        Createdat  pgtype.Timestamp `json:"createdat"`
+        Createdby  string           `json:"createdby"`
+        Editedat   pgtype.Timestamp `json:"editedat"`
+        Editedby   pgtype.Text      `json:"editedby"`
+}
+
+func (q *Queries) WorkflowList(ctx context.Context, arg WorkflowListParams) ([]WorkflowListRow, error) <span class="cov0" title="0">{
+        rows, err := q.db.Query(ctx, workflowList,
+                arg.Realm,
+                arg.Slice,
+                arg.App,
+                arg.Class,
+                arg.Setname,
+                arg.IsActive,
+                arg.IsInternal,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">defer rows.Close()
+        var items []WorkflowListRow
+        for rows.Next() </span><span class="cov0" title="0">{
+                var i WorkflowListRow
+                if err := rows.Scan(
+                        &amp;i.ID,
+                        &amp;i.Slice,
+                        &amp;i.App,
+                        &amp;i.Class,
+                        &amp;i.Name,
+                        &amp;i.IsActive,
+                        &amp;i.IsInternal,
+                        &amp;i.Createdat,
+                        &amp;i.Createdby,
+                        &amp;i.Editedat,
+                        &amp;i.Editedby,
+                ); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov0" title="0">items = append(items, i)</span>
+        }
+        <span class="cov0" title="0">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return items, nil</span>
+}
+
+const workflowget = `-- name: Workflowget :one
+select
+    id,
+    slice,
+    app,
+    class,
+    setname as name,
+    is_active,
+    is_internal,
+    ruleset as flowrules,
+    createdat,
+    createdby,
+    editedat,
+    editedby
+from ruleset
+where
+    slice = $1
+    and app = $2
+    and class = $3
+    and setname = $4
+    and realm = $5
+    AND brwf = 'W'
+`
+
+type WorkflowgetParams struct {
+        Slice   int32  `json:"slice"`
+        App     string `json:"app"`
+        Class   string `json:"class"`
+        Setname string `json:"setname"`
+        Realm   int32  `json:"realm"`
+}
+
+type WorkflowgetRow struct {
+        ID         int32            `json:"id"`
+        Slice      int32            `json:"slice"`
+        App        string           `json:"app"`
+        Class      string           `json:"class"`
+        Name       string           `json:"name"`
+        IsActive   pgtype.Bool      `json:"is_active"`
+        IsInternal bool             `json:"is_internal"`
+        Flowrules  []byte           `json:"flowrules"`
+        Createdat  pgtype.Timestamp `json:"createdat"`
+        Createdby  string           `json:"createdby"`
+        Editedat   pgtype.Timestamp `json:"editedat"`
+        Editedby   pgtype.Text      `json:"editedby"`
+}
+
+func (q *Queries) Workflowget(ctx context.Context, arg WorkflowgetParams) (WorkflowgetRow, error) <span class="cov0" title="0">{
+        row := q.db.QueryRow(ctx, workflowget,
+                arg.Slice,
+                arg.App,
+                arg.Class,
+                arg.Setname,
+                arg.Realm,
+        )
+        var i WorkflowgetRow
+        err := row.Scan(
+                &amp;i.ID,
+                &amp;i.Slice,
+                &amp;i.App,
+                &amp;i.Class,
+                &amp;i.Name,
+                &amp;i.IsActive,
+                &amp;i.IsInternal,
+                &amp;i.Flowrules,
+                &amp;i.Createdat,
+                &amp;i.Createdby,
+                &amp;i.Editedat,
+                &amp;i.Editedby,
+        )
+        return i, err
+}</span>
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">// Code generated by sqlc. DO NOT EDIT.
+// versions:
+//   sqlc v1.25.0
+// source: schema.sql
+
+package sqlc
+
+import (
+        "context"
+
+        "github.com/jackc/pgx/v5/pgtype"
+)
+
+const getSchemaWithLock = `-- name: GetSchemaWithLock :one
+SELECT
+    id,
+    brwf,
+    patternschema,
+    actionschema,
+    editedat = CURRENT_TIMESTAMP,
+    editedby
+FROM schema
+WHERE
+    slice = $1
+    AND class = $2
+    AND app = $3
+FOR UPDATE
+`
+
+type GetSchemaWithLockParams struct {
+        Slice int32  `json:"slice"`
+        Class string `json:"class"`
+        App   string `json:"app"`
+}
+
+type GetSchemaWithLockRow struct {
+        ID            int32       `json:"id"`
+        Brwf          BrwfEnum    `json:"brwf"`
+        Patternschema []byte      `json:"patternschema"`
+        Actionschema  []byte      `json:"actionschema"`
+        Column5       bool        `json:"column_5"`
+        Editedby      pgtype.Text `json:"editedby"`
+}
+
+func (q *Queries) GetSchemaWithLock(ctx context.Context, arg GetSchemaWithLockParams) (GetSchemaWithLockRow, error) <span class="cov0" title="0">{
+        row := q.db.QueryRow(ctx, getSchemaWithLock, arg.Slice, arg.Class, arg.App)
+        var i GetSchemaWithLockRow
+        err := row.Scan(
+                &amp;i.ID,
+                &amp;i.Brwf,
+                &amp;i.Patternschema,
+                &amp;i.Actionschema,
+                &amp;i.Column5,
+                &amp;i.Editedby,
+        )
+        return i, err
+}</span>
+
+const schemaDelete = `-- name: SchemaDelete :one
+DELETE FROM schema WHERE id = $1 RETURNING id
+`
+
+func (q *Queries) SchemaDelete(ctx context.Context, id int32) (int32, error) <span class="cov0" title="0">{
+        row := q.db.QueryRow(ctx, schemaDelete, id)
+        err := row.Scan(&amp;id)
+        return id, err
+}</span>
+
+const schemaGet = `-- name: SchemaGet :many
+SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
+FROM schema
+    JOIN app ON schema.app = app.shortname
+    JOIN realmslice on schema.slice = realmslice.id
+WHERE
+    slice = $1
+    AND class = $2
+    AND app = $3
+`
+
+type SchemaGetParams struct {
+        Slice int32  `json:"slice"`
+        Class string `json:"class"`
+        App   string `json:"app"`
+}
+
+type SchemaGetRow struct {
+        Slice     int32            `json:"slice"`
+        App       string           `json:"app"`
+        Longname  string           `json:"longname"`
+        Class     string           `json:"class"`
+        Createdby string           `json:"createdby"`
+        Createdat pgtype.Timestamp `json:"createdat"`
+        Editedby  pgtype.Text      `json:"editedby"`
+        Editedat  pgtype.Timestamp `json:"editedat"`
+}
+
+func (q *Queries) SchemaGet(ctx context.Context, arg SchemaGetParams) ([]SchemaGetRow, error) <span class="cov0" title="0">{
+        rows, err := q.db.Query(ctx, schemaGet, arg.Slice, arg.Class, arg.App)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">defer rows.Close()
+        var items []SchemaGetRow
+        for rows.Next() </span><span class="cov0" title="0">{
+                var i SchemaGetRow
+                if err := rows.Scan(
+                        &amp;i.Slice,
+                        &amp;i.App,
+                        &amp;i.Longname,
+                        &amp;i.Class,
+                        &amp;i.Createdby,
+                        &amp;i.Createdat,
+                        &amp;i.Editedby,
+                        &amp;i.Editedat,
+                ); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov0" title="0">items = append(items, i)</span>
+        }
+        <span class="cov0" title="0">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return items, nil</span>
+}
+
+const schemaList = `-- name: SchemaList :many
+SELECT schema.slice, realmslice.descr, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
+FROM schema
+    JOIN app ON schema.app = app.shortname
+    JOIN realmslice on schema.slice = realmslice.id
+`
+
+type SchemaListRow struct {
+        Slice     int32            `json:"slice"`
+        Descr     string           `json:"descr"`
+        App       string           `json:"app"`
+        Longname  string           `json:"longname"`
+        Class     string           `json:"class"`
+        Createdby string           `json:"createdby"`
+        Createdat pgtype.Timestamp `json:"createdat"`
+        Editedby  pgtype.Text      `json:"editedby"`
+        Editedat  pgtype.Timestamp `json:"editedat"`
+}
+
+func (q *Queries) SchemaList(ctx context.Context) ([]SchemaListRow, error) <span class="cov0" title="0">{
+        rows, err := q.db.Query(ctx, schemaList)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">defer rows.Close()
+        var items []SchemaListRow
+        for rows.Next() </span><span class="cov0" title="0">{
+                var i SchemaListRow
+                if err := rows.Scan(
+                        &amp;i.Slice,
+                        &amp;i.Descr,
+                        &amp;i.App,
+                        &amp;i.Longname,
+                        &amp;i.Class,
+                        &amp;i.Createdby,
+                        &amp;i.Createdat,
+                        &amp;i.Editedby,
+                        &amp;i.Editedat,
+                ); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov0" title="0">items = append(items, i)</span>
+        }
+        <span class="cov0" title="0">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return items, nil</span>
+}
+
+const schemaListByApp = `-- name: SchemaListByApp :many
+SELECT schema.slice, realmslice.descr, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
+FROM schema
+    JOIN app ON schema.app = app.shortname
+    JOIN realmslice on schema.slice = realmslice.id
+WHERE
+    app = $1
+`
+
+type SchemaListByAppRow struct {
+        Slice     int32            `json:"slice"`
+        Descr     string           `json:"descr"`
+        App       string           `json:"app"`
+        Longname  string           `json:"longname"`
+        Class     string           `json:"class"`
+        Createdby string           `json:"createdby"`
+        Createdat pgtype.Timestamp `json:"createdat"`
+        Editedby  pgtype.Text      `json:"editedby"`
+        Editedat  pgtype.Timestamp `json:"editedat"`
+}
+
+func (q *Queries) SchemaListByApp(ctx context.Context, app string) ([]SchemaListByAppRow, error) <span class="cov0" title="0">{
+        rows, err := q.db.Query(ctx, schemaListByApp, app)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">defer rows.Close()
+        var items []SchemaListByAppRow
+        for rows.Next() </span><span class="cov0" title="0">{
+                var i SchemaListByAppRow
+                if err := rows.Scan(
+                        &amp;i.Slice,
+                        &amp;i.Descr,
+                        &amp;i.App,
+                        &amp;i.Longname,
+                        &amp;i.Class,
+                        &amp;i.Createdby,
+                        &amp;i.Createdat,
+                        &amp;i.Editedby,
+                        &amp;i.Editedat,
+                ); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov0" title="0">items = append(items, i)</span>
+        }
+        <span class="cov0" title="0">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return items, nil</span>
+}
+
+const schemaListByAppAndClass = `-- name: SchemaListByAppAndClass :many
+SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
+FROM schema
+    JOIN app ON schema.app = app.shortname
+    JOIN realmslice on schema.slice = realmslice.id
+WHERE
+    app = $1
+    AND class = $2
+`
+
+type SchemaListByAppAndClassParams struct {
+        App   string `json:"app"`
+        Class string `json:"class"`
+}
+
+type SchemaListByAppAndClassRow struct {
+        Slice     int32            `json:"slice"`
+        App       string           `json:"app"`
+        Longname  string           `json:"longname"`
+        Class     string           `json:"class"`
+        Createdby string           `json:"createdby"`
+        Createdat pgtype.Timestamp `json:"createdat"`
+        Editedby  pgtype.Text      `json:"editedby"`
+        Editedat  pgtype.Timestamp `json:"editedat"`
+}
+
+func (q *Queries) SchemaListByAppAndClass(ctx context.Context, arg SchemaListByAppAndClassParams) ([]SchemaListByAppAndClassRow, error) <span class="cov0" title="0">{
+        rows, err := q.db.Query(ctx, schemaListByAppAndClass, arg.App, arg.Class)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">defer rows.Close()
+        var items []SchemaListByAppAndClassRow
+        for rows.Next() </span><span class="cov0" title="0">{
+                var i SchemaListByAppAndClassRow
+                if err := rows.Scan(
+                        &amp;i.Slice,
+                        &amp;i.App,
+                        &amp;i.Longname,
+                        &amp;i.Class,
+                        &amp;i.Createdby,
+                        &amp;i.Createdat,
+                        &amp;i.Editedby,
+                        &amp;i.Editedat,
+                ); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov0" title="0">items = append(items, i)</span>
+        }
+        <span class="cov0" title="0">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return items, nil</span>
+}
+
+const schemaListByAppAndSlice = `-- name: SchemaListByAppAndSlice :many
+SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
+FROM schema
+    JOIN app ON schema.app = app.shortname
+    JOIN realmslice on schema.slice = realmslice.id
+WHERE
+    app = $1
+    AND slice = $2
+`
+
+type SchemaListByAppAndSliceParams struct {
+        App   string `json:"app"`
+        Slice int32  `json:"slice"`
+}
+
+type SchemaListByAppAndSliceRow struct {
+        Slice     int32            `json:"slice"`
+        App       string           `json:"app"`
+        Longname  string           `json:"longname"`
+        Class     string           `json:"class"`
+        Createdby string           `json:"createdby"`
+        Createdat pgtype.Timestamp `json:"createdat"`
+        Editedby  pgtype.Text      `json:"editedby"`
+        Editedat  pgtype.Timestamp `json:"editedat"`
+}
+
+func (q *Queries) SchemaListByAppAndSlice(ctx context.Context, arg SchemaListByAppAndSliceParams) ([]SchemaListByAppAndSliceRow, error) <span class="cov0" title="0">{
+        rows, err := q.db.Query(ctx, schemaListByAppAndSlice, arg.App, arg.Slice)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">defer rows.Close()
+        var items []SchemaListByAppAndSliceRow
+        for rows.Next() </span><span class="cov0" title="0">{
+                var i SchemaListByAppAndSliceRow
+                if err := rows.Scan(
+                        &amp;i.Slice,
+                        &amp;i.App,
+                        &amp;i.Longname,
+                        &amp;i.Class,
+                        &amp;i.Createdby,
+                        &amp;i.Createdat,
+                        &amp;i.Editedby,
+                        &amp;i.Editedat,
+                ); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov0" title="0">items = append(items, i)</span>
+        }
+        <span class="cov0" title="0">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return items, nil</span>
+}
+
+const schemaListByClass = `-- name: SchemaListByClass :many
+SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
+FROM schema
+    JOIN app ON schema.app = app.shortname
+    JOIN realmslice on schema.slice = realmslice.id
+WHERE
+    class = $1
+`
+
+type SchemaListByClassRow struct {
+        Slice     int32            `json:"slice"`
+        App       string           `json:"app"`
+        Longname  string           `json:"longname"`
+        Class     string           `json:"class"`
+        Createdby string           `json:"createdby"`
+        Createdat pgtype.Timestamp `json:"createdat"`
+        Editedby  pgtype.Text      `json:"editedby"`
+        Editedat  pgtype.Timestamp `json:"editedat"`
+}
+
+func (q *Queries) SchemaListByClass(ctx context.Context, class string) ([]SchemaListByClassRow, error) <span class="cov0" title="0">{
+        rows, err := q.db.Query(ctx, schemaListByClass, class)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">defer rows.Close()
+        var items []SchemaListByClassRow
+        for rows.Next() </span><span class="cov0" title="0">{
+                var i SchemaListByClassRow
+                if err := rows.Scan(
+                        &amp;i.Slice,
+                        &amp;i.App,
+                        &amp;i.Longname,
+                        &amp;i.Class,
+                        &amp;i.Createdby,
+                        &amp;i.Createdat,
+                        &amp;i.Editedby,
+                        &amp;i.Editedat,
+                ); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov0" title="0">items = append(items, i)</span>
+        }
+        <span class="cov0" title="0">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return items, nil</span>
+}
+
+const schemaListByClassAndSlice = `-- name: SchemaListByClassAndSlice :many
+SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
+FROM schema
+    JOIN app ON schema.app = app.shortname
+    JOIN realmslice on schema.slice = realmslice.id
+WHERE
+    class = $1
+    AND slice = $2
+`
+
+type SchemaListByClassAndSliceParams struct {
+        Class string `json:"class"`
+        Slice int32  `json:"slice"`
+}
+
+type SchemaListByClassAndSliceRow struct {
+        Slice     int32            `json:"slice"`
+        App       string           `json:"app"`
+        Longname  string           `json:"longname"`
+        Class     string           `json:"class"`
+        Createdby string           `json:"createdby"`
+        Createdat pgtype.Timestamp `json:"createdat"`
+        Editedby  pgtype.Text      `json:"editedby"`
+        Editedat  pgtype.Timestamp `json:"editedat"`
+}
+
+func (q *Queries) SchemaListByClassAndSlice(ctx context.Context, arg SchemaListByClassAndSliceParams) ([]SchemaListByClassAndSliceRow, error) <span class="cov0" title="0">{
+        rows, err := q.db.Query(ctx, schemaListByClassAndSlice, arg.Class, arg.Slice)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">defer rows.Close()
+        var items []SchemaListByClassAndSliceRow
+        for rows.Next() </span><span class="cov0" title="0">{
+                var i SchemaListByClassAndSliceRow
+                if err := rows.Scan(
+                        &amp;i.Slice,
+                        &amp;i.App,
+                        &amp;i.Longname,
+                        &amp;i.Class,
+                        &amp;i.Createdby,
+                        &amp;i.Createdat,
+                        &amp;i.Editedby,
+                        &amp;i.Editedat,
+                ); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov0" title="0">items = append(items, i)</span>
+        }
+        <span class="cov0" title="0">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return items, nil</span>
+}
+
+const schemaListBySlice = `-- name: SchemaListBySlice :many
+SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
+FROM schema
+    JOIN app ON schema.app = app.shortname
+    JOIN realmslice on schema.slice = realmslice.id
+WHERE
+    slice = $1
+`
+
+type SchemaListBySliceRow struct {
+        Slice     int32            `json:"slice"`
+        App       string           `json:"app"`
+        Longname  string           `json:"longname"`
+        Class     string           `json:"class"`
+        Createdby string           `json:"createdby"`
+        Createdat pgtype.Timestamp `json:"createdat"`
+        Editedby  pgtype.Text      `json:"editedby"`
+        Editedat  pgtype.Timestamp `json:"editedat"`
+}
+
+func (q *Queries) SchemaListBySlice(ctx context.Context, slice int32) ([]SchemaListBySliceRow, error) <span class="cov0" title="0">{
+        rows, err := q.db.Query(ctx, schemaListBySlice, slice)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">defer rows.Close()
+        var items []SchemaListBySliceRow
+        for rows.Next() </span><span class="cov0" title="0">{
+                var i SchemaListBySliceRow
+                if err := rows.Scan(
+                        &amp;i.Slice,
+                        &amp;i.App,
+                        &amp;i.Longname,
+                        &amp;i.Class,
+                        &amp;i.Createdby,
+                        &amp;i.Createdat,
+                        &amp;i.Editedby,
+                        &amp;i.Editedat,
+                ); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov0" title="0">items = append(items, i)</span>
+        }
+        <span class="cov0" title="0">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return items, nil</span>
+}
+
+const schemaNew = `-- name: SchemaNew :exec
+INSERT INTO
+    schema (
+        realm, slice, app, brwf, class, patternschema, actionschema, createdat, createdby
+    )
+VALUES (
+        $1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, $8
+    )
+`
+
+type SchemaNewParams struct {
+        Realm         int32    `json:"realm"`
+        Slice         int32    `json:"slice"`
+        App           string   `json:"app"`
+        Brwf          BrwfEnum `json:"brwf"`
+        Class         string   `json:"class"`
+        Patternschema []byte   `json:"patternschema"`
+        Actionschema  []byte   `json:"actionschema"`
+        Createdby     string   `json:"createdby"`
+}
+
+func (q *Queries) SchemaNew(ctx context.Context, arg SchemaNewParams) error <span class="cov0" title="0">{
+        _, err := q.db.Exec(ctx, schemaNew,
+                arg.Realm,
+                arg.Slice,
+                arg.App,
+                arg.Brwf,
+                arg.Class,
+                arg.Patternschema,
+                arg.Actionschema,
+                arg.Createdby,
+        )
+        return err
+}</span>
+
+const schemaUpdate = `-- name: SchemaUpdate :exec
+UPDATE schema
+SET
+    brwf = $4,
+    patternschema = $5,
+    actionschema = $6,
+    editedat = CURRENT_TIMESTAMP,
+    editedby = $7
+WHERE
+    slice = $1
+    AND class = $2
+    AND app = $3
+`
+
+type SchemaUpdateParams struct {
+        Slice         int32       `json:"slice"`
+        Class         string      `json:"class"`
+        App           string      `json:"app"`
+        Brwf          BrwfEnum    `json:"brwf"`
+        Patternschema []byte      `json:"patternschema"`
+        Actionschema  []byte      `json:"actionschema"`
+        Editedby      pgtype.Text `json:"editedby"`
+}
+
+func (q *Queries) SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) error <span class="cov0" title="0">{
+        _, err := q.db.Exec(ctx, schemaUpdate,
+                arg.Slice,
+                arg.Class,
+                arg.App,
+                arg.Brwf,
+                arg.Patternschema,
+                arg.Actionschema,
+                arg.Editedby,
+        )
+        return err
+}</span>
+
+const wfPatternSchemaGet = `-- name: WfPatternSchemaGet :one
+SELECT patternschema
+FROM public.schema
+WHERE
+    slice = $1
+    AND class = $2
+    AND app = $3
+    AND realm = $4
+`
+
+type WfPatternSchemaGetParams struct {
+        Slice int32  `json:"slice"`
+        Class string `json:"class"`
+        App   string `json:"app"`
+        Realm int32  `json:"realm"`
+}
+
+func (q *Queries) WfPatternSchemaGet(ctx context.Context, arg WfPatternSchemaGetParams) ([]byte, error) <span class="cov8" title="1">{
+        row := q.db.QueryRow(ctx, wfPatternSchemaGet,
+                arg.Slice,
+                arg.Class,
+                arg.App,
+                arg.Realm,
+        )
+        var patternschema []byte
+        err := row.Scan(&amp;patternschema)
+        return patternschema, err
+}</span>
+
+const wfSchemaGet = `-- name: WfSchemaGet :one
+SELECT id, realm, slice, app, brwf, class, patternschema, actionschema, createdat, createdby, editedat, editedby
+FROM public.schema
+WHERE
+    slice = $1
+    AND class = $2
+    AND app = $3
+`
+
+type WfSchemaGetParams struct {
+        Slice int32  `json:"slice"`
+        Class string `json:"class"`
+        App   string `json:"app"`
+}
+
+func (q *Queries) WfSchemaGet(ctx context.Context, arg WfSchemaGetParams) (Schema, error) <span class="cov0" title="0">{
+        row := q.db.QueryRow(ctx, wfSchemaGet, arg.Slice, arg.Class, arg.App)
+        var i Schema
+        err := row.Scan(
+                &amp;i.ID,
+                &amp;i.Realm,
+                &amp;i.Slice,
+                &amp;i.App,
+                &amp;i.Brwf,
+                &amp;i.Class,
+                &amp;i.Patternschema,
+                &amp;i.Actionschema,
+                &amp;i.Createdat,
+                &amp;i.Createdby,
+                &amp;i.Editedat,
+                &amp;i.Editedby,
+        )
+        return i, err
+}</span>
+
+const wfschemadelete = `-- name: Wfschemadelete :exec
+DELETE from schema
+where
+    id in (
+        SELECT a.id
+        FROM schema as a, realm as b, realmslice as c
+        WHERE
+            a.realm = b.id
+            and a.slice = c.id
+            and a.slice = $1
+            and c.realm = b.shortname
+            and a.class = $3
+            AND a.app = $2
+    )
+`
+
+type WfschemadeleteParams struct {
+        Slice int32  `json:"slice"`
+        App   string `json:"app"`
+        Class string `json:"class"`
+}
+
+func (q *Queries) Wfschemadelete(ctx context.Context, arg WfschemadeleteParams) error <span class="cov0" title="0">{
+        _, err := q.db.Exec(ctx, wfschemadelete, arg.Slice, arg.App, arg.Class)
+        return err
+}</span>
+
+const wfschemaget = `-- name: Wfschemaget :one
+SELECT s.slice, s.app, s.class, rm.longname, s.patternschema, s.actionschema, s.createdat, s.createdby, s.editedat, s.editedby
+FROM schema as s, realm as rm, realmslice as rs
+WHERE
+    s.realm = rm.id
+    and s.slice = rs.id
+    and s.slice = $1
+    and rs.realm = rm.shortname
+    and s.class = $3
+    AND s.app = $2
+`
+
+type WfschemagetParams struct {
+        Slice int32  `json:"slice"`
+        App   string `json:"app"`
+        Class string `json:"class"`
+}
+
+type WfschemagetRow struct {
+        Slice         int32            `json:"slice"`
+        App           string           `json:"app"`
+        Class         string           `json:"class"`
+        Longname      string           `json:"longname"`
+        Patternschema []byte           `json:"patternschema"`
+        Actionschema  []byte           `json:"actionschema"`
+        Createdat     pgtype.Timestamp `json:"createdat"`
+        Createdby     string           `json:"createdby"`
+        Editedat      pgtype.Timestamp `json:"editedat"`
+        Editedby      pgtype.Text      `json:"editedby"`
+}
+
+func (q *Queries) Wfschemaget(ctx context.Context, arg WfschemagetParams) (WfschemagetRow, error) <span class="cov0" title="0">{
+        row := q.db.QueryRow(ctx, wfschemaget, arg.Slice, arg.App, arg.Class)
+        var i WfschemagetRow
+        err := row.Scan(
+                &amp;i.Slice,
+                &amp;i.App,
+                &amp;i.Class,
+                &amp;i.Longname,
+                &amp;i.Patternschema,
+                &amp;i.Actionschema,
+                &amp;i.Createdat,
+                &amp;i.Createdby,
+                &amp;i.Editedat,
+                &amp;i.Editedby,
+        )
+        return i, err
+}</span>
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">// Code generated by sqlc. DO NOT EDIT.
+// versions:
+//   sqlc v1.25.0
+// source: stepworkflow.sql
+
+package sqlc
+
+import (
+        "context"
+)
+
+const getWorkflow = `-- name: GetWorkflow :many
+SELECT workflow, step FROM stepworkflow WHERE step = $1
+`
+
+type GetWorkflowRow struct {
+        Workflow string `json:"workflow"`
+        Step     string `json:"step"`
+}
+
+func (q *Queries) GetWorkflow(ctx context.Context, step string) ([]GetWorkflowRow, error) <span class="cov8" title="1">{
+        rows, err := q.db.Query(ctx, getWorkflow, step)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">defer rows.Close()
+        var items []GetWorkflowRow
+        for rows.Next() </span><span class="cov8" title="1">{
+                var i GetWorkflowRow
+                if err := rows.Scan(&amp;i.Workflow, &amp;i.Step); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov8" title="1">items = append(items, i)</span>
+        }
+        <span class="cov8" title="1">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return items, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">// Code generated by sqlc. DO NOT EDIT.
+// versions:
+//   sqlc v1.25.0
+// source: wfinstance.sql
+
+package sqlc
+
+import (
+        "context"
+
+        "github.com/jackc/pgx/v5/pgtype"
+)
+
+const addWFNewInstances = `-- name: AddWFNewInstances :many
+INSERT INTO
+    public.wfinstance (
+        entityid, slice, app, class, workflow, step, loggedat, nextstep, parent
+    )
+VALUES (
+        $1, $2, $3, $4, $5, unnest($6::text []), (NOW()::timestamp), $7, $8
+    )
+RETURNING
+    id,
+    loggedat,
+    step
+`
+
+type AddWFNewInstancesParams struct {
+        Entityid string      `json:"entityid"`
+        Slice    int32       `json:"slice"`
+        App      string      `json:"app"`
+        Class    string      `json:"class"`
+        Workflow string      `json:"workflow"`
+        Step     []string    `json:"step"`
+        Nextstep string      `json:"nextstep"`
+        Parent   pgtype.Int4 `json:"parent"`
+}
+
+type AddWFNewInstancesRow struct {
+        ID       int32            `json:"id"`
+        Loggedat pgtype.Timestamp `json:"loggedat"`
+        Step     string           `json:"step"`
+}
+
+func (q *Queries) AddWFNewInstances(ctx context.Context, arg AddWFNewInstancesParams) ([]AddWFNewInstancesRow, error) <span class="cov8" title="1">{
+        rows, err := q.db.Query(ctx, addWFNewInstances,
+                arg.Entityid,
+                arg.Slice,
+                arg.App,
+                arg.Class,
+                arg.Workflow,
+                arg.Step,
+                arg.Nextstep,
+                arg.Parent,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">defer rows.Close()
+        var items []AddWFNewInstancesRow
+        for rows.Next() </span><span class="cov8" title="1">{
+                var i AddWFNewInstancesRow
+                if err := rows.Scan(&amp;i.ID, &amp;i.Loggedat, &amp;i.Step); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov8" title="1">items = append(items, i)</span>
+        }
+        <span class="cov8" title="1">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return items, nil</span>
+}
+
+const getWFINstance = `-- name: GetWFINstance :one
+SELECT count(1)
+FROM public.wfinstance
+WHERE
+    slice = $1
+    AND app = $2
+    AND workflow = $3
+    AND entityid = $4
+`
+
+type GetWFINstanceParams struct {
+        Slice    int32  `json:"slice"`
+        App      string `json:"app"`
+        Workflow string `json:"workflow"`
+        Entityid string `json:"entityid"`
+}
+
+func (q *Queries) GetWFINstance(ctx context.Context, arg GetWFINstanceParams) (int64, error) <span class="cov8" title="1">{
+        row := q.db.QueryRow(ctx, getWFINstance,
+                arg.Slice,
+                arg.App,
+                arg.Workflow,
+                arg.Entityid,
+        )
+        var count int64
+        err := row.Scan(&amp;count)
+        return count, err
+}</span>
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package wfinstance
+
+/*
+This file contains doMatch() and a helper function called by doMatch().
+
+It also contains ruleSchemas and ruleSets, two global variables that currently store rule-schemas
+and rulesets respectively for the purpose of testing doMatch().
+*/
+
+import (
+        "fmt"
+)
+
+type RuleSchema struct {
+        class         string
+        patternSchema []AttrSchema
+        actionSchema  ActionSchema
+}
+type ActionSchema struct {
+        tasks      []string
+        properties []string
+}
+type AttrSchema struct {
+        name    string
+        valType string
+        vals    map[string]bool
+        valMin  float64
+        valMax  float64
+        lenMin  int
+        lenMax  int
+}
+
+type RuleSet struct {
+        ver     int
+        class   string
+        setName string
+        rules   []Rule
+}
+
+type Rule struct {
+        rulePattern []RulePatternTerm
+        ruleActions RuleActions
+}
+
+type RulePatternTerm struct {
+        attrName string
+        op       string
+        attrVal  any
+}
+
+type RuleActions struct {
+        tasks      []string
+        properties []Property
+        thenCall   string
+        elseCall   string
+        willReturn bool
+        willExit   bool
+}
+type ActionSet struct {
+        Tasks      []string
+        Properties map[string]string
+}
+
+type Property struct {
+        name string
+        val  string
+}
+
+var ruleSchemas = []RuleSchema{}
+var ruleSets = map[string]RuleSet{}
+
+var SWITCH = ActionSet{
+        Tasks:      []string{"diwalisale"},
+        Properties: map[string]string{"nextstep": "coupondistribution"},
+}
+
+func doMatch(entity Entity, ruleSet RuleSet, actionSet ActionSet, seenRuleSets map[string]bool) (ActionSet, bool, error) <span class="cov8" title="1">{
+
+        // Initializing the ActionSet struct
+
+        //if task has only one task
+        // actionSet = ActionSet{
+        //         tasks:      []string{"discount"},
+        //         properties: map[string]string{"nextstep": "coupondistribution"},
+        // }
+
+        //if task has multiple tasks
+        // actionSet = ActionSet{
+        //         tasks:      []string{"discount", "yearendsale"},
+        //         properties: map[string]string{"nextstep": "coupondistribution"},
+        // }
+
+        //if task has multiple tasks
+        // actionSet = ActionSet{
+        //         Tasks:      []string{"diwalisale", "yearendsale"},
+        //         Properties: map[string]string{"nextstep": "coupondistribution"},
+        // }
+        // if task has only one task but no proper attri
+        // actionSet = ActionSet{
+        //         tasks:      []string{"discount"}, //, "yearendsale"},
+        //         properties: map[string]string{"shipby": "fedex"},
+        // }
+
+        //if done attr  present
+        // actionSet = ActionSet{
+        //         tasks:      []string{"discount", "yearendsale"},
+        //         properties: map[string]string{"done": "true"},
+        // }
+        actionSet = SWITCH
+        return actionSet, true, nil
+
+}</span>
+
+func inconsistentRuleSet(calledSetName string, currSetName string) (ActionSet, bool, error) <span class="cov0" title="0">{
+        return ActionSet{}, false, fmt.Errorf("cannot call ruleset %v of class %v from ruleset %v of class %v",
+                calledSetName, ruleSets[calledSetName].class, currSetName, ruleSets[currSetName].class,
+        )
+}</span>
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package wfinstance
+
+import (
+        "fmt"
+
+        "github.com/gin-gonic/gin"
+        "github.com/go-playground/validator/v10"
+        "github.com/jackc/pgx/v5/pgtype"
+        "github.com/remiges-tech/alya/service"
+        "github.com/remiges-tech/alya/wscutils"
+        "github.com/remiges-tech/crux/server"
+)
+
+// Incoming request format
+type WFInstanceNewRequest struct {
+        Slice    int32             `json:"slice" validate:"required"`
+        App      string            `json:"app" validate:"required,alpha"`
+        EntityID string            `json:"entityid" validate:"required"`
+        Entity   map[string]string `json:"entity" validate:"required"`
+        Workflow string            `json:"workflow" validate:"required"`
+        Trace    *int              `json:"trace,omitempty"`
+        Parent   *int32            `json:"parent,omitempty"`
+}
+
+// WFInstanceNew response format
+type WFInstanceNewResponse struct {
+        Tasks     []map[string]int32 `json:"tasks"  validate:"required"`
+        Nextstep  string             `json:"nextstep"`
+        Loggedat  pgtype.Timestamp   `json:"loggedat"`
+        Subflows  *map[string]string `json:"subflows"`
+        Tracedata *map[string]string `json:"tracedata"`
+}
+
+// GetWFinstanceNew will be responsible for processing the /wfinstanceNew request that comes through as a POST
+func GetWFinstanceNew(c *gin.Context, s *service.Service) <span class="cov8" title="1">{
+        lh := s.LogHarbour
+        lh.Debug0().Log("GetWFinstanceNew request received")
+        var wfinstanceNewreq WFInstanceNewRequest
+        var actionSet ActionSet
+        var ruleSet RuleSet
+        var entity = getEntity(wfinstanceNewreq.Entity)
+        var seenRuleSets map[string]bool
+        var response WFInstanceNewResponse
+        var attribute map[string]string
+        var done, nextStep string
+        var steps []string
+
+        // Bind request
+        err := wscutils.BindJSON(c, &amp;wfinstanceNewreq)
+        if err != nil </span><span class="cov0" title="0">{
+                lh.Debug0().LogActivity("error while binding json request error:", err)
+                return
+        }</span>
+        // Standard validation of Incoming Request
+        <span class="cov8" title="1">validationErrors := wscutils.WscValidate(wfinstanceNewreq, func(err validator.FieldError) []string </span><span class="cov0" title="0">{ return []string{} }</span>)
+        <span class="cov8" title="1">if len(validationErrors) &gt; 0 </span><span class="cov0" title="0">{
+                lh.Debug0().LogActivity("validation error:", validationErrors)
+                wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
+                return
+        }</span>
+        // Validate request
+        <span class="cov8" title="1">existingEntity := wfinstanceNewreq.Entity
+        isValidReq, errStr := validateWFInstanceNewReq(wfinstanceNewreq, s, c)
+        if len(errStr) &gt; 0 || !isValidReq </span><span class="cov0" title="0">{
+                wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, errStr))
+                return
+
+        }</span> else<span class="cov8" title="1"> {
+                // Additional attributes to append
+                existingEntity[STEP] = START
+                existingEntity[STEPFALED] = FALSE
+        }</span>
+
+        // call doMatch()
+        <span class="cov8" title="1">actionSet, _, err = doMatch(entity, ruleSet, actionSet, seenRuleSets)
+        if err != nil </span><span class="cov0" title="0">{
+                lh.LogActivity("error while calling doMatch Method :", err.Error())
+                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid))
+                return
+        }</span>
+
+        // To verify actionSet Properties and get their values
+        <span class="cov8" title="1">attribute, error := getValidPropertyAttr(actionSet)
+        if error != nil </span><span class="cov0" title="0">{
+                lh.Debug0().LogActivity("error while verifying actionset properties :", error.Error())
+                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid_property_attributes))
+                return
+        }</span>
+        <span class="cov8" title="1">if attribute[DONE] == TRUE </span><span class="cov0" title="0">{
+                done = attribute[DONE]
+        }</span> else<span class="cov8" title="1"> {
+                nextStep = attribute[NEXTSTEP]
+        }</span>
+
+        <span class="cov8" title="1">if done == TRUE </span><span class="cov0" title="0">{
+                response := make(map[string]bool)
+                response[DONE] = true
+                lh.Log(fmt.Sprintf("Response : %v", map[string]any{"response": response}))
+                wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(response))
+        }</span>
+
+        // To add records in table
+        <span class="cov8" title="1">steps = actionSet.Tasks
+        // if tasks of actionset contains only one task
+        if len(actionSet.Tasks) == 1 &amp;&amp; done == "" </span><span class="cov8" title="1">{
+                addTaskRequest := AddTaskRequest{
+                        Steps:    steps,
+                        Nextstep: steps[0],
+                        Request:  wfinstanceNewreq,
+                }
+                response, err = addTasks(addTaskRequest, s, c)
+                if err != nil </span><span class="cov0" title="0">{
+                        lh.LogActivity("error while adding single step in wfinstance table :", err.Error())
+                        wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
+                        return
+                }</span>
+                <span class="cov8" title="1">lh.Log(fmt.Sprintf("Response : %v", map[string]any{"response": response}))
+                wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(response))</span>
+
+        }
+        // if tasks of actionset contains multiple tasks
+        <span class="cov8" title="1">if len(actionSet.Tasks) &gt; 1 &amp;&amp; done == "" </span><span class="cov8" title="1">{
+                addTaskRequest := AddTaskRequest{
+                        Steps:    steps,
+                        Nextstep: nextStep,
+                        Request:  wfinstanceNewreq,
+                }
+                response, err = addTasks(addTaskRequest, s, c)
+                if err != nil </span><span class="cov0" title="0">{
+                        lh.LogActivity("error while adding multiple steps in wfinstanvce table :", error.Error())
+                        wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
+                        return
+                }</span>
+                <span class="cov8" title="1">lh.Log(fmt.Sprintf("Response : %v", map[string]any{"response": response}))
+                wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(response))</span>
+        }
+
+}
+
+// To verify whether actionset.properties attributes valid and get their values
+func getValidPropertyAttr(a ActionSet) (map[string]string, error) <span class="cov8" title="1">{
+        attribute := make(map[string]string)
+        attributes := a.Properties
+        for attr, val := range attributes </span><span class="cov8" title="1">{
+                if attr == DONE </span><span class="cov0" title="0">{
+                        attribute[attr] = val
+                }</span> else<span class="cov8" title="1"> if attr == NEXTSTEP </span><span class="cov8" title="1">{
+                        attribute[attr] = val
+                }</span> else<span class="cov0" title="0"> {
+                        return nil, fmt.Errorf("property attributes does not contain either done or nextstep")
+                }</span>
+
+        }
+        <span class="cov8" title="1">return attribute, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">package wfinstance
+
+import (
+        "errors"
+
+        "github.com/gin-gonic/gin"
+        "github.com/jackc/pgx/v5/pgtype"
+        "github.com/remiges-tech/alya/service"
+        "github.com/remiges-tech/alya/wscutils"
+        "github.com/remiges-tech/crux/db/sqlc-gen"
+        "github.com/remiges-tech/crux/server"
+)
+
+// Task request
+type AddTaskRequest struct {
+        Steps    []string
+        Nextstep string
+        Request  WFInstanceNewRequest
+}
+
+// getResponse request
+type ResponseRequest struct {
+        Subflow      map[string]string
+        NextStep     string
+        ResponseData []sqlc.AddWFNewInstancesRow
+        Service      *service.Service
+}
+
+// To add multiple records in wfinstance table
+func addTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanceNewResponse, error) <span class="cov8" title="1">{
+        var response WFInstanceNewResponse
+        var parent pgtype.Int4
+        subflow := make(map[string]string)
+
+        lh := s.LogHarbour
+        lh.Log("Inside addTasks()")
+
+        query, ok := s.Dependencies["queries"].(*sqlc.Queries)
+        if !ok </span><span class="cov0" title="0">{
+                lh.Log("Error while getting query instance from service Dependencies")
+                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
+                //errors := wscutils.BuildErrorMessage(wscutils.ErrcodeDatabaseError, nil)
+                return WFInstanceNewResponse{}, errors.New(INVALID_DATABASE_DEPENDENCY)
+        }</span>
+
+        // convert int32 tp pgtype.Int4
+        <span class="cov8" title="1">parent = ConvertToPGType(*req.Request.Parent)
+
+        // Add record in wfinstance table
+        responseData, error := query.AddWFNewInstances(c, sqlc.AddWFNewInstancesParams{
+                Entityid: req.Request.EntityID,
+                Slice:    req.Request.Slice,
+                App:      req.Request.App,
+                Class:    req.Request.Entity[CLASS],
+                Workflow: req.Request.Workflow,
+                Step:     req.Steps,
+                Nextstep: req.Nextstep,
+                Parent:   parent,
+        })
+        if error != nil </span><span class="cov0" title="0">{
+                lh.LogActivity("error while adding Task steps in wfinstance table :", error.Error())
+                return response, error
+        }</span>
+
+        // To get workflow if step is present in stepworkflow table
+        <span class="cov8" title="1">for _, step := range req.Steps </span><span class="cov8" title="1">{
+                workflowData, _ := query.GetWorkflow(c, step)
+
+                if len(workflowData) &gt; 0 &amp;&amp; workflowData[0].Workflow != "" </span><span class="cov8" title="1">{
+                        subflow[workflowData[0].Step] = workflowData[0].Workflow
+                }</span>
+
+        }
+
+        // to get response
+        <span class="cov8" title="1">responseRequest := ResponseRequest{
+                Subflow:      subflow,
+                NextStep:     req.Nextstep,
+                ResponseData: responseData,
+                Service:      s,
+        }
+
+        response = getResponse(responseRequest)
+
+        return response, nil</span>
+}
+
+// To convert int to pgtype.Int4
+func ConvertToPGType(value int32) pgtype.Int4 <span class="cov8" title="1">{
+        if value != 0 </span><span class="cov8" title="1">{
+                return pgtype.Int4{
+                        Int32: value,
+                        Valid: true,
+                }
+        }</span>
+        <span class="cov0" title="0">return pgtype.Int4{Int32: value, Valid: false}</span>
+}
+
+// response structure
+func getResponse(r ResponseRequest) WFInstanceNewResponse <span class="cov8" title="1">{
+        var tasks []map[string]int32
+        var loggedDate pgtype.Timestamp
+        var response WFInstanceNewResponse
+
+        lh := r.Service.LogHarbour
+        lh.Log("Inside addTasks()")
+
+        for _, val := range r.ResponseData </span><span class="cov8" title="1">{
+                // adding tasks
+                task := make(map[string]int32)
+                task[val.Step] = val.ID
+                tasks = append(tasks, task)
+                //loggingdates
+                loggedDate = val.Loggedat
+        }</span>
+        //var response WFInstanceNewResponse
+        <span class="cov8" title="1">if len(tasks) &gt; 1 </span><span class="cov8" title="1">{
+                // response for multiple task steps
+                response = WFInstanceNewResponse{
+                        Tasks:    tasks,
+                        Nextstep: r.NextStep,
+                        Loggedat: loggedDate,
+                        Subflows: &amp;r.Subflow,
+                }
+        }</span> else<span class="cov8" title="1"> {
+                //response for single task step
+                response = WFInstanceNewResponse{
+                        Tasks:    tasks,
+                        Loggedat: loggedDate,
+                        Subflows: &amp;r.Subflow,
+                }
+        }</span>
+        <span class="cov8" title="1">return response</span>
+}
+</pre>
+		
+		<pre class="file" id="file11" style="display: none">package wfinstance
+
+import (
+        "encoding/json"
+        "errors"
+        "fmt"
+        "strconv"
+        "time"
+
+        "github.com/gin-gonic/gin"
+        "github.com/remiges-tech/alya/service"
+        "github.com/remiges-tech/alya/wscutils"
+        "github.com/remiges-tech/crux/db/sqlc-gen"
+        "github.com/remiges-tech/crux/server"
+        "github.com/remiges-tech/crux/types"
+)
+
+type Entity struct {
+        Class      string             `json:"class"`
+        Attributes []EntityAttributes `json:"attr"`
+}
+
+type EntityAttributes struct {
+        Name string `json:"name"`
+        Val  string `json:"val"`
+}
+
+func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin.Context) (bool, []wscutils.ErrorMessage) <span class="cov8" title="1">{
+        lh := s.LogHarbour
+        entity := r.Entity
+        var errRes []wscutils.ErrorMessage
+
+        lh.Log("Inside ValidateWFInstaceNewReq()")
+        query, ok := s.Dependencies["queries"].(*sqlc.Queries)
+        if !ok </span><span class="cov0" title="0">{
+                lh.Log("Error while getting query instance from service Dependencies")
+                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
+                errRes := append(errRes, wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_DatabaseError, nil))
+                return false, errRes
+        }</span>
+        // Validate request
+        <span class="cov8" title="1">isValidReq, errAry := validateWorkflow(r, s, c)
+        if len(errAry) &gt; 0 || !isValidReq </span><span class="cov0" title="0">{
+                lh.Debug0().LogActivity("Invalid request:", errAry)
+                errRes = errAry
+                return false, errRes
+        }</span>
+
+        // To verify whether entity has valid structure
+        <span class="cov8" title="1">_, isKeyExist := entity[CLASS]
+
+        if !(entity != nil &amp;&amp; isKeyExist) </span><span class="cov0" title="0">{
+                lh.Log("Entity does not match with standard structure")
+                errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid_Entity, &amp;ENTITY))
+                return false, errRes
+        }</span>
+
+        // To verify whether app,slice,class present in schema and get patternschema against it
+        <span class="cov8" title="1">class := entity[CLASS]
+        pattern, err := query.WfPatternSchemaGet(c, sqlc.WfPatternSchemaGetParams{
+                App:   r.App,
+                Slice: r.Slice,
+                Class: class,
+                Realm: REALM,
+        })
+        if err != nil </span><span class="cov0" title="0">{
+                lh.LogActivity("failed to get schema pattern  from DB:", err)
+                errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_NoSchemaFound, server.ErrCode_NotFound, nil))
+                return false, errRes
+        }</span>
+
+        // Unmarshalling byte data to schemapatten struct
+        <span class="cov8" title="1">schmapattern, err := byteToPatternSchema(pattern)
+        if err != nil </span><span class="cov0" title="0">{
+                lh.Debug0().LogActivity(" error while converting byte patternschema to struct:", err)
+                errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_Invalid_pattern_schema, nil))
+        }</span>
+
+        // Forming  requested entity  into proper Entity struct
+        <span class="cov8" title="1">EntityStruct := getEntity(r.Entity)
+
+        //  To match entity against patternschema
+        isValidEntity, err := ValidateEntity(EntityStruct, schmapattern, s)
+        if !isValidEntity || err != nil </span><span class="cov0" title="0">{
+                lh.Debug0().LogActivity(" error while validating entity against patternschema:", err)
+                errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid_Entity, &amp;ENTITY))
+                return false, errRes
+
+        }</span>
+        <span class="cov8" title="1">return true, nil</span>
+}
+
+// validate workflow
+func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context) (bool, []wscutils.ErrorMessage) <span class="cov8" title="1">{
+        var errors []wscutils.ErrorMessage
+        lh := s.LogHarbour
+        entityClass := r.Entity[CLASS]
+
+        lh.Log("Inside validateWorkflow()")
+        query, ok := s.Dependencies["queries"].(*sqlc.Queries)
+        if !ok </span><span class="cov0" title="0">{
+                lh.Log("Error while getting query instance from service Dependencies")
+                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
+                errors := append(errors, wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_DatabaseError, nil))
+                return false, errors
+        }</span>
+
+        //1.The value of app specified in the request matches the app ID with which this workflow is associated
+        <span class="cov8" title="1">lh.Log("verifying whether app present in request is valid")
+        app, err := query.GetApp(c, sqlc.GetAppParams{
+                Slice: r.Slice,
+                App:   r.App,
+                Class: entityClass,
+                Realm: REALM,
+        })
+
+        if err != nil </span><span class="cov0" title="0">{
+                lh.LogActivity("failed to get app from DB:", err.Error())
+                errors = append(errors, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid_APP, &amp;APP, r.App))
+        }</span>
+
+        //2. The class of the workflow must match that of entity
+        <span class="cov8" title="1">lh.Log("verifying whether class present in request is valid")
+        class, err := query.GetClass(c, sqlc.GetClassParams{
+                Slice: r.Slice,
+                App:   app,
+                Class: entityClass,
+                Realm: REALM,
+        })
+
+        if err != nil </span><span class="cov0" title="0">{
+                lh.LogActivity("failed to get class from DB:", err)
+                errors = append(errors, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid_Class, &amp;CLASS, entityClass))
+        }</span>
+
+        // 3.The workflow named has is_active == true and internal == false
+
+        //To get worflow active status
+        <span class="cov8" title="1">lh.Log("verifying whether workflow active status is valid")
+        wfActiveStatus, err := query.GetWFActiveStatus(c, sqlc.GetWFActiveStatusParams{
+                Slice:   r.Slice,
+                App:     app,
+                Class:   class,
+                Realm:   REALM,
+                Setname: r.Workflow,
+        })
+
+        if err != nil || !wfActiveStatus.Bool </span><span class="cov0" title="0">{
+                lh.LogActivity("Invalid workflow is_active status :", err)
+                errors = append(errors, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid_workflow_active_status, &amp;WORKFLOW, fmt.Sprintf("%v", wfActiveStatus.Bool)))
+        }</span>
+
+        //To get worflow Internal status
+        <span class="cov8" title="1">lh.Log("verifying whether workflow internal status is valid")
+        wfInternalStatus, err := query.GetWFInternalStatus(c, sqlc.GetWFInternalStatusParams{
+                Slice:   r.Slice,
+                App:     app,
+                Class:   class,
+                Realm:   REALM,
+                Setname: r.Workflow,
+        })
+
+        if err != nil || wfInternalStatus </span><span class="cov0" title="0">{
+                lh.LogActivity("Invalid workflow is_internal status:", err)
+                errors = append(errors, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid_workflow_Internal_status, &amp;WORKFLOW, fmt.Sprintf("%v", wfInternalStatus)))
+
+        }</span>
+
+        //4.There is no record in the wfinstance table with the same values for the tuple (slice,app,workflow,entityid)
+        <span class="cov8" title="1">wfinstanceRecordCount, err := query.GetWFINstance(c, sqlc.GetWFINstanceParams{
+                Slice:    r.Slice,
+                App:      app,
+                Workflow: r.Workflow,
+                Entityid: r.EntityID,
+        })
+
+        if err != nil || wfinstanceRecordCount &gt; 0 </span><span class="cov0" title="0">{
+                lh.LogActivity("Record already exist in wfinstance table :", err)
+                errors = append(errors, wscutils.BuildErrorMessage(server.MsgId_AlreadyExist, server.ErrCode_AlreadyExist, &amp;ENTITYID, r.EntityID))
+        }</span>
+
+        <span class="cov8" title="1">if len(errors) &gt; 0 </span><span class="cov0" title="0">{
+                return false, errors
+        }</span>
+
+        <span class="cov8" title="1">return true, nil</span>
+}
+
+// validate entity
+func ValidateEntity(e Entity, ps *types.PatternSchema, s *service.Service) (bool, error) <span class="cov8" title="1">{
+
+        lh := s.LogHarbour
+        lh.Log("Inside validateEntity()")
+        // Check if the entity class matches the expected class from the schema
+        if e.Class != ps.Class </span><span class="cov0" title="0">{
+                return false, errors.New("Entity class does not match the expected class in the schema")
+        }</span>
+        // Validate attributes
+        <span class="cov8" title="1">for _, a := range e.Attributes </span><span class="cov8" title="1">{
+                t := getType(*ps, a.Name)
+                if t == "" </span><span class="cov0" title="0">{
+                        return false, fmt.Errorf("schema does not contain attribute %v", a.Name)
+                }</span>
+                <span class="cov8" title="1">_, err := convertEntityAttrVal(a.Val, t)
+                if err != nil </span><span class="cov0" title="0">{
+                        return false, fmt.Errorf("attribute %v in entity has value of wrong type", a.Name)
+                }</span>
+        }
+
+        <span class="cov8" title="1">return true, nil</span>
+}
+
+// To get type of request entity attributes
+func getType(ps types.PatternSchema, name string) string <span class="cov8" title="1">{
+        for _, as := range ps.Attr </span><span class="cov8" title="1">{
+                if as.Name == name </span><span class="cov8" title="1">{
+                        return as.ValType
+                }</span>
+        }
+        <span class="cov0" title="0">return ""</span>
+}
+
+// Converts the string entityAttrVal to its schema-provided type
+func convertEntityAttrVal(entityAttrVal string, valType string) (any, error) <span class="cov8" title="1">{
+        var entityAttrValConv any
+        var err error
+        switch valType </span>{
+        case typeBool:<span class="cov0" title="0">
+                entityAttrValConv, err = strconv.ParseBool(entityAttrVal)</span>
+        case typeInt:<span class="cov8" title="1">
+                entityAttrValConv, err = strconv.Atoi(entityAttrVal)</span>
+        case typeFloat:<span class="cov8" title="1">
+                entityAttrValConv, err = strconv.ParseFloat(entityAttrVal, 64)</span>
+        case typeStr, typeEnum:<span class="cov8" title="1">
+                entityAttrValConv = entityAttrVal</span>
+        case typeTS:<span class="cov0" title="0">
+                entityAttrValConv, err = time.Parse(timeLayout, entityAttrVal)</span>
+        }
+
+        <span class="cov8" title="1">if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return entityAttrValConv, nil</span>
+}
+
+// To convert byte data to patternschema struct
+func byteToPatternSchema(byteData []byte) (*types.PatternSchema, error) <span class="cov8" title="1">{
+        var response *types.PatternSchema
+        err := json.Unmarshal(byteData, &amp;response)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("error decoding JSON: %v", err)
+        }</span>
+        <span class="cov8" title="1">return response, nil</span>
+}
+
+// To convert request entity into proper Entity structure
+func getEntity(en map[string]string) Entity <span class="cov8" title="1">{
+        entity := en
+
+        EntityStruct := Entity{
+                Class: entity[CLASS],
+        }
+
+        for key, val := range entity </span><span class="cov8" title="1">{
+                if key != CLASS </span><span class="cov8" title="1">{
+                        attribute := EntityAttributes{Name: key, Val: val}
+                        EntityStruct.Attributes = append(EntityStruct.Attributes, attribute)
+
+                }</span>
+        }
+
+        <span class="cov8" title="1">return EntityStruct</span>
+}
+</pre>
+		
+		<pre class="file" id="file12" style="display: none">package testutils
+
+import (
+        "encoding/json"
+        "fmt"
+        "io"
+        "log"
+        "os"
+
+        "github.com/remiges-tech/alya/wscutils"
+)
+
+func MarshalJson(data any) []byte <span class="cov0" title="0">{
+        jsonData, err := json.Marshal(&amp;data)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatal("error marshaling")
+        }</span>
+        <span class="cov0" title="0">return jsonData</span>
+}
+
+func ReadJsonFromFile(filepath string) ([]byte, error) <span class="cov0" title="0">{
+        // var err error
+        file, err := os.Open(filepath)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("testFile path is not exist")
+        }</span>
+        <span class="cov0" title="0">defer file.Close()
+        jsonData, err := io.ReadAll(file)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return jsonData, nil</span>
+}
+
+type TestCasesStruct struct {
+        Name             string
+        RequestPayload   wscutils.Request
+        ExpectedHttpCode int
+        TestJsonFile     string
+        ExpectedResult   *wscutils.Response
+}
+</pre>
+		
+		<pre class="file" id="file13" style="display: none">package types
+
+import (
+        "encoding/json"
+        "fmt"
+        "io"
+        "log"
+        "os"
+        "slices"
+        "strings"
+
+        "github.com/go-playground/validator/v10"
+)
+
+const (
+        DevEnv           Environment = "dev_env"
+        ProdEnv          Environment = "prod_env"
+        UATEnv           Environment = "uat_env"
+        RECORD_NOT_EXIST             = "record_does_not_exist"
+        OPERATION_FAILED             = "operation_failed"
+)
+
+var APP, SLICE, CLASS, NAME string = "App", "Slice", "Class", "Name"
+
+type Environment string
+
+type OpReq struct {
+        User      string   `json:"user"`
+        CapNeeded []string `json:"capNeeded"`
+        Scope     Scope    `json:"scope"`
+        Limit     Limit    `json:"limit"`
+}
+
+type Scope map[string]interface{}
+type Limit map[string]interface{}
+
+type QualifiedCap struct {
+        Id    string `json:"id"`
+        Cap   string `json:"cap"`
+        Scope Scope  `json:"scope"`
+        Limit Limit  `json:"limit"`
+}
+
+type Capabilities struct {
+        Name          string         `json:"name"` //either user name or group name
+        QualifiedCaps []QualifiedCap `json:"qualifiedCaps"`
+}
+
+type Attribute struct {
+        Name      string   `json:"name" validate:"required"`
+        ShortDesc string   `json:"shortdesc" validate:"required"`
+        LongDesc  string   `json:"longdesc" validate:"required"`
+        ValType   string   `json:"valtype" validate:"required"`
+        Vals      []string `json:"vals,omitempty"`
+        Enumdesc  []string `json:"enumdesc,omitempty"`
+        ValMax    *int32   `json:"valmax,omitempty"`
+        ValMin    *int32   `json:"valmin,omitempty"`
+        LenMax    *int32   `json:"lenmax,omitempty"`
+        LenMin    *int32   `json:"lenmin,omitempty"`
+}
+
+type PatternSchema struct {
+        Class string      `json:"class" validate:"required,lowercase"`
+        Attr  []Attribute `json:"attr" validate:"required,dive"`
+}
+
+type ActionSchema struct {
+        Class      string   `json:"class" validate:"required,lowercase"`
+        Tasks      []string `json:"tasks" validate:"required"`
+        Properties []string `json:"properties" validate:"required"`
+}
+
+func (env Environment) IsValid() bool <span class="cov0" title="0">{
+        switch env </span>{
+        case DevEnv, ProdEnv, UATEnv:<span class="cov0" title="0">
+                return true</span>
+        }
+        <span class="cov0" title="0">return false</span>
+}
+
+// CommonValidation is a generic function which setup standard validation utilizing
+// validator package and Maps the errorVals based on the map parameter and
+// return []errorVals
+func CommonValidation(err validator.FieldError) []string <span class="cov0" title="0">{
+        var vals []string
+        switch err.Tag() </span>{
+        case "required":<span class="cov0" title="0">
+                vals = append(vals, "not_provided")</span>
+        case "alpha":<span class="cov0" title="0">
+                vals = append(vals, "only_alphabets_are_allowed")</span>
+        case "gt":<span class="cov0" title="0">
+                vals = append(vals, "must_be_greater_than_zero")</span>
+        default:<span class="cov0" title="0">
+                vals = append(vals, "not_valid_input")</span>
+        }
+        <span class="cov0" title="0">return vals</span>
+}
+
+func MarshalJson(data any) []byte <span class="cov8" title="1">{
+        jsonData, err := json.Marshal(&amp;data)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatal("error marshaling")
+        }</span>
+        <span class="cov8" title="1">return jsonData</span>
+}
+
+func ReadJsonFromFile(filepath string) ([]byte, error) <span class="cov8" title="1">{
+        // var err error
+        file, err := os.Open(filepath)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("testFile path is not exist")
+        }</span>
+        <span class="cov8" title="1">defer file.Close()
+        jsonData, err := io.ReadAll(file)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return jsonData, nil</span>
+}
+
+// to check given string is nil or not
+func IsStringEmpty(s *string) bool <span class="cov0" title="0">{
+        return s == nil || strings.TrimSpace(*s) == ""
+}</span>
+
+// to check if the user has "ruleset" rights for the given app
+func HasRulesetRights(app string) bool <span class="cov0" title="0">{
+        userRights := GetWorkflowsByRulesetRights()
+        return slices.Contains(userRights, app)
+}</span>
+
+// to get workflows for all apps for which the user has "ruleset" rights
+func GetWorkflowsByRulesetRights() []string <span class="cov0" title="0">{
+        return []string{"retailBANK", "nedbank"}
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

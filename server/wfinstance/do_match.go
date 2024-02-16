@@ -57,8 +57,8 @@ type RuleActions struct {
 	willExit   bool
 }
 type ActionSet struct {
-	tasks      []string
-	properties map[string]string
+	Tasks      []string
+	Properties map[string]string
 }
 
 type Property struct {
@@ -69,15 +69,20 @@ type Property struct {
 var ruleSchemas = []RuleSchema{}
 var ruleSets = map[string]RuleSet{}
 
+var SWITCH = ActionSet{
+	Tasks:      []string{"diwalisale"},
+	Properties: map[string]string{"nextstep": "coupondistribution"},
+}
+
 func doMatch(entity Entity, ruleSet RuleSet, actionSet ActionSet, seenRuleSets map[string]bool) (ActionSet, bool, error) {
 
 	// Initializing the ActionSet struct
 
 	//if task has only one task
-	actionSet = ActionSet{
-		tasks:      []string{"discount"},
-		properties: map[string]string{"nextstep": "coupondistribution"},
-	}
+	// actionSet = ActionSet{
+	// 	tasks:      []string{"discount"},
+	// 	properties: map[string]string{"nextstep": "coupondistribution"},
+	// }
 
 	//if task has multiple tasks
 	// actionSet = ActionSet{
@@ -85,6 +90,11 @@ func doMatch(entity Entity, ruleSet RuleSet, actionSet ActionSet, seenRuleSets m
 	// 	properties: map[string]string{"nextstep": "coupondistribution"},
 	// }
 
+	//if task has multiple tasks
+	// actionSet = ActionSet{
+	// 	Tasks:      []string{"diwalisale", "yearendsale"},
+	// 	Properties: map[string]string{"nextstep": "coupondistribution"},
+	// }
 	// if task has only one task but no proper attri
 	// actionSet = ActionSet{
 	// 	tasks:      []string{"discount"}, //, "yearendsale"},
@@ -96,7 +106,7 @@ func doMatch(entity Entity, ruleSet RuleSet, actionSet ActionSet, seenRuleSets m
 	// 	tasks:      []string{"discount", "yearendsale"},
 	// 	properties: map[string]string{"done": "true"},
 	// }
-
+	actionSet = SWITCH
 	return actionSet, true, nil
 
 }

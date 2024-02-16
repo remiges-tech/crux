@@ -73,14 +73,14 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
 	schmapattern, err := byteToPatternSchema(pattern)
 	if err != nil {
 		lh.Debug0().LogActivity(" error while converting byte patternschema to struct:", err)
-		errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_Invalid_pattern_schema, nil))
+		errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_NoSchemaFound, server.ErrCode_Invalid_pattern_schema, nil))
 	}
 
 	// Forming  requested entity  into proper Entity struct
 	EntityStruct := getEntity(r.Entity)
 
 	//  To match entity against patternschema
-	isValidEntity, err := validateEntity(EntityStruct, schmapattern, s)
+	isValidEntity, err := ValidateEntity(EntityStruct, schmapattern, s)
 	if !isValidEntity || err != nil {
 		lh.Debug0().LogActivity(" error while validating entity against patternschema:", err)
 		errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid_Entity, &ENTITY))
@@ -187,7 +187,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 }
 
 // validate entity
-func validateEntity(e Entity, ps *types.PatternSchema, s *service.Service) (bool, error) {
+func ValidateEntity(e Entity, ps *types.PatternSchema, s *service.Service) (bool, error) {
 
 	lh := s.LogHarbour
 	lh.Log("Inside validateEntity()")

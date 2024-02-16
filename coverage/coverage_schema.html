@@ -217,16 +217,16 @@ const (
         BrwfEnumW BrwfEnum = "W"
 )
 
-func (e *BrwfEnum) Scan(src interface{}) error <span class="cov8" title="1">{
+func (e *BrwfEnum) Scan(src interface{}) error <span class="cov0" title="0">{
         switch s := src.(type) </span>{
         case []byte:<span class="cov0" title="0">
                 *e = BrwfEnum(s)</span>
-        case string:<span class="cov8" title="1">
+        case string:<span class="cov0" title="0">
                 *e = BrwfEnum(s)</span>
         default:<span class="cov0" title="0">
                 return fmt.Errorf("unsupported scan type for BrwfEnum: %T", src)</span>
         }
-        <span class="cov8" title="1">return nil</span>
+        <span class="cov0" title="0">return nil</span>
 }
 
 type NullBrwfEnum struct {
@@ -401,16 +401,11 @@ type GetAppParams struct {
 }
 
 func (q *Queries) GetApp(ctx context.Context, arg GetAppParams) (string, error) <span class="cov0" title="0">{
-        row := q.db.QueryRow(ctx, getApp,
-                arg.Slice,
-                arg.App,
-                arg.Class,
-                arg.Realm,
-        )
+        row := q.db.QueryRow(ctx, getApp, arg.Slice, arg.App, arg.Class)
         var app string
         err := row.Scan(&amp;app)
         return app, err
-}</span>
+}
 
 const getClass = `-- name: GetClass :one
 SELECT class
@@ -425,22 +420,17 @@ WHERE
 
 type GetClassParams struct {
         Slice int32  `json:"slice"`
-        App   string `json:"app"`
+        </span>App   string `json:"app"`
         Class string `json:"class"`
         Realm int32  `json:"realm"`
 }
 
 func (q *Queries) GetClass(ctx context.Context, arg GetClassParams) (string, error) <span class="cov0" title="0">{
-        row := q.db.QueryRow(ctx, getClass,
-                arg.Slice,
-                arg.App,
-                arg.Class,
-                arg.Realm,
-        )
+        row := q.db.QueryRow(ctx, getClass, arg.Slice, arg.App, arg.Class)
         var class string
         err := row.Scan(&amp;class)
         return class, err
-}</span>
+}
 
 const getWFActiveStatus = `-- name: GetWFActiveStatus :one
 SELECT is_active
@@ -455,14 +445,14 @@ WHERE
 `
 
 type GetWFActiveStatusParams struct {
-        Slice   int32  `json:"slice"`
+        </span>Slice   int32  `json:"slice"`
         App     string `json:"app"`
         Class   string `json:"class"`
         Realm   int32  `json:"realm"`
         Setname string `json:"setname"`
 }
 
-func (q *Queries) GetWFActiveStatus(ctx context.Context, arg GetWFActiveStatusParams) (pgtype.Bool, error) <span class="cov0" title="0">{
+func (q *Queries) GetWFActiveStatus(ctx context.Context, arg GetWFActiveStatusParams) (pgtype.Bool, error) {
         row := q.db.QueryRow(ctx, getWFActiveStatus,
                 arg.Slice,
                 arg.App,
@@ -473,7 +463,7 @@ func (q *Queries) GetWFActiveStatus(ctx context.Context, arg GetWFActiveStatusPa
         var is_active pgtype.Bool
         err := row.Scan(&amp;is_active)
         return is_active, err
-}</span>
+}
 
 const getWFInternalStatus = `-- name: GetWFInternalStatus :one
 SELECT is_internal
@@ -484,7 +474,7 @@ WHERE
     AND class = $3
     AND realm = $4
     AND brwf = 'W'
-    AND setname = $5
+    AND setname = $4
 `
 
 type GetWFInternalStatusParams struct {
@@ -495,7 +485,7 @@ type GetWFInternalStatusParams struct {
         Setname string `json:"setname"`
 }
 
-func (q *Queries) GetWFInternalStatus(ctx context.Context, arg GetWFInternalStatusParams) (bool, error) <span class="cov0" title="0">{
+func (q *Queries) GetWFInternalStatus(ctx context.Context, arg GetWFInternalStatusParams) (bool, error) {
         row := q.db.QueryRow(ctx, getWFInternalStatus,
                 arg.Slice,
                 arg.App,
@@ -506,7 +496,7 @@ func (q *Queries) GetWFInternalStatus(ctx context.Context, arg GetWFInternalStat
         var is_internal bool
         err := row.Scan(&amp;is_internal)
         return is_internal, err
-}</span>
+}
 
 const rulesetRowLock = `-- name: RulesetRowLock :one
 SELECT id, realm, slice, app, brwf, class, setname, schemaid, is_active, is_internal, ruleset, createdat, createdby, editedat, editedby 
@@ -524,13 +514,13 @@ type RulesetRowLockParams struct {
         App   string `json:"app"`
 }
 
-func (q *Queries) RulesetRowLock(ctx context.Context, arg RulesetRowLockParams) (Ruleset, error) <span class="cov0" title="0">{
+func (q *Queries) RulesetRowLock(ctx context.Context, arg RulesetRowLockParams) (Ruleset, error) {
         row := q.db.QueryRow(ctx, rulesetRowLock, arg.Slice, arg.Class, arg.App)
         var i Ruleset
         err := row.Scan(
                 &amp;i.ID,
                 &amp;i.Realm,
-                &amp;i.Slice,
+        </span>        &amp;i.Slice,
                 &amp;i.App,
                 &amp;i.Brwf,
                 &amp;i.Class,
@@ -545,9 +535,9 @@ func (q *Queries) RulesetRowLock(ctx context.Context, arg RulesetRowLockParams) 
                 &amp;i.Editedby,
         )
         return i, err
-}</span>
+}
 
-const workFlowNew = `-- name: WorkFlowNew :exec
+const workFlowNew = `-- name: WorkFlowNew :one
 INSERT INTO
     ruleset (
         realm, slice, app, brwf, class, setname, schemaid, is_active, is_internal, ruleset, createdat, createdby
@@ -571,8 +561,8 @@ type WorkFlowNewParams struct {
         Createdby  string      `json:"createdby"`
 }
 
-func (q *Queries) WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) error <span class="cov0" title="0">{
-        _, err := q.db.Exec(ctx, workFlowNew,
+func (q *Queries) WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) (int32, error) <span class="cov0" title="0">{
+        row := q.db.QueryRow(ctx, workFlowNew,
                 arg.Realm,
                 arg.Slice,
                 arg.App,
@@ -585,163 +575,10 @@ func (q *Queries) WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) error 
                 arg.Ruleset,
                 arg.Createdby,
         )
-        return err
+        var id int32
+        err := row.Scan(&amp;id)
+        return id, err
 }</span>
-
-const workFlowUpdate = `-- name: WorkFlowUpdate :execresult
-UPDATE ruleset
-SET
-    brwf = $4,
-    setname = $5,
-    ruleset = $6,
-    editedat = CURRENT_TIMESTAMP,
-    editedby = $7
-WHERE
-    slice = $1
-    AND class = $2
-    AND app = $3
-`
-
-type WorkFlowUpdateParams struct {
-        Slice    int32       `json:"slice"`
-        Class    string      `json:"class"`
-        App      string      `json:"app"`
-        Brwf     BrwfEnum    `json:"brwf"`
-        Setname  string      `json:"setname"`
-        Ruleset  []byte      `json:"ruleset"`
-        Editedby pgtype.Text `json:"editedby"`
-}
-
-func (q *Queries) WorkFlowUpdate(ctx context.Context, arg WorkFlowUpdateParams) (pgconn.CommandTag, error) <span class="cov0" title="0">{
-        return q.db.Exec(ctx, workFlowUpdate,
-                arg.Slice,
-                arg.Class,
-                arg.App,
-                arg.Brwf,
-                arg.Setname,
-                arg.Ruleset,
-                arg.Editedby,
-        )
-}</span>
-
-const workflowDelete = `-- name: WorkflowDelete :execresult
-DELETE from ruleset
-where
-    brwf = 'W'
-    AND is_active = false
-    and slice = $1
-    and app = $2
-    and class = $3
-    and setname = $4
-    AND realm = $5
-`
-
-type WorkflowDeleteParams struct {
-        Slice   int32  `json:"slice"`
-        App     string `json:"app"`
-        Class   string `json:"class"`
-        Setname string `json:"setname"`
-        Realm   int32  `json:"realm"`
-}
-
-func (q *Queries) WorkflowDelete(ctx context.Context, arg WorkflowDeleteParams) (pgconn.CommandTag, error) <span class="cov0" title="0">{
-        return q.db.Exec(ctx, workflowDelete,
-                arg.Slice,
-                arg.App,
-                arg.Class,
-                arg.Setname,
-                arg.Realm,
-        )
-}</span>
-
-const workflowList = `-- name: WorkflowList :many
-select
-    id,
-    slice,
-    app,
-    class,
-    setname as name,
-    is_active,
-    is_internal,
-    createdat,
-    createdby,
-    editedat,
-    editedby
-from ruleset
-where
-    brwf = 'W'
-    AND realm = $1
-    AND ($2::INTEGER is null OR slice = $2::INTEGER)
-    AND ( $3::text[] is null OR app = any( $3::text[]))
-    AND ($4::text is null OR class = $4::text)
-    AND ($5::text is null OR setname = $5::text)
-    AND ($6::BOOLEAN is null OR is_active = $6::BOOLEAN)
-    AND ($7::BOOLEAN is null OR is_internal = $7::BOOLEAN)
-`
-
-type WorkflowListParams struct {
-        Realm      int32       `json:"realm"`
-        Slice      pgtype.Int4 `json:"slice"`
-        App        []string    `json:"app"`
-        Class      pgtype.Text `json:"class"`
-        Setname    pgtype.Text `json:"setname"`
-        IsActive   pgtype.Bool `json:"is_active"`
-        IsInternal pgtype.Bool `json:"is_internal"`
-}
-
-type WorkflowListRow struct {
-        ID         int32            `json:"id"`
-        Slice      int32            `json:"slice"`
-        App        string           `json:"app"`
-        Class      string           `json:"class"`
-        Name       string           `json:"name"`
-        IsActive   pgtype.Bool      `json:"is_active"`
-        IsInternal bool             `json:"is_internal"`
-        Createdat  pgtype.Timestamp `json:"createdat"`
-        Createdby  string           `json:"createdby"`
-        Editedat   pgtype.Timestamp `json:"editedat"`
-        Editedby   pgtype.Text      `json:"editedby"`
-}
-
-func (q *Queries) WorkflowList(ctx context.Context, arg WorkflowListParams) ([]WorkflowListRow, error) <span class="cov0" title="0">{
-        rows, err := q.db.Query(ctx, workflowList,
-                arg.Realm,
-                arg.Slice,
-                arg.App,
-                arg.Class,
-                arg.Setname,
-                arg.IsActive,
-                arg.IsInternal,
-        )
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-        <span class="cov0" title="0">defer rows.Close()
-        var items []WorkflowListRow
-        for rows.Next() </span><span class="cov0" title="0">{
-                var i WorkflowListRow
-                if err := rows.Scan(
-                        &amp;i.ID,
-                        &amp;i.Slice,
-                        &amp;i.App,
-                        &amp;i.Class,
-                        &amp;i.Name,
-                        &amp;i.IsActive,
-                        &amp;i.IsInternal,
-                        &amp;i.Createdat,
-                        &amp;i.Createdby,
-                        &amp;i.Editedat,
-                        &amp;i.Editedby,
-                ); err != nil </span><span class="cov0" title="0">{
-                        return nil, err
-                }</span>
-                <span class="cov0" title="0">items = append(items, i)</span>
-        }
-        <span class="cov0" title="0">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-        <span class="cov0" title="0">return items, nil</span>
-}
 
 const workflowget = `-- name: Workflowget :one
 select
@@ -790,7 +627,7 @@ type WorkflowgetRow struct {
         Editedby   pgtype.Text      `json:"editedby"`
 }
 
-func (q *Queries) Workflowget(ctx context.Context, arg WorkflowgetParams) (WorkflowgetRow, error) <span class="cov0" title="0">{
+func (q *Queries) Workflowget(ctx context.Context, arg WorkflowgetParams) (WorkflowgetRow, error) {
         row := q.db.QueryRow(ctx, workflowget,
                 arg.Slice,
                 arg.App,
@@ -814,7 +651,7 @@ func (q *Queries) Workflowget(ctx context.Context, arg WorkflowgetParams) (Workf
                 &amp;i.Editedby,
         )
         return i, err
-}</span>
+}
 </pre>
 		
 		<pre class="file" id="file5" style="display: none">// Code generated by sqlc. DO NOT EDIT.
@@ -840,54 +677,27 @@ SELECT
     editedby
 FROM schema
 WHERE
-    slice = $1
-    AND class = $2
-    AND app = $3
-FOR UPDATE
-`
-
-type GetSchemaWithLockParams struct {
-        Slice int32  `json:"slice"`
-        Class string `json:"class"`
-        App   string `json:"app"`
-}
-
-type GetSchemaWithLockRow struct {
-        ID            int32       `json:"id"`
-        Brwf          BrwfEnum    `json:"brwf"`
-        Patternschema []byte      `json:"patternschema"`
-        Actionschema  []byte      `json:"actionschema"`
-        Column5       bool        `json:"column_5"`
-        Editedby      pgtype.Text `json:"editedby"`
-}
-
-func (q *Queries) GetSchemaWithLock(ctx context.Context, arg GetSchemaWithLockParams) (GetSchemaWithLockRow, error) <span class="cov8" title="1">{
-        row := q.db.QueryRow(ctx, getSchemaWithLock, arg.Slice, arg.Class, arg.App)
-        var i GetSchemaWithLockRow
-        err := row.Scan(
-                &amp;i.ID,
-                &amp;i.Brwf,
-                &amp;i.Patternschema,
-                &amp;i.Actionschema,
-                &amp;i.Column5,
-                &amp;i.Editedby,
-        )
-        return i, err
-}</span>
-
-const schemaDelete = `-- name: SchemaDelete :one
-DELETE FROM schema WHERE id = $1 RETURNING id
+    id = $1 RETURNING id
 `
 
 func (q *Queries) SchemaDelete(ctx context.Context, id int32) (int32, error) <span class="cov0" title="0">{
         row := q.db.QueryRow(ctx, schemaDelete, id)
         err := row.Scan(&amp;id)
         return id, err
-}</span>
+}
 
 const schemaGet = `-- name: SchemaGet :many
-SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
-FROM schema
+SELECT
+    schema.slice,
+    schema.app,
+    app.longname,
+    schema.class,
+    schema.createdby,
+    schema.createdat,
+    schema.editedby,
+    schema.editedat
+FROM
+    schema
     JOIN app ON schema.app = app.shortname
     JOIN realmslice on schema.slice = realmslice.id
 WHERE
@@ -913,45 +723,55 @@ type SchemaGetRow struct {
         Editedat  pgtype.Timestamp `json:"editedat"`
 }
 
-func (q *Queries) SchemaGet(ctx context.Context, arg SchemaGetParams) ([]SchemaGetRow, error) <span class="cov8" title="1">{
+func (q *Queries) SchemaGet(ctx context.Context, arg SchemaGetParams) ([]SchemaGetRow, error) {
         rows, err := q.db.Query(ctx, schemaGet, arg.Slice, arg.Class, arg.App)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil {
                 return nil, err
-        }</span>
-        <span class="cov8" title="1">defer rows.Close()
+        }
+        defer rows.Close()
         var items []SchemaGetRow
-        for rows.Next() </span><span class="cov0" title="0">{
+        for rows.Next() </span><span class="cov8" title="1">{
                 var i SchemaGetRow
                 if err := rows.Scan(
                         &amp;i.Slice,
                         &amp;i.App,
                         &amp;i.Longname,
                         &amp;i.Class,
-                        &amp;i.Createdby,
+                        &amp;i.Createdby</span><span class="cov0" title="0">,
                         &amp;i.Createdat,
                         &amp;i.Editedby,
                         &amp;i.Editedat,
                 ); err != nil </span><span class="cov0" title="0">{
                         return nil, err
                 }</span>
-                <span class="cov0" title="0">items = append(items, i)</span>
+                <span class="cov8" title="1">items = append(items, i)</span>
         }
-        <span class="cov8" title="1">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+        if err := rows.Err(); err != nil {
                 return nil, err
-        }</span>
-        <span class="cov8" title="1">return items, nil</span>
+        }
+        return items, nil
 }
 
 const schemaList = `-- name: SchemaList :many
-SELECT schema.slice, realmslice.descr, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
-FROM schema
+SELECT
+    schema.slice,
+    realmslice.descr,
+    schema.app,
+    app.longname,
+    schema.class,
+    schema.createdby,
+    schema.createdat,
+    schema.editedby,
+    schema.editedat
+FROM
+    schema
     JOIN app ON schema.app = app.shortname
     JOIN realmslice on schema.slice = realmslice.id
 `
 
-type SchemaListRow struct {
-        Slice     int32            `json:"slice"`
-        Descr     string           `json:"descr"`
+</span>type SchemaListRow struct {
+        S</span>lice     int32            `json:"slice"`
+        <span class="cov8" title="1">Descr     string </span>          `json:"descr"`
         App       string           `json:"app"`
         Longname  string           `json:"longname"`
         Class     string           `json:"class"`
@@ -961,14 +781,14 @@ type SchemaListRow struct {
         Editedat  pgtype.Timestamp `json:"editedat"`
 }
 
-func (q *Queries) SchemaList(ctx context.Context) ([]SchemaListRow, error) <span class="cov8" title="1">{
+func (q *Queries) SchemaList(ctx context.Context) ([]SchemaListRow, error) {
         rows, err := q.db.Query(ctx, schemaList)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil {
                 return nil, err
-        }</span>
-        <span class="cov8" title="1">defer rows.Close()
+        }
+        defer rows.Close()
         var items []SchemaListRow
-        for rows.Next() </span><span class="cov8" title="1">{
+        for rows.Next() {
                 var i SchemaListRow
                 if err := rows.Scan(
                         &amp;i.Slice,
@@ -980,20 +800,30 @@ func (q *Queries) SchemaList(ctx context.Context) ([]SchemaListRow, error) <span
                         &amp;i.Createdat,
                         &amp;i.Editedby,
                         &amp;i.Editedat,
-                ); err != nil </span><span class="cov0" title="0">{
+                ); err != nil {
                         return nil, err
-                }</span>
-                <span class="cov8" title="1">items = append(items, i)</span>
+                }
+                items = append(items, i)
         }
-        <span class="cov8" title="1">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+        if err := rows</span><span class="cov0" title="0">.Err(); err != nil {
                 return nil, err
         }</span>
         <span class="cov8" title="1">return items, nil</span>
 }
 
 const schemaListByApp = `-- name: SchemaListByApp :many
-SELECT schema.slice, realmslice.descr, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
-FROM schema
+SELECT
+    schema.slice,
+    realmslice.descr,
+    schema.app,
+    app.longname,
+    schema.class,
+    schema.createdby,
+    schema.createdat,
+    schema.editedby,
+    schema.editedat
+FROM
+    schema
     JOIN app ON schema.app = app.shortname
     JOIN realmslice on schema.slice = realmslice.id
 WHERE
@@ -1002,24 +832,24 @@ WHERE
 
 type SchemaListByAppRow struct {
         Slice     int32            `json:"slice"`
-        Descr     string           `json:"descr"`
+        Descr     strin</span><span class="cov0" title="0">g           `json:"descr"`
         App       string           `json:"app"`
-        Longname  string           `json:"longname"`
-        Class     string           `json:"class"`
+        Lo</span>ngname  string           `json:"longname"`
+        C<span class="cov8" title="1">lass     string         </span>  `json:"class"`
         Createdby string           `json:"createdby"`
-        Createdat pgtype.Timestamp `json:"createdat"`
+        <span class="cov8" title="1">Createdat pgtype.Timestamp `json:</span><span class="cov0" title="0">"createdat"`
         Editedby  pgtype.Text      `json:"editedby"`
-        Editedat  pgtype.Timestamp `json:"editedat"`
-}
-
-func (q *Queries) SchemaListByApp(ctx context.Context, app string) ([]SchemaListByAppRow, error) <span class="cov8" title="1">{
+        E</span>ditedat  pgtype.Timestamp `json:"editedat"`
+}<span class="cov8" title="1">
+</span>
+func (q *Queries) SchemaListByApp(ctx context.Context, app string) ([]SchemaListByAppRow, error) {
         rows, err := q.db.Query(ctx, schemaListByApp, app)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil {
                 return nil, err
-        }</span>
-        <span class="cov8" title="1">defer rows.Close()
+        }
+        defer rows.Close()
         var items []SchemaListByAppRow
-        for rows.Next() </span><span class="cov8" title="1">{
+        for rows.Next() {
                 var i SchemaListByAppRow
                 if err := rows.Scan(
                         &amp;i.Slice,
@@ -1031,28 +861,28 @@ func (q *Queries) SchemaListByApp(ctx context.Context, app string) ([]SchemaList
                         &amp;i.Createdat,
                         &amp;i.Editedby,
                         &amp;i.Editedat,
-                ); err != nil </span><span class="cov0" title="0">{
+                ); err != nil {
                         return nil, err
-                }</span>
-                <span class="cov8" title="1">items = append(items, i)</span>
+                }
+                items = append(items, i)
         }
-        <span class="cov8" title="1">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+        if err := rows.Err(); err != nil {
                 return nil, err
-        }</span>
-        <span class="cov8" title="1">return items, nil</span>
+        }
+        return items, nil
 }
 
 const schemaListByAppAndClass = `-- name: SchemaListByAppAndClass :many
 SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
 FROM schema
     JOIN app ON schema.app = app.shortname
-    JOIN realmslice on schema.slice = realmslice.id
+    JOIN realms</span><span class="cov0" title="0">lice on schema.slice = realmslice.id
 WHERE
-    app = $1
-    AND class = $2
+  </span>  app = $1
+ <span class="cov8" title="1">   AND class = $2
 `
 
-type SchemaListByAppAndClassParams struct {
+</span>type SchemaListByAppAndClassParams struct {
         App   string `json:"app"`
         Class string `json:"class"`
 }
@@ -1063,19 +893,19 @@ type SchemaListByAppAndClassRow struct {
         Longname  string           `json:"longname"`
         Class     string           `json:"class"`
         Createdby string           `json:"createdby"`
-        Createdat pgtype.Timestamp `json:"createdat"`
+        Createdat pgtyp</span><span class="cov0" title="0">e.Timestamp `json:"createdat"`
         Editedby  pgtype.Text      `json:"editedby"`
-        Editedat  pgtype.Timestamp `json:"editedat"`
+        Ed</span>itedat  pgtype.Timestamp `json:"editedat"`
 }
-
-func (q *Queries) SchemaListByAppAndClass(ctx context.Context, arg SchemaListByAppAndClassParams) ([]SchemaListByAppAndClassRow, error) <span class="cov8" title="1">{
+</span>
+f<span class="cov8" title="1">unc (q *Queries) SchemaListByAppA</span><span class="cov0" title="0">ndClass(ctx context.Context, arg SchemaListByAppAndClassParams) ([]SchemaListByAppAndClassRow, error) {
         rows, err := q.db.Query(ctx, schemaListByAppAndClass, arg.App, arg.Class)
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-        <span class="cov8" title="1">defer rows.Close()
+        i</span>f err != nil {
+        <span class="cov8" title="1">        return nil, err
+</span>        }
+        defer rows.Close()
         var items []SchemaListByAppAndClassRow
-        for rows.Next() </span><span class="cov8" title="1">{
+        for rows.Next() {
                 var i SchemaListByAppAndClassRow
                 if err := rows.Scan(
                         &amp;i.Slice,
@@ -1086,15 +916,15 @@ func (q *Queries) SchemaListByAppAndClass(ctx context.Context, arg SchemaListByA
                         &amp;i.Createdat,
                         &amp;i.Editedby,
                         &amp;i.Editedat,
-                ); err != nil </span><span class="cov0" title="0">{
+                ); err != nil {
                         return nil, err
-                }</span>
-                <span class="cov8" title="1">items = append(items, i)</span>
+                }
+                items = append(items, i)
         }
-        <span class="cov8" title="1">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+        if err := rows.Err(); err != nil {
                 return nil, err
-        }</span>
-        <span class="cov8" title="1">return items, nil</span>
+        }
+        return items, nil
 }
 
 const schemaListByAppAndSlice = `-- name: SchemaListByAppAndSlice :many
@@ -1112,44 +942,44 @@ type SchemaListByAppAndSliceParams struct {
         Slice int32  `json:"slice"`
 }
 
-type SchemaListByAppAndSliceRow struct {
-        Slice     int32            `json:"slice"`
-        App       string           `json:"app"`
+</span>type SchemaListByAppAndSliceRow struct {
+        S</span>lice     int32            `json:"slice"`
+        <span class="cov8" title="1">App       string           `json:"app"`
         Longname  string           `json:"longname"`
-        Class     string           `json:"class"`
+        Class     string</span><span class="cov8" title="1">           `json:"class"`
         Createdby string           `json:"createdby"`
         Createdat pgtype.Timestamp `json:"createdat"`
         Editedby  pgtype.Text      `json:"editedby"`
         Editedat  pgtype.Timestamp `json:"editedat"`
 }
 
-func (q *Queries) SchemaListByAppAndSlice(ctx context.Context, arg SchemaListByAppAndSliceParams) ([]SchemaListByAppAndSliceRow, error) <span class="cov8" title="1">{
+func (q *Queries) SchemaListByAppAndSlice(ctx context.Context, arg SchemaListByAppAndSliceParams) ([]SchemaListByAppAndSliceRow, error) {
         rows, err := q.db.Query(ctx, schemaListByAppAndSlice, arg.App, arg.Slice)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil {
                 return nil, err
-        }</span>
-        <span class="cov8" title="1">defer rows.Close()
-        var items []SchemaListByAppAndSliceRow
-        for rows.Next() </span><span class="cov8" title="1">{
-                var i SchemaListByAppAndSliceRow
-                if err := rows.Scan(
-                        &amp;i.Slice,
-                        &amp;i.App,
-                        &amp;i.Longname,
-                        &amp;i.Class,
+        }
+</span>        defer rows.Close()
+        va</span>r items []SchemaListByAppAndSliceRow
+        f<span class="cov8" title="1">or rows.Next() {
+</span>                var i SchemaListByAppAndSliceRow
+        <span class="cov8" title="1">        if err := rows.Scan(
+</span>                        &amp;i.Slice,
+                </span>        &amp;i.App,
+        <span class="cov8" title="1">                &amp;i.Longname,
+</span>                        &amp;i.Class,
                         &amp;i.Createdby,
                         &amp;i.Createdat,
                         &amp;i.Editedby,
                         &amp;i.Editedat,
-                ); err != nil </span><span class="cov0" title="0">{
+                ); err != nil {
                         return nil, err
-                }</span>
-                <span class="cov8" title="1">items = append(items, i)</span>
+                }
+                items = append(items, i)
         }
-        <span class="cov8" title="1">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+        if err := rows.Err(); err != nil {
                 return nil, err
-        }</span>
-        <span class="cov8" title="1">return items, nil</span>
+        }
+        return items, nil
 }
 
 const schemaListByClass = `-- name: SchemaListByClass :many
@@ -1172,15 +1002,15 @@ type SchemaListByClassRow struct {
         Editedat  pgtype.Timestamp `json:"editedat"`
 }
 
-func (q *Queries) SchemaListByClass(ctx context.Context, class string) ([]SchemaListByClassRow, error) <span class="cov8" title="1">{
+func (q *Queries) SchemaListByClass(ctx context.Context, class string) ([]SchemaListByClassRow, error) {
         rows, err := q.db.Query(ctx, schemaListByClass, class)
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-        <span class="cov8" title="1">defer rows.Close()
-        var items []SchemaListByClassRow
-        for rows.Next() </span><span class="cov8" title="1">{
-                var i SchemaListByClassRow
+        if err != nil {
+                return nil, e</span><span class="cov0" title="0">rr
+        }
+        d</span>efer rows.Close()
+        <span class="cov8" title="1">var items []SchemaListByClassRow
+        for rows.Next() {
+                var i SchemaLis</span><span class="cov8" title="1">tByClassRow
                 if err := rows.Scan(
                         &amp;i.Slice,
                         &amp;i.App,
@@ -1190,17 +1020,17 @@ func (q *Queries) SchemaListByClass(ctx context.Context, class string) ([]Schema
                         &amp;i.Createdat,
                         &amp;i.Editedby,
                         &amp;i.Editedat,
-                ); err != nil </span><span class="cov0" title="0">{
-                        return nil, err
-                }</span>
-                <span class="cov8" title="1">items = append(items, i)</span>
-        }
-        <span class="cov8" title="1">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-        <span class="cov8" title="1">return items, nil</span>
-}
-
+                ); err != nil {
+                        return nil, e</span><span class="cov0" title="0">rr
+                }
+                i</span>tems = append(items, i)
+        }<span class="cov8" title="1">
+</span>        if err := rows.Err(); err != nil {
+        <span class="cov8" title="1">        return nil, err
+</span>        }
+        r</span>eturn items, nil
+}<span class="cov8" title="1">
+</span>
 const schemaListByClassAndSlice = `-- name: SchemaListByClassAndSlice :many
 SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
 FROM schema
@@ -1227,28 +1057,28 @@ type SchemaListByClassAndSliceRow struct {
         Editedat  pgtype.Timestamp `json:"editedat"`
 }
 
-func (q *Queries) SchemaListByClassAndSlice(ctx context.Context, arg SchemaListByClassAndSliceParams) ([]SchemaListByClassAndSliceRow, error) <span class="cov8" title="1">{
+func (q *Queries) SchemaListByClassAndSlice(ctx context.Context, arg SchemaListByClassAndSliceParams) ([]SchemaListByClassAndSliceRow, error) {
         rows, err := q.db.Query(ctx, schemaListByClassAndSlice, arg.Class, arg.Slice)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil {
                 return nil, err
-        }</span>
-        <span class="cov8" title="1">defer rows.Close()
-        var items []SchemaListByClassAndSliceRow
-        for rows.Next() </span><span class="cov8" title="1">{
-                var i SchemaListByClassAndSliceRow
-                if err := rows.Scan(
+        }
+        defer rows.Close()
+        var items []Sc</span><span class="cov0" title="0">hemaListByClassAndSliceRow
+        for rows.Next() {
+                </span>var i SchemaListByClassAndSliceRow
+        <span class="cov8" title="1">        if err := rows.Scan(
                         &amp;i.Slice,
                         &amp;i.App,
-                        &amp;i.Longname,
+</span>                        &amp;i.Longname,
                         &amp;i.Class,
                         &amp;i.Createdby,
                         &amp;i.Createdat,
                         &amp;i.Editedby,
                         &amp;i.Editedat,
-                ); err != nil </span><span class="cov0" title="0">{
+                ); err != nil {
                         return nil, err
-                }</span>
-                <span class="cov8" title="1">items = append(items, i)</span>
+                }
+                items = append(items, i)
         }
         <span class="cov8" title="1">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
                 return nil, err
@@ -1257,8 +1087,17 @@ func (q *Queries) SchemaListByClassAndSlice(ctx context.Context, arg SchemaListB
 }
 
 const schemaListBySlice = `-- name: SchemaListBySlice :many
-SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
-FROM schema
+SELECT
+    schema.slice,
+    schema.app,
+    app.longname,
+    schema.class,
+    schema.createdby,
+    schema.createdat,
+    schema.editedby,
+    schema.editedat
+FROM
+    schema
     JOIN app ON schema.app = app.shortname
     JOIN realmslice on schema.slice = realmslice.id
 WHERE
@@ -1276,14 +1115,14 @@ type SchemaListBySliceRow struct {
         Editedat  pgtype.Timestamp `json:"editedat"`
 }
 
-func (q *Queries) SchemaListBySlice(ctx context.Context, slice int32) ([]SchemaListBySliceRow, error) <span class="cov8" title="1">{
+func (q *Queries) SchemaListBySlice(ctx context.Context, slice int32) ([]SchemaListBySliceRow, error) {
         rows, err := q.db.Query(ctx, schemaListBySlice, slice)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil {
                 return nil, err
-        }</span>
-        <span class="cov8" title="1">defer rows.Close()
+        }
+        defer rows.Close()
         var items []SchemaListBySliceRow
-        for rows.Next() </span><span class="cov8" title="1">{
+        for rows.Next() {
                 var i SchemaListBySliceRow
                 if err := rows.Scan(
                         &amp;i.Slice,
@@ -1294,15 +1133,15 @@ func (q *Queries) SchemaListBySlice(ctx context.Context, slice int32) ([]SchemaL
                         &amp;i.Createdat,
                         &amp;i.Editedby,
                         &amp;i.Editedat,
-                ); err != nil </span><span class="cov0" title="0">{
+                ); err != nil {
                         return nil, err
-                }</span>
-                <span class="cov8" title="1">items = append(items, i)</span>
+                }
+                items = appen</span><span class="cov0" title="0">d(items, i)
         }
-        <span class="cov8" title="1">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-        <span class="cov8" title="1">return items, nil</span>
+        i</span>f err := rows.Err(); err != nil {
+        <span class="cov8" title="1">        return nil, err
+        }
+        return items, ni</span><span class="cov8" title="1">l
 }
 
 const schemaNew = `-- name: SchemaNew :exec
@@ -1313,21 +1152,23 @@ INSERT INTO
 VALUES (
         $1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, $8
     )
+RETURNING
+    id
 `
 
 type SchemaNewParams struct {
         Realm         int32    `json:"realm"`
         Slice         int32    `json:"slice"`
-        App           string   `json:"app"`
+        <span class="cov8" title="1">App           string   `json:"app</span><span class="cov0" title="0">"`
         Brwf          BrwfEnum `json:"brwf"`
-        Class         string   `json:"class"`
-        Patternschema []byte   `json:"patternschema"`
+        C</span>lass         string   `json:"class"`
+        <span class="cov8" title="1">Patternschema []b</span>yte   `json:"patternschema"`
         Actionschema  []byte   `json:"actionschema"`
         Createdby     string   `json:"createdby"`
 }
 
-func (q *Queries) SchemaNew(ctx context.Context, arg SchemaNewParams) error <span class="cov8" title="1">{
-        _, err := q.db.Exec(ctx, schemaNew,
+func (q *Queries) SchemaNew(ctx context.Context, arg SchemaNewParams) (int32, error) <span class="cov8" title="1">{
+        row := q.db.QueryRow(ctx, schemaNew,
                 arg.Realm,
                 arg.Slice,
                 arg.App,
@@ -1337,7 +1178,9 @@ func (q *Queries) SchemaNew(ctx context.Context, arg SchemaNewParams) error <spa
                 arg.Actionschema,
                 arg.Createdby,
         )
-        return err
+        var id int32
+        err := row.Scan(&amp;id)
+        return id, err
 }</span>
 
 const schemaUpdate = `-- name: SchemaUpdate :exec
@@ -1355,31 +1198,38 @@ WHERE
 `
 
 type SchemaUpdateParams struct {
-        Slice         int32       `json:"slice"`
+        Slice         </span><span class="cov0" title="0">int32       `json:"slice"`
         Class         string      `json:"class"`
-        App           string      `json:"app"`
-        Brwf          BrwfEnum    `json:"brwf"`
+        A</span>pp           string      `json:"app"`
+        <span class="cov8" title="1">Brwf          BrwfEnum    `json:"brwf"`
         Patternschema []byte      `json:"patternschema"`
-        Actionschema  []byte      `json:"actionschema"`
+        Actionschema  []</span><span class="cov8" title="1">byte      `json:"actionschema"`
         Editedby      pgtype.Text `json:"editedby"`
 }
 
-func (q *Queries) SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) error <span class="cov8" title="1">{
-        _, err := q.db.Exec(ctx, schemaUpdate,
+func (q *Queries) SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) (int32, error) <span class="cov8" title="1">{
+        row := q.db.QueryRow(ctx, schemaUpdate,
                 arg.Slice,
                 arg.Class,
                 arg.App,
                 arg.Brwf,
                 arg.Patternschema,
-                arg.Actionschema,
+                arg.Actionsche</span><span class="cov0" title="0">ma,
                 arg.Editedby,
         )
-        return err
+        var id int32
+        err := row.Scan(&amp;id)
+        return id, err
 }</span>
 
-const wfPatternSchemaGet = `-- name: WfPatternSchemaGet :one
-SELECT patternschema
-FROM public.schema
+const updateSchemaWithLock = `-- name: UpdateSchemaWithLock :one
+SELECT
+    brwf,
+    patternschema,
+    actionschema,
+    editedat = CURRENT_TIMESTAMP,
+    editedby
+FROM schema
 WHERE
     slice = $1
     AND class = $2
@@ -1394,16 +1244,17 @@ type WfPatternSchemaGetParams struct {
         Realm int32  `json:"realm"`
 }
 
-func (q *Queries) WfPatternSchemaGet(ctx context.Context, arg WfPatternSchemaGetParams) ([]byte, error) <span class="cov0" title="0">{
-        row := q.db.QueryRow(ctx, wfPatternSchemaGet,
-                arg.Slice,
-                arg.Class,
-                arg.App,
-                arg.Realm,
+func (q *Queries) UpdateSchemaWithLock(ctx context.Context, arg UpdateSchemaWithLockParams) (UpdateSchemaWithLockRow, error) <span class="cov8" title="1">{
+        row := q.db.QueryRow(ctx, updateSchemaWithLock, arg.Slice, arg.Class, arg.App)
+        var i UpdateSchemaWithLockRow
+        err := row.Scan(
+                &amp;i.Brwf,
+                &amp;i.Patternschema,
+                &amp;i.Actionschema,
+                &amp;i.Column4,
+                &amp;i.Editedby,
         )
-        var patternschema []byte
-        err := row.Scan(&amp;patternschema)
-        return patternschema, err
+        return i, err
 }</span>
 
 const wfSchemaGet = `-- name: WfSchemaGet :one
@@ -1421,7 +1272,14 @@ type WfSchemaGetParams struct {
         App   string `json:"app"`
 }
 
-func (q *Queries) WfSchemaGet(ctx context.Context, arg WfSchemaGetParams) (Schema, error) <span class="cov0" title="0">{
+func (q *Queries) WfPatternSchemaGet(ctx context.Context, arg WfPatternSchemaGetParams) ([]byte, error) <span class="cov0" title="0">{
+        row := q.db.QueryRow(ctx, wfPatternSchemaGet, arg.Slice, arg.Class, arg.App)
+        var patternschema []byte
+        err := row.Scan(&amp;patternschema)
+        return patternschema, err
+}</span>
+
+func (q *Queries) WfSchemaGet(ctx context.Context, arg WfSchemaGetParams) (Schema, error) {
         row := q.db.QueryRow(ctx, wfSchemaGet, arg.Slice, arg.Class, arg.App)
         var i Schema
         err := row.Scan(
@@ -1439,7 +1297,7 @@ func (q *Queries) WfSchemaGet(ctx context.Context, arg WfSchemaGetParams) (Schem
                 &amp;i.Editedby,
         )
         return i, err
-}</span>
+}
 
 const wfschemadelete = `-- name: Wfschemadelete :exec
 DELETE from schema
@@ -1460,13 +1318,13 @@ where
 type WfschemadeleteParams struct {
         Slice int32  `json:"slice"`
         App   string `json:"app"`
-        Class string `json:"class"`
+        </span>Class string `json:"class"`
 }
 
-func (q *Queries) Wfschemadelete(ctx context.Context, arg WfschemadeleteParams) error <span class="cov8" title="1">{
+func (q *Queries) Wfschemadelete(ctx context.Context, arg WfschemadeleteParams) error {
         _, err := q.db.Exec(ctx, wfschemadelete, arg.Slice, arg.App, arg.Class)
         return err
-}</span>
+}
 
 const wfschemaget = `-- name: Wfschemaget :one
 SELECT s.slice, s.app, s.class, rm.longname, s.patternschema, s.actionschema, s.createdat, s.createdby, s.editedat, s.editedby
@@ -1484,7 +1342,7 @@ type WfschemagetParams struct {
         Slice int32  `json:"slice"`
         App   string `json:"app"`
         Class string `json:"class"`
-}
+}</span>
 
 type WfschemagetRow struct {
         Slice         int32            `json:"slice"`
@@ -1499,7 +1357,7 @@ type WfschemagetRow struct {
         Editedby      pgtype.Text      `json:"editedby"`
 }
 
-func (q *Queries) Wfschemaget(ctx context.Context, arg WfschemagetParams) (WfschemagetRow, error) <span class="cov8" title="1">{
+func (q *Queries) Wfschemaget(ctx context.Context, arg WfschemagetParams) (WfschemagetRow, error) {
         row := q.db.QueryRow(ctx, wfschemaget, arg.Slice, arg.App, arg.Class)
         var i WfschemagetRow
         err := row.Scan(
@@ -1515,7 +1373,7 @@ func (q *Queries) Wfschemaget(ctx context.Context, arg WfschemagetParams) (Wfsch
                 &amp;i.Editedby,
         )
         return i, err
-}</span>
+}
 </pre>
 		
 		<pre class="file" id="file6" style="display: none">// Code generated by sqlc. DO NOT EDIT.
@@ -1536,75 +1394,11 @@ SELECT workflow, step FROM stepworkflow WHERE step = $1
 type GetWorkflowRow struct {
         Workflow string `json:"workflow"`
         Step     string `json:"step"`
+        Nextstep string `json:"nextstep"`
 }
 
-func (q *Queries) GetWorkflow(ctx context.Context, step string) ([]GetWorkflowRow, error) <span class="cov0" title="0">{
-        rows, err := q.db.Query(ctx, getWorkflow, step)
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-        <span class="cov0" title="0">defer rows.Close()
-        var items []GetWorkflowRow
-        for rows.Next() </span><span class="cov0" title="0">{
-                var i GetWorkflowRow
-                if err := rows.Scan(&amp;i.Workflow, &amp;i.Step); err != nil </span><span class="cov0" title="0">{
-                        return nil, err
-                }</span>
-                <span class="cov0" title="0">items = append(items, i)</span>
-        }
-        <span class="cov0" title="0">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-        <span class="cov0" title="0">return items, nil</span>
-}
-</pre>
-		
-		<pre class="file" id="file7" style="display: none">// Code generated by sqlc. DO NOT EDIT.
-// versions:
-//   sqlc v1.25.0
-// source: wfinstance.sql
-
-package sqlc
-
-import (
-        "context"
-
-        "github.com/jackc/pgx/v5/pgtype"
-)
-
-const addWFNewInstances = `-- name: AddWFNewInstances :many
-INSERT INTO
-    public.wfinstance (
-        entityid, slice, app, class, workflow, step, loggedat, nextstep, parent
-    )
-VALUES (
-        $1, $2, $3, $4, $5, unnest($6::text []), (NOW()::timestamp), $7, $8
-    )
-RETURNING
-    id,
-    loggedat,
-    step
-`
-
-type AddWFNewInstancesParams struct {
-        Entityid string      `json:"entityid"`
-        Slice    int32       `json:"slice"`
-        App      string      `json:"app"`
-        Class    string      `json:"class"`
-        Workflow string      `json:"workflow"`
-        Step     []string    `json:"step"`
-        Nextstep string      `json:"nextstep"`
-        Parent   pgtype.Int4 `json:"parent"`
-}
-
-type AddWFNewInstancesRow struct {
-        ID       int32            `json:"id"`
-        Loggedat pgtype.Timestamp `json:"loggedat"`
-        Step     string           `json:"step"`
-}
-
-func (q *Queries) AddWFNewInstances(ctx context.Context, arg AddWFNewInstancesParams) ([]AddWFNewInstancesRow, error) <span class="cov0" title="0">{
-        rows, err := q.db.Query(ctx, addWFNewInstances,
+func (q *Queries) AddWFNewInstace(ctx context.Context, arg AddWFNewInstaceParams) (int32, error) <span class="cov0" title="0">{
+        row := q.db.QueryRow(ctx, addWFNewInstace,
                 arg.Entityid,
                 arg.Slice,
                 arg.App,
@@ -1614,14 +1408,55 @@ func (q *Queries) AddWFNewInstances(ctx context.Context, arg AddWFNewInstancesPa
                 arg.Nextstep,
                 arg.Parent,
         )
+        var id int32
+        err := row.Scan(&amp;id)
+        return id, err
+}</span>
+
+const getWFINstance = `-- name: GetWFINstance :many
+
+SELECT id, entityid, slice, app, class, workflow, step, loggedat, doneat, nextstep, parent 
+FROM wfinstance
+WHERE slice = $1 
+AND app = $2
+AND workflow = $3
+AND entityid = $4
+`
+
+type GetWFINstanceParams struct {
+        Slice    int32  `json:"slice"`
+        App      strin</span><span class="cov0" title="0">g `json:"app"`
+        Workflow string `json:"workflow"`
+        E</span>ntityid string `json:"entityid"`
+}<span class="cov0" title="0">
+
+func (q *Queries) GetWFINstance(ctx context.Context, arg GetWFINstanceParams) ([]Wfinstance, error) <span class="cov0" title="0">{
+        rows, err := q.db.Query(ctx, getWFINstance,
+                arg.Slice,
+                arg.App,
+                arg.Workflow,
+                arg.Entityid,
+        )
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
         <span class="cov0" title="0">defer rows.Close()
-        var items []AddWFNewInstancesRow
+        var items []Wfinstance
         for rows.Next() </span><span class="cov0" title="0">{
-                var i AddWFNewInstancesRow
-                if err := rows.Scan(&amp;i.ID, &amp;i.Loggedat, &amp;i.Step); err != nil </span><span class="cov0" title="0">{
+                var i Wfinstance
+                if err := rows.Scan(
+                        &amp;i.ID,
+                        &amp;i.Entityid,
+                        &amp;i.Slice,
+                        &amp;i.App,
+                        &amp;i.Class,
+                        &amp;i.Workflow,
+                        &amp;i.Step,
+                        &amp;i.Loggedat,
+                        &amp;i.Doneat,
+                        &amp;i.Nextstep,
+                        &amp;i.Parent,
+                ); err != nil </span><span class="cov0" title="0">{
                         return nil, err
                 }</span>
                 <span class="cov0" title="0">items = append(items, i)</span>
@@ -1631,38 +1466,9 @@ func (q *Queries) AddWFNewInstances(ctx context.Context, arg AddWFNewInstancesPa
         }</span>
         <span class="cov0" title="0">return items, nil</span>
 }
-
-const getWFINstance = `-- name: GetWFINstance :one
-SELECT count(1)
-FROM public.wfinstance
-WHERE
-    slice = $1
-    AND app = $2
-    AND workflow = $3
-    AND entityid = $4
-`
-
-type GetWFINstanceParams struct {
-        Slice    int32  `json:"slice"`
-        App      string `json:"app"`
-        Workflow string `json:"workflow"`
-        Entityid string `json:"entityid"`
-}
-
-func (q *Queries) GetWFINstance(ctx context.Context, arg GetWFINstanceParams) (int64, error) <span class="cov0" title="0">{
-        row := q.db.QueryRow(ctx, getWFINstance,
-                arg.Slice,
-                arg.App,
-                arg.Workflow,
-                arg.Entityid,
-        )
-        var count int64
-        err := row.Scan(&amp;count)
-        return count, err
-}</span>
 </pre>
 		
-		<pre class="file" id="file8" style="display: none">package schema
+		<pre class="file" id="file6" style="display: none">package schema
 
 import (
         "fmt"
@@ -1717,7 +1523,7 @@ func SchemaDelete(c *gin.Context, s *service.Service) <span class="cov8" title="
 }
 </pre>
 		
-		<pre class="file" id="file9" style="display: none">package schema
+		<pre class="file" id="file7" style="display: none">package schema
 
 import (
         "fmt"
@@ -1772,7 +1578,7 @@ func SchemaGet(c *gin.Context, s *service.Service) <span class="cov8" title="1">
 }
 </pre>
 		
-		<pre class="file" id="file10" style="display: none">package schema
+		<pre class="file" id="file8" style="display: none">package schema
 
 import (
         "github.com/gin-gonic/gin"
@@ -1781,8 +1587,6 @@ import (
         "github.com/remiges-tech/alya/wscutils"
 
         "github.com/remiges-tech/crux/db/sqlc-gen"
-        "github.com/remiges-tech/crux/server"
-        "github.com/remiges-tech/crux/types"
 )
 
 var capForList = []string{"report", "ruleset", "schema"}
@@ -1819,8 +1623,8 @@ func SchemaList(c *gin.Context, s *service.Service) <span class="cov8" title="1"
         }</span>
         <span class="cov8" title="1">query, ok := s.Dependencies["queries"].(*sqlc.Queries)
         if !ok </span><span class="cov0" title="0">{
-                l.Debug0().Log("Error while getting query instance from service Dependencies")
-                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
+                l.Log("Error while getting query instance from service Dependencies")
+                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
                 return
         }</span>
 
@@ -1894,7 +1698,7 @@ func SchemaList(c *gin.Context, s *service.Service) <span class="cov8" title="1"
 }
 </pre>
 		
-		<pre class="file" id="file11" style="display: none">package schema
+		<pre class="file" id="file9" style="display: none">package schema
 
 import (
         "encoding/json"
@@ -1951,38 +1755,29 @@ func SchemaNew(c *gin.Context, s *service.Service) <span class="cov8" title="1">
 
         <span class="cov8" title="1">query, ok := s.Dependencies["queries"].(*sqlc.Queries)
         if !ok </span><span class="cov0" title="0">{
-                l.Debug0().Log("Error while getting query instance from service Dependencies")
-                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
+                l.Log("Error while getting query instance from service Dependencies")
+                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
                 return
         }</span>
         <span class="cov8" title="1">patternSchema, err := json.Marshal(sh.PatternSchema)
         if err != nil </span><span class="cov0" title="0">{
                 patternSchema := "patternSchema"
-                l.Debug1().LogDebug("Error while marshaling patternSchema", err)
-                wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_InvalidJson, &amp;patternSchema)}))
+                l.LogDebug("Error while marshaling patternSchema", err)
+                wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(wscutils.ErrcodeInvalidJson, &amp;patternSchema)}))
                 return
         }</span>
 
         <span class="cov8" title="1">actionSchema, err := json.Marshal(sh.ActionSchema)
         if err != nil </span><span class="cov0" title="0">{
                 actionSchema := "actionSchema"
-                l.Debug1().LogDebug("Error while marshaling actionSchema", err)
-                wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_InvalidJson, &amp;actionSchema)}))
+                l.LogDebug("Error while marshaling actionSchema", err)
+                wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(wscutils.ErrcodeInvalidJson, &amp;actionSchema)}))
                 return
         }</span>
-        <span class="cov8" title="1">err = query.SchemaNew(c, sqlc.SchemaNewParams{
-                Realm:         realmID,
-                Slice:         sh.Slice,
-                Class:         sh.Class,
-                App:           sh.App,
-                Brwf:          sqlc.BrwfEnumW,
-                Patternschema: patternSchema,
-                Actionschema:  actionSchema,
-                Createdby:     userID,
-        })
+        <span class="cov8" title="1">_, err = query.SchemaNew(c, sqlc.SchemaNewParams{Realm: realmID, Slice: sh.Slice, Class: sh.Class, App: sh.App, Brwf: "W", Patternschema: patternSchema, Actionschema: actionSchema, Createdby: createdBy})
         if err != nil </span><span class="cov0" title="0">{
-                l.Info().LogActivity("Error while creating schema", err.Error())
-                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
+                l.LogActivity("Error while creating schema", err.Error())
+                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
                 return
         }</span>
         <span class="cov8" title="1">wscutils.SendSuccessResponse(c, &amp;wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})
@@ -2045,7 +1840,7 @@ func verifyActionSchema(as types.ActionSchema) []wscutils.ErrorMessage <span cla
 }
 </pre>
 		
-		<pre class="file" id="file12" style="display: none">package schema
+		<pre class="file" id="file10" style="display: none">package schema
 
 import (
         "context"
@@ -2060,8 +1855,6 @@ import (
         "github.com/remiges-tech/alya/service"
         "github.com/remiges-tech/alya/wscutils"
         "github.com/remiges-tech/crux/db/sqlc-gen"
-        "github.com/remiges-tech/crux/server"
-        "github.com/remiges-tech/crux/types"
         "github.com/remiges-tech/logharbour/logharbour"
 )
 
@@ -2081,19 +1874,8 @@ func SchemaUpdate(c *gin.Context, s *service.Service) <span class="cov8" title="
         l := s.LogHarbour
         l.Debug0().Log("Starting execution of SchemaUpdate()")
 
-        isCapable, _ := types.Authz_check(types.OpReq{
-                User:      userID,
-                CapNeeded: capForUpdate,
-        }, false)
-
-        if !isCapable </span><span class="cov0" title="0">{
-                l.Info().LogActivity("Unauthorized user:", userID)
-                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
-                return
-        }</span>
-
-        <span class="cov8" title="1">var sh updateSchema
-
+        var sh updateSchema
+        
         err := wscutils.BindJSON(c, &amp;sh)
         if err != nil </span><span class="cov8" title="1">{
                 l.LogActivity("Error Unmarshalling Query paramaeters to struct:", err.Error())
@@ -2112,26 +1894,26 @@ func SchemaUpdate(c *gin.Context, s *service.Service) <span class="cov8" title="
 
         <span class="cov8" title="1">query, ok := s.Dependencies["queries"].(*sqlc.Queries)
         if !ok </span><span class="cov0" title="0">{
-                l.Debug0().Log("Error while getting query instance from service Dependencies")
-                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
+                l.Log("Error while getting query instance from service Dependencies")
+                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
                 return
         }</span>
 
         <span class="cov8" title="1">connpool, ok := s.Database.(*pgxpool.Pool)
         if !ok </span><span class="cov0" title="0">{
-                l.Debug0().Log("Error while getting query instance from service Database")
-                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
+                l.Log("Error while getting query instance from service Dependencies")
+                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(wscutils.ErrcodeDatabaseError))
                 return
         }</span>
 
         <span class="cov8" title="1">err = schemaUpdateWithTX(c, query, connpool, l, sh)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 l.LogActivity("Error while Updating schema", err.Error())
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
                 return
         }</span>
-        <span class="cov8" title="1">wscutils.SendSuccessResponse(c, &amp;wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})
-        l.Debug0().Log("Starting execution of SchemaUpdate()")</span>
+        <span class="cov8" title="1">wscutils.SendSuccessResponse(c, &amp;wscutils.Response{Status: wscutils.SuccessStatus, Data: "updated successfully", Messages: nil})
+        l.Log("Starting execution of SchemaUpdate()")</span>
 }
 
 func schemaUpdateWithTX(c context.Context, query *sqlc.Queries, connpool *pgxpool.Pool, l *logharbour.Logger, sh updateSchema) error <span class="cov8" title="1">{
@@ -2158,12 +1940,12 @@ func schemaUpdateWithTX(c context.Context, query *sqlc.Queries, connpool *pgxpoo
                 Class: sh.Class,
                 App:   sh.App,
         })
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 tx.Rollback(c)
                 return err
         }</span>
         <span class="cov8" title="1">if patternSchema != nil &amp;&amp; actionSchema == nil </span><span class="cov0" title="0">{
-                err = qtx.SchemaUpdate(c, sqlc.SchemaUpdateParams{
+                _, err = qtx.SchemaUpdate(c, sqlc.SchemaUpdateParams{
                         Slice:         sh.Slice,
                         Class:         sh.Class,
                         App:           sh.App,
@@ -2177,7 +1959,7 @@ func schemaUpdateWithTX(c context.Context, query *sqlc.Queries, connpool *pgxpoo
                         return err
                 }</span>
         } else<span class="cov8" title="1"> if actionSchema != nil &amp;&amp; patternSchema == nil </span><span class="cov0" title="0">{
-                err = qtx.SchemaUpdate(c, sqlc.SchemaUpdateParams{
+                _, err = qtx.SchemaUpdate(c, sqlc.SchemaUpdateParams{
                         Slice:         sh.Slice,
                         Class:         sh.Class,
                         App:           sh.App,
@@ -2191,7 +1973,7 @@ func schemaUpdateWithTX(c context.Context, query *sqlc.Queries, connpool *pgxpoo
                         return err
                 }</span>
         } else<span class="cov8" title="1"> {
-                err = qtx.SchemaUpdate(c, sqlc.SchemaUpdateParams{
+                _, err = qtx.SchemaUpdate(c, sqlc.SchemaUpdateParams{
                         Slice:         sh.Slice,
                         Class:         sh.Class,
                         App:           sh.App,
@@ -2207,11 +1989,11 @@ func schemaUpdateWithTX(c context.Context, query *sqlc.Queries, connpool *pgxpoo
 
         }
 
-        <span class="cov8" title="1">if err := tx.Commit(c); err != nil </span><span class="cov0" title="0">{
+        <span class="cov0" title="0">if err := tx.Commit(c); err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
-        <span class="cov8" title="1">dclog := l.WithWhatClass("schema").WithWhatInstanceId(string(schema.ID))
-        dclog.LogDataChange("Updated schema", logharbour.ChangeInfo{
+
+        <span class="cov8" title="1">l.LogDataChange("Updated schema", logharbour.ChangeInfo{
                 Entity:    "schema",
                 Operation: "Update",
                 Changes: []logharbour.ChangeDetail{
@@ -2296,7 +2078,7 @@ func verifyActionSchemaUpdate(as *actionSchema) []wscutils.ErrorMessage <span cl
 }
 </pre>
 		
-		<pre class="file" id="file13" style="display: none">package testutils
+		<pre class="file" id="file11" style="display: none">package testutils
 
 import (
         "encoding/json"
@@ -2339,7 +2121,7 @@ type TestCasesStruct struct {
 }
 </pre>
 		
-		<pre class="file" id="file14" style="display: none">package types
+		<pre class="file" id="file12" style="display: none">package types
 
 import (
         "encoding/json"
@@ -2458,27 +2240,6 @@ func ReadJsonFromFile(filepath string) ([]byte, error) <span class="cov8" title=
         }</span>
         <span class="cov8" title="1">return jsonData, nil</span>
 }
-
-// to check given string is nil or not
-func IsStringEmpty(s *string) bool <span class="cov0" title="0">{
-        return s == nil || strings.TrimSpace(*s) == ""
-}</span>
-
-// to check if the user has "ruleset" rights for the given app
-func HasRulesetRights(app string) bool <span class="cov0" title="0">{
-        userRights := GetWorkflowsByRulesetRights()
-        return slices.Contains(userRights, app)
-}</span>
-
-// to get workflows for all apps for which the user has "ruleset" rights
-func GetWorkflowsByRulesetRights() []string <span class="cov0" title="0">{
-        return []string{"retailBANK", "nedbank"}
-}</span>
-
-func Authz_check(op OpReq, trace bool) (bool, []string) <span class="cov8" title="1">{
-        var caplist []string
-        return true, caplist
-}</span>
 </pre>
 		
 		</div>

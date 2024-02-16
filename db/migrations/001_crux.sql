@@ -129,6 +129,7 @@ drop table wfinstance;
 drop table ruleset;
 
 drop table schema;
+
 drop type IF EXISTS brwf_enum CASCADE;
 
 drop table deactivated;
@@ -139,6 +140,5 @@ drop table config;
 drop table app;
 
 drop table realmslice;
-
 
 drop table realm;
