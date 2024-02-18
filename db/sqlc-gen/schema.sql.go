@@ -626,15 +626,16 @@ const wfschemadelete = `-- name: Wfschemadelete :exec
 DELETE from schema
 where
     id in (
-        SELECT a.id
-        FROM schema as a, realm as b, realmslice as c
+        SELECT schema.id
+        FROM schema , realm, realmslice
         WHERE
-            a.realm = b.id
-            and a.slice = c.id
-            and a.slice = $1
-            and c.realm = b.shortname
-            and a.class = $3
-            AND a.app = $2
+            schema.realm = realm.id
+            and schema.slice = realmslice.id
+            and schema.slice = $1
+            and realmslice.realm = realm.shortname
+            and realm.id = $4
+            and schema.class = $3
+            AND schema.app = $2
     )
 `
 
@@ -642,10 +643,16 @@ type WfschemadeleteParams struct {
 	Slice int32  `json:"slice"`
 	App   string `json:"app"`
 	Class string `json:"class"`
+	Realm int32  `json:"realm"`
 }
 
 func (q *Queries) Wfschemadelete(ctx context.Context, arg WfschemadeleteParams) error {
-	_, err := q.db.Exec(ctx, wfschemadelete, arg.Slice, arg.App, arg.Class)
+	_, err := q.db.Exec(ctx, wfschemadelete,
+		arg.Slice,
+		arg.App,
+		arg.Class,
+		arg.Realm,
+	)
 	return err
 }
 
@@ -654,9 +661,10 @@ SELECT s.slice, s.app, s.class, rm.longname, s.patternschema, s.actionschema, s.
 FROM schema as s, realm as rm, realmslice as rs
 WHERE
     s.realm = rm.id
+    and rs.realm = rm.shortname
     and s.slice = rs.id
     and s.slice = $1
-    and rs.realm = rm.shortname
+    and rm.id = $4
     and s.class = $3
     AND s.app = $2
 `
@@ -665,6 +673,7 @@ type WfschemagetParams struct {
 	Slice int32  `json:"slice"`
 	App   string `json:"app"`
 	Class string `json:"class"`
+	Realm int32  `json:"realm"`
 }
 
 type WfschemagetRow struct {
@@ -681,7 +690,12 @@ type WfschemagetRow struct {
 }
 
 func (q *Queries) Wfschemaget(ctx context.Context, arg WfschemagetParams) (WfschemagetRow, error) {
-	row := q.db.QueryRow(ctx, wfschemaget, arg.Slice, arg.App, arg.Class)
+	row := q.db.QueryRow(ctx, wfschemaget,
+		arg.Slice,
+		arg.App,
+		arg.Class,
+		arg.Realm,
+	)
 	var i WfschemagetRow
 	err := row.Scan(
 		&i.Slice,

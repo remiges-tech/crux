@@ -3,8 +3,9 @@
     "data": null,
     "messages": [
         {
-            "msgid": 1003,
-            "errcode": "invalid"
+            "msgid": 1006,
+            "errcode": "invalid_request",
+            "field": "slice/app/class"
         }
     ]
 }

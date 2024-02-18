@@ -118,7 +118,7 @@ INSERT INTO
         id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby, editedat, editedby
     )
 VALUES (
-        6, 1, 2, 'retailBANK', 'members', 'W', 'temp', true, false, 13, '{
+        6, 1, 2, 'retailBANK', 'members', 'W', 'temp', false, false, 13, '{
             "name": "step",
             "type": "enum1",
             "vals": [ "START", "initialdoc", "aadhaarcheck", "creditbureauchk", "panchk", "bankdetails", "referencechk", "stage2done", "complete" ],

@@ -7,6 +7,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
+	"github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	"github.com/remiges-tech/crux/server"
 )
@@ -16,7 +17,9 @@ func SchemaDelete(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour
 	lh.Log("SchemaDelete request received")
 
-	// var response schemaGetResp
+	// implement the user realm here
+	var userRealm int32 = 1
+
 	var request SchemaGetReq
 	err := wscutils.BindJSON(c, &request)
 	if err != nil {
@@ -40,10 +43,12 @@ func SchemaDelete(c *gin.Context, s *service.Service) {
 		Slice: request.Slice,
 		App:   request.App,
 		Class: request.Class,
+		Realm: userRealm,
 	})
 	if err != nil {
-		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_DatabaseError, nil)}))
 		lh.Debug0().LogActivity("failed while deleting record:", err.Error)
+		errmsg := db.HandleDatabaseError(err)
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
 

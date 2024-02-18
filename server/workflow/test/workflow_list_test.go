@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	TestWorkflowList_test_1 = "ERROR- App + HasRootCapabilities()= false & HasRulesetRights()= false"
-	TestWorkflowList_test_2 = "SUCCESS- No app name but HasRulesetRights = false & HasRootCapabilities = false"
-	TestWorkflowList_test_3 = "SUCCESS- empty req with HasRulesetRights = false & HasRootCapabilities = true"
+	TestWorkflowList_test_1 = "ERROR_1- App + HasRootCapabilities()= false & HasRulesetRights()= false"
+	TestWorkflowList_test_2 = "SUCCESS_2- No app name but HasRulesetRights = false & HasRootCapabilities = false"
+	TestWorkflowList_test_3 = "SUCCESS_3- empty req with HasRulesetRights = false & HasRootCapabilities = true"
 )
 
 func TestWorkflowList(t *testing.T) {
