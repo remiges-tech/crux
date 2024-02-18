@@ -13,6 +13,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	TestSchemaGet_1 = "ERROR_1- slice validation"
+	TestSchemaGet_2 = "SUCCESS_2- get schema by valid req"
+)
+
 func TestSchemaGet(t *testing.T) {
 	testCases := schemaGetTestcase()
 	for _, tc := range testCases {
@@ -41,14 +46,14 @@ func TestSchemaGet(t *testing.T) {
 }
 
 func schemaGetTestcase() []testutils.TestCasesStruct {
-	var sliceStr int32 = 2
-	app := "nedbank"
+	var sliceStr int32 = 1
+	app := "retailbank"
 	class := "custonboarding"
 	var slice int32 = -1
 	schemaNewTestcase := []testutils.TestCasesStruct{
 		// 1st test case
 		{
-			Name: "ERROR- slice validation",
+			Name: TestSchemaGet_1,
 			RequestPayload: wscutils.Request{
 				Data: schema.SchemaGetReq{
 					Slice: slice,
@@ -78,7 +83,7 @@ func schemaGetTestcase() []testutils.TestCasesStruct {
 
 		// 2nd test case
 		{
-			Name: "SUCCESS- get schema by valid req ",
+			Name: TestSchemaGet_2,
 			RequestPayload: wscutils.Request{
 				Data: schema.SchemaListStruct{
 					Slice: &sliceStr,

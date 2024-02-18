@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	TestWorkflowDelete_test_1 = "ERROR- slice validation"
-	TestWorkflowDelete_test_2 = "ERROR- if record not exists"
-	TestWorkflowDelete_test_3 = "SUCCESS- delete workflow by valid req"
+	TestWorkflowDelete_test_1 = "ERROR_1- slice validation"
+	TestWorkflowDelete_test_2 = "ERROR_2- if record not exists"
+	TestWorkflowDelete_test_3 = "SUCCESS_3- delete workflow by valid req"
 )
 
 func TestWorkflowDelete(t *testing.T) {
@@ -49,7 +49,7 @@ func workflowDeleteTestCase() []TestCasesStruct {
 	var sliceStr int32 = 2
 	app := "retailBANK"
 	class := "members"
-	tname := "tempset"
+	tname := "temp"
 	wrongName := "tempse"
 	var slice int32 = -1
 	schemaNewTestcase := []TestCasesStruct{

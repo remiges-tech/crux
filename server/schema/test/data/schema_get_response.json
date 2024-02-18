@@ -1,81 +1,110 @@
 {
     "status": "success",
     "data": {
+        "slice": 1,
         "app": "retailbank",
-        "class": "members",
-        "createdat": "2024-01-28T00:00:00Z",
-        "createdby": "admin",
-        "editedat": "2024-01-15T00:00:00Z",
-        "editedby": "admin",
-        "flowrules": [
-            {
-                "ruleactions": {
-                    "properties": [
-                        {
-                            "name": "nextstep",
-                            "val": "aadhaarcheck"
-                        }
-                    ],
-                    "tasks": [
-                        "aadhaarcheck"
-                    ]
-                },
-                "rulepattern": [
-                    {
-                        "attr": "step",
-                        "op": "eq",
-                        "val": "initialdoc"
-                    },
-                    {
-                        "attr": "branchtype",
-                        "op": "eq",
-                        "val": "rural"
-                    },
-                    {
-                        "attr": "accttype",
-                        "op": "eq",
-                        "val": "savings"
-                    }
-                ]
-            },
-            {
-                "ruleactions": {
-                    "properties": [
-                        {
-                            "name": "nextstep",
-                            "val": "creditbureauchk"
-                        }
-                    ],
-                    "tasks": [
+        "class": "custonboarding",
+        "longname": "Bombay Stock Exchange",
+        "patternschema": {
+            "class": "retailcustomer",
+            "attr": [
+                {
+                    "name": "step",
+                    "shortdesc": "",
+                    "longdesc": "",
+                    "valtype": "enum",
+                    "vals": [
+                        "START",
+                        "initialdoc",
+                        "aadhaarcheck",
                         "creditbureauchk",
+                        "panchk",
                         "bankdetails",
-                        "panchk"
+                        "referencechk",
+                        "stage2done",
+                        "complete"
                     ]
                 },
-                "rulepattern": [
-                    {
-                        "attr": "step",
-                        "op": "eq",
-                        "val": "initialdoc"
-                    },
-                    {
-                        "attr": "branchtype",
-                        "op": "eq",
-                        "val": "semirural"
-                    },
-                    {
-                        "attr": "accttype",
-                        "op": "ne",
-                        "val": "ppf"
-                    }
-                ]
-            }
-        ],
-        "id": 5,
-        "is_active": true,
-        "is_internal": true,
-        "name": "goldstatus",
-        "slice": 2
+                {
+                    "name": "acctholdertype",
+                    "shortdesc": "",
+                    "longdesc": "",
+                    "valtype": "enum",
+                    "vals": [
+                        "individual",
+                        "joint",
+                        "corporate",
+                        "hinduundivided",
+                        "partnership"
+                    ]
+                },
+                {
+                    "name": "branchtype",
+                    "shortdesc": "",
+                    "longdesc": "",
+                    "valtype": "enum",
+                    "vals": [
+                        "urban",
+                        "semirural",
+                        "rural"
+                    ]
+                },
+                {
+                    "name": "branchcode",
+                    "shortdesc": "",
+                    "longdesc": "",
+                    "valtype": "str"
+                },
+                {
+                    "name": "refererquality",
+                    "shortdesc": "",
+                    "longdesc": "",
+                    "valtype": "int",
+                    "valmax": 5,
+                    "valmin": 0
+                },
+                {
+                    "name": "districtcode",
+                    "shortdesc": "",
+                    "longdesc": "",
+                    "valtype": "int"
+                },
+                {
+                    "name": "accttype",
+                    "shortdesc": "",
+                    "longdesc": "",
+                    "valtype": "enum",
+                    "vals": [
+                        "savings",
+                        "current",
+                        "recurring",
+                        "fixeddeposit",
+                        "ppf"
+                    ]
+                }
+            ]
+        },
+        "actionschema": {
+            "class": "retailcustomer",
+            "tasks": [
+                "initialdoc",
+                "aadhaarcheck",
+                "creditbureauchk",
+                "panchk",
+                "bankdetails",
+                "referencechk",
+                "stage2done",
+                "complete"
+            ],
+            "properties": [
+                "nextstep",
+                "done"
+            ]
+        },
+        "createdat": "2022-12-26T09:03:46Z",
+        "createdby": "Mal Houndsom",
+        "editedat": "2023-07-12T01:33:32Z",
+        "editedby": "Clerc Careless"
     },
     "messages": null
 }

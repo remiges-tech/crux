@@ -33,5 +33,6 @@ const (
 	ErrCode_Invalid_workflow_Internal_status = "invalid_workflow_intenal_status"
 	ErrCode_Invalid_Entity                   = "invalid_entity"
 	ErrCode_Invalid_pattern_schema           = "invalid_pattern_schema"
+	ErrCode_Invalid_action_schema            = "invalid_action_schema"
 	ErrCode_Invalid_property_attributes      = "invalid_property_attributes"
 )

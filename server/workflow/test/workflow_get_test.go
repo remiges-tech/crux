@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	TestWorkflowGet_test_1 = "ERROR- slice validation"
-	TestWorkflowGet_test_2 = "SUCCESS- get workflow by valid req"
-	TestWorkflowGet_test_3 = "Failed- get workflow by invalid req"
+	TestWorkflowGet_test_1 = "ERROR_1- slice validation"
+	TestWorkflowGet_test_2 = "SUCCESS_2- get workflow by valid req"
+	TestWorkflowGet_test_3 = "Failed_3- get workflow by invalid req"
 )
 
 type TestCasesStruct struct {

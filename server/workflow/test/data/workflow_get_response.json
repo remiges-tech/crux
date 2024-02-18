@@ -8,22 +8,70 @@
         "name": "goldstatus",
         "is_active": true,
         "is_internal": true,
-        "flowrules": {
-            "descr": "Current step completed",
-            "name": "step",
-            "type": "enum",
-            "vals": [
-                "START",
-                "initialdoc",
-                "aadhaarcheck",
-                "creditbureauchk",
-                "panchk",
-                "bankdetails",
-                "referencechk",
-                "stage2done",
-                "complete"
-            ]
-        },
+        "flowrules": [
+            {
+                "ruleactions": {
+                    "properties": [
+                        {
+                            "name": "nextstep",
+                            "val": "aadhaarcheck"
+                        }
+                    ],
+                    "tasks": [
+                        "aadhaarcheck"
+                    ]
+                },
+                "rulepattern": [
+                    {
+                        "attr": "step",
+                        "op": "eq",
+                        "val": "initialdoc"
+                    },
+                    {
+                        "attr": "branchtype",
+                        "op": "eq",
+                        "val": "rural"
+                    },
+                    {
+                        "attr": "accttype",
+                        "op": "eq",
+                        "val": "savings"
+                    }
+                ]
+            },
+            {
+                "ruleactions": {
+                    "properties": [
+                        {
+                            "name": "nextstep",
+                            "val": "creditbureauchk"
+                        }
+                    ],
+                    "tasks": [
+                        "creditbureauchk",
+                        "bankdetails",
+                        "panchk"
+                    ]
+                },
+                "rulepattern": [
+                    {
+                        "attr": "step",
+                        "op": "eq",
+                        "val": "initialdoc"
+                    },
+                    {
+                        "attr": "branchtype",
+                        "op": "eq",
+                        "val": "semirural"
+                    },
+                    {
+                        "attr": "accttype",
+                        "op": "ne",
+                        "val": "ppf"
+                    }
+                ]
+            }
+        ],
         "createdat": "2024-01-28T00:00:00Z",
         "createdby": "admin",
         "editedat": "2024-01-15T00:00:00Z",
