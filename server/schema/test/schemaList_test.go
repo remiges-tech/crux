@@ -90,7 +90,7 @@ func schemaListTestcase() []testutils.TestCasesStruct {
 			},
 
 			ExpectedHttpCode: http.StatusOK,
-			TestJsonFile:     "./data/schema_list_by_app_class_slice.json",	
+			TestJsonFile:     "./data/schema_list_by_app_class_slice.json",
 		},
 		{
 			Name: "Success- get schema by app",

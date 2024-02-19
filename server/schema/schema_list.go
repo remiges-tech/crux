@@ -15,12 +15,12 @@ import (
 )
 
 type SchemaStruct struct {
-	Slice int32  `json:"slice" validate:"required,gt=0"`
-	App   string `json:"app" validate:"required,alpha"`
-	Class string `json:"class" validate:"required,alpha"`
+	Slice int32  `json:"slice"`
+	App   string `json:"app"`
+	Class string `json:"class"`
 }
 
-var capForList = []string{"ruleset", "schema"}
+var capForList = []string{"ruleset", "schema", "root", "report"}
 var schemaList []sqlc.WfSchemaListRow
 var err error
 
