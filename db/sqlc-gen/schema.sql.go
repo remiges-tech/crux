@@ -23,8 +23,8 @@ FROM schema
 WHERE
     slice = $1
     AND class = $2
-    AND app = $3
-FOR UPDATE
+    AND app = $3 FOR
+UPDATE
 `
 
 type GetSchemaWithLockParams struct {
@@ -488,7 +488,7 @@ func (q *Queries) SchemaListBySlice(ctx context.Context, slice int32) ([]SchemaL
 
 const schemaNew = `-- name: SchemaNew :exec
 INSERT INTO
-    schema (
+    schema(
         realm, slice, app, brwf, class, patternschema, actionschema, createdat, createdby
     )
 VALUES (
@@ -622,12 +622,76 @@ func (q *Queries) WfSchemaGet(ctx context.Context, arg WfSchemaGetParams) (Schem
 	return i, err
 }
 
+const wfSchemaList = `-- name: WfSchemaList :many
+SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
+FROM schema, app, realmslice
+where
+schema.app = app.shortname
+and schema.slice = realmslice.id
+    AND schema.realm =  $1
+    AND (($2::INTEGER is null) OR (schema.slice = $2::INTEGER))
+    AND (($3::text is null) OR (schema.app = $3::text))
+    AND ($4::text is null OR schema.class = $4::text)
+`
+
+type WfSchemaListParams struct {
+	Relam int32       `json:"relam"`
+	Slice pgtype.Int4 `json:"slice"`
+	App   pgtype.Text `json:"app"`
+	Class pgtype.Text `json:"class"`
+}
+
+type WfSchemaListRow struct {
+	Slice     int32            `json:"slice"`
+	App       string           `json:"app"`
+	Longname  string           `json:"longname"`
+	Class     string           `json:"class"`
+	Createdby string           `json:"createdby"`
+	Createdat pgtype.Timestamp `json:"createdat"`
+	Editedby  pgtype.Text      `json:"editedby"`
+	Editedat  pgtype.Timestamp `json:"editedat"`
+}
+
+func (q *Queries) WfSchemaList(ctx context.Context, arg WfSchemaListParams) ([]WfSchemaListRow, error) {
+	rows, err := q.db.Query(ctx, wfSchemaList,
+		arg.Relam,
+		arg.Slice,
+		arg.App,
+		arg.Class,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []WfSchemaListRow
+	for rows.Next() {
+		var i WfSchemaListRow
+		if err := rows.Scan(
+			&i.Slice,
+			&i.App,
+			&i.Longname,
+			&i.Class,
+			&i.Createdby,
+			&i.Createdat,
+			&i.Editedby,
+			&i.Editedat,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const wfschemadelete = `-- name: Wfschemadelete :exec
 DELETE from schema
 where
     id in (
         SELECT schema.id
-        FROM schema , realm, realmslice
+        FROM schema, realm, realmslice
         WHERE
             schema.realm = realm.id
             and schema.slice = realmslice.id

@@ -1,8 +1,11 @@
 package schema
 
 import (
+	"slices"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 
@@ -11,13 +14,21 @@ import (
 	"github.com/remiges-tech/crux/types"
 )
 
-var capForList = []string{"report", "ruleset", "schema"}
+type SchemaStruct struct {
+	Slice int32  `json:"slice" validate:"required,gt=0"`
+	App   string `json:"app" validate:"required,alpha"`
+	Class string `json:"class" validate:"required,alpha"`
+}
+
+var capForList = []string{"ruleset", "schema"}
+var schemaList []sqlc.WfSchemaListRow
+var err error
 
 func SchemaList(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
 	l.Debug0().Log("Starting execution of SchemaList()")
 
-	isCapable, _ := types.Authz_check(types.OpReq{
+	isCapable, capList := types.Authz_check(types.OpReq{
 		User:      userID,
 		CapNeeded: capForList,
 	}, false)
@@ -28,9 +39,9 @@ func SchemaList(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	var sh SchemaListStruct
+	var sh SchemaStruct
 
-	err := wscutils.BindJSON(c, &sh)
+	err = wscutils.BindJSON(c, &sh)
 	if err != nil {
 		l.LogActivity("Error Unmarshalling request payload to struct:", err.Error())
 		return
@@ -50,71 +61,35 @@ func SchemaList(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	switch true {
-	case sh.App != nil && sh.Class == nil && sh.Slice == nil:
-		schemaList, err := query.SchemaListByApp(c, *sh.App)
-		if err != nil || len(schemaList) == 0 {
-			l.LogActivity("Error while retrieving schema list by app", err)
-			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NoSchemaFound, server.ErrCode_Invalid))
+	if slices.Contains(capList, "root") || slices.Contains(capList, "report") {
+		schemaList, err = getSchemaList(c, sh, query)
+	} else if slices.Contains(capList, "ruleset") || slices.Contains(capList, "schema") {
+		if sh.App != "" {
+			schemaList, err = getSchemaList(c, sh, query)
+		} else {
+			l.Info().LogActivity("Unauthorized user:", userID)
+			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
 			return
 		}
-		wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: schemaList, Messages: nil})
-	case sh.Class != nil && sh.App == nil && sh.Slice == nil:
-		schemaList, err := query.SchemaListByClass(c, *sh.Class)
-		if err != nil || len(schemaList) == 0 {
-			l.LogActivity("Error while retrieving schema list by class", err)
-			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NoSchemaFound, server.ErrCode_Invalid))
-			return
-		}
-		wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: schemaList, Messages: nil})
-	case sh.Slice != nil && sh.Class == nil && sh.App == nil:
-		schemaList, err := query.SchemaListBySlice(c, *sh.Slice)
-		if err != nil || len(schemaList) == 0 {
-			l.LogActivity("Error while retrieving schema list by slice", err)
-			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NoSchemaFound, server.ErrCode_Invalid))
-			return
-		}
-		wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: schemaList, Messages: nil})
-	case sh.App != nil && sh.Class != nil && sh.Slice == nil:
-		schemaList, err := query.SchemaListByAppAndClass(c, sqlc.SchemaListByAppAndClassParams{App: *sh.App, Class: *sh.Class})
-		if err != nil || len(schemaList) == 0 {
-			l.LogActivity("Error while retrieving schema list by app & class", err)
-			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NoSchemaFound, server.ErrCode_Invalid))
-			return
-		}
-		wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: schemaList, Messages: nil})
-	case sh.App != nil && sh.Slice != nil && sh.Class == nil:
-		schemaList, err := query.SchemaListByAppAndSlice(c, sqlc.SchemaListByAppAndSliceParams{App: *sh.App, Slice: *sh.Slice})
-		if err != nil || len(schemaList) == 0 {
-			l.LogActivity("Error while retrieving schema list by app & slice", err)
-			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NoSchemaFound, server.ErrCode_Invalid))
-			return
-		}
-		wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: schemaList, Messages: nil})
-	case sh.Class != nil && sh.Slice != nil && sh.App == nil:
-		schemaList, err := query.SchemaListByClassAndSlice(c, sqlc.SchemaListByClassAndSliceParams{Class: *sh.Class, Slice: *sh.Slice})
-		if err != nil || len(schemaList) == 0 {
-			l.LogActivity("Error while retrieving schema list by class & slice", err)
-			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NoSchemaFound, server.ErrCode_Invalid))
-			return
-		}
-		wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: schemaList, Messages: nil})
-	case sh.App != nil && sh.Class != nil && sh.Slice != nil:
-		Schema, err := query.SchemaGet(c, sqlc.SchemaGetParams{App: *sh.App, Class: *sh.Class, Slice: *sh.Slice})
-		if err != nil {
-			l.LogActivity("Error while retrieving schema list by app, class & slice", err)
-			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NoSchemaFound, server.ErrCode_Invalid))
-			return
-		}
-		wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: Schema, Messages: nil})
-
-	default:
-		schemaList, err := query.SchemaList(c)
-		if err != nil || len(schemaList) == 0 {
-			l.LogActivity("Error while retrieving schema list by app, class & slice", err)
-			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NoSchemaFound, server.ErrCode_Invalid))
-		}
-		wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: schemaList, Messages: nil})
+	} else {
+		l.Info().LogActivity("Unauthorized user:", userID)
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
+		return
 	}
+	if err != nil || len(schemaList) == 0 {
+		l.LogActivity("Error while retrieving schema list", err)
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NoSchemaFound, server.ErrCode_Invalid))
+		return
+	}
+	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: schemaList, Messages: nil})
 	l.Debug0().Log("Finished execution of SchemaNew()")
+}
+
+func getSchemaList(c *gin.Context, sh SchemaStruct, query *sqlc.Queries) ([]sqlc.WfSchemaListRow, error) {
+	return query.WfSchemaList(c, sqlc.WfSchemaListParams{
+		Relam: realmID,
+		Slice: pgtype.Int4{Int32: sh.Slice, Valid: sh.Slice > 0},
+		App:   pgtype.Text{String: sh.App, Valid: !types.IsStringEmpty(&sh.App)},
+		Class: pgtype.Text{String: sh.Class, Valid: !types.IsStringEmpty(&sh.Class)},
+	})
 }
