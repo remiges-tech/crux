@@ -10,12 +10,24 @@ import (
 	"github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	"github.com/remiges-tech/crux/server"
+	"github.com/remiges-tech/crux/types"
 )
 
 // SchemaDelete will be responsible for processing the /WFschemaDelete request that comes through as a POST
 func SchemaDelete(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour
 	lh.Log("SchemaDelete request received")
+
+	isCapable, _ := types.Authz_check(types.OpReq{
+		User:      userID,
+		CapNeeded: capForList,
+	}, false)
+
+	if !isCapable {
+		lh.Info().LogActivity("Unauthorized user:", userID)
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
+		return
+	}
 
 	// implement the user realm here
 	var userRealm int32 = 1

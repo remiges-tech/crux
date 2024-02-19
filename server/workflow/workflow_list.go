@@ -31,6 +31,24 @@ var TRIGGER bool = false
 func WorkflowList(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour
 	lh.Log("WorkflowList request received")
+
+	// implement the user realm and all here
+	var (
+		userID     = "1234"
+		capForList = []string{"workflow"}
+		// userRealm  int32 = 1 //this is implemented in processRequest() below
+	)
+	isCapable, _ := types.Authz_check(types.OpReq{
+		User:      userID,
+		CapNeeded: capForList,
+	}, false)
+
+	if !isCapable {
+		lh.Info().LogActivity("Unauthorized user:", userID)
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
+		return
+	}
+
 	var (
 		request    WorkflowListReq
 		params     WorkflowListParams
@@ -78,7 +96,6 @@ func WorkflowList(c *gin.Context, s *service.Service) {
 		return
 	}
 
-
 	lh.Log(fmt.Sprintf("Record found: %v", map[string]any{"workflows": dbResponse}))
 
 	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(map[string][]sqlc.WorkflowListRow{"workflows": dbResponse}))
@@ -110,6 +127,7 @@ func populateParams(request *WorkflowListReq, params *WorkflowListParams) {
 // Function to process the request and get the workflows
 func processRequest(c *gin.Context, lh *logharbour.Logger, hasRootCapabilities bool, query *sqlc.Queries, params WorkflowListParams, request *WorkflowListReq) ([]sqlc.WorkflowListRow, error) {
 	lh.Log("processRequest request received")
+
 	// implement the user realm here
 	var userRealm int32 = 1
 

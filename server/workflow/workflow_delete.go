@@ -22,9 +22,24 @@ func WorkflowDelete(c *gin.Context, s *service.Service) {
 
 	var (
 		request WorkflowGetReq
-		// implement the user realm here
-		userRealm int32 = 1
 	)
+
+	// implement the user realm and all here
+	var (
+		userID           = "1234"
+		capForList       = []string{"workflow"}
+		userRealm  int32 = 1
+	)
+	isCapable, _ := types.Authz_check(types.OpReq{
+		User:      userID,
+		CapNeeded: capForList,
+	}, false)
+
+	if !isCapable {
+		lh.Info().LogActivity("Unauthorized user:", userID)
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
+		return
+	}
 
 	err := wscutils.BindJSON(c, &request)
 	if err != nil {
