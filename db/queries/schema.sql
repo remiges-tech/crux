@@ -1,6 +1,6 @@
 -- name: SchemaNew :exec
 INSERT INTO
-    schema (
+    schema(
         realm, slice, app, brwf, class, patternschema, actionschema, createdat, createdby
     )
 VALUES (
@@ -32,8 +32,8 @@ FROM schema
 WHERE
     slice = $1
     AND class = $2
-    AND app = $3
-FOR UPDATE;
+    AND app = $3 FOR
+UPDATE;
 
 -- name: SchemaDelete :one
 DELETE FROM schema WHERE id = $1 RETURNING id;
@@ -124,7 +124,7 @@ DELETE from schema
 where
     id in (
         SELECT schema.id
-        FROM schema , realm, realmslice
+        FROM schema, realm, realmslice
         WHERE
             schema.realm = realm.id
             and schema.slice = realmslice.id
@@ -151,3 +151,14 @@ WHERE
     slice = $1
     AND class = $2
     AND app = $3;
+
+-- name: WfSchemaList :many
+SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
+FROM schema, app, realmslice
+where
+schema.app = app.shortname
+and schema.slice = realmslice.id
+    AND schema.realm =  @relam
+    AND ((sqlc.narg('slice')::INTEGER is null) OR (schema.slice = @slice::INTEGER))
+    AND ((sqlc.narg('app')::text is null) OR (schema.app = @app::text))
+    AND (sqlc.narg('class')::text is null OR schema.class = sqlc.narg('class')::text);

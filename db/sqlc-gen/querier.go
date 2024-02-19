@@ -34,6 +34,7 @@ type Querier interface {
 	SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) error
 	WfPatternSchemaGet(ctx context.Context, arg WfPatternSchemaGetParams) ([]byte, error)
 	WfSchemaGet(ctx context.Context, arg WfSchemaGetParams) (Schema, error)
+	WfSchemaList(ctx context.Context, arg WfSchemaListParams) ([]WfSchemaListRow, error)
 	Wfschemadelete(ctx context.Context, arg WfschemadeleteParams) error
 	Wfschemaget(ctx context.Context, arg WfschemagetParams) (WfschemagetRow, error)
 	WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) error
