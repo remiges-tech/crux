@@ -21,15 +21,21 @@ func TestWFinstanceNew(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 
 			switch tc.Name {
-			case "SUCCESS- Single step":
-				wfinstance.SWITCH = wfinstance.ActionSet{
-					Tasks:      []string{"diwalisale"},
-					Properties: map[string]string{"nextstep": "coupondistribution"},
-				}
-			case "Success- Multiple steps":
+			case "SUCCESS- Multiple steps":
 				wfinstance.SWITCH = wfinstance.ActionSet{
 					Tasks:      []string{"diwalisale", "yearendsale"},
 					Properties: map[string]string{"nextstep": "coupondistribution"},
+				}
+			case "ERROR- Invalid property attributes":
+				wfinstance.SWITCH = wfinstance.ActionSet{
+					Tasks:      []string{"discount"},
+					Properties: map[string]string{"shipby": "fedex"},
+				}
+
+			case "SUCCESS- done attribute present in domatch() response":
+				wfinstance.SWITCH = wfinstance.ActionSet{
+					Tasks:      []string{"discount", "yearendsale"},
+					Properties: map[string]string{"done": "true"},
 				}
 			default:
 				wfinstance.SWITCH = wfinstance.ActionSet{
@@ -58,9 +64,7 @@ func TestWFinstanceNew(t *testing.T) {
 				jsonData, err := types.ReadJsonFromFile(tc.TestJsonFile)
 				require.NoError(t, err)
 				expectedJSON := removeFieldFromJSON(string(jsonData), "loggedat")
-				fmt.Println(">>>>>>>>>>>>>>>expected :", expectedJSON)
 				actualJSON := removeFieldFromJSON(res.Body.String(), "loggedat")
-				fmt.Println(">>>>>>>>>>>>>>>actual :", expectedJSON)
 				require.JSONEq(t, expectedJSON, actualJSON)
 
 			}
@@ -80,7 +84,78 @@ func wfInstanceNewTestcase() []testutils.TestCasesStruct {
 	app := "retailBANK"
 	wfInstanceNewTestcase := []testutils.TestCasesStruct{
 
-		//1st test case
+		// 1st test case
+		{
+			Name: "ERROR- Invalid request",
+			RequestPayload: wscutils.Request{
+				Data: wfinstance.WFInstanceNewRequest{
+					Slice:    slice,
+					App:      app,
+					EntityID: entityID,
+					Entity: map[string]string{
+						"class":        "inventoryitemss",
+						"mrp":          "200.00",
+						"fullname":     "belampally",
+						"ageinstock":   "2",
+						"inventoryqty": "2",
+					},
+					Workflow: workflow,
+					Trace:    &trace,
+					Parent:   &parent,
+				},
+			},
+			ExpectedHttpCode: http.StatusBadRequest,
+			TestJsonFile:     "./data/invalid_request_response.json",
+		},
+
+		// 2nd test case
+		{
+			Name: "SUCCESS- done attribute present in domatch() response",
+			RequestPayload: wscutils.Request{
+				Data: wfinstance.WFInstanceNewRequest{
+					Slice:    slice,
+					App:      app,
+					EntityID: entityID,
+					Entity: map[string]string{
+						"class":        "inventoryitems",
+						"mrp":          "200.00",
+						"fullname":     "belampally",
+						"ageinstock":   "2",
+						"inventoryqty": "2",
+					},
+					Workflow: workflow,
+					Trace:    &trace,
+					Parent:   &parent,
+				},
+			},
+			ExpectedHttpCode: http.StatusOK,
+			TestJsonFile:     "./data/done_attribute_response.json",
+		},
+
+		// 3rd test case
+		{
+			Name: "ERROR- Invalid property attributes",
+			RequestPayload: wscutils.Request{
+				Data: wfinstance.WFInstanceNewRequest{
+					Slice:    slice,
+					App:      app,
+					EntityID: entityID,
+					Entity: map[string]string{
+						"class":        "inventoryitems",
+						"mrp":          "200.00",
+						"fullname":     "belampally",
+						"ageinstock":   "2",
+						"inventoryqty": "2",
+					},
+					Workflow: workflow,
+					Trace:    &trace,
+					Parent:   &parent,
+				},
+			},
+			ExpectedHttpCode: http.StatusBadRequest,
+			TestJsonFile:     "./data/invalid_property_attributes_response.json",
+		},
+		// 4th test case
 		{
 			Name: "SUCCESS- Single step",
 			RequestPayload: wscutils.Request{
@@ -104,9 +179,9 @@ func wfInstanceNewTestcase() []testutils.TestCasesStruct {
 			TestJsonFile:     "./data/single_step_success_response.json",
 		},
 
-		// 2nd test case
+		// 5th test case
 		{
-			Name: "Success- Multiple steps",
+			Name: "SUCCESS- Multiple steps",
 			RequestPayload: wscutils.Request{
 				Data: wfinstance.WFInstanceNewRequest{
 					Slice:    slice,
@@ -127,12 +202,34 @@ func wfInstanceNewTestcase() []testutils.TestCasesStruct {
 			ExpectedHttpCode: http.StatusOK,
 			TestJsonFile:     "./data/multiple_steps_success_response.json",
 		},
+		// 6th test case
+		{
+			Name: "ERROR- Instance already exist in database",
+			RequestPayload: wscutils.Request{
+				Data: wfinstance.WFInstanceNewRequest{
+					Slice:    slice,
+					App:      app,
+					EntityID: entityID1,
+					Entity: map[string]string{
+						"class":        "members",
+						"mrp":          "200.00",
+						"fullname":     "belampally",
+						"ageinstock":   "2",
+						"inventoryqty": "2",
+					},
+					Workflow: workflow1,
+					Trace:    &trace,
+					Parent:   &parent,
+				},
+			},
+			ExpectedHttpCode: http.StatusBadRequest,
+			TestJsonFile:     "./data/instance_already_exist_response.json",
+		},
 	}
 	return wfInstanceNewTestcase
 }
 
 func removeFieldFromJSON(jsonStr string, field string) string {
-	// Parse JSON
 	var obj wscutils.Response
 	obj.Data = wfinstance.WFInstanceNewRequest{}
 
@@ -140,13 +237,10 @@ func removeFieldFromJSON(jsonStr string, field string) string {
 		return jsonStr
 	}
 
-	// Convert the object to a map using reflection
 	if obj.Data != nil {
-		// Remove the specified field from 'Data'
 		delete(obj.Data.(map[string]interface{}), field)
 	}
 
-	// Convert back to JSON
 	modifiedJSON, err := json.Marshal(obj)
 	if err != nil {
 		return jsonStr

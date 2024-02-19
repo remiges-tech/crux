@@ -142,8 +142,8 @@ WHERE
     slice = $1
     AND class = $2
     AND app = $3
-    AND realm = $4;
-
+    AND realm = $4
+    AND brwf = 'W';
 -- name: WfSchemaGet :one
 SELECT *
 FROM public.schema

@@ -80,14 +80,14 @@ func doMatch(entity Entity, ruleSet RuleSet, actionSet ActionSet, seenRuleSets m
 
 	//if task has only one task
 	// actionSet = ActionSet{
-	// 	tasks:      []string{"discount"},
-	// 	properties: map[string]string{"nextstep": "coupondistribution"},
+	// 	Tasks:      []string{"discount"},
+	// 	Properties: map[string]string{"nextstep": "coupondistribution"},
 	// }
 
 	//if task has multiple tasks
 	// actionSet = ActionSet{
-	// 	tasks:      []string{"discount", "yearendsale"},
-	// 	properties: map[string]string{"nextstep": "coupondistribution"},
+	// 	Tasks:      []string{"discount", "yearendsale"},
+	// 	Properties: map[string]string{"nextstep": "coupondistribution"},
 	// }
 
 	//if task has multiple tasks
@@ -97,14 +97,14 @@ func doMatch(entity Entity, ruleSet RuleSet, actionSet ActionSet, seenRuleSets m
 	// }
 	// if task has only one task but no proper attri
 	// actionSet = ActionSet{
-	// 	tasks:      []string{"discount"}, //, "yearendsale"},
-	// 	properties: map[string]string{"shipby": "fedex"},
+	// 	Tasks:      []string{"discount"}, //, "yearendsale"},
+	// 	Properties: map[string]string{"shipby": "fedex"},
 	// }
 
 	//if done attr  present
 	// actionSet = ActionSet{
-	// 	tasks:      []string{"discount", "yearendsale"},
-	// 	properties: map[string]string{"done": "true"},
+	// 	Tasks:      []string{"discount", "yearendsale"},
+	// Properties: map[string]string{"done": "true"},
 	// }
 	actionSet = SWITCH
 	return actionSet, true, nil

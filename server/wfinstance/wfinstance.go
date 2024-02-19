@@ -71,6 +71,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 		existingEntity[STEP] = START
 		existingEntity[STEPFALED] = FALSE
 	}
+	lh.Debug0().LogActivity("wfinstanceNewRequest after adding additional attributes :", wfinstanceNewreq)
 
 	// call doMatch()
 	actionSet, _, err = doMatch(entity, ruleSet, actionSet, seenRuleSets)
@@ -102,6 +103,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 
 	// To add records in table
 	steps = actionSet.Tasks
+
 	// if tasks of actionset contains only one task
 	if len(actionSet.Tasks) == 1 && done == "" {
 		addTaskRequest := AddTaskRequest{
@@ -115,7 +117,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 			return
 		}
-		lh.Log(fmt.Sprintf("Response : %v", map[string]any{"response": response}))
+		lh.Debug0().Log(fmt.Sprintf("Response : %v", map[string]any{"response": response}))
 		wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(response))
 
 	}
@@ -132,7 +134,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 			return
 		}
-		lh.Log(fmt.Sprintf("Response : %v", map[string]any{"response": response}))
+		lh.Debug0().Log(fmt.Sprintf("Response : %v", map[string]any{"response": response}))
 		wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(response))
 	}
 

@@ -30,7 +30,7 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
 	entity := r.Entity
 	var errRes []wscutils.ErrorMessage
 
-	lh.Log("Inside ValidateWFInstaceNewReq()")
+	lh.Debug0().Log("Inside ValidateWFInstaceNewReq()")
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
 		lh.Log("Error while getting query instance from service Dependencies")
@@ -50,7 +50,7 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
 	_, isKeyExist := entity[CLASS]
 
 	if !(entity != nil && isKeyExist) {
-		lh.Log("Entity does not match with standard structure")
+		lh.Debug0().Log("Entity does not match with standard structure")
 		errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid_Entity, &ENTITY))
 		return false, errRes
 	}
@@ -58,19 +58,20 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
 	// To verify whether app,slice,class present in schema and get patternschema against it
 	class := entity[CLASS]
 	pattern, err := query.WfPatternSchemaGet(c, sqlc.WfPatternSchemaGetParams{
-		App:   r.App,
 		Slice: r.Slice,
 		Class: class,
+		App:   r.App,
 		Realm: REALM,
 	})
 	if err != nil {
-		lh.LogActivity("failed to get schema pattern  from DB:", err)
+		lh.LogActivity("failed to get schema pattern from DB:", err)
 		errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_NoSchemaFound, server.ErrCode_NotFound, nil))
 		return false, errRes
 	}
 
 	// Unmarshalling byte data to schemapatten struct
 	schmapattern, err := byteToPatternSchema(pattern)
+	lh.Debug0().LogActivity("patternschema :", schmapattern)
 	if err != nil {
 		lh.Debug0().LogActivity(" error while converting byte patternschema to struct:", err)
 		errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_NoSchemaFound, server.ErrCode_Invalid_pattern_schema, nil))
@@ -78,6 +79,7 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
 
 	// Forming  requested entity  into proper Entity struct
 	EntityStruct := getEntity(r.Entity)
+	lh.Debug1().LogActivity("Entity stucture:", EntityStruct)
 
 	//  To match entity against patternschema
 	isValidEntity, err := ValidateEntity(EntityStruct, schmapattern, s)
@@ -96,17 +98,17 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 	lh := s.LogHarbour
 	entityClass := r.Entity[CLASS]
 
-	lh.Log("Inside validateWorkflow()")
+	lh.Debug0().Log("Inside validateWorkflow()")
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
-		lh.Log("Error while getting query instance from service Dependencies")
+		lh.Debug0().Log("Error while getting query instance from service Dependencies")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		errors := append(errors, wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_DatabaseError, nil))
 		return false, errors
 	}
 
 	//1.The value of app specified in the request matches the app ID with which this workflow is associated
-	lh.Log("verifying whether app present in request is valid")
+	lh.Debug0().Log("verifying whether app present in request is valid")
 	app, err := query.GetApp(c, sqlc.GetAppParams{
 		Slice: r.Slice,
 		App:   r.App,
@@ -120,7 +122,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 	}
 
 	//2. The class of the workflow must match that of entity
-	lh.Log("verifying whether class present in request is valid")
+	lh.Debug0().Log("verifying whether class present in request is valid")
 	class, err := query.GetClass(c, sqlc.GetClassParams{
 		Slice: r.Slice,
 		App:   app,
@@ -136,7 +138,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 	// 3.The workflow named has is_active == true and internal == false
 
 	//To get worflow active status
-	lh.Log("verifying whether workflow active status is valid")
+	lh.Debug0().Log("verifying whether workflow active status is valid")
 	wfActiveStatus, err := query.GetWFActiveStatus(c, sqlc.GetWFActiveStatusParams{
 		Slice:   r.Slice,
 		App:     app,
@@ -151,7 +153,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 	}
 
 	//To get worflow Internal status
-	lh.Log("verifying whether workflow internal status is valid")
+	lh.Debug0().Log("verifying whether workflow internal status is valid")
 	wfInternalStatus, err := query.GetWFInternalStatus(c, sqlc.GetWFInternalStatusParams{
 		Slice:   r.Slice,
 		App:     app,
@@ -167,6 +169,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 	}
 
 	//4.There is no record in the wfinstance table with the same values for the tuple (slice,app,workflow,entityid)
+	lh.Log("verifying whether record is already exist in wfinstance table")
 	wfinstanceRecordCount, err := query.GetWFINstance(c, sqlc.GetWFINstanceParams{
 		Slice:    r.Slice,
 		App:      app,
@@ -190,19 +193,25 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 func ValidateEntity(e Entity, ps *types.PatternSchema, s *service.Service) (bool, error) {
 
 	lh := s.LogHarbour
-	lh.Log("Inside validateEntity()")
+	lh.Debug0().Log("Inside validateEntity()")
 	// Check if the entity class matches the expected class from the schema
 	if e.Class != ps.Class {
+		lh.Debug0().Log("Entity class does not match the expected class in the schema")
 		return false, errors.New("Entity class does not match the expected class in the schema")
 	}
 	// Validate attributes
+
+	lh.Log("validating entity attributes")
 	for _, a := range e.Attributes {
 		t := getType(*ps, a.Name)
 		if t == "" {
+			lh.Debug0().LogActivity("schema does not contain attribute %v", a.Name)
 			return false, fmt.Errorf("schema does not contain attribute %v", a.Name)
+
 		}
 		_, err := convertEntityAttrVal(a.Val, t)
 		if err != nil {
+			lh.Debug0().LogActivity("attribute %v in entity has value of wrong type", a.Name)
 			return false, fmt.Errorf("attribute %v in entity has value of wrong type", a.Name)
 		}
 	}

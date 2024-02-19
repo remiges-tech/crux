@@ -73,15 +73,15 @@
 				
 				<option value="file8">github.com/remiges-tech/crux/server/wfinstance/do_match.go (66.7%)</option>
 				
-				<option value="file9">github.com/remiges-tech/crux/server/wfinstance/wfinstance.go (63.5%)</option>
+				<option value="file9">github.com/remiges-tech/crux/server/wfinstance/wfinstance.go (80.0%)</option>
 				
 				<option value="file10">github.com/remiges-tech/crux/server/wfinstance/wfinstancenew_add.go (84.6%)</option>
 				
-				<option value="file11">github.com/remiges-tech/crux/server/wfinstance/wfinstancenew_validation.go (63.7%)</option>
+				<option value="file11">github.com/remiges-tech/crux/server/wfinstance/wfinstancenew_validation.go (75.6%)</option>
 				
 				<option value="file12">github.com/remiges-tech/crux/testutils/test_utils.go (0.0%)</option>
 				
-				<option value="file13">github.com/remiges-tech/crux/types/types.go (34.6%)</option>
+				<option value="file13">github.com/remiges-tech/crux/types/types.go (32.1%)</option>
 				
 				</select>
 			</div>
@@ -106,10 +106,11 @@ import (
 )
 
 // The function HandleDatabaseError first checks if the error is a PostgreSQL-specific error
+//
 //        by attempting to cast it to a *pgconn.PgError. If successful, it examines the PostgreSQL
 //        error code to determine the nature of the error.If none of the above conditions are met,
 //        it constructs a generic error message indicating an internal server error related to
-
+//
 // the database.
 func HandleDatabaseError(err error) wscutils.ErrorMessage <span class="cov0" title="0">{
         var pgErr *pgconn.PgError
@@ -122,25 +123,21 @@ func HandleDatabaseError(err error) wscutils.ErrorMessage <span class="cov0" tit
                         return wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_NotFound, &amp;pgErr.ConstraintName)</span>
                 case "23502":<span class="cov0" title="0"> //not_null_violation
                         return wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_Empty, &amp;pgErr.ConstraintName)</span>
-                case "40001":<span class="cov0" title="0"> //serialization_failure
-                        return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_Internal_Retry, &amp;pgErr.ConstraintName)</span>
-                case "40P01":<span class="cov0" title="0"> //        deadlock_detected
-                        return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_Internal_Retry, &amp;pgErr.ConstraintName)</span>
-                case "08006":<span class="cov0" title="0"> //        connection_failure
-                        return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_Internal_Retry, &amp;pgErr.ConstraintName)</span>
-                case "57P01":<span class="cov0" title="0"> //        admin_shutdown
-                        return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_Internal_Retry, &amp;pgErr.ConstraintName)</span>
-                case "55P03":<span class="cov0" title="0"> //        lock_not_available  Occurs when a transaction waits too long for a lock to be released, exceeding the configured timeout period.
-                        return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_Internal_Retry, &amp;pgErr.ConstraintName)</span>
+                case "0A000":<span class="cov0" title="0"> //ERROR: cached plan must not change result type (SQLSTATE 0A000)
+
+                        return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_Internal_Retry, nil)</span>
+                case "XX000":<span class="cov0" title="0"> //ERROR: cache lookup failed for type 67119 (SQLSTATE XX000)
+                        return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_Internal_Retry, nil)</span>
                 }
         } else<span class="cov0" title="0"> if err.Error() == "no rows in result set" </span><span class="cov0" title="0">{
-                feild := "slice/app/class"
-                return wscutils.BuildErrorMessage(1006, server.ErrCode_InvalidRequest, &amp;feild)
+                field := "slice/app/class"
+                return wscutils.BuildErrorMessage(1006, server.ErrCode_InvalidRequest, &amp;field)
         }</span> else<span class="cov0" title="0"> {
                 return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_DatabaseError, nil)
         }</span>
         <span class="cov0" title="0">return wscutils.ErrorMessage{}</span>
-}</pre>
+}
+</pre>
 		
 		<pre class="file" id="file1" style="display: none">package db
 
@@ -1386,6 +1383,7 @@ WHERE
     AND class = $2
     AND app = $3
     AND realm = $4
+    AND brwf = 'W'
 `
 
 type WfPatternSchemaGetParams struct {
@@ -1745,14 +1743,14 @@ func doMatch(entity Entity, ruleSet RuleSet, actionSet ActionSet, seenRuleSets m
 
         //if task has only one task
         // actionSet = ActionSet{
-        //         tasks:      []string{"discount"},
-        //         properties: map[string]string{"nextstep": "coupondistribution"},
+        //         Tasks:      []string{"discount"},
+        //         Properties: map[string]string{"nextstep": "coupondistribution"},
         // }
 
         //if task has multiple tasks
         // actionSet = ActionSet{
-        //         tasks:      []string{"discount", "yearendsale"},
-        //         properties: map[string]string{"nextstep": "coupondistribution"},
+        //         Tasks:      []string{"discount", "yearendsale"},
+        //         Properties: map[string]string{"nextstep": "coupondistribution"},
         // }
 
         //if task has multiple tasks
@@ -1762,14 +1760,14 @@ func doMatch(entity Entity, ruleSet RuleSet, actionSet ActionSet, seenRuleSets m
         // }
         // if task has only one task but no proper attri
         // actionSet = ActionSet{
-        //         tasks:      []string{"discount"}, //, "yearendsale"},
-        //         properties: map[string]string{"shipby": "fedex"},
+        //         Tasks:      []string{"discount"}, //, "yearendsale"},
+        //         Properties: map[string]string{"shipby": "fedex"},
         // }
 
         //if done attr  present
         // actionSet = ActionSet{
-        //         tasks:      []string{"discount", "yearendsale"},
-        //         properties: map[string]string{"done": "true"},
+        //         Tasks:      []string{"discount", "yearendsale"},
+        // Properties: map[string]string{"done": "true"},
         // }
         actionSet = SWITCH
         return actionSet, true, nil
@@ -1846,7 +1844,8 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) <span class="cov8" tit
         // Validate request
         <span class="cov8" title="1">existingEntity := wfinstanceNewreq.Entity
         isValidReq, errStr := validateWFInstanceNewReq(wfinstanceNewreq, s, c)
-        if len(errStr) &gt; 0 || !isValidReq </span><span class="cov0" title="0">{
+        if len(errStr) &gt; 0 || !isValidReq </span><span class="cov8" title="1">{
+                lh.Debug0().LogActivity("request validation error:", errStr)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, errStr))
                 return
 
@@ -1859,25 +1858,25 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) <span class="cov8" tit
         // call doMatch()
         <span class="cov8" title="1">actionSet, _, err = doMatch(entity, ruleSet, actionSet, seenRuleSets)
         if err != nil </span><span class="cov0" title="0">{
-                lh.LogActivity("error while calling doMatch Method :", err.Error())
+                lh.Debug0().LogActivity("error while calling doMatch Method :", err.Error())
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid))
                 return
         }</span>
 
         // To verify actionSet Properties and get their values
         <span class="cov8" title="1">attribute, error := getValidPropertyAttr(actionSet)
-        if error != nil </span><span class="cov0" title="0">{
+        if error != nil </span><span class="cov8" title="1">{
                 lh.Debug0().LogActivity("error while verifying actionset properties :", error.Error())
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid_property_attributes))
                 return
         }</span>
-        <span class="cov8" title="1">if attribute[DONE] == TRUE </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if attribute[DONE] == TRUE </span><span class="cov8" title="1">{
                 done = attribute[DONE]
         }</span> else<span class="cov8" title="1"> {
                 nextStep = attribute[NEXTSTEP]
         }</span>
 
-        <span class="cov8" title="1">if done == TRUE </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if done == TRUE </span><span class="cov8" title="1">{
                 response := make(map[string]bool)
                 response[DONE] = true
                 lh.Log(fmt.Sprintf("Response : %v", map[string]any{"response": response}))
@@ -1927,11 +1926,11 @@ func getValidPropertyAttr(a ActionSet) (map[string]string, error) <span class="c
         attribute := make(map[string]string)
         attributes := a.Properties
         for attr, val := range attributes </span><span class="cov8" title="1">{
-                if attr == DONE </span><span class="cov0" title="0">{
+                if attr == DONE </span><span class="cov8" title="1">{
                         attribute[attr] = val
                 }</span> else<span class="cov8" title="1"> if attr == NEXTSTEP </span><span class="cov8" title="1">{
                         attribute[attr] = val
-                }</span> else<span class="cov0" title="0"> {
+                }</span> else<span class="cov8" title="1"> {
                         return nil, fmt.Errorf("property attributes does not contain either done or nextstep")
                 }</span>
 
@@ -2045,7 +2044,7 @@ func getResponse(r ResponseRequest) WFInstanceNewResponse <span class="cov8" tit
         var response WFInstanceNewResponse
 
         lh := r.Service.LogHarbour
-        lh.Log("Inside addTasks()")
+        lh.Log("Inside getResponse()")
 
         for _, val := range r.ResponseData </span><span class="cov8" title="1">{
                 // adding tasks
@@ -2118,7 +2117,7 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
         }</span>
         // Validate request
         <span class="cov8" title="1">isValidReq, errAry := validateWorkflow(r, s, c)
-        if len(errAry) &gt; 0 || !isValidReq </span><span class="cov0" title="0">{
+        if len(errAry) &gt; 0 || !isValidReq </span><span class="cov8" title="1">{
                 lh.Debug0().LogActivity("Invalid request:", errAry)
                 errRes = errAry
                 return false, errRes
@@ -2136,11 +2135,12 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
         // To verify whether app,slice,class present in schema and get patternschema against it
         <span class="cov8" title="1">class := entity[CLASS]
         pattern, err := query.WfPatternSchemaGet(c, sqlc.WfPatternSchemaGetParams{
-                App:   r.App,
                 Slice: r.Slice,
                 Class: class,
+                App:   r.App,
                 Realm: REALM,
         })
+        fmt.Println("APP :", r.App, " SLICE :", r.Slice, " CLASS :", class, " REALM: ", REALM)
         if err != nil </span><span class="cov0" title="0">{
                 lh.LogActivity("failed to get schema pattern  from DB:", err)
                 errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_NoSchemaFound, server.ErrCode_NotFound, nil))
@@ -2149,9 +2149,10 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
 
         // Unmarshalling byte data to schemapatten struct
         <span class="cov8" title="1">schmapattern, err := byteToPatternSchema(pattern)
+        fmt.Println("patternschema :", schmapattern)
         if err != nil </span><span class="cov0" title="0">{
                 lh.Debug0().LogActivity(" error while converting byte patternschema to struct:", err)
-                errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_Invalid_pattern_schema, nil))
+                errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_NoSchemaFound, server.ErrCode_Invalid_pattern_schema, nil))
         }</span>
 
         // Forming  requested entity  into proper Entity struct
@@ -2192,7 +2193,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
                 Realm: REALM,
         })
 
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 lh.LogActivity("failed to get app from DB:", err.Error())
                 errors = append(errors, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid_APP, &amp;APP, r.App))
         }</span>
@@ -2206,7 +2207,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
                 Realm: REALM,
         })
 
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 lh.LogActivity("failed to get class from DB:", err)
                 errors = append(errors, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid_Class, &amp;CLASS, entityClass))
         }</span>
@@ -2223,7 +2224,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
                 Setname: r.Workflow,
         })
 
-        if err != nil || !wfActiveStatus.Bool </span><span class="cov0" title="0">{
+        if err != nil || !wfActiveStatus.Bool </span><span class="cov8" title="1">{
                 lh.LogActivity("Invalid workflow is_active status :", err)
                 errors = append(errors, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid_workflow_active_status, &amp;WORKFLOW, fmt.Sprintf("%v", wfActiveStatus.Bool)))
         }</span>
@@ -2238,26 +2239,27 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
                 Setname: r.Workflow,
         })
 
-        if err != nil || wfInternalStatus </span><span class="cov0" title="0">{
+        if err != nil || wfInternalStatus </span><span class="cov8" title="1">{
                 lh.LogActivity("Invalid workflow is_internal status:", err)
                 errors = append(errors, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid_workflow_Internal_status, &amp;WORKFLOW, fmt.Sprintf("%v", wfInternalStatus)))
 
         }</span>
 
         //4.There is no record in the wfinstance table with the same values for the tuple (slice,app,workflow,entityid)
-        <span class="cov8" title="1">wfinstanceRecordCount, err := query.GetWFINstance(c, sqlc.GetWFINstanceParams{
+        <span class="cov8" title="1">lh.Log("verifying whether record is already exist in wfinstance table")
+        wfinstanceRecordCount, err := query.GetWFINstance(c, sqlc.GetWFINstanceParams{
                 Slice:    r.Slice,
                 App:      app,
                 Workflow: r.Workflow,
                 Entityid: r.EntityID,
         })
 
-        if err != nil || wfinstanceRecordCount &gt; 0 </span><span class="cov0" title="0">{
+        if err != nil || wfinstanceRecordCount &gt; 0 </span><span class="cov8" title="1">{
                 lh.LogActivity("Record already exist in wfinstance table :", err)
                 errors = append(errors, wscutils.BuildErrorMessage(server.MsgId_AlreadyExist, server.ErrCode_AlreadyExist, &amp;ENTITYID, r.EntityID))
         }</span>
 
-        <span class="cov8" title="1">if len(errors) &gt; 0 </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if len(errors) &gt; 0 </span><span class="cov8" title="1">{
                 return false, errors
         }</span>
 
@@ -2271,10 +2273,15 @@ func ValidateEntity(e Entity, ps *types.PatternSchema, s *service.Service) (bool
         lh.Log("Inside validateEntity()")
         // Check if the entity class matches the expected class from the schema
         if e.Class != ps.Class </span><span class="cov0" title="0">{
+                fmt.Println(e.Class, " == ", ps.Class)
+
+                lh.LogActivity("error class does not match", errors.New("Entity class does not match the expected class in the schema"))
                 return false, errors.New("Entity class does not match the expected class in the schema")
         }</span>
         // Validate attributes
-        <span class="cov8" title="1">for _, a := range e.Attributes </span><span class="cov8" title="1">{
+
+        <span class="cov8" title="1">lh.Log("validating entity attributes")
+        for _, a := range e.Attributes </span><span class="cov8" title="1">{
                 t := getType(*ps, a.Name)
                 if t == "" </span><span class="cov0" title="0">{
                         return false, fmt.Errorf("schema does not contain attribute %v", a.Name)
@@ -2528,6 +2535,11 @@ func HasRulesetRights(app string) bool <span class="cov0" title="0">{
 // to get workflows for all apps for which the user has "ruleset" rights
 func GetWorkflowsByRulesetRights() []string <span class="cov0" title="0">{
         return []string{"retailBANK", "nedbank"}
+}</span>
+
+func Authz_check(op OpReq, trace bool) (bool, []string) <span class="cov0" title="0">{
+        var caplist []string
+        return true, caplist
 }</span>
 </pre>
 		
