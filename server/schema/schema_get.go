@@ -41,6 +41,17 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 		response wfschemagetRow
 	)
 
+	isCapable, _ := types.Authz_check(types.OpReq{
+		User:      userID,
+		CapNeeded: capForList,
+	}, false)
+
+	if !isCapable {
+		lh.Info().LogActivity("Unauthorized user:", userID)
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
+		return
+	}
+
 	// step 1: json request binding with a struct
 	err := wscutils.BindJSON(c, &request)
 	if err != nil {
