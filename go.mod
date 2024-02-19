@@ -1,3 +1,3 @@
-module github.com/remiges-tech/crux
+module crux
 
 go 1.20

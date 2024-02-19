@@ -13,14 +13,30 @@ import "log"
 func testCache(tests *[]doMatchTest) {
 
 	testLoad(tests)
-	//testPurge(tests)
-	//testReload(tests)
+	testPurge(tests)
+	testReload(tests)
 }
 
 func testLoad(tests *[]doMatchTest) {
 
 	err := Load()
 	if err != nil {
-		log.Println("ERROR LOAD", err)
+		log.Println("ERROR Load", err)
+	}
+}
+
+func testPurge(tests *[]doMatchTest) {
+
+	err := Purge()
+	if err != nil {
+		log.Println("ERROR Purge", err)
+	}
+}
+
+func testReload(tests *[]doMatchTest) {
+
+	err := Reload()
+	if err != nil {
+		log.Println("ERROR Reload", err)
 	}
 }
