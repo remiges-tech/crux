@@ -486,7 +486,7 @@ func (q *Queries) SchemaListBySlice(ctx context.Context, slice int32) ([]SchemaL
 	return items, nil
 }
 
-const schemaNew = `-- name: SchemaNew :exec
+const schemaNew = `-- name: SchemaNew :one
 INSERT INTO
     schema(
         realm, slice, app, brwf, class, patternschema, actionschema, createdat, createdby
@@ -494,6 +494,8 @@ INSERT INTO
 VALUES (
         $1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, $8
     )
+    RETURNING
+    id
 `
 
 type SchemaNewParams struct {
@@ -507,8 +509,8 @@ type SchemaNewParams struct {
 	Createdby     string   `json:"createdby"`
 }
 
-func (q *Queries) SchemaNew(ctx context.Context, arg SchemaNewParams) error {
-	_, err := q.db.Exec(ctx, schemaNew,
+func (q *Queries) SchemaNew(ctx context.Context, arg SchemaNewParams) (int32, error) {
+	row := q.db.QueryRow(ctx, schemaNew,
 		arg.Realm,
 		arg.Slice,
 		arg.App,
@@ -518,7 +520,9 @@ func (q *Queries) SchemaNew(ctx context.Context, arg SchemaNewParams) error {
 		arg.Actionschema,
 		arg.Createdby,
 	)
-	return err
+	var id int32
+	err := row.Scan(&id)
+	return id, err
 }
 
 const schemaUpdate = `-- name: SchemaUpdate :exec
