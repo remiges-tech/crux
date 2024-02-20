@@ -18,6 +18,7 @@ import (
 	"github.com/remiges-tech/crux/server/schema"
 	"github.com/remiges-tech/crux/server/wfinstance"
 	"github.com/remiges-tech/crux/server/workflow"
+	breSchema "github.com/remiges-tech/crux/serverBRE/schema"
 	"github.com/remiges-tech/logharbour/logharbour"
 	"github.com/remiges-tech/rigel"
 	"github.com/remiges-tech/rigel/etcd"
@@ -150,11 +151,11 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstancenew", wfinstance.GetWFinstanceNew)
 
 	// -------- schema for BRE ---------------
-	serviceBRE.RegisterRouteWithGroup(apiV1GroupBRE, http.MethodPost, "/BREschemaget", schema.SchemaGet)
-	serviceBRE.RegisterRouteWithGroup(apiV1GroupBRE, http.MethodDelete, "/BREschemadelete", schema.SchemaDelete)
-	serviceBRE.RegisterRouteWithGroup(apiV1GroupBRE, http.MethodPost, "/BREschemaList", schema.SchemaList)
-	serviceBRE.RegisterRouteWithGroup(apiV1GroupBRE, http.MethodPost, "/BREschemaNew", schema.SchemaNew)
-	serviceBRE.RegisterRouteWithGroup(apiV1GroupBRE, http.MethodPut, "/BREschemaUpdate", schema.SchemaUpdate)
+	//serviceBRE.RegisterRouteWithGroup(apiV1GroupBRE, http.MethodPost, "/BREschemaget", schema.SchemaGet)
+	//serviceBRE.RegisterRouteWithGroup(apiV1GroupBRE, http.MethodDelete, "/BREschemadelete", schema.SchemaDelete)
+	//serviceBRE.RegisterRouteWithGroup(apiV1GroupBRE, http.MethodPost, "/BREschemaList", schema.SchemaList)
+	serviceBRE.RegisterRouteWithGroup(apiV1GroupBRE, http.MethodPost, "/BREschemaNew", breSchema.BRESchemaNew)
+	//serviceBRE.RegisterRouteWithGroup(apiV1GroupBRE, http.MethodPut, "/BREschemaUpdate", schema.SchemaUpdate)
 	// ------- schema for BRE Ends here -------
 
 	appServerPortStr := strconv.Itoa(appServerPort)

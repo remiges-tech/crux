@@ -1,0 +1,68 @@
+{
+    "status": "error",
+    "data": null,
+    "messages": [
+        {
+            "msgid": 102,
+            "errcode": "greater",
+            "field": "Slice"
+        },
+        {
+            "msgid": 103,
+            "errcode": "alphabet",
+            "field": "App"
+        },
+        {
+            "msgid": 104,
+            "errcode": "lowercase",
+            "field": "Class"
+        },
+        {
+            "msgid": 104,
+            "errcode": "lowercase",
+            "field": "Class"
+        },
+        {
+            "msgid": 104,
+            "errcode": "lowercase",
+            "field": "Class"
+        },
+        {
+            "msgid": 1003,
+            "errcode": "invalid",
+            "field": "attrSchema[1].Name",
+            "vals": [
+                "cat$"
+            ]
+        },
+        {
+            "msgid": 1005,
+            "errcode": "empty",
+            "field": "attrSchema[1].Vals"
+        },
+        {
+            "msgid": 1003,
+            "errcode": "invalid",
+            "field": "attrSchema[4].ValType",
+            "vals": [
+                "ints"
+            ]
+        },
+        {
+            "msgid": 1003,
+            "errcode": "invalid",
+            "field": "actionSchema.Tasks[0]",
+            "vals": [
+                "invitefordiwali!"
+            ]
+        },
+        {
+            "msgid": 1003,
+            "errcode": "invalid",
+            "field": "actionSchema.Properties[0]",
+            "vals": [
+                "discount!"
+            ]
+        }
+    ]
+}
