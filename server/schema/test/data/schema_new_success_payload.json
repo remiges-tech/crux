@@ -1,72 +1,107 @@
 {
     "slice": 1,
     "app": "retailBANK",
-    "class": "custonboardingsqdd",
-    "patternschema": {
-        "class": "inventoryitems",
+    "class": "custonboarding",
+    "patternSchema": {
+        "class": "custonboarding",
         "attr": [
             {
-                "name": "cat",
-                "shortdesc": "Category of item",
-                "longdesc": "Each item can belong to one of the following categories: textbooks, notebooks, stationery, or reference books.",
+                "name": "step",
+                "shortdesc": "Maximum retail price",
+                "longdesc": "The maximum retail price of the item in INR as declared by the manufacturer.",
                 "valtype": "enum",
                 "vals": [
-                    "textbook",
-                    "notebook",
-                    "stationery",
-                    "refbooks"
-                ],
-                "enumdesc": [
-                    "Text books",
-                    "Notebooks",
-                    "Stationery and miscellaneous items",
-                    "Reference books, library books"
+                    "START",
+                    "initialdoc",
+                    "aadhaarcheck",
+                    "creditbureauchk",
+                    "panchk",
+                    "bankdetails",
+                    "referencechk",
+                    "stage2done",
+                    "complete"
                 ]
             },
             {
-                "name": "mrp",
+                "name": "stepfailed",
                 "shortdesc": "Maximum retail price",
                 "longdesc": "The maximum retail price of the item in INR as declared by the manufacturer.",
-                "valtype": "float",
-                "valmax": 20000,
-                "valmin": 0
+                "valtype": "bool"
             },
             {
-                "name": "fullname",
-                "shortdesc": "Full name of item",
-                "longdesc": "The full human-readable name of the item. Not unique, therefore sometimes confusing.",
-                "valtype": "str",
-                "lenmax": 40,
-                "lenmin": 5
+                "name": "acctholdertype",
+                "shortdesc": "Maximum retail price",
+                "longdesc": "The maximum retail price of the item in INR as declared by the manufacturer.",
+                "valtype": "enum",
+                "vals": [
+                    "individual",
+                    "joint",
+                    "corporate",
+                    "hinduundivided",
+                    "partnership"
+                ]
             },
             {
-                "name": "ageinstock",
-                "shortdesc": "Age in stock, in days",
-                "longdesc": "The age in days that the oldest sample of this item has been lying in stock",
+                "name": "branchtype",
+                "shortdesc": "Maximum retail price",
+                "longdesc": "The maximum retail price of the item in INR as declared by the manufacturer.",
+                "valtype": "enum",
+                "vals": [
+                    "urban",
+                    "semirural",
+                    "rural"
+                ]
+            },
+            {
+                "name": "branchcode",
+                "shortdesc": "Maximum retail price",
+                "longdesc": "The maximum retail price of the item in INR as declared by the manufacturer.",
+                "valtype": "str"
+            },
+            {
+                "name": "refererquality",
+                "shortdesc": "Maximum retail price",
+                "longdesc": "The maximum retail price of the item in INR as declared by the manufacturer.",
                 "valtype": "int",
-                "valmax": 1000,
-                "valmin": 1
+                "valmin": 0,
+                "valmax": 5
             },
             {
-                "name": "inventoryqty",
-                "shortdesc": "Number of items in inventory",
-                "longdesc": "How many of these items are currently present in the inventory",
-                "valtype": "int",
-                "valmax": 10000,
-                "valmin": 0
+                "name": "districtcode",
+                "shortdesc": "Maximum retail price",
+                "longdesc": "The maximum retail price of the item in INR as declared by the manufacturer.",
+                "valtype": "int"
+            },
+            {
+                "name": "accttype",
+                "shortdesc": "Maximum retail price",
+                "longdesc": "The maximum retail price of the item in INR as declared by the manufacturer.",
+                "valtype": "enum",
+                "vals": [
+                    "savings",
+                    "current",
+                    "recurring",
+                    "fixeddeposit",
+                    "ppf"
+                ]
             }
         ]
     },
     "actionschema": {
-        "class": "inventoryitems",
+        "class": "retailcustomer",
         "tasks": [
-            "invitefordiwali",
-            "allowretailsale",
-            "assigntotrash"
+            "initialdoc",
+            "aadhaarcheck",
+            "creditbureauchk",
+            "panchk",
+            "bankdetails",
+            "referencechk",
+            "stage2done",
+            "complete"
         ],
         "properties": [
-            "discount",
-            "shipby"
+            "nextstep",
+            "done"
         ]
     }
 }

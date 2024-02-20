@@ -20,7 +20,7 @@ func SchemaDelete(c *gin.Context, s *service.Service) {
 
 	isCapable, _ := types.Authz_check(types.OpReq{
 		User:      userID,
-		CapNeeded: capForList,
+		CapNeeded: CapForList,
 	}, false)
 
 	if !isCapable {

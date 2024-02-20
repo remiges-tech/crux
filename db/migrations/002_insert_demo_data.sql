@@ -128,7 +128,7 @@ INSERT INTO
         id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby, editedat, editedby
     )
 VALUES (
-        7, 1, 3, 'nedbank', 'calls', 'W', 'vip', true, true, 13, '[{"rulepattern":[{"op":"eq","val":"initialdoc","attr":"step"},{"op":"eq","val":"rural","attr":"branchtype"},{"op":"eq","val":"savings","attr":"accttype"}],"ruleactions":{"tasks":["aadhaarcheck"],"properties":[{"val":"aadhaarcheck","name":"nextstep"}]}},{"rulepattern":[{"op":"eq","val":"initialdoc","attr":"step"},{"op":"eq","val":"semirural","attr":"branchtype"},{"op":"ne","val":"ppf","attr":"accttype"}],"ruleactions":{"tasks":["creditbureauchk","bankdetails","panchk"],"properties":[{"val":"creditbureauchk","name":"nextstep"}]}}]', '2024-01-28T00:00:00Z', 'aniket', '2024-01-15T00:00:00Z', 'tushar'
+        7, 1, 3, 'nedbank', 'calls', 'W', 'vip', false, false, 13, '[{"rulepattern":[{"op":"eq","val":"initialdoc","attr":"step"},{"op":"eq","val":"rural","attr":"branchtype"},{"op":"eq","val":"savings","attr":"accttype"}],"ruleactions":{"tasks":["aadhaarcheck"],"properties":[{"val":"aadhaarcheck","name":"nextstep"}]}},{"rulepattern":[{"op":"eq","val":"initialdoc","attr":"step"},{"op":"eq","val":"semirural","attr":"branchtype"},{"op":"ne","val":"ppf","attr":"accttype"}],"ruleactions":{"tasks":["creditbureauchk","bankdetails","panchk"],"properties":[{"val":"creditbureauchk","name":"nextstep"}]}}]', '2024-01-28T00:00:00Z', 'aniket', '2024-01-15T00:00:00Z', 'tushar'
     );
 
 INSERT INTO

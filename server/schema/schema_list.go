@@ -9,6 +9,7 @@ import (
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 
+	"github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/types"
@@ -20,7 +21,7 @@ type SchemaStruct struct {
 	Class string `json:"class"`
 }
 
-var capForList = []string{"ruleset", "schema", "root", "report"}
+var CapForList = []string{"ruleset", "schema", "root", "report"}
 var schemaList []sqlc.WfSchemaListRow
 var err error
 
@@ -30,7 +31,7 @@ func SchemaList(c *gin.Context, s *service.Service) {
 
 	isCapable, capList := types.Authz_check(types.OpReq{
 		User:      userID,
-		CapNeeded: capForList,
+		CapNeeded: CapForList,
 	}, false)
 
 	if !isCapable {
@@ -78,7 +79,8 @@ func SchemaList(c *gin.Context, s *service.Service) {
 	}
 	if err != nil || len(schemaList) == 0 {
 		l.LogActivity("Error while retrieving schema list", err)
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NoSchemaFound, server.ErrCode_Invalid))
+		errmsg := db.HandleDatabaseError(err)
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
 	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: schemaList, Messages: nil})

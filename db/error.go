@@ -32,9 +32,11 @@ func HandleDatabaseError(err error) wscutils.ErrorMessage {
 		case "XX000": //ERROR: cache lookup failed for type 67119 (SQLSTATE XX000)
 			return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_Internal_Retry, nil)
 		}
-	} else if err.Error() == "no rows in result set" {
-		field := "slice/app/class"
-		return wscutils.BuildErrorMessage(1006, server.ErrCode_InvalidRequest, &field)
+	} else if err != nil {
+		if err.Error() == "no rows in result set" {
+			field := "slice/app/class"
+			return wscutils.BuildErrorMessage(1006, server.ErrCode_InvalidRequest, &field)
+		}
 	} else {
 		return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_DatabaseError, nil)
 	}

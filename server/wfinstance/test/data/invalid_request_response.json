@@ -28,7 +28,7 @@
         },
         {
             "msgid": 1003,
-            "errcode": "invalid_workflow_intenal_status",
+            "errcode": "invalid_workflow_internal_status",
             "field": "workflow",
             "vals": [
                 "false"

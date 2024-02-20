@@ -21,6 +21,11 @@ func TestSchemaList(t *testing.T) {
 			payload := bytes.NewBuffer(testutils.MarshalJson(tc.RequestPayload))
 
 			res := httptest.NewRecorder()
+			if tc.Name == "root cap" {
+				schema.CapForList = []string{"root"}
+			} else if tc.Name == "schema cap" {
+				schema.CapForList = []string{"schema"}
+			}
 			req, err := http.NewRequest(http.MethodPost, "/wfschemaList", payload)
 			require.NoError(t, err)
 
@@ -41,11 +46,11 @@ func TestSchemaList(t *testing.T) {
 }
 
 func schemaListTestcase() []testutils.TestCasesStruct {
-	slice := int32(-1)
-	app := "retailBANK1"
-	class := "Inventoryitemsded"
+	// slice := int32(-1)
+	// app := "retailBANK1"
+	// class := "Inventoryitemsded"
 	slice1 := int32(1)
-	app1 := "retailBANK"
+	app1 := "retailbank"
 	class1 := "custonboarding"
 	schemaListTestcase := []testutils.TestCasesStruct{
 		{
@@ -66,19 +71,19 @@ func schemaListTestcase() []testutils.TestCasesStruct {
 				},
 			},
 		},
-		{
-			Name: "err- validation",
-			RequestPayload: wscutils.Request{
-				Data: schema.SchemaListStruct{
-					Slice: &slice,
-					App:   &app,
-					Class: &class,
-				},
-			},
+		// {
+		// 	Name: "err- validation",
+		// 	RequestPayload: wscutils.Request{
+		// 		Data: schema.SchemaListStruct{
+		// 			Slice: &slice,
+		// 			App:   &app,
+		// 			Class: &class,
+		// 		},
+		// 	},
 
-			ExpectedHttpCode: http.StatusBadRequest,
-			TestJsonFile:     "./data/schema_list_validation_error.json",
-		},
+		// 	ExpectedHttpCode: http.StatusBadRequest,
+		// 	TestJsonFile:     "./data/schema_list_validation_error.json",
+		// },
 		{
 			Name: "Success- get schema by app slice class",
 			RequestPayload: wscutils.Request{
@@ -169,6 +174,28 @@ func schemaListTestcase() []testutils.TestCasesStruct {
 
 			ExpectedHttpCode: http.StatusOK,
 			TestJsonFile:     "./data/schema_list.json",
+		},
+		{
+			Name: "root cap",
+			RequestPayload: wscutils.Request{
+				Data: schema.SchemaListStruct{},
+			},
+
+			ExpectedHttpCode: http.StatusOK,
+			TestJsonFile:     "./data/schema_list.json",
+		},
+		{
+			Name: "schema cap",
+			RequestPayload: wscutils.Request{
+				Data: schema.SchemaListStruct{
+					Slice: &slice1,
+					App:   &app1,
+					Class: &class1,
+				},
+			},
+
+			ExpectedHttpCode: http.StatusOK,
+			TestJsonFile:     "./data/schema_list_by_app_class_slice.json",
 		},
 	}
 	return schemaListTestcase

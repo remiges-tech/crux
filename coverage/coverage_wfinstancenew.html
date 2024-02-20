@@ -65,7 +65,7 @@
 				
 				<option value="file4">github.com/remiges-tech/crux/db/sqlc-gen/ruleset.sql.go (39.0%)</option>
 				
-				<option value="file5">github.com/remiges-tech/crux/db/sqlc-gen/schema.sql.go (3.1%)</option>
+				<option value="file5">github.com/remiges-tech/crux/db/sqlc-gen/schema.sql.go (2.8%)</option>
 				
 				<option value="file6">github.com/remiges-tech/crux/db/sqlc-gen/stepworkflow.sql.go (76.9%)</option>
 				
@@ -73,11 +73,11 @@
 				
 				<option value="file8">github.com/remiges-tech/crux/server/wfinstance/do_match.go (66.7%)</option>
 				
-				<option value="file9">github.com/remiges-tech/crux/server/wfinstance/wfinstance.go (80.0%)</option>
+				<option value="file9">github.com/remiges-tech/crux/server/wfinstance/wfinstance.go (80.3%)</option>
 				
-				<option value="file10">github.com/remiges-tech/crux/server/wfinstance/wfinstancenew_add.go (84.6%)</option>
+				<option value="file10">github.com/remiges-tech/crux/server/wfinstance/wfinstancenew_add.go (85.4%)</option>
 				
-				<option value="file11">github.com/remiges-tech/crux/server/wfinstance/wfinstancenew_validation.go (75.6%)</option>
+				<option value="file11">github.com/remiges-tech/crux/server/wfinstance/wfinstancenew_validation.go (75.0%)</option>
 				
 				<option value="file12">github.com/remiges-tech/crux/testutils/test_utils.go (0.0%)</option>
 				
@@ -129,10 +129,12 @@ func HandleDatabaseError(err error) wscutils.ErrorMessage <span class="cov0" tit
                 case "XX000":<span class="cov0" title="0"> //ERROR: cache lookup failed for type 67119 (SQLSTATE XX000)
                         return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_Internal_Retry, nil)</span>
                 }
-        } else<span class="cov0" title="0"> if err.Error() == "no rows in result set" </span><span class="cov0" title="0">{
-                field := "slice/app/class"
-                return wscutils.BuildErrorMessage(1006, server.ErrCode_InvalidRequest, &amp;field)
-        }</span> else<span class="cov0" title="0"> {
+        } else<span class="cov0" title="0"> if err != nil </span><span class="cov0" title="0">{
+                if err.Error() == "no rows in result set" </span><span class="cov0" title="0">{
+                        field := "slice/app/class"
+                        return wscutils.BuildErrorMessage(1006, server.ErrCode_InvalidRequest, &amp;field)
+                }</span>
+        } else<span class="cov0" title="0"> {
                 return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_DatabaseError, nil)
         }</span>
         <span class="cov0" title="0">return wscutils.ErrorMessage{}</span>
@@ -840,8 +842,8 @@ FROM schema
 WHERE
     slice = $1
     AND class = $2
-    AND app = $3
-FOR UPDATE
+    AND app = $3 FOR
+UPDATE
 `
 
 type GetSchemaWithLockParams struct {
@@ -1303,14 +1305,16 @@ func (q *Queries) SchemaListBySlice(ctx context.Context, slice int32) ([]SchemaL
         <span class="cov0" title="0">return items, nil</span>
 }
 
-const schemaNew = `-- name: SchemaNew :exec
+const schemaNew = `-- name: SchemaNew :one
 INSERT INTO
-    schema (
+    schema(
         realm, slice, app, brwf, class, patternschema, actionschema, createdat, createdby
     )
 VALUES (
         $1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, $8
     )
+    RETURNING
+    id
 `
 
 type SchemaNewParams struct {
@@ -1324,8 +1328,8 @@ type SchemaNewParams struct {
         Createdby     string   `json:"createdby"`
 }
 
-func (q *Queries) SchemaNew(ctx context.Context, arg SchemaNewParams) error <span class="cov0" title="0">{
-        _, err := q.db.Exec(ctx, schemaNew,
+func (q *Queries) SchemaNew(ctx context.Context, arg SchemaNewParams) (int32, error) <span class="cov0" title="0">{
+        row := q.db.QueryRow(ctx, schemaNew,
                 arg.Realm,
                 arg.Slice,
                 arg.App,
@@ -1335,7 +1339,9 @@ func (q *Queries) SchemaNew(ctx context.Context, arg SchemaNewParams) error <spa
                 arg.Actionschema,
                 arg.Createdby,
         )
-        return err
+        var id int32
+        err := row.Scan(&amp;id)
+        return id, err
 }</span>
 
 const schemaUpdate = `-- name: SchemaUpdate :exec
@@ -1440,19 +1446,84 @@ func (q *Queries) WfSchemaGet(ctx context.Context, arg WfSchemaGetParams) (Schem
         return i, err
 }</span>
 
+const wfSchemaList = `-- name: WfSchemaList :many
+SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
+FROM schema, app, realmslice
+where
+schema.app = app.shortname
+and schema.slice = realmslice.id
+    AND schema.realm =  $1
+    AND (($2::INTEGER is null) OR (schema.slice = $2::INTEGER))
+    AND (($3::text is null) OR (schema.app = $3::text))
+    AND ($4::text is null OR schema.class = $4::text)
+`
+
+type WfSchemaListParams struct {
+        Relam int32       `json:"relam"`
+        Slice pgtype.Int4 `json:"slice"`
+        App   pgtype.Text `json:"app"`
+        Class pgtype.Text `json:"class"`
+}
+
+type WfSchemaListRow struct {
+        Slice     int32            `json:"slice"`
+        App       string           `json:"app"`
+        Longname  string           `json:"longname"`
+        Class     string           `json:"class"`
+        Createdby string           `json:"createdby"`
+        Createdat pgtype.Timestamp `json:"createdat"`
+        Editedby  pgtype.Text      `json:"editedby"`
+        Editedat  pgtype.Timestamp `json:"editedat"`
+}
+
+func (q *Queries) WfSchemaList(ctx context.Context, arg WfSchemaListParams) ([]WfSchemaListRow, error) <span class="cov0" title="0">{
+        rows, err := q.db.Query(ctx, wfSchemaList,
+                arg.Relam,
+                arg.Slice,
+                arg.App,
+                arg.Class,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">defer rows.Close()
+        var items []WfSchemaListRow
+        for rows.Next() </span><span class="cov0" title="0">{
+                var i WfSchemaListRow
+                if err := rows.Scan(
+                        &amp;i.Slice,
+                        &amp;i.App,
+                        &amp;i.Longname,
+                        &amp;i.Class,
+                        &amp;i.Createdby,
+                        &amp;i.Createdat,
+                        &amp;i.Editedby,
+                        &amp;i.Editedat,
+                ); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov0" title="0">items = append(items, i)</span>
+        }
+        <span class="cov0" title="0">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return items, nil</span>
+}
+
 const wfschemadelete = `-- name: Wfschemadelete :exec
 DELETE from schema
 where
     id in (
-        SELECT a.id
-        FROM schema as a, realm as b, realmslice as c
+        SELECT schema.id
+        FROM schema, realm, realmslice
         WHERE
-            a.realm = b.id
-            and a.slice = c.id
-            and a.slice = $1
-            and c.realm = b.shortname
-            and a.class = $3
-            AND a.app = $2
+            schema.realm = realm.id
+            and schema.slice = realmslice.id
+            and schema.slice = $1
+            and realmslice.realm = realm.shortname
+            and realm.id = $4
+            and schema.class = $3
+            AND schema.app = $2
     )
 `
 
@@ -1460,10 +1531,16 @@ type WfschemadeleteParams struct {
         Slice int32  `json:"slice"`
         App   string `json:"app"`
         Class string `json:"class"`
+        Realm int32  `json:"realm"`
 }
 
 func (q *Queries) Wfschemadelete(ctx context.Context, arg WfschemadeleteParams) error <span class="cov0" title="0">{
-        _, err := q.db.Exec(ctx, wfschemadelete, arg.Slice, arg.App, arg.Class)
+        _, err := q.db.Exec(ctx, wfschemadelete,
+                arg.Slice,
+                arg.App,
+                arg.Class,
+                arg.Realm,
+        )
         return err
 }</span>
 
@@ -1472,9 +1549,10 @@ SELECT s.slice, s.app, s.class, rm.longname, s.patternschema, s.actionschema, s.
 FROM schema as s, realm as rm, realmslice as rs
 WHERE
     s.realm = rm.id
+    and rs.realm = rm.shortname
     and s.slice = rs.id
     and s.slice = $1
-    and rs.realm = rm.shortname
+    and rm.id = $4
     and s.class = $3
     AND s.app = $2
 `
@@ -1483,6 +1561,7 @@ type WfschemagetParams struct {
         Slice int32  `json:"slice"`
         App   string `json:"app"`
         Class string `json:"class"`
+        Realm int32  `json:"realm"`
 }
 
 type WfschemagetRow struct {
@@ -1499,7 +1578,12 @@ type WfschemagetRow struct {
 }
 
 func (q *Queries) Wfschemaget(ctx context.Context, arg WfschemagetParams) (WfschemagetRow, error) <span class="cov0" title="0">{
-        row := q.db.QueryRow(ctx, wfschemaget, arg.Slice, arg.App, arg.Class)
+        row := q.db.QueryRow(ctx, wfschemaget,
+                arg.Slice,
+                arg.App,
+                arg.Class,
+                arg.Realm,
+        )
         var i WfschemagetRow
         err := row.Scan(
                 &amp;i.Slice,
@@ -1854,11 +1938,12 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) <span class="cov8" tit
                 existingEntity[STEP] = START
                 existingEntity[STEPFALED] = FALSE
         }</span>
+        <span class="cov8" title="1">lh.Debug0().LogActivity("wfinstanceNewRequest after adding additional attributes :", wfinstanceNewreq)
 
         // call doMatch()
-        <span class="cov8" title="1">actionSet, _, err = doMatch(entity, ruleSet, actionSet, seenRuleSets)
+        actionSet, _, err = doMatch(entity, ruleSet, actionSet, seenRuleSets)
         if err != nil </span><span class="cov0" title="0">{
-                lh.Debug0().LogActivity("error while calling doMatch Method :", err.Error())
+                lh.LogActivity("error while calling doMatch Method :", err.Error())
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid))
                 return
         }</span>
@@ -1885,6 +1970,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) <span class="cov8" tit
 
         // To add records in table
         <span class="cov8" title="1">steps = actionSet.Tasks
+
         // if tasks of actionset contains only one task
         if len(actionSet.Tasks) == 1 &amp;&amp; done == "" </span><span class="cov8" title="1">{
                 addTaskRequest := AddTaskRequest{
@@ -1898,7 +1984,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) <span class="cov8" tit
                         wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
                         return
                 }</span>
-                <span class="cov8" title="1">lh.Log(fmt.Sprintf("Response : %v", map[string]any{"response": response}))
+                <span class="cov8" title="1">lh.Debug0().Log(fmt.Sprintf("Response : %v", map[string]any{"response": response}))
                 wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(response))</span>
 
         }
@@ -1915,7 +2001,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) <span class="cov8" tit
                         wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
                         return
                 }</span>
-                <span class="cov8" title="1">lh.Log(fmt.Sprintf("Response : %v", map[string]any{"response": response}))
+                <span class="cov8" title="1">lh.Debug0().Log(fmt.Sprintf("Response : %v", map[string]any{"response": response}))
                 wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(response))</span>
         }
 
@@ -1974,7 +2060,7 @@ func addTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanc
         subflow := make(map[string]string)
 
         lh := s.LogHarbour
-        lh.Log("Inside addTasks()")
+        lh.Debug0().Log("Inside addTasks()")
 
         query, ok := s.Dependencies["queries"].(*sqlc.Queries)
         if !ok </span><span class="cov0" title="0">{
@@ -2004,7 +2090,8 @@ func addTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanc
         }</span>
 
         // To get workflow if step is present in stepworkflow table
-        <span class="cov8" title="1">for _, step := range req.Steps </span><span class="cov8" title="1">{
+        <span class="cov8" title="1">lh.Debug0().Log("verifying whether step is workflow if it is, then append it to subflow")
+        for _, step := range req.Steps </span><span class="cov8" title="1">{
                 workflowData, _ := query.GetWorkflow(c, step)
 
                 if len(workflowData) &gt; 0 &amp;&amp; workflowData[0].Workflow != "" </span><span class="cov8" title="1">{
@@ -2022,7 +2109,7 @@ func addTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanc
         }
 
         response = getResponse(responseRequest)
-
+        lh.Debug0().LogActivity("response of addTask() :", response)
         return response, nil</span>
 }
 
@@ -2044,7 +2131,7 @@ func getResponse(r ResponseRequest) WFInstanceNewResponse <span class="cov8" tit
         var response WFInstanceNewResponse
 
         lh := r.Service.LogHarbour
-        lh.Log("Inside getResponse()")
+        lh.Debug0().Log("Inside getResponse()")
 
         for _, val := range r.ResponseData </span><span class="cov8" title="1">{
                 // adding tasks
@@ -2107,7 +2194,7 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
         entity := r.Entity
         var errRes []wscutils.ErrorMessage
 
-        lh.Log("Inside ValidateWFInstaceNewReq()")
+        lh.Debug0().Log("Inside ValidateWFInstaceNewReq()")
         query, ok := s.Dependencies["queries"].(*sqlc.Queries)
         if !ok </span><span class="cov0" title="0">{
                 lh.Log("Error while getting query instance from service Dependencies")
@@ -2127,7 +2214,7 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
         <span class="cov8" title="1">_, isKeyExist := entity[CLASS]
 
         if !(entity != nil &amp;&amp; isKeyExist) </span><span class="cov0" title="0">{
-                lh.Log("Entity does not match with standard structure")
+                lh.Debug0().Log("Entity does not match with standard structure")
                 errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid_Entity, &amp;ENTITY))
                 return false, errRes
         }</span>
@@ -2140,16 +2227,15 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
                 App:   r.App,
                 Realm: REALM,
         })
-        fmt.Println("APP :", r.App, " SLICE :", r.Slice, " CLASS :", class, " REALM: ", REALM)
         if err != nil </span><span class="cov0" title="0">{
-                lh.LogActivity("failed to get schema pattern  from DB:", err)
+                lh.LogActivity("failed to get schema pattern from DB:", err)
                 errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_NoSchemaFound, server.ErrCode_NotFound, nil))
                 return false, errRes
         }</span>
 
         // Unmarshalling byte data to schemapatten struct
         <span class="cov8" title="1">schmapattern, err := byteToPatternSchema(pattern)
-        fmt.Println("patternschema :", schmapattern)
+        lh.Debug0().LogActivity("patternschema :", schmapattern)
         if err != nil </span><span class="cov0" title="0">{
                 lh.Debug0().LogActivity(" error while converting byte patternschema to struct:", err)
                 errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_NoSchemaFound, server.ErrCode_Invalid_pattern_schema, nil))
@@ -2157,6 +2243,7 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
 
         // Forming  requested entity  into proper Entity struct
         <span class="cov8" title="1">EntityStruct := getEntity(r.Entity)
+        lh.Debug1().LogActivity("Entity stucture:", EntityStruct)
 
         //  To match entity against patternschema
         isValidEntity, err := ValidateEntity(EntityStruct, schmapattern, s)
@@ -2175,17 +2262,17 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
         lh := s.LogHarbour
         entityClass := r.Entity[CLASS]
 
-        lh.Log("Inside validateWorkflow()")
+        lh.Debug0().Log("Inside validateWorkflow()")
         query, ok := s.Dependencies["queries"].(*sqlc.Queries)
         if !ok </span><span class="cov0" title="0">{
-                lh.Log("Error while getting query instance from service Dependencies")
+                lh.Debug0().Log("Error while getting query instance from service Dependencies")
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
                 errors := append(errors, wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_DatabaseError, nil))
                 return false, errors
         }</span>
 
         //1.The value of app specified in the request matches the app ID with which this workflow is associated
-        <span class="cov8" title="1">lh.Log("verifying whether app present in request is valid")
+        <span class="cov8" title="1">lh.Debug0().Log("verifying whether app present in request is valid")
         app, err := query.GetApp(c, sqlc.GetAppParams{
                 Slice: r.Slice,
                 App:   r.App,
@@ -2199,7 +2286,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
         }</span>
 
         //2. The class of the workflow must match that of entity
-        <span class="cov8" title="1">lh.Log("verifying whether class present in request is valid")
+        <span class="cov8" title="1">lh.Debug0().Log("verifying whether class present in request is valid")
         class, err := query.GetClass(c, sqlc.GetClassParams{
                 Slice: r.Slice,
                 App:   app,
@@ -2215,7 +2302,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
         // 3.The workflow named has is_active == true and internal == false
 
         //To get worflow active status
-        <span class="cov8" title="1">lh.Log("verifying whether workflow active status is valid")
+        <span class="cov8" title="1">lh.Debug0().Log("verifying whether workflow active status is valid")
         wfActiveStatus, err := query.GetWFActiveStatus(c, sqlc.GetWFActiveStatusParams{
                 Slice:   r.Slice,
                 App:     app,
@@ -2230,7 +2317,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
         }</span>
 
         //To get worflow Internal status
-        <span class="cov8" title="1">lh.Log("verifying whether workflow internal status is valid")
+        <span class="cov8" title="1">lh.Debug0().Log("verifying whether workflow internal status is valid")
         wfInternalStatus, err := query.GetWFInternalStatus(c, sqlc.GetWFInternalStatusParams{
                 Slice:   r.Slice,
                 App:     app,
@@ -2270,12 +2357,10 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 func ValidateEntity(e Entity, ps *types.PatternSchema, s *service.Service) (bool, error) <span class="cov8" title="1">{
 
         lh := s.LogHarbour
-        lh.Log("Inside validateEntity()")
+        lh.Debug0().Log("Inside validateEntity()")
         // Check if the entity class matches the expected class from the schema
         if e.Class != ps.Class </span><span class="cov0" title="0">{
-                fmt.Println(e.Class, " == ", ps.Class)
-
-                lh.LogActivity("error class does not match", errors.New("Entity class does not match the expected class in the schema"))
+                lh.Debug0().Log("Entity class does not match the expected class in the schema")
                 return false, errors.New("Entity class does not match the expected class in the schema")
         }</span>
         // Validate attributes
@@ -2284,10 +2369,13 @@ func ValidateEntity(e Entity, ps *types.PatternSchema, s *service.Service) (bool
         for _, a := range e.Attributes </span><span class="cov8" title="1">{
                 t := getType(*ps, a.Name)
                 if t == "" </span><span class="cov0" title="0">{
+                        lh.Debug0().LogActivity("schema does not contain attribute %v", a.Name)
                         return false, fmt.Errorf("schema does not contain attribute %v", a.Name)
+
                 }</span>
                 <span class="cov8" title="1">_, err := convertEntityAttrVal(a.Val, t)
                 if err != nil </span><span class="cov0" title="0">{
+                        lh.Debug0().LogActivity("attribute %v in entity has value of wrong type", a.Name)
                         return false, fmt.Errorf("attribute %v in entity has value of wrong type", a.Name)
                 }</span>
         }
@@ -2538,7 +2626,7 @@ func GetWorkflowsByRulesetRights() []string <span class="cov0" title="0">{
 }</span>
 
 func Authz_check(op OpReq, trace bool) (bool, []string) <span class="cov0" title="0">{
-        var caplist []string
+        caplist := op.CapNeeded
         return true, caplist
 }</span>
 </pre>
