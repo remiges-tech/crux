@@ -48,7 +48,7 @@ func TestDoMatch(t *testing.T) {
 	*****************/
 	// Simple tests involving entities of class "inventoryitem"
 	setupInventoryItemSchema()
-	testCache(&tests)
+	testCache(&tests, t)
 	testBasic(&tests)
 	testExit(&tests)
 	testReturn(&tests)

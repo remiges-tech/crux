@@ -47,14 +47,13 @@ type statsPerRealm_t map[app_t]statsPerApp_t
 type rulesetStats_t map[realm_t]statsPerRealm_t
 
 type schema_t struct {
-	Class         string            `json:"class"`
-	PatternSchema []patternSchema_t `json:"patternschema"`
-	ActionSchema  actionSchema_t    `json:"actionschema"`
-	NChecked      int32             `json:"n_checked"`
+	Class         string          `json:"class"`
+	PatternSchema patternSchema_t `json:"patternschema"`
+	ActionSchema  actionSchema_t  `json:"actionschema"`
+	NChecked      int32           `json:"n_checked"`
 }
 type patternSchema_t struct {
-	Attr  []attr_t `json:"attr"`
-	Class string   `json:"class"`
+	Attr []attr_t `json:"attr"`
 }
 type attr_t struct {
 	Name     string   `json:"name"`
@@ -77,14 +76,15 @@ type rulePatternBlock_t struct {
 	ValType valType_t `json:"valtype"`
 }
 
+/*
 type propertyBlock_t struct {
 	Val  string `json:"val"`
 	Name string `json:"name"`
-}
+}*/
 
 type ruleActionBlock_t struct {
 	Task               []string          `json:"tasks"`
-	Properties         []propertyBlock_t `json:"properties"`
+	Properties         map[string]string `json:"properties"`
 	ThenCall, ElseCall string            `json:"thencall,omitempty" elsecall,omitempty"`
 	DoReturn, DoExit   bool              `json:"doreturn,omitempty" doexit,omitempty"`
 	References         []*Ruleset_t      `json:"references,omitempty"`
@@ -102,9 +102,9 @@ const (
 )
 
 type Ruleset_t struct {
-	Ver          int
-	Class        string
-	SetName      string
+	Ver          int                  `json:"ver,omitempty""`
+	Class        string               `json:"class,omitempty""`
+	SetName      string               `json:"setname,omitempty""`
 	RulePatterns []rulePatternBlock_t `json:"rulepattern"`
 	RuleActions  ruleActionBlock_t    `json:"ruleactions"`
 	NMatched     int                  `json:"nMatched"`
@@ -181,23 +181,10 @@ func findRulesetByClassName(perApp perApp_t, className className_t, targetClassN
 	return nil, false
 }
 
-func loadInternal() error {
-	ctx := context.Background()
-	conn, err := pgx.Connect(ctx, ConnectionString)
-	if err != nil {
-		log.Fatal("Failed to load data into cache:", err)
-		return err
-	}
-	defer conn.Close(ctx)
-	query := NewProvider(ConnectionString)
+func loadInternal(dbResponseSchema []sqlc.Schema, dbResponseRuleSet []sqlc.Ruleset) {
 	rulesetCache = make(rulesetCache_t)
 	schemaCache = make(schemaCache_t)
 
-	dbResponseSchema, err := query.AllSchemas(ctx)
-	if err != nil {
-		return err
-	}
-	var patternCacheSchema []patternSchema_t
 	for _, row := range dbResponseSchema {
 		realmKey := realm_t(strconv.Itoa(int(row.Realm)))
 		perRealm, exists := schemaCache[realmKey]
@@ -227,7 +214,6 @@ func loadInternal() error {
 				log.Println("Error unmarshaling Patternschema:", err)
 				continue
 			}
-			patternCacheSchema = append(patternCacheSchema, patterns)
 
 			var actions actionSchema_t
 			if err := json.Unmarshal(row.Actionschema, &actions); err != nil {
@@ -236,7 +222,7 @@ func loadInternal() error {
 			}
 			schemaData := &schema_t{
 				Class:         row.Class,
-				PatternSchema: patternCacheSchema,
+				PatternSchema: patterns,
 				ActionSchema:  actions,
 				NChecked:      nCheckedcounter,
 			}
@@ -250,11 +236,6 @@ func loadInternal() error {
 			}
 
 		}
-	}
-
-	dbResponseRuleSet, err := query.AllRuleset(ctx)
-	if err != nil {
-		return err
 	}
 
 	for _, row := range dbResponseRuleSet {
@@ -322,7 +303,6 @@ func loadInternal() error {
 		}
 	}
 
-	return nil
 }
 
 func PrintAllSchemaCache() {
@@ -390,6 +370,100 @@ func PrintAllRuleSetCache() {
 
 }
 
+func retrieveSchemasFromCache(realm int, app string, class string, slice int, brwf string) ([]byte, []byte, string) {
+	realmKey := realm_t(strconv.Itoa(realm))
+	perRealm, realmExists := schemaCache[realmKey]
+	if !realmExists {
+		return nil, nil, "Realmkey not match"
+	}
+	appKey := app_t(app)
+	perApp, appExists := perRealm[appKey]
+	if !appExists {
+		return nil, nil, "AppKey not match"
+	}
+	sliceKey := slice_t(slice)
+	perSlice, sliceExists := perApp[sliceKey]
+	if !sliceExists {
+		return nil, nil, "Slice key not match"
+	}
+	classNameKey := className_t(class)
+	if brwf == "B" {
+		for className, schemas := range perSlice.BRSchema {
+			if className == classNameKey {
+				patternSchemaJSON, err := json.Marshal(schemas[0].PatternSchema)
+				if err != nil {
+					return nil, nil, "json fail to marshal pattern"
+				}
+				actionSchemaJSON, err := json.Marshal(schemas[0].ActionSchema)
+				if err != nil {
+					return nil, nil, "fail to marshal action"
+				}
+				return patternSchemaJSON, actionSchemaJSON, "success"
+			}
+		}
+	} else { //W
+		for className, schemas := range perSlice.WFSchema {
+			if className == classNameKey {
+
+				patternSchemaJSON, err := json.Marshal(schemas[0].PatternSchema)
+				if err != nil {
+					return nil, nil, "json fail to marshal pattern"
+				}
+				actionSchemaJSON, err := json.Marshal(schemas[0].ActionSchema)
+				if err != nil {
+					return nil, nil, "fail to marshal action"
+				}
+				return patternSchemaJSON, actionSchemaJSON, "success"
+			}
+		}
+	}
+	return nil, nil, "failed"
+
+}
+
+/*
+	func retrieveRulesetFromCache(realm int, app string, class string, slice int, brwf string) (*ruleset_t, bool) {
+		realmKey := realm_t(strconv.Itoa(realm))
+		perRealm, exists := rulesetCache[realmKey]
+		if !exists {
+			return nil, false
+		}
+
+		appKey := app_t(app)
+		perApp, exists := perRealm[appKey]
+		if !exists {
+			return nil, false
+		}
+
+		sliceKey := slice_t(slice)
+		perSlice, exists := perApp[sliceKey]
+		if !exists {
+			return nil, false
+		}
+		//brwfKey := BrwfEnum(brwf)
+
+		for className, rulesets := range perSlice.BRRulesets {
+
+			if brwfKey == "B" {
+				for _, rule := range rulesets {
+					fmt.Println("\t\t\t\tRulePatterns:", rule.RulePatterns)
+					fmt.Println("\t\t\t\tRuleActions:", rule.RuleActions)
+					fmt.Println("\t\t\t\tNMatched:", rule.NMatched)
+					fmt.Println("\t\t\t\tNFailed:", rule.NFailed)
+				}
+			} else {
+				for _, workflow := range perSlice.Workflows {
+					fmt.Println("\t\t\t\tRulePatterns:", workflow.RulePatterns)
+					fmt.Println("\t\t\t\tRuleActions:", workflow.RuleActions)
+					fmt.Println("\t\t\t\tNMatched:", workflow.NMatched)
+					fmt.Println("\t\t\t\tNFailed:", workflow.NFailed)
+				}
+			}
+		}
+
+		//return ruleset, true
+	}
+*/
 func purgeInternal() error {
 	rulesetCache = make(rulesetCache_t)
 	schemaCache = make(schemaCache_t)
@@ -400,11 +474,26 @@ func purgeInternal() error {
 func Load() error {
 	lockCache()
 	defer unlockCache()
-	err := loadInternal()
+	ctx := context.Background()
+	conn, err := pgx.Connect(ctx, ConnectionString)
 	if err != nil {
-		log.Println("Failed to load data into cache:", err)
+		log.Fatal("Failed to load data into cache:", err)
 		return err
 	}
+	defer conn.Close(ctx)
+	query := NewProvider(ConnectionString)
+
+	dbResponseSchema, err := query.AllSchemas(ctx)
+	if err != nil {
+		return err
+	}
+
+	dbResponseRuleSet, err := query.AllRuleset(ctx)
+	if err != nil {
+		return err
+	}
+	loadInternal(dbResponseSchema, dbResponseRuleSet)
+
 	PrintAllSchemaCache()
 	PrintAllRuleSetCache()
 	return nil
@@ -431,12 +520,26 @@ func Reload() error {
 		log.Fatal("Failed to purge data from cache:", err)
 		return err
 	}
-
-	err := loadInternal()
+	ctx := context.Background()
+	conn, err := pgx.Connect(ctx, ConnectionString)
 	if err != nil {
 		log.Fatal("Failed to load data into cache:", err)
 		return err
 	}
+	defer conn.Close(ctx)
+	query := NewProvider(ConnectionString)
+
+	dbResponseSchema, err := query.AllSchemas(ctx)
+	if err != nil {
+		return err
+	}
+
+	dbResponseRuleSet, err := query.AllRuleset(ctx)
+	if err != nil {
+		return err
+	}
+	loadInternal(dbResponseSchema, dbResponseRuleSet)
+
 	PrintAllSchemaCache()
 	PrintAllRuleSetCache()
 	return nil
