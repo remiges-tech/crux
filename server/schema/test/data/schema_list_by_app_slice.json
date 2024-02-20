@@ -3,13 +3,13 @@
     "data": [
         {
             "slice": 1,
-            "app": "retailBANK",
+            "app": "retailbank",
             "longname": "retailbank pvt ltd",
-            "class": "tempclass",
-            "createdby": "Olly Gerrish",
-            "createdat": "2022-12-24T19:38:52Z",
-            "editedby": "Ronni Matson",
-            "editedat": "2021-04-28T20:39:09Z"
+            "class": "custonboarding",
+            "createdby": "Mal Houndsom",
+            "createdat": "2022-12-26T09:03:46Z",
+            "editedby": "Clerc Careless",
+            "editedat": "2023-07-12T01:33:32Z"
         }
     ],
     "messages": null

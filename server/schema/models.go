@@ -43,10 +43,3 @@ type actionSchema struct {
 	Tasks      []string `json:"tasks,omitempty"`
 	Properties []string `json:"properties,omitempty"`
 }
-type updateSchema struct {
-	Slice         int32          `json:"slice" validate:"required,gt=0"`
-	App           string         `json:"App" validate:"required,alpha"`
-	Class         string         `json:"class" validate:"required,lowercase"`
-	PatternSchema *patternSchema `json:"patternSchema,omitempty"`
-	ActionSchema  *actionSchema  `json:"actionSchema,omitempty"`
-}

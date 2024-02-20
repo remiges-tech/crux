@@ -135,6 +135,6 @@ func GetWorkflowsByRulesetRights() []string {
 }
 
 func Authz_check(op OpReq, trace bool) (bool, []string) {
-	var caplist []string
+	caplist := op.CapNeeded
 	return true, caplist
 }

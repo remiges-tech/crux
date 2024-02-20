@@ -18,17 +18,13 @@ import (
 	"github.com/remiges-tech/logharbour/logharbour"
 )
 
-const (
-	cruxIDRegExp = `^[a-z][a-z0-9_]*$`
-)
-
-var (
-	validTypes = map[string]bool{
-		"int": true, "float": true, "str": true, "enum": true, "bool": true, "timestamps": true,
-	}
-	capForUpdate = []string{"schema"}
-	re           = regexp.MustCompile(cruxIDRegExp)
-)
+type updateSchema struct {
+	Slice         int32          `json:"slice" validate:"required,gt=0"`
+	App           string         `json:"App" validate:"required,alpha"`
+	Class         string         `json:"class" validate:"required,lowercase"`
+	PatternSchema *patternSchema `json:"patternSchema,omitempty"`
+	ActionSchema  *actionSchema  `json:"actionSchema,omitempty"`
+}
 
 func SchemaUpdate(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
@@ -175,7 +171,7 @@ func schemaUpdateWithTX(c context.Context, query *sqlc.Queries, connpool *pgxpoo
 			{
 				Field:    "actionSchema",
 				OldValue: string(schema.Actionschema),
-				NewValue: actionSchema},
+				NewValue: sh.ActionSchema},
 		},
 	})
 
