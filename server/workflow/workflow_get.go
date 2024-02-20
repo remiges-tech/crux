@@ -2,7 +2,6 @@ package workflow
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -81,7 +80,7 @@ func WorkflowGet(c *gin.Context, s *service.Service) {
 		lh.LogActivity("failed to unmarshal data:", err.Error)
 		return
 	}
-	lh.Log(fmt.Sprintf("Record found: %v", map[string]any{"response": tempData}))
+	lh.Debug0().Log("Record found finished execution of WorkflowGet()")
 	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(tempData))
 }
 

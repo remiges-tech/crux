@@ -41,9 +41,9 @@ func TestSchemaDelete(t *testing.T) {
 }
 
 func schemaDeleteTestCase() []testutils.TestCasesStruct {
-	var sliceStr int32 = 1
-	app := "retailbank"
-	class := "tempclass"
+	var sliceStr int32 = 2
+	app := "retailBANK"
+	class := "inventoryitems"
 	var slice int32 = -1
 	schemaNewTestcase := []testutils.TestCasesStruct{
 		// 1st test case

@@ -84,7 +84,7 @@ func SchemaList(c *gin.Context, s *service.Service) {
 		return
 	}
 	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: schemaList, Messages: nil})
-	l.Debug0().Log("Finished execution of SchemaNew()")
+	l.Debug0().Log("Finished execution of SchemaList()")
 }
 
 func getSchemaList(c *gin.Context, sh SchemaStruct, query *sqlc.Queries) ([]sqlc.WfSchemaListRow, error) {

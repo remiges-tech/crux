@@ -96,8 +96,7 @@ func WorkflowList(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	lh.Log(fmt.Sprintf("Record found: %v", map[string]any{"workflows": dbResponse}))
-
+	lh.Debug0().Log("Record found finished execution of WorkflowList()")
 	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(map[string][]sqlc.WorkflowListRow{"workflows": dbResponse}))
 }
 

@@ -125,16 +125,29 @@ WHERE
 DELETE from schema
 where
     id in (
-        SELECT schema.id
-        FROM schema, realm, realmslice
-        WHERE
-            schema.realm = realm.id
-            and schema.slice = realmslice.id
-            and schema.slice = $1
-            and realmslice.realm = realm.shortname
-            and realm.id = @realm
-            and schema.class = $3
-            AND schema.app = $2
+        select id
+        from (
+                SELECT schema.id
+                FROM schema, realm, realmslice
+                WHERE
+                    schema.realm = realm.id
+                    and schema.slice = realmslice.id
+                    and schema.slice = $1
+                    and realmslice.realm = realm.shortname
+                    and schema.realm = @realm
+                    and schema.class = $3
+                    AND schema.app =  $2
+            ) as id
+        where
+            id not in (
+                SELECT schemaid
+                FROM ruleset
+                where
+                    realm = @realm
+                    and slice = $1
+                    and app =  $2
+                    and class = $3
+            )
     );
 
 -- name: WfPatternSchemaGet :one

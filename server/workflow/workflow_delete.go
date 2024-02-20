@@ -1,7 +1,6 @@
 package workflow
 
 import (
-	"fmt"
 	"slices"
 	"strings"
 
@@ -74,19 +73,18 @@ func WorkflowDelete(c *gin.Context, s *service.Service) {
 		Realm:   userRealm,
 	})
 	if err != nil {
-		lh.LogActivity("failed to delete data from DB:", err.Error)
+		lh.LogActivity("failed to delete data from DB:", err.Error())
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
 	if strings.Contains(tag.String(), "1") {
-		lh.Log(fmt.Sprintf("Record found: %v", map[string]any{"response": tag.String()}))
+		lh.Debug0().Log("Record found finished execution of WorkflowDelete()")
 		wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(nil))
-		// wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse("record_deleted_success"))
 		return
 	}
+	lh.Debug0().LogActivity("failed to delete data from DB:", tag.String())
 	wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_InvalidRequest, nil)}))
-	lh.LogActivity("failed to delete data from DB:", tag.String())
 }
 
 // to check if the user has "schema" capability for the app this workflow belongs to

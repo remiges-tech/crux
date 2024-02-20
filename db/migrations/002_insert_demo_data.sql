@@ -27,19 +27,25 @@ VALUES (
 INSERT INTO
     public.realmslice
 VALUES (
-        1, 'BSE', 'Stock Market', true, NULL, NULL
+        1, 'NSE', 'Stock Market', true, NULL, NULL
     );
 
 INSERT INTO
     public.realmslice
 VALUES (
-        2, 'NSE', 'Stock Market', true, NULL, NULL
+        2, 'BSE', 'Stock Market', true, NULL, NULL
     );
 
 INSERT INTO
     public.realmslice
 VALUES (
         3, 'MERCE', 'Merce Pvt ltd', true, NULL, NULL
+    );
+
+    INSERT INTO
+    public.realmslice
+VALUES (
+        4, 'REMIGES', 'REMIGES Pvt ltd', true, NULL, NULL
     );
 
 -- app

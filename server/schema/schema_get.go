@@ -92,7 +92,7 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	lh.Log(fmt.Sprintf("Record found: %v", map[string]any{"response": response}))
+	lh.Debug0().Log("Record found finished execution of SchemaGet()")
 	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(response))
 }
 

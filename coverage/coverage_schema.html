@@ -1516,16 +1516,29 @@ const wfschemadelete = `-- name: Wfschemadelete :exec
 DELETE from schema
 where
     id in (
-        SELECT schema.id
-        FROM schema, realm, realmslice
-        WHERE
-            schema.realm = realm.id
-            and schema.slice = realmslice.id
-            and schema.slice = $1
-            and realmslice.realm = realm.shortname
-            and realm.id = $4
-            and schema.class = $3
-            AND schema.app = $2
+        select id
+        from (
+                SELECT schema.id
+                FROM schema, realm, realmslice
+                WHERE
+                    schema.realm = realm.id
+                    and schema.slice = realmslice.id
+                    and schema.slice = $1
+                    and realmslice.realm = realm.shortname
+                    and schema.realm = $4
+                    and schema.class = $3
+                    AND schema.app =  $2
+            ) as id
+        where
+            id not in (
+                SELECT schemaid
+                FROM ruleset
+                where
+                    realm = $4
+                    and slice = $1
+                    and app =  $2
+                    and class = $3
+            )
     )
 `
 
@@ -1750,8 +1763,6 @@ func (q *Queries) GetWFINstance(ctx context.Context, arg GetWFINstanceParams) (i
 		<pre class="file" id="file8" style="display: none">package schema
 
 import (
-        "fmt"
-
         "github.com/gin-gonic/gin"
         "github.com/go-playground/validator/v10"
         "github.com/remiges-tech/alya/service"
@@ -1807,14 +1818,13 @@ func SchemaDelete(c *gin.Context, s *service.Service) <span class="cov8" title="
                 Realm: userRealm,
         })
         if err != nil </span><span class="cov0" title="0">{
-                lh.Debug0().LogActivity("failed while deleting record:", err.Error)
+                lh.Debug0().LogActivity("failed while deleting record:", err.Error())
                 errmsg := db.HandleDatabaseError(err)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
                 return
         }</span>
 
-        // lh.ChangeMinLogPriority(logharbour.LogPriority(logharbour.Change))
-        <span class="cov8" title="1">lh.Log(fmt.Sprintf("Record delete: %v", map[string]any{"err": err}))
+        <span class="cov8" title="1">lh.Debug0().Log("Record deleted finished execution of SchemaDelete()")
         wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(err))</span>
 }
 </pre>
@@ -1913,7 +1923,7 @@ func SchemaGet(c *gin.Context, s *service.Service) <span class="cov8" title="1">
                 return
         }</span>
 
-        <span class="cov8" title="1">lh.Log(fmt.Sprintf("Record found: %v", map[string]any{"response": response}))
+        <span class="cov8" title="1">lh.Debug0().Log("Record found finished execution of SchemaGet()")
         wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(response))</span>
 }
 
@@ -2043,7 +2053,7 @@ func SchemaList(c *gin.Context, s *service.Service) <span class="cov8" title="1"
                 return
         }</span>
         <span class="cov8" title="1">wscutils.SendSuccessResponse(c, &amp;wscutils.Response{Status: wscutils.SuccessStatus, Data: schemaList, Messages: nil})
-        l.Debug0().Log("Finished execution of SchemaNew()")</span>
+        l.Debug0().Log("Finished execution of SchemaList()")</span>
 }
 
 func getSchemaList(c *gin.Context, sh SchemaStruct, query *sqlc.Queries) ([]sqlc.WfSchemaListRow, error) <span class="cov8" title="1">{
