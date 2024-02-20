@@ -107,7 +107,7 @@ func workFlowUpdateTestcase() []testutils.TestCasesStruct {
 			TestJsonFile:     "./data/workflowNew/workflow_new_custom_validation_error.json",
 		},
 		{
-			Name: "Success- create workflow new",
+			Name: "Success- update workflow",
 			RequestPayload: wscutils.Request{
 				Data: successPayload,
 			},

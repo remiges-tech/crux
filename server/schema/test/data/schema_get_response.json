@@ -6,7 +6,7 @@
         "class": "custonboarding",
         "longname": "Bombay Stock Exchange",
         "patternschema": {
-            "class": "retailcustomer",
+            "class": "custonboarding",
             "attr": [
                 {
                     "name": "step",

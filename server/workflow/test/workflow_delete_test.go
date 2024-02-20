@@ -46,10 +46,10 @@ func TestWorkflowDelete(t *testing.T) {
 }
 
 func workflowDeleteTestCase() []TestCasesStruct {
-	var sliceStr int32 = 2
-	app := "retailBANK"
-	class := "members"
-	tname := "temp"
+	var sliceStr int32 = 3
+	app := "nedbank"
+	class := "calls"
+	tname := "vip"
 	wrongName := "tempse"
 	var slice int32 = -1
 	schemaNewTestcase := []TestCasesStruct{

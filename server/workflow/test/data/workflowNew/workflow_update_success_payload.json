@@ -1,7 +1,7 @@
 {
     "slice": 2,
     "app": "retailBANK",
-    "class": "inventoryitems",
+    "class": "retailcustomer",
     "name": "workflow",
     "flowrules": [
         {

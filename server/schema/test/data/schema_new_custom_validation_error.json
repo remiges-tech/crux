@@ -49,6 +49,11 @@
             ]
         },
         {
+            "msgid": 1006,
+            "errcode": "required_one_of",
+            "field": "attr.Name"
+        },
+        {
             "msgid": 1003,
             "errcode": "invalid",
             "field": "actionSchema.Tasks[0]",
@@ -63,6 +68,16 @@
             "vals": [
                 "discount!"
             ]
+        },
+        {
+            "msgid": 1003,
+            "errcode": "does_not_contain_both_properties_nextstep_and_done",
+            "field": "actionSchema.Properties"
+        },
+        {
+            "msgid": 1003,
+            "errcode": "actionschema_tasks_are_not_same_as_'step'_in_patternschema",
+            "field": "actionSchema.Properties"
         }
     ]
 }
