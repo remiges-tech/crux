@@ -1,8 +1,6 @@
 package schema
 
 import (
-	"fmt"
-
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/remiges-tech/alya/service"
@@ -58,13 +56,12 @@ func SchemaDelete(c *gin.Context, s *service.Service) {
 		Realm: userRealm,
 	})
 	if err != nil {
-		lh.Debug0().LogActivity("failed while deleting record:", err.Error)
+		lh.Debug0().LogActivity("failed while deleting record:", err.Error())
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
 
-	// lh.ChangeMinLogPriority(logharbour.LogPriority(logharbour.Change))
-	lh.Log(fmt.Sprintf("Record delete: %v", map[string]any{"err": err}))
+	lh.Debug0().Log("Record deleted finished execution of SchemaDelete()")
 	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(err))
 }
