@@ -570,6 +570,7 @@ WHERE
     AND class = $2
     AND app = $3
     AND realm = $4
+    AND brwf = 'W'
 `
 
 type WfPatternSchemaGetParams struct {

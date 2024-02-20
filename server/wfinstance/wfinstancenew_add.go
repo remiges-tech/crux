@@ -33,7 +33,7 @@ func addTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanc
 	subflow := make(map[string]string)
 
 	lh := s.LogHarbour
-	lh.Log("Inside addTasks()")
+	lh.Debug0().Log("Inside addTasks()")
 
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
@@ -63,6 +63,7 @@ func addTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanc
 	}
 
 	// To get workflow if step is present in stepworkflow table
+	lh.Debug0().Log("verifying whether step is workflow if it is, then append it to subflow")
 	for _, step := range req.Steps {
 		workflowData, _ := query.GetWorkflow(c, step)
 
@@ -81,7 +82,7 @@ func addTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanc
 	}
 
 	response = getResponse(responseRequest)
-
+	lh.Debug0().LogActivity("response of addTask() :", response)
 	return response, nil
 }
 
@@ -103,7 +104,7 @@ func getResponse(r ResponseRequest) WFInstanceNewResponse {
 	var response WFInstanceNewResponse
 
 	lh := r.Service.LogHarbour
-	lh.Log("Inside getResponse()")
+	lh.Debug0().Log("Inside getResponse()")
 
 	for _, val := range r.ResponseData {
 		// adding tasks
