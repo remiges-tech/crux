@@ -140,7 +140,7 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 		return
 	}
 	if strings.Contains(tag.String(), "0") {
-		l.Log("no row found to update")
+		l.Log("no record found to update")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ErrCode_NotFound))
 		return
 	}

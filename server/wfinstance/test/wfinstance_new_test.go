@@ -3,7 +3,6 @@ package wfinstance_test
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -60,7 +59,6 @@ func TestWFinstanceNew(t *testing.T) {
 				actualJSON := res.Body.String()
 				require.JSONEq(t, expectedJSON, actualJSON)
 			} else {
-				fmt.Println("inside else part")
 				jsonData, err := types.ReadJsonFromFile(tc.TestJsonFile)
 				require.NoError(t, err)
 				expectedJSON := removeFieldFromJSON(string(jsonData), "loggedat")
@@ -105,7 +103,7 @@ func wfInstanceNewTestcase() []testutils.TestCasesStruct {
 				},
 			},
 			ExpectedHttpCode: http.StatusBadRequest,
-			TestJsonFile:     "./data/invalid_request_response.json",
+			TestJsonFile:     "./data/invalid_wfinstancenew_request_response.json",
 		},
 
 		// 2nd test case
