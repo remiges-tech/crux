@@ -22,8 +22,9 @@ go test -coverprofile=./coverage/coverage_workflow.out -coverpkg=./... server/wo
 go tool cover -html=./coverage/coverage_workflow.out -o ./coverage/coverage_workflow.html 
 
 
-3. coverage_wfinstancenew :
-go test -coverprofile=./coverage/coverage_wfinstancenew.out -coverpkg=./... server/wfinstance/test/wfinstance_test.go server/wfinstance/test/main_test.go
+3. coverage_wfinstance:
+go test -coverprofile=./coverage/coverage_wfinstance.out -coverpkg=./... server/wfinstance/test/wfinstance_new_test.go  server/wfinstance/test/wfinstance_abort_test.go   server/wfinstance/test/main_test.go
 
-go tool cover -html=./coverage/coverage_wfinstancenew.out -o ./coverage/coverage_wfinstancenew.html -html=./coverage/coverage_wfinstancenew.out -o ./coverage/coverage_wfinstancenew.html
+go tool cover -html=./coverage/coverage_wfinstance.out -o ./coverage/coverage_wfinstance.html -html=./coverage/coverage_wfinstance.out -o ./coverage/coverage_wfinstance.html
+
 

@@ -13,6 +13,7 @@ import (
 
 type Querier interface {
 	AddWFNewInstances(ctx context.Context, arg AddWFNewInstancesParams) ([]AddWFNewInstancesRow, error)
+	DeleteWfInstance(ctx context.Context, arg DeleteWfInstanceParams) (int32, error)
 	GetApp(ctx context.Context, arg GetAppParams) (string, error)
 	GetClass(ctx context.Context, arg GetClassParams) (string, error)
 	GetSchemaWithLock(ctx context.Context, arg GetSchemaWithLockParams) (GetSchemaWithLockRow, error)

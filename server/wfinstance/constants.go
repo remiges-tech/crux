@@ -39,6 +39,7 @@ const (
 	FALSE     = "false"
 	TRUE      = "true"
 	REALM     = 1
+	USERID    = "1234"
 )
 
 // feilds for error messages
