@@ -9,6 +9,7 @@ import (
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/server"
+	"github.com/remiges-tech/crux/types"
 )
 
 // Incoming request format
@@ -33,8 +34,8 @@ type WFInstanceNewResponse struct {
 
 // GetWFinstanceNew will be responsible for processing the /wfinstanceNew request that comes through as a POST
 func GetWFinstanceNew(c *gin.Context, s *service.Service) {
-	lh := s.LogHarbour
-	lh.Debug0().Log("GetWFinstanceNew request received")
+	lh := s.LogHarbour.WithWhatClass("wfinstance")
+	lh.Log("GetWFinstanceNew request received")
 	var wfinstanceNewreq WFInstanceNewRequest
 	var actionSet ActionSet
 	var ruleSet RuleSet
@@ -44,6 +45,16 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	var attribute map[string]string
 	var done, nextStep string
 	var steps []string
+
+	isCapable, _ := types.Authz_check(types.OpReq{
+		User: USERID,
+	}, false)
+
+	if !isCapable {
+		lh.Info().LogActivity("Unauthorized user:", USERID)
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
+		return
+	}
 
 	// Bind request
 	err := wscutils.BindJSON(c, &wfinstanceNewreq)
@@ -117,7 +128,6 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 			return
 		}
-		lh.Debug0().Log(fmt.Sprintf("Response : %v", map[string]any{"response": response}))
 		wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(response))
 
 	}
@@ -134,7 +144,6 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 			return
 		}
-		lh.Debug0().Log(fmt.Sprintf("Response : %v", map[string]any{"response": response}))
 		wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(response))
 	}
 

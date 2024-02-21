@@ -155,6 +155,7 @@ func registerRoutes(pool *dockertest.Pool, databaseUrl string) (*gin.Engine, err
 		WithDependency("queries", queries)
 
 	s.RegisterRoute(http.MethodPost, "/wfinstancenew", wfinstance.GetWFinstanceNew)
+	s.RegisterRoute(http.MethodPost, "/wfinstanceabort", wfinstance.GetWFInstanceAbort)
 
 	return r, nil
 

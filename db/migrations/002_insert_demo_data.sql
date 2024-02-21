@@ -127,7 +127,7 @@ VALUES (
         6, 1, 2, 'retailBANK', 'members', 'W', 'temp', true, false, 13, '[{"rulepattern":[{"op":"eq","val":"initialdoc","attr":"step"},{"op":"eq","val":"rural","attr":"branchtype"},{"op":"eq","val":"savings","attr":"accttype"}],"ruleactions":{"tasks":["aadhaarcheck"],"properties":[{"val":"aadhaarcheck","name":"nextstep"}]}},{"rulepattern":[{"op":"eq","val":"initialdoc","attr":"step"},{"op":"eq","val":"semirural","attr":"branchtype"},{"op":"ne","val":"ppf","attr":"accttype"}],"ruleactions":{"tasks":["creditbureauchk","bankdetails","panchk"],"properties":[{"val":"creditbureauchk","name":"nextstep"}]}}]', '2024-01-28T00:00:00Z', 'admin', '2024-01-15T00:00:00Z', 'admin'
 
 
-    );
+);
 
 INSERT INTO
     ruleset (
@@ -157,7 +157,19 @@ VALUES (
         2, 'retailBANK', 'diwalisale', 'dodiscountcheck'
     );
 
+--  for test case
+INSERT INTO
+    public.wfinstance (
+        "id", "slice", "class", "step", "entityid", "app", "workflow", "loggedat", "nextstep"
+    )
+VALUES (
+        77, 2, 'inventoryitems', 'tempstep', 'tempentityid', 'retailBANK', 'temp', '2024-02-05 00:00:00', 'temp'
+    );
+
 ---- create above / drop below ----
+
+-- wfinstance
+DELETE FROM public.wfinstance;
 
 -- stepworkflow
 DELETE FROM public.stepworkflow;
