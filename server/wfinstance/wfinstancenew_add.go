@@ -32,14 +32,13 @@ func addTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanc
 	var parent pgtype.Int4
 	subflow := make(map[string]string)
 
-	lh := s.LogHarbour
+	lh := s.LogHarbour.WithWhatClass("wfinstance")
 	lh.Debug0().Log("Inside addTasks()")
 
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
 		lh.Log("Error while getting query instance from service Dependencies")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
-		//errors := wscutils.BuildErrorMessage(wscutils.ErrcodeDatabaseError, nil)
 		return WFInstanceNewResponse{}, errors.New(INVALID_DATABASE_DEPENDENCY)
 	}
 
@@ -86,24 +85,13 @@ func addTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanc
 	return response, nil
 }
 
-// To convert int to pgtype.Int4
-func ConvertToPGType(value int32) pgtype.Int4 {
-	if value != 0 {
-		return pgtype.Int4{
-			Int32: value,
-			Valid: true,
-		}
-	}
-	return pgtype.Int4{Int32: value, Valid: false}
-}
-
 // response structure
 func getResponse(r ResponseRequest) WFInstanceNewResponse {
 	var tasks []map[string]int32
 	var loggedDate pgtype.Timestamp
 	var response WFInstanceNewResponse
 
-	lh := r.Service.LogHarbour
+	lh := r.Service.LogHarbour.WithWhatClass("wfinstance")
 	lh.Debug0().Log("Inside getResponse()")
 
 	for _, val := range r.ResponseData {
@@ -132,4 +120,15 @@ func getResponse(r ResponseRequest) WFInstanceNewResponse {
 		}
 	}
 	return response
+}
+
+// To convert int to pgtype.Int4
+func ConvertToPGType(value int32) pgtype.Int4 {
+	if value != 0 {
+		return pgtype.Int4{
+			Int32: value,
+			Valid: true,
+		}
+	}
+	return pgtype.Int4{Int32: value, Valid: false}
 }

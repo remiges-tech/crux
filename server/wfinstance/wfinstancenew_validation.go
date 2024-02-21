@@ -26,7 +26,7 @@ type EntityAttributes struct {
 }
 
 func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin.Context) (bool, []wscutils.ErrorMessage) {
-	lh := s.LogHarbour
+	lh := s.LogHarbour.WithWhatClass("wfinstance")
 	entity := r.Entity
 	var errRes []wscutils.ErrorMessage
 
@@ -95,7 +95,7 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
 // validate workflow
 func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context) (bool, []wscutils.ErrorMessage) {
 	var errors []wscutils.ErrorMessage
-	lh := s.LogHarbour
+	lh := s.LogHarbour.WithWhatClass("wfinstance")
 	entityClass := r.Entity[CLASS]
 
 	lh.Debug0().Log("Inside validateWorkflow()")

@@ -19,3 +19,25 @@ RETURNING
     id,
     loggedat,
     step;
+
+;
+-- name: DeleteWfInstance :one
+WITH deleted_parents AS (
+   DELETE FROM public.wfinstance
+   WHERE
+       (id = sqlc.narg('id')::INTEGER OR entityid = sqlc.narg('entityid')::TEXT)
+   RETURNING parent
+),
+deletion_count AS (
+   SELECT COUNT(*) AS cnt FROM deleted_parents
+),
+delete_childrens AS (
+    DELETE FROM public.wfinstance
+    WHERE parent IN (SELECT parent FROM deleted_parents WHERE parent IS NOT NULL)
+)
+SELECT 
+    CASE 
+        WHEN (SELECT cnt FROM deletion_count) > 0 THEN 1
+        ELSE -1 
+    END AS result;
+

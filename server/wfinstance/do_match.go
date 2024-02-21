@@ -69,8 +69,12 @@ type Property struct {
 var ruleSchemas = []RuleSchema{}
 var ruleSets = map[string]RuleSet{}
 
+//	var SWITCH = ActionSet{
+//		Tasks:      []string{"diwalisale"},
+//		Properties: map[string]string{"nextstep": "coupondistribution"},
+//	}
 var SWITCH = ActionSet{
-	Tasks:      []string{"diwalisale"},
+	Tasks:      []string{"discount", "yearendsale"},
 	Properties: map[string]string{"nextstep": "coupondistribution"},
 }
 
