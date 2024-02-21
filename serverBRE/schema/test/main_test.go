@@ -21,12 +21,12 @@ import (
 	"github.com/remiges-tech/alya/wscutils"
 	pg "github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
-	"github.com/remiges-tech/crux/server/schema"
+	"github.com/remiges-tech/crux/serverBRE/schema"
 	"github.com/remiges-tech/logharbour/logharbour"
 )
 
 var r *gin.Engine
-var versionTable string = "schema_version_non_default"
+var versionTable = "schema_version_non_default"
 
 func TestMain(m *testing.M) {
 
@@ -154,8 +154,8 @@ func registerRoutes(pool *dockertest.Pool, databaseUrl string) (*gin.Engine, err
 		WithDatabase(connPool).
 		WithDependency("queries", queries)
 
-	s.RegisterRoute(http.MethodPost, "/BREschemaNew", schema.SchemaNew)
-
+	s.RegisterRoute(http.MethodPost, "/BREschemaNew", schema.BRESchemaNew)
+	s.RegisterRoute(http.MethodPut, "/BREschemaUpdate", schema.BRESchemaUpdate)
 	return r, nil
 
 }

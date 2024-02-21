@@ -155,7 +155,7 @@ func main() {
 	//serviceBRE.RegisterRouteWithGroup(apiV1GroupBRE, http.MethodDelete, "/BREschemadelete", schema.SchemaDelete)
 	//serviceBRE.RegisterRouteWithGroup(apiV1GroupBRE, http.MethodPost, "/BREschemaList", schema.SchemaList)
 	serviceBRE.RegisterRouteWithGroup(apiV1GroupBRE, http.MethodPost, "/BREschemaNew", breSchema.BRESchemaNew)
-	//serviceBRE.RegisterRouteWithGroup(apiV1GroupBRE, http.MethodPut, "/BREschemaUpdate", schema.SchemaUpdate)
+	serviceBRE.RegisterRouteWithGroup(apiV1GroupBRE, http.MethodPut, "/BREschemaUpdate", breSchema.BRESchemaUpdate)
 	// ------- schema for BRE Ends here -------
 
 	appServerPortStr := strconv.Itoa(appServerPort)
