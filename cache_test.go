@@ -10,37 +10,26 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 )
 
 func testCache(tests *[]doMatchTest, t *testing.T) {
 
+	//testLoadDB(tests)
 	testLoad(tests, t)
-	testPurge(tests)
-	testReload(tests)
+	testPurge(tests, t)
+	testReload(tests, t)
 }
 
-func testLoad(tests *[]doMatchTest, t *testing.T) {
+func testLoadDB(tests *[]doMatchTest, t *testing.T) {
 
-	// UT Test Data passed to loadInternal()
+	err := Load()
+	if err != nil {
+		t.Errorf("Error:%+v", err)
+	}
+}
 
-	var RealmId = 2
-	var App = "test3"
-	var Class = "inventoryMaterial"
-	var Slice = 1
-	var Brwf = "W"
-	expectedSchemasPattern := []byte(`{
-		"attr": [
-			{"name": "material", "valtype": "enum", "vals": ["cotton", "leather", "metal"]},
-			{"name": "quantity", "valtype": "int"}
-		]
-	}`)
-
-	expectedSchemasAction := []byte(`{
-		"tasks": ["notify", "cancel", "schedule"],
-		"properties": {"message": "timestamp"}
-	}`)
+func setSchemaRulesetCacheBuffer(t *testing.T) {
 
 	err := loadInternal(mockSchemasets, mockRulesets)
 	if err != nil {
@@ -48,109 +37,128 @@ func testLoad(tests *[]doMatchTest, t *testing.T) {
 		return
 	}
 
-	p, a, val := retrieveSchemasFromCache(RealmId, App, Class, Slice, Brwf)
+}
 
-	if val == "success" {
-		expectedPattern := make(map[string]interface{})
-		if err := json.Unmarshal(expectedSchemasPattern, &expectedPattern); err != nil {
-			t.Errorf("Error unmarshalling expectedSchemasPattern: %v", err)
-			return
-		}
+func testLoad(tests *[]doMatchTest, t *testing.T) {
 
-		expectedAction := make(map[string]interface{})
-		if err := json.Unmarshal(expectedSchemasAction, &expectedAction); err != nil {
-			t.Errorf("Error unmarshalling expectedSchemasAction: %v", err)
-			return
-		}
-		actualPattern := make(map[string]interface{})
-		if err := json.Unmarshal(p, &actualPattern); err != nil {
-			t.Errorf("Error unmarshalling actual pattern: %v", err)
-			return
-		}
+	var RealmId = 1
+	var App = "test3"
+	var Class = "inventoryMaterial"
+	var Slice = 3
+	var Brwf = "W"
 
-		actualAction := make(map[string]interface{})
-		if err := json.Unmarshal(a, &actualAction); err != nil {
-			t.Errorf("Error unmarshalling actual action: %v", err)
-			return
-		}
+	setSchemaRulesetCacheBuffer(t)
 
-		fmt.Printf("ExpectedSchemaPattern: %+v \n ", expectedPattern)
-		fmt.Printf(" \n ")
-		fmt.Printf("ActualSchemaPattern: %+v \n ", actualPattern)
-		fmt.Printf(" \n ")
-		fmt.Printf("ExpectedSchemaAction: %+v \n", expectedAction)
-		fmt.Printf(" \n ")
-		fmt.Printf("ActualSchemaActual: %+v \n", actualAction)
+	p, a, err := retrieveSchemasFromCache(RealmId, App, Class, Slice, Brwf)
+
+	if err != "success" {
+		t.Errorf("%v", err)
+		return
+	}
+	//UT 1 check the valid fields
+
+	if !containsField(p, "material", t) {
+		t.Errorf("Expected fieldnot found in the actualpattern")
 	}
 
+	if !containsField(a, "schedule", t) {
+		t.Errorf("Expected field not found in the  actualAction")
+	}
+
+	//UT 2 rulesets check the  valid fields
 	RealmId = 1
 	App = "Test2"
 	Slice = 2
 	Class = "inventoryNewyear"
 	Brwf = "B"
-	expectedRulePattern := []byte(`[
-		{"attr": "cat", "op": "eq", "val": "notebook"},
-		{"attr": "mrp", "op": "ge", "val": "3000"}
-	  ]`)
 
-	expectedRuleAction := []byte(`{
-		"tasks": ["newyearsale"],
-		"properties": {"shipby": "dhl"},
-		"thencall": "inventoryChristmas"
-	  }`)
 	rp, ra, rval, refrenceRuleset := retrieveRulesetFromCache(RealmId, App, Class, Slice, Brwf)
 
-	if rval == "success" {
+	if rval != "success" {
+		t.Errorf("%v", rval)
+		return
+	}
 
-		var expectedPattern []rulePatternBlock_t
-		if err := json.Unmarshal(expectedRulePattern, &expectedPattern); err != nil {
-			t.Errorf("Error unmarshalling expectedRulePattern: %v", err)
-			return
+	if !containsField(rp, "notebook", t) {
+		t.Errorf("Expected field not found in the actualpattern")
+	}
+
+	if !containsField(ra, "newyearsale", t) {
+		t.Errorf("Expected field not found in the  actualAction")
+	}
+
+	//UT 3 rulesets check refrecnce to other rulesets ThenCall
+	for _, reference := range refrenceRuleset {
+
+		if reference.ReferenceType == "thencall" {
+			jsonData, err := json.Marshal(reference.RulePatterns)
+			if err != nil {
+				t.Errorf("Error:%+v", err)
+				return
+			}
+
+			if !containsField(jsonData, "textbook", t) {
+				t.Errorf("Expected field not found in the  RulePatterns")
+			}
+			jsonData, err = json.Marshal(reference.RuleActions)
+			if err != nil {
+				t.Errorf("Error:%+v", err)
+				return
+			}
+			if !containsField(jsonData, "fedex", t) {
+				t.Errorf("Expected field not found in the RuleActions")
+			}
 		}
+	}
+	//UT 4 rulesets check refrecnce to other rulesets ElseCall
+	RealmId = 1
+	App = "Test3"
+	Slice = 3
+	Class = "inventoryClearance"
+	Brwf = "B"
+	_, _, rval, refrenceRuleset = retrieveRulesetFromCache(RealmId, App, Class, Slice, Brwf)
 
-		var expectedAction ruleActionBlock_t
-		if err := json.Unmarshal(expectedRuleAction, &expectedAction); err != nil {
-			t.Errorf("Error unmarshalling expectedRuleAction: %v", err)
-			return
+	if rval != "success" {
+		t.Errorf("%v", rval)
+		return
+	}
+	for _, reference := range refrenceRuleset {
+
+		if reference.ReferenceType == "elsecall" {
+			jsonData, err := json.Marshal(reference.RulePatterns)
+			if err != nil {
+				t.Errorf("Error:%+v", err)
+				return
+			}
+			if !containsField(jsonData, "refbooks", t) {
+				t.Errorf("Expected field not found in the  RulePatterns")
+			}
+			jsonData, err = json.Marshal(reference.RuleActions)
+			if err != nil {
+				t.Errorf("Error:%+v", err)
+				return
+			}
+			if !containsField(jsonData, "usps", t) {
+				t.Errorf("Expected field not found in the RuleActions")
+			}
 		}
-		var actualPattern []rulePatternBlock_t
-		if err := json.Unmarshal(rp, &actualPattern); err != nil {
-			t.Errorf("Error unmarshalling actualPattern: %v", err)
-			return
-		}
+	}
 
-		var actualAction ruleActionBlock_t
+}
 
-		if err := json.Unmarshal(ra, &actualAction); err != nil {
-			t.Errorf("Error unmarshalling actual action: %v", err)
-			return
-		}
+func testPurge(tests *[]doMatchTest, t *testing.T) {
 
-		fmt.Printf("ExpectedRulePattern: %+v \n ", expectedPattern)
-		fmt.Printf(" \n ")
-		fmt.Printf("ActualRulePattern: %+v \n ", actualPattern)
-		fmt.Printf(" \n ")
-		fmt.Printf("ExpectedRuleAction: %+v \n", expectedAction)
-		fmt.Printf(" \n ")
-		fmt.Printf("ActualRuleActual: %+v \n", actualAction)
-		fmt.Printf(" \n ")
-		fmt.Printf("refrenceRuleset: %+v \n", refrenceRuleset)
-
+	err := Purge()
+	if err != nil {
+		t.Errorf("ERROR Purge %+v", err)
 	}
 }
 
-func testPurge(tests *[]doMatchTest) {
-
-	/*err := Purge()
-	if err != nil {
-		log.Println("ERROR Purge", err)
-	}*/
-}
-
-func testReload(tests *[]doMatchTest) {
+func testReload(tests *[]doMatchTest, t *testing.T) {
 
 	/*err := Reload()
 	if err != nil {
-		log.Println("ERROR Reload", err)
+		t.Errorf("ERROR Reload %+v", err)
 	}*/
+	// Not needed its a combination of purge and load func
 }

@@ -3,8 +3,11 @@ package main
 import (
 	"context"
 	sqlc "crux/db/sqlc-gen"
+	"encoding/json"
 	"fmt"
 	"log"
+	"reflect"
+	"testing"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -38,10 +41,10 @@ func AddReferencesToRuleSetCache() {
 				for _, rulesets := range perSlice.BRRulesets {
 					for _, rule := range rulesets {
 						if rule.RuleActions.ThenCall != "" {
-							searchAndAddReferences(rule.RuleActions.ThenCall, rulesetCache, realmKey, appKey, sliceKey, rule)
+							searchAndAddReferences(rule.RuleActions.ThenCall, rulesetCache, realmKey, appKey, sliceKey, rule, "thencall")
 						}
 						if rule.RuleActions.ElseCall != "" {
-							searchAndAddReferences(rule.RuleActions.ElseCall, rulesetCache, realmKey, appKey, sliceKey, rule)
+							searchAndAddReferences(rule.RuleActions.ElseCall, rulesetCache, realmKey, appKey, sliceKey, rule, "elsecall")
 						}
 					}
 				}
@@ -50,7 +53,8 @@ func AddReferencesToRuleSetCache() {
 	}
 }
 
-func searchAndAddReferences(targetSetName string, cache map[realm_t]perRealm_t, realmKey realm_t, appKey app_t, sliceKey slice_t, sourceRule *Ruleset_t) {
+func searchAndAddReferences(targetSetName string, cache map[realm_t]perRealm_t, realmKey realm_t, appKey app_t,
+	sliceKey slice_t, sourceRule *Ruleset_t, calltype string) {
 	for _, perApp := range cache[realmKey] {
 		for otherSliceKey, perSlice := range perApp {
 			if otherSliceKey == sliceKey {
@@ -59,7 +63,18 @@ func searchAndAddReferences(targetSetName string, cache map[realm_t]perRealm_t, 
 			for _, existingRulesets := range perSlice.BRRulesets {
 				for _, existingRule := range existingRulesets {
 					if existingRule.SetName == targetSetName {
+						existingRule.ReferenceType = calltype
 						sourceRule.RuleActions.References = append(sourceRule.RuleActions.References, existingRule)
+
+					}
+				}
+			}
+			for _, existingRulesets := range perSlice.Workflows {
+				for _, existingRule := range existingRulesets {
+					if existingRule.SetName == targetSetName {
+						existingRule.ReferenceType = calltype
+						sourceRule.RuleActions.References = append(sourceRule.RuleActions.References, existingRule)
+
 					}
 				}
 			}
@@ -149,4 +164,81 @@ func PrintAllSchemaCache() {
 		}
 	}
 
+}
+
+func containsField(value interface{}, fieldName string, t *testing.T) bool {
+
+	switch v := value.(type) {
+
+	case []byte:
+
+		var raw json.RawMessage
+		if err := json.Unmarshal(v, &raw); err != nil {
+			fmt.Println("Error unmarshalling actual pattern:", err, v)
+			return false
+		}
+
+		var data map[string]interface{}
+		if err := json.Unmarshal(raw, &data); err != nil {
+			var arrayData []interface{}
+			if err := json.Unmarshal(raw, &arrayData); err != nil {
+				fmt.Println("Error unmarshalling actual pattern:", err, v)
+				return false
+			}
+			for _, element := range arrayData {
+				if containsFieldName(element, fieldName) {
+					return true
+				}
+			}
+		}
+		for _, value := range data {
+			if containsFieldName(value, fieldName) {
+				return true
+			}
+		}
+	case map[string]interface{}:
+
+		for key := range v {
+			if key == fieldName {
+				return true
+			}
+		}
+
+	case []interface{}:
+		for _, item := range v {
+			if containsField(item, fieldName, t) {
+				return true
+			}
+		}
+	case string:
+		return v == fieldName
+	}
+	return false
+}
+
+func containsFieldName(value interface{}, fieldName string) bool {
+
+	v := reflect.ValueOf(value)
+
+	switch v.Kind() {
+	case reflect.Map:
+		for _, key := range v.MapKeys() {
+			if key.Kind() == reflect.String && key.String() == fieldName {
+				return true
+			}
+			if nestedValue := v.MapIndex(key).Interface(); containsFieldName(nestedValue, fieldName) {
+				return true
+			}
+		}
+
+	case reflect.Slice:
+		for i := 0; i < v.Len(); i++ {
+			if nestedValue := v.Index(i).Interface(); containsFieldName(nestedValue, fieldName) {
+				return true
+			}
+		}
+	case reflect.String:
+		return value.(string) == fieldName
+	}
+	return false
 }

@@ -66,31 +66,22 @@ var mockSchemasets = []sqlc.Schema{
 		Editedby:  pgtype.Text{String: "user2"},
 	},
 	{
-		Realm: 2,
-		App:   "test3",
-		Slice: 1,
-		Class: "inventoryMaterial",
-		Brwf:  sqlc.BrwfEnum("W"),
-		Patternschema: []byte(`{
-			"attr": [
-				{"name": "material", "valtype": "enum", "vals": ["cotton", "leather", "metal"]},
-				{"name": "quantity", "valtype": "int"}
-			]
-		}`),
-
-		Actionschema: []byte(`{
-			"tasks": ["notify", "cancel", "schedule"],
-			"properties": {"message": "timestamp"}
-		}`),
-		Createdat: pgtype.Timestamp{Time: time.Now()},
-		Createdby: "user3",
-		Editedat:  pgtype.Timestamp{Time: time.Now()},
-		Editedby:  pgtype.Text{String: "user3"},
+		Realm:         1,
+		App:           "test3",
+		Slice:         3,
+		Class:         "inventoryMaterial",
+		Brwf:          sqlc.BrwfEnum("W"),
+		Patternschema: []byte(`{"attr": [{"name": "material", "valtype": "enum", "vals": ["cotton", "leather", "metal"]},{"name": "quantity", "valtype": "int"}]}`),
+		Actionschema:  []byte(`{"tasks": ["notify", "cancel", "schedule"],"properties": {"message": "timestamp"}}`),
+		Createdat:     pgtype.Timestamp{Time: time.Now()},
+		Createdby:     "user3",
+		Editedat:      pgtype.Timestamp{Time: time.Now()},
+		Editedby:      pgtype.Text{String: "user3"},
 	},
 	{
-		Realm: 2,
+		Realm: 1,
 		App:   "test4",
-		Slice: 3,
+		Slice: 4,
 		Class: "inventoryColor",
 
 		Brwf: sqlc.BrwfEnum("W"),
@@ -153,9 +144,9 @@ var mockRulesets = []sqlc.Ruleset{
 		  ]`),
 	},
 	{
-		Realm: 2,
+		Realm: 1,
 		App:   "Test3",
-		Slice: 1,
+		Slice: 3,
 		Class: "inventoryClearance",
 		Brwf:  "B",
 		Ruleset: []byte(`[{
@@ -165,16 +156,19 @@ var mockRulesets = []sqlc.Ruleset{
 			],
 			"ruleactions": {
 				"tasks": ["clearancesale"],
-				"properties": {"shipby": "ups"}
+				"properties": {"shipby": "ups"},
+				"thencall": "yearendoffer",
+				"elsecall":"nosale"
 			}
 		}]`),
 	},
 	{
-		Realm: 1,
-		App:   "Test4",
-		Slice: 1,
-		Class: "inventorySummer",
-		Brwf:  "B",
+		Realm:   1,
+		App:     "Test4",
+		Slice:   4,
+		Class:   "inventorySummer",
+		Brwf:    "B",
+		Setname: "nosale",
 		Ruleset: []byte(`[{
 			"rulepattern": [
 				{"attr": "cat", "op": "eq", "val": "refbooks"},
