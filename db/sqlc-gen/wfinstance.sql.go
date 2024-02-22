@@ -132,3 +132,97 @@ func (q *Queries) GetWFINstance(ctx context.Context, arg GetWFINstanceParams) (i
 	err := row.Scan(&count)
 	return count, err
 }
+
+const getWFInstanceList = `-- name: GetWFInstanceList :many
+SELECT id, entityid, slice, app, class, workflow, step, loggedat, doneat, nextstep, parent FROM public.wfinstance
+WHERE 
+   ($1::INTEGER is null OR slice = $1::INTEGER)
+   AND ($2::text is null OR entityid = $2::text)
+   AND ($3::text is null OR app = $3::text)
+   AND ($4::text is null OR workflow = $4::text)
+   AND($5::INTEGER is null OR  parent = $5::INTEGER)
+`
+
+type GetWFInstanceListParams struct {
+	Slice    pgtype.Int4 `json:"slice"`
+	Entityid pgtype.Text `json:"entityid"`
+	App      pgtype.Text `json:"app"`
+	Workflow pgtype.Text `json:"workflow"`
+	Parent   pgtype.Int4 `json:"parent"`
+}
+
+func (q *Queries) GetWFInstanceList(ctx context.Context, arg GetWFInstanceListParams) ([]Wfinstance, error) {
+	rows, err := q.db.Query(ctx, getWFInstanceList,
+		arg.Slice,
+		arg.Entityid,
+		arg.App,
+		arg.Workflow,
+		arg.Parent,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Wfinstance
+	for rows.Next() {
+		var i Wfinstance
+		if err := rows.Scan(
+			&i.ID,
+			&i.Entityid,
+			&i.Slice,
+			&i.App,
+			&i.Class,
+			&i.Workflow,
+			&i.Step,
+			&i.Loggedat,
+			&i.Doneat,
+			&i.Nextstep,
+			&i.Parent,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getWFInstanceListByParents = `-- name: GetWFInstanceListByParents :many
+SELECT id, entityid, slice, app, class, workflow, step, loggedat, doneat, nextstep, parent FROM public.wfinstance
+WHERE 
+   ($1::INTEGER[] IS NOT NULL AND id = ANY($1::INTEGER[]))
+`
+
+func (q *Queries) GetWFInstanceListByParents(ctx context.Context, id []int32) ([]Wfinstance, error) {
+	rows, err := q.db.Query(ctx, getWFInstanceListByParents, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Wfinstance
+	for rows.Next() {
+		var i Wfinstance
+		if err := rows.Scan(
+			&i.ID,
+			&i.Entityid,
+			&i.Slice,
+			&i.App,
+			&i.Class,
+			&i.Workflow,
+			&i.Step,
+			&i.Loggedat,
+			&i.Doneat,
+			&i.Nextstep,
+			&i.Parent,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

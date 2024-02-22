@@ -140,7 +140,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 		}
 		response, err = addTasks(addTaskRequest, s, c)
 		if err != nil {
-			lh.LogActivity("error while adding multiple steps in wfinstanvce table :", error.Error())
+			lh.LogActivity("error while adding multiple steps in wfinstance table :", error.Error())
 			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 			return
 		}

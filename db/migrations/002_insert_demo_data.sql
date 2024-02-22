@@ -42,7 +42,7 @@ VALUES (
         3, 'MERCE', 'Merce Pvt ltd', true, NULL, NULL
     );
 
-    INSERT INTO
+INSERT INTO
     public.realmslice
 VALUES (
         4, 'REMIGES', 'REMIGES Pvt ltd', true, NULL, NULL
@@ -163,7 +163,23 @@ INSERT INTO
         "id", "slice", "class", "step", "entityid", "app", "workflow", "loggedat", "nextstep"
     )
 VALUES (
-        77, 2, 'inventoryitems', 'tempstep', 'tempentityid', 'retailBANK', 'temp', '2024-02-05 00:00:00', 'temp'
+        777777, 2, 'inventoryitems', 'tempstep', 'tempentityid', 'retailBANK', 'temp', '2024-02-05 00:00:00', 'temp'
+    );
+
+INSERT INTO
+    public.wfinstance (
+        "id", "slice", "class", "step", "entityid", "app", "workflow", "loggedat", "nextstep", "parent"
+    )
+VALUES (
+        77, 2, 'inventoryitems', 'tempstep', 'tempentityid', 'retailBANK', 'temp', '2024-02-05 00:00:00', 'temp', 78
+    );
+
+INSERT INTO
+    public.wfinstance (
+        "id", "slice", "class", "step", "entityid", "app", "workflow", "loggedat", "nextstep"
+    )
+VALUES (
+        78, 2, 'inventoryitems', 'tempstep', 'tempentityid', 'retailBANK', 'temp', '2024-02-05 00:00:00', 'temp'
     );
 
 ---- create above / drop below ----

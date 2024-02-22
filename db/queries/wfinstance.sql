@@ -41,3 +41,18 @@ SELECT
         ELSE -1 
     END AS result;
 
+
+-- name: GetWFInstanceList :many
+SELECT * FROM public.wfinstance
+WHERE 
+   (sqlc.narg('slice')::INTEGER is null OR slice = sqlc.narg('slice')::INTEGER)
+   AND (sqlc.narg('entityid')::text is null OR entityid = sqlc.narg('entityid')::text)
+   AND (sqlc.narg('app')::text is null OR app = sqlc.narg('app')::text)
+   AND (sqlc.narg('workflow')::text is null OR workflow = sqlc.narg('workflow')::text)
+   AND(sqlc.narg('parent')::INTEGER is null OR  parent = sqlc.narg('parent')::INTEGER);
+
+    
+-- name: GetWFInstanceListByParents :many
+SELECT * FROM public.wfinstance
+WHERE 
+   (@id::INTEGER[] IS NOT NULL AND id = ANY(@id::INTEGER[]));
