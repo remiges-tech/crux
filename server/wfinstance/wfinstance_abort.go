@@ -2,6 +2,7 @@ package wfinstance
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
@@ -13,8 +14,8 @@ import (
 
 // AbortWFInstance rquest format
 type WFInstanceAbortRquest struct {
-	ID       *int32  `json:"id"`
-	EntityID *string `json:"entityid"`
+	ID       *int32  `json:"id,omitempty"`
+	EntityID *string `json:"entityid,omitempty"`
 }
 
 func GetWFInstanceAbort(c *gin.Context, s *service.Service) {
@@ -43,7 +44,14 @@ func GetWFInstanceAbort(c *gin.Context, s *service.Service) {
 		lh.Debug0().LogActivity("error while binding json request error:", err)
 		return
 	}
-	//validate request
+	// Standard validation of Incoming Request
+	validationErrors := wscutils.WscValidate(request, func(err validator.FieldError) []string { return []string{} })
+	if len(validationErrors) > 0 {
+		lh.Debug0().LogActivity("validation error:", validationErrors)
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
+		return
+	}
+	// Custom validation
 	if request.ID != nil && request.EntityID != nil {
 		lh.Debug0().Log("Both ID and EntityID cannot be present at the same time")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_RequiredOneOf, server.ErrCode_RequiredOne))

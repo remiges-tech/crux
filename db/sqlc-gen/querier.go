@@ -19,6 +19,8 @@ type Querier interface {
 	GetSchemaWithLock(ctx context.Context, arg GetSchemaWithLockParams) (GetSchemaWithLockRow, error)
 	GetWFActiveStatus(ctx context.Context, arg GetWFActiveStatusParams) (pgtype.Bool, error)
 	GetWFINstance(ctx context.Context, arg GetWFINstanceParams) (int64, error)
+	GetWFInstanceList(ctx context.Context, arg GetWFInstanceListParams) ([]Wfinstance, error)
+	GetWFInstanceListByParents(ctx context.Context, id []int32) ([]Wfinstance, error)
 	GetWFInternalStatus(ctx context.Context, arg GetWFInternalStatusParams) (bool, error)
 	GetWorkflow(ctx context.Context, step string) ([]GetWorkflowRow, error)
 	RulesetRowLock(ctx context.Context, arg RulesetRowLockParams) (Ruleset, error)
