@@ -41,7 +41,7 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 		response wfschemagetRow
 	)
 
-	isCapable, _ := types.Authz_check(types.OpReq{
+	isCapable, _ := server.Authz_check(types.OpReq{
 		User:      userID,
 		CapNeeded: CapForList,
 	}, false)

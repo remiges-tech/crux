@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/remiges-tech/alya/wscutils"
+	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/server/workflow"
-	"github.com/remiges-tech/crux/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,7 +23,7 @@ func TestWorkflowList(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Setting up buffer
-			payload := bytes.NewBuffer(types.MarshalJson(tc.requestPayload))
+			payload := bytes.NewBuffer(server.MarshalJson(tc.requestPayload))
 
 			res := httptest.NewRecorder()
 			if tc.name == TestWorkflowList_test_3 {
@@ -34,10 +34,10 @@ func TestWorkflowList(t *testing.T) {
 			r.ServeHTTP(res, req)
 			require.Equal(t, tc.expectedHttpCode, res.Code)
 			if tc.expectedResult != nil {
-				jsonData := types.MarshalJson(tc.expectedResult)
+				jsonData := server.MarshalJson(tc.expectedResult)
 				require.JSONEq(t, string(jsonData), res.Body.String())
 			} else {
-				jsonData, err := types.ReadJsonFromFile(tc.testJsonFile)
+				jsonData, err := server.ReadJsonFromFile(tc.testJsonFile)
 				require.NoError(t, err)
 				require.JSONEq(t, string(jsonData), res.Body.String())
 			}

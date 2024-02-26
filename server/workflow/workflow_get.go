@@ -16,7 +16,7 @@ import (
 // WorkflowGet will be responsible for processing the /workflowget request that comes through as a POST
 func WorkflowGet(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour
-	lh.Log("WorkflowGet request received")
+	lh.Debug0().Log("WorkflowGet request received")
 	var (
 		request WorkflowGetReq
 	)
@@ -27,33 +27,33 @@ func WorkflowGet(c *gin.Context, s *service.Service) {
 		capForList       = []string{"workflow"}
 		userRealm  int32 = 1
 	)
-	isCapable, _ := types.Authz_check(types.OpReq{
+	isCapable, _ := server.Authz_check(types.OpReq{
 		User:      userID,
 		CapNeeded: capForList,
 	}, false)
 
 	if !isCapable {
-		lh.Info().LogActivity("Unauthorized user:", userID)
+		lh.Debug0().LogActivity(server.ErrCode_Unauthorized, userID)
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
 		return
 	}
 
 	err := wscutils.BindJSON(c, &request)
 	if err != nil {
-		lh.LogActivity("error while binding json request error:", err.Error)
+		lh.Debug0().Error(err).Log("error while binding json request")
 		return
 	}
 
 	valError := wscutils.WscValidate(request, func(err validator.FieldError) []string { return []string{} })
 	if len(valError) > 0 {
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, valError))
-		lh.LogActivity("validation error:", valError)
+		lh.Debug0().LogActivity("validation error:", valError)
 		return
 	}
 
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
-		lh.Log("Error while getting query instance from service Dependencies")
+		lh.Debug0().Log("error while getting query instance from service dependencies")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
@@ -66,26 +66,26 @@ func WorkflowGet(c *gin.Context, s *service.Service) {
 		Realm:   userRealm,
 	})
 	if err != nil {
-		lh.LogActivity("failed to get data from DB:", err.Error)
+		lh.Debug0().Error(err).Log("failed to get data from db")
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
 
-	tempData := responseBinding(dbResponse)
+	actualResponse := responseBinding(dbResponse)
 
-	err = json.Unmarshal(dbResponse.Flowrules, &tempData.Flowrules)
+	err = json.Unmarshal(dbResponse.Flowrules, &actualResponse.Flowrules)
 	if err != nil {
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, nil)}))
-		lh.LogActivity("failed to unmarshal data:", err.Error)
+		lh.Debug0().Error(err).Log("failed to unmarshal data")
 		return
 	}
-	lh.Debug0().Log("Record found finished execution of WorkflowGet()")
-	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(tempData))
+	lh.Debug0().Log("record found finished execution of WorkflowGet()")
+	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(actualResponse))
 }
 
 func responseBinding(dbResponse sqlc.WorkflowgetRow) WorkflowgetRow {
-	tempData := WorkflowgetRow{
+	actualResponse := WorkflowgetRow{
 		ID:         dbResponse.ID,
 		Slice:      dbResponse.Slice,
 		App:        dbResponse.App,
@@ -98,5 +98,5 @@ func responseBinding(dbResponse sqlc.WorkflowgetRow) WorkflowgetRow {
 		Editedat:   dbResponse.Editedat,
 		Editedby:   dbResponse.Editedby,
 	}
-	return tempData
+	return actualResponse
 }

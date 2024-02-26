@@ -16,7 +16,7 @@ func SchemaDelete(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour
 	lh.Log("SchemaDelete request received")
 
-	isCapable, _ := types.Authz_check(types.OpReq{
+	isCapable, _ := server.Authz_check(types.OpReq{
 		User:      userID,
 		CapNeeded: CapForList,
 	}, false)

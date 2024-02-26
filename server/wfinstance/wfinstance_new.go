@@ -46,7 +46,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	var done, nextStep string
 	var steps []string
 
-	isCapable, _ := types.Authz_check(types.OpReq{
+	isCapable, _ := server.Authz_check(types.OpReq{
 		User: USERID,
 	}, false)
 

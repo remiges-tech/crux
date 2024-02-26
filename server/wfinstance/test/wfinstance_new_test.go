@@ -8,9 +8,9 @@ import (
 	"testing"
 
 	"github.com/remiges-tech/alya/wscutils"
+	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/server/wfinstance"
 	"github.com/remiges-tech/crux/testutils"
-	"github.com/remiges-tech/crux/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -44,7 +44,7 @@ func TestWFinstanceNew(t *testing.T) {
 			}
 
 			// Setting up buffer
-			payload := bytes.NewBuffer(types.MarshalJson(tc.RequestPayload))
+			payload := bytes.NewBuffer(server.MarshalJson(tc.RequestPayload))
 
 			res := httptest.NewRecorder()
 			req, err := http.NewRequest(http.MethodPost, "/wfinstancenew", payload)
@@ -54,12 +54,12 @@ func TestWFinstanceNew(t *testing.T) {
 
 			require.Equal(t, tc.ExpectedHttpCode, res.Code)
 			if tc.ExpectedResult != nil {
-				jsonData := types.MarshalJson(tc.ExpectedResult)
+				jsonData := server.MarshalJson(tc.ExpectedResult)
 				expectedJSON := string(jsonData)
 				actualJSON := res.Body.String()
 				require.JSONEq(t, expectedJSON, actualJSON)
 			} else {
-				jsonData, err := types.ReadJsonFromFile(tc.TestJsonFile)
+				jsonData, err := server.ReadJsonFromFile(tc.TestJsonFile)
 				require.NoError(t, err)
 				expectedJSON := removeFieldFromJSON(string(jsonData), "loggedat")
 				actualJSON := removeFieldFromJSON(res.Body.String(), "loggedat")
