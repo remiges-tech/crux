@@ -14,15 +14,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetWFInstanceAbort(t *testing.T) {
-	testCases := wfInstanceAbortTestcase()
+// This TesFile tests WFInstanceList Api for this you must need to run WfinstanceNew API
+func TestGetWFInstanceList(t *testing.T) {
+
+	testCases := wfInstanceListTestcase()
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			// Setting up buffer
 			payload := bytes.NewBuffer(types.MarshalJson(tc.RequestPayload))
 
 			res := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodPost, "/wfinstanceabort", payload)
+			req, err := http.NewRequest(http.MethodPost, "/wfinstancelist", payload)
 			require.NoError(t, err)
 
 			r.ServeHTTP(res, req)
@@ -48,60 +50,45 @@ func TestGetWFInstanceAbort(t *testing.T) {
 
 }
 
-func wfInstanceAbortTestcase() []testutils.TestCasesStruct {
+func wfInstanceListTestcase() []testutils.TestCasesStruct {
 	var (
-		ID              int32  = 777777
-		entityID        string = "0eb8da50-aece-11ee-b168-3b192f7cd2b6"
-		invalidID       int32  = 233
-		invalidEntityID string = "0eb8da50-aece-11ee-b168"
+		InvalidSlice int32  = 1
+		Slice        int32  = 2
+		entityID     string = "tempentityid"
+		App          string = "retailBANK"
+		Workflow     string = "temp"
+		Parent       int32  = 78
 	)
-	wfInstanceAbortTestcase := []testutils.TestCasesStruct{
+
+	wfInstanceListTestcase := []testutils.TestCasesStruct{
 
 		// 1st test case
 		{
-			Name: "ERROR- Invalid request with two parameters",
+			Name: "ERROR- Invalid request ",
 			RequestPayload: wscutils.Request{
-				Data: wfinstance.WFInstanceAbortRquest{
-					ID:       &ID,
+				Data: wfinstance.WFInstanceListRequest{
+					Slice:    &InvalidSlice,
 					EntityID: &entityID,
 				},
 			},
 			ExpectedHttpCode: http.StatusBadRequest,
-			TestJsonFile:     "./data/wfinstanceabort_invalid_request_res.json",
+			TestJsonFile:     "./data/wfinstancelist_invalid_request_res.json",
 		},
 		// 2nd test case
 		{
-			Name: "ERROR- ID does not exist",
+			Name: "SUCCESS- valid request",
 			RequestPayload: wscutils.Request{
-				Data: wfinstance.WFInstanceAbortRquest{
-					ID: &invalidID,
-				},
-			},
-			ExpectedHttpCode: http.StatusBadRequest,
-			TestJsonFile:     "./data/wfinstaceabort_record_not_found_res.json",
-		},
-
-		// 3rd test case
-		{
-			Name: "ERROR- EntityID does not exist",
-			RequestPayload: wscutils.Request{
-				Data: wfinstance.WFInstanceAbortRquest{
-					EntityID: &invalidEntityID,
-				},
-			},
-			ExpectedHttpCode: http.StatusBadRequest,
-			TestJsonFile:     "./data/wfinstaceabort_record_not_found_res.json",
-		},
-		{
-			Name: "SUCCESS- valid request ID",
-			RequestPayload: wscutils.Request{
-				Data: wfinstance.WFInstanceAbortRquest{
-					ID: &ID,
+				Data: wfinstance.WFInstanceListRequest{
+					Slice:    &Slice,
+					EntityID: &entityID,
+					App:      &App,
+					Workflow: &Workflow,
+					Parent:   &Parent,
 				},
 			},
 			ExpectedHttpCode: http.StatusOK,
-			TestJsonFile:     "./data/wfinstanceabort_success_res.json",
+			TestJsonFile:     "./data/wfinstancelist_valid_request_res.json",
 		},
 	}
-	return wfInstanceAbortTestcase
+	return wfInstanceListTestcase
 }

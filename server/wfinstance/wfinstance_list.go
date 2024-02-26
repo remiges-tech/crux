@@ -21,6 +21,21 @@ type WFInstanceListRequest struct {
 	Parent   *int32  `json:"parent,omitempty"`
 }
 
+// WFInstanceList response format
+type WFInstanceListResponse struct {
+	ID         int32            `json:"id"`
+	EntityID   string           `json:"entityid"`
+	Slice      int32            `json:"slice"`
+	App        string           `json:"app"`
+	Class      string           `json:"class"`
+	Workflow   string           `json:"workflow"`
+	Step       string           `json:"step"`
+	LoggedDate pgtype.Timestamp `json:"loggdat"`
+	DoneAt     string           `json:"doneat"`
+	Nextstep   string           `json:"nextstep"`
+	Parent     int32            `json:"parent,omitempty"`
+}
+
 type WFInstanceListParams struct {
 	Slice    int32
 	EntityID string
@@ -117,9 +132,36 @@ func GetWFInstanceList(c *gin.Context, s *service.Service) {
 		parentList = getParentList(wfinstanceListByParents)
 		lh.Debug0().LogActivity(" updated ParentList :", parentList)
 	}
+	var responseList []WFInstanceListResponse
+	for _, val := range wfinstanceList {
+		var response WFInstanceListResponse
+		response.ID = val.ID
+		response.EntityID = val.Entityid
+		response.Slice = val.Slice
+		response.App = val.App
+		response.Class = val.Class
+		response.Workflow = val.Workflow
+		response.Step = val.Step
+		response.LoggedDate = val.Loggedat
+		response.Nextstep = val.Nextstep
+
+		// Handling the omitted Parent field
+		if val.Parent.Valid {
+			response.Parent = val.Parent.Int32
+		}
+
+		// Handling the DoneAt field
+		if !val.Doneat.Valid {
+			response.DoneAt = ""
+		} else {
+			response.DoneAt = val.Doneat.Time.String()
+		}
+
+		responseList = append(responseList, response)
+	}
 
 	lh.Debug0().Log("Record found finished execution of WfinstaceList request")
-	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(map[string][]sqlc.Wfinstance{"wfinstance": wfinstanceList}))
+	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(map[string][]WFInstanceListResponse{"wfinstance": responseList}))
 }
 
 // To Get Parameters from WFInstanceList Request
