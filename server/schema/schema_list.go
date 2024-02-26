@@ -27,15 +27,15 @@ var err error
 
 func SchemaList(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
-	l.Debug0().Log("Starting execution of SchemaList()")
+	l.Debug0().Log("starting execution of SchemaList()")
 
-	isCapable, capList := types.Authz_check(types.OpReq{
+	isCapable, capList := server.Authz_check(types.OpReq{
 		User:      userID,
 		CapNeeded: CapForList,
 	}, false)
 
 	if !isCapable {
-		l.Info().LogActivity("Unauthorized user:", userID)
+		l.Info().LogActivity(server.ErrCode_Unauthorized, userID)
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
 		return
 	}
@@ -44,7 +44,7 @@ func SchemaList(c *gin.Context, s *service.Service) {
 
 	err = wscutils.BindJSON(c, &sh)
 	if err != nil {
-		l.LogActivity("Error Unmarshalling request payload to struct:", err.Error())
+		l.Debug0().Error(err).Log("error unmarshalling request payload to struct")
 		return
 	}
 
@@ -57,7 +57,7 @@ func SchemaList(c *gin.Context, s *service.Service) {
 	}
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
-		l.Debug0().Log("Error while getting query instance from service Dependencies")
+		l.Debug0().Log("error while getting query instance from service dependencies")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
 		return
 	}
@@ -68,30 +68,30 @@ func SchemaList(c *gin.Context, s *service.Service) {
 		if sh.App != "" {
 			schemaList, err = getSchemaList(c, sh, query)
 		} else {
-			l.Info().LogActivity("Unauthorized user:", userID)
+			l.Info().LogActivity(server.ErrCode_Unauthorized, userID)
 			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
 			return
 		}
 	} else {
-		l.Info().LogActivity("Unauthorized user:", userID)
+		l.Info().LogActivity(server.ErrCode_Unauthorized, userID)
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
 		return
 	}
 	if err != nil || len(schemaList) == 0 {
-		l.LogActivity("Error while retrieving schema list", err)
+		l.Debug0().Error(err).Log("error while retrieving from db")
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
 	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: schemaList, Messages: nil})
-	l.Debug0().Log("Finished execution of SchemaList()")
+	l.Debug0().Log("finished execution of SchemaList()")
 }
 
 func getSchemaList(c *gin.Context, sh SchemaStruct, query *sqlc.Queries) ([]sqlc.WfSchemaListRow, error) {
 	return query.WfSchemaList(c, sqlc.WfSchemaListParams{
 		Relam: realmID,
 		Slice: pgtype.Int4{Int32: sh.Slice, Valid: sh.Slice > 0},
-		App:   pgtype.Text{String: sh.App, Valid: !types.IsStringEmpty(&sh.App)},
-		Class: pgtype.Text{String: sh.Class, Valid: !types.IsStringEmpty(&sh.Class)},
+		App:   pgtype.Text{String: sh.App, Valid: !server.IsStringEmpty(&sh.App)},
+		Class: pgtype.Text{String: sh.Class, Valid: !server.IsStringEmpty(&sh.Class)},
 	})
 }

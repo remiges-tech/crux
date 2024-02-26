@@ -97,6 +97,7 @@ func main() {
 	customValidationMap := map[string]int{
 		"required":  101,
 		"gt":        102,
+		"max":       105,
 		"alpha":     103,
 		"lowercase": 104,
 	}
@@ -104,6 +105,7 @@ func main() {
 	customErrCodeMap := map[string]string{
 		"required":  "required",
 		"gt":        "greater",
+		"max":       "exceed the maximum value allowed",
 		"alpha":     "alphabet",
 		"lowercase": "lowercase",
 	}
