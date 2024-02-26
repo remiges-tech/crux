@@ -20,7 +20,7 @@ func TestSchemaDelete(t *testing.T) {
 			payload := bytes.NewBuffer(types.MarshalJson(tc.RequestPayload))
 
 			res := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodDelete, "/BREschemaDelete", payload)
+			req, err := http.NewRequest(http.MethodDelete, "/BREschemaDeletebrv", payload)
 			require.NoError(t, err)
 
 			r.ServeHTTP(res, req)
