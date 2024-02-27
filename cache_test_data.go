@@ -10,10 +10,11 @@ import (
 var mockSchemasets = []sqlc.Schema{
 
 	{
+
 		Realm: 1,
 		App:   "test1",
 		Slice: 1,
-		Class: "inventoryitems",
+		Class: "inventoryitem",
 		Brwf:  sqlc.BrwfEnum("B"),
 		Patternschema: []byte(`{
 			"attr": [{
@@ -35,8 +36,8 @@ var mockSchemasets = []sqlc.Schema{
 			}]
 		}`),
 		Actionschema: []byte(`{
-			"tasks": ["invitefordiwali", "allowretailsale", "assigntotrash"],
-			"properties": {"discount": "shipby"}
+			"tasks": ["yearendsale", "summersale"],
+			"properties": ["discount", "cashback"]
 		}`),
 		Createdat: pgtype.Timestamp{Time: time.Now()},
 		Createdby: "user1",
@@ -58,7 +59,7 @@ var mockSchemasets = []sqlc.Schema{
 
 		Actionschema: []byte(`{
 			"tasks": ["approve", "dispatch", "verify"],
-			"properties": {"status": "destination"}
+			"properties": ["status", "destination"]
 		}`),
 		Createdat: pgtype.Timestamp{Time: time.Now()},
 		Createdby: "user2",
@@ -72,7 +73,7 @@ var mockSchemasets = []sqlc.Schema{
 		Class:         "inventoryMaterial",
 		Brwf:          sqlc.BrwfEnum("W"),
 		Patternschema: []byte(`{"attr": [{"name": "material", "valtype": "enum", "vals": ["cotton", "leather", "metal"]},{"name": "quantity", "valtype": "int"}]}`),
-		Actionschema:  []byte(`{"tasks": ["notify", "cancel", "schedule"],"properties": {"message": "timestamp"}}`),
+		Actionschema:  []byte(`{"tasks": ["notify", "cancel", "schedule"],"properties": ["message", "timestamp"]}`),
 		Createdat:     pgtype.Timestamp{Time: time.Now()},
 		Createdby:     "user3",
 		Editedat:      pgtype.Timestamp{Time: time.Now()},
@@ -94,7 +95,7 @@ var mockSchemasets = []sqlc.Schema{
 
 		Actionschema: []byte(`{
 			"tasks": ["ship", "receive", "track"],
-			"properties": {"carrier": "trackingNumber"}
+			"properties": ["carrier","trackingNumber"]
 		}`),
 		Createdat: pgtype.Timestamp{Time: time.Now()},
 		Createdby: "user4",
@@ -106,9 +107,9 @@ var mockSchemasets = []sqlc.Schema{
 var mockRulesets = []sqlc.Ruleset{
 	{
 		Realm:   1,
-		App:     "Test1",
+		App:     "test1",
 		Slice:   1,
-		Class:   "inventoryChristmas",
+		Class:   "inventoryitem",
 		Setname: "yearendoffer",
 		Brwf:    "B",
 		Ruleset: []byte(`[{
@@ -117,8 +118,8 @@ var mockRulesets = []sqlc.Ruleset{
 				{"attr": "mrp", "op": "ge", "val": "5000"}
 			],
 			"ruleactions": {
-				"tasks": ["christmassale"],
-				"properties": {"shipby": "fedex"}
+				"tasks": ["yearendsale", "summersale", "wintersale"],
+				"properties": {"discount": "15", "freegift": "mug"}
 			}
 		}]`),
 	},

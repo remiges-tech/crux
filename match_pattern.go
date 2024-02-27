@@ -30,8 +30,6 @@ const (
 	falseStr = "false"
 )
 
-
-
 func matchPattern(entity Entity, rulePattern []RulePatternTerm, actionSet ActionSet) (bool, error) {
 	for _, term := range rulePattern {
 		valType := ""
@@ -74,8 +72,10 @@ func matchPattern(entity Entity, rulePattern []RulePatternTerm, actionSet Action
 
 func getTypeFromSchema(class string, attrName string) string {
 	for _, ruleSchema := range ruleSchemas {
+
 		if ruleSchema.class == class {
 			for _, attrSchema := range ruleSchema.patternSchema {
+
 				if attrSchema.name == attrName {
 					return attrSchema.valType
 				}

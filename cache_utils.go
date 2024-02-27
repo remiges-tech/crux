@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"strconv"
 	"testing"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -241,4 +243,242 @@ func containsFieldName(value interface{}, fieldName string) bool {
 		return value.(string) == fieldName
 	}
 	return false
+}
+func retrieveSchemasFromCache(realm int, app string, class string, slice int, brwf string) ([]byte, []byte, string) {
+	realmKey := realm_t(strconv.Itoa(realm))
+	perRealm, realmExists := schemaCache[realmKey]
+	if !realmExists {
+		return nil, nil, "Realmkey not match"
+	}
+
+	appKey := app_t(app)
+	perApp, appExists := perRealm[appKey]
+	if !appExists {
+		return nil, nil, "AppKey not match"
+	}
+
+	sliceKey := slice_t(slice)
+	perSlice, sliceExists := perApp[sliceKey]
+	if !sliceExists {
+		return nil, nil, "Slice key not match"
+	}
+
+	classNameKey := className_t(class)
+	var schemas []*schema_t
+
+	if brwf == "B" {
+		schemas = perSlice.BRSchema[classNameKey]
+	} else if brwf == "W" {
+		schemas = perSlice.WFSchema[classNameKey]
+	}
+
+	if len(schemas) == 0 {
+		return nil, nil, "No schemas found for the given class"
+	}
+
+	patternSchemaJSON, err := json.Marshal(schemas[0].PatternSchema)
+	if err != nil {
+		return nil, nil, "JSON failed to marshal pattern"
+	}
+
+	actionSchemaJSON, err := json.Marshal(schemas[0].ActionSchema)
+	if err != nil {
+		return nil, nil, "JSON failed to marshal action"
+	}
+
+	return patternSchemaJSON, actionSchemaJSON, "success"
+}
+
+func retrieveRulesetFromCache(realm int, app string, class string, slice int,
+	brwf string) ([]byte, []byte, string, []*Ruleset_t) {
+	realmKey := realm_t(strconv.Itoa(realm))
+	perRealm, exists := rulesetCache[realmKey]
+	if !exists {
+		return nil, nil, "Realmkey not match", nil
+	}
+
+	appKey := app_t(app)
+	perApp, exists := perRealm[appKey]
+	if !exists {
+		return nil, nil, "AppKey not match", nil
+	}
+
+	sliceKey := slice_t(slice)
+	perSlice, exists := perApp[sliceKey]
+	if !exists {
+		return nil, nil, "Slice key not match", nil
+	}
+
+	classNameKey := className_t(class)
+	brwfKey := BrwfEnum(brwf)
+	var rulesets []*Ruleset_t
+
+	if brwfKey == "B" {
+		rulesets = perSlice.BRRulesets[classNameKey]
+	} else {
+		rulesets = perSlice.Workflows[classNameKey]
+	}
+
+	if len(rulesets) == 0 {
+		return nil, nil, "No rulesets found for the given class", nil
+	}
+
+	ruleset := rulesets[0]
+
+	RulePatterns, err := json.Marshal(ruleset.RulePatterns)
+	if err != nil {
+		return nil, nil, "JSON failed to marshal rule patterns", nil
+	}
+
+	RuleActions, err := json.Marshal(ruleset.RuleActions)
+	if err != nil {
+		return nil, nil, "JSON failed to marshal rule actions", nil
+	}
+
+	return RulePatterns, RuleActions, "success", ruleset.RuleActions.References
+}
+func initializeRuleSchemasFromCache(schemaCache schemaCache_t) {
+	// Reset the global variable
+	ruleSchemas = nil
+
+	// Iterate over schemaCache
+	for realmKey, perRealm := range schemaCache {
+		for appKey, perApp := range perRealm {
+			for sliceKey, perSlice := range perApp {
+				// Process BRSchema
+				for _, schemas := range perSlice.BRSchema {
+					processRuleSchemas(realmKey, appKey, sliceKey, schemas)
+				}
+
+				// Process WFSchema
+				for _, schemas := range perSlice.WFSchema {
+					processRuleSchemas(realmKey, appKey, sliceKey, schemas)
+				}
+			}
+		}
+	}
+}
+
+func processRuleSchemas(realmKey realm_t, appKey app_t, sliceKey slice_t, schemas []*schema_t) {
+	for _, schema := range schemas {
+		ruleSchema := RuleSchema{
+			class:         schema.Class,
+			patternSchema: processPatternSchema(schema.PatternSchema),
+			actionSchema:  processActionSchema(schema.ActionSchema),
+		}
+
+		ruleSchemas = append(ruleSchemas, ruleSchema)
+
+	}
+}
+
+func processPatternSchema(patternSchema patternSchema_t) []AttrSchema {
+	var attrSchemas []AttrSchema
+
+	for _, attr := range patternSchema.Attr {
+		attrSchema := AttrSchema{
+			name:    attr.Name,
+			valType: attr.ValType,
+			vals:    make(map[string]bool),
+			valMin:  attr.ValMin,
+			valMax:  attr.ValMax,
+			lenMin:  attr.LenMin,
+			lenMax:  attr.LenMax,
+		}
+
+		for _, val := range attr.EnumVals {
+			attrSchema.vals[val] = true
+		}
+
+		attrSchemas = append(attrSchemas, attrSchema)
+	}
+	return attrSchemas
+}
+
+func processActionSchema(actionSchema actionSchema_t) ActionSchema {
+	return ActionSchema{
+		tasks:      actionSchema.Tasks,
+		properties: actionSchema.Properties,
+	}
+}
+
+func initializeRuleSetsFromCache(rulesetCache rulesetCache_t) {
+
+	ruleSets = make(map[string]RuleSet)
+
+	for realmKey, perRealm := range rulesetCache {
+		for appKey, perApp := range perRealm {
+			for sliceKey, perSlice := range perApp {
+				for className, brRulesets := range perSlice.BRRulesets {
+					processRuleSets(realmKey, appKey, sliceKey, className, brRulesets)
+				}
+				for className, wfRulesets := range perSlice.Workflows {
+					processRuleSets(realmKey, appKey, sliceKey, className, wfRulesets)
+				}
+			}
+		}
+	}
+}
+
+func processRuleSets(realmKey realm_t, appKey app_t, sliceKey slice_t, className className_t, rulesets []*Ruleset_t) {
+	for _, rule := range rulesets {
+		newRule := Rule{
+			rulePattern: processRulePatterns(rule.RulePatterns),
+			ruleActions: processRuleActions(rule.RuleActions),
+		}
+
+		ruleSets[rule.SetName] = RuleSet{
+			class:   rule.Class,
+			setName: rule.SetName,
+			rules:   append(ruleSets[rule.SetName].rules, newRule),
+		}
+	}
+}
+
+func processRulePatterns(rulePatterns []rulePatternBlock_t) []RulePatternTerm {
+	var patternTerms []RulePatternTerm
+
+	for _, pattern := range rulePatterns {
+		patternTerm := RulePatternTerm{
+			attrName: pattern.Attr,
+			op:       pattern.Op,
+			attrVal:  convertAttrValue(pattern.Val, pattern.ValType),
+		}
+		patternTerms = append(patternTerms, patternTerm)
+	}
+
+	return patternTerms
+}
+
+func convertAttrValue(entityAttrVal string, valType valType_t) any {
+
+	var entityAttrValConv any
+	var err error
+	switch valType {
+	case valBool_t:
+		entityAttrValConv, err = strconv.ParseBool(entityAttrVal)
+	case valInt_t:
+		entityAttrValConv, err = strconv.Atoi(entityAttrVal)
+	case valFloat_t:
+		entityAttrValConv, err = strconv.ParseFloat(entityAttrVal, 64)
+	case valString_t, valEnum_t:
+		entityAttrValConv = entityAttrVal
+	case valTimestamp_t:
+		entityAttrValConv, err = time.Parse(timeLayout, entityAttrVal)
+	}
+	if err != nil {
+		return err
+	}
+	return entityAttrValConv
+}
+
+func processRuleActions(ruleActions ruleActionBlock_t) RuleActions {
+	return RuleActions{
+		tasks:      ruleActions.Task,
+		properties: ruleActions.Properties,
+		thenCall:   ruleActions.ThenCall,
+		elseCall:   ruleActions.ElseCall,
+		willReturn: ruleActions.DoReturn,
+		willExit:   ruleActions.DoExit,
+	}
 }

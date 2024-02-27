@@ -26,26 +26,17 @@ type ActionSchema struct {
 }
 
 type Entity struct {
+	realm string
+	app   string
+	slice string
 	class string
 	attrs map[string]string
 }
 
-type Attr struct {
-	name string
-	val  string
-}
-
 type ActionSet struct {
-	tasks []string
-	properties map[string]string 
-
+	tasks      []string
+	properties map[string]string
 }
-
-type Property struct {
-	name string
-	val  string
-}
-
 type RuleSet struct {
 	ver     int
 	class   string
@@ -65,7 +56,7 @@ type RulePatternTerm struct {
 }
 
 type RuleActions struct {
-	tasks []string
+	tasks      []string
 	properties map[string]string
 	thenCall   string
 	elseCall   string

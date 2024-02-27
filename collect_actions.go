@@ -24,7 +24,6 @@ func collectActions(actionSet ActionSet, ruleActions RuleActions) ActionSet {
 		}
 	}
 
-
 	// Perform "union-set" of properties, overwriting previous property values if needed
 
 	for name, val := range actionSet.properties {

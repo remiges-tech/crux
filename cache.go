@@ -8,14 +8,9 @@ import (
 	"strconv"
 	"time"
 
-	pgx "github.com/jackc/pgx/v5"
-
 	sqlc "crux/db/sqlc-gen"
 )
 
-func init() {
-
-}
 func loadInternalSchema(dbResponseSchema []sqlc.Schema) error {
 
 	if len(dbResponseSchema) == 0 {
@@ -53,10 +48,12 @@ func loadInternalSchema(dbResponseSchema []sqlc.Schema) error {
 			}
 
 			var actions actionSchema_t
+
 			if err := json.Unmarshal(row.Actionschema, &actions); err != nil {
 				log.Println("Error parsing ActionSchema JSON:", err)
 				continue
 			}
+
 			schemaData := &schema_t{
 				Class:         row.Class,
 				PatternSchema: patterns,
@@ -153,100 +150,6 @@ func loadInternal(dbResponseSchema []sqlc.Schema, dbResponseRuleSet []sqlc.Rules
 	return nil
 }
 
-func retrieveSchemasFromCache(realm int, app string, class string, slice int, brwf string) ([]byte, []byte, string) {
-	realmKey := realm_t(strconv.Itoa(realm))
-	perRealm, realmExists := schemaCache[realmKey]
-	if !realmExists {
-		return nil, nil, "Realmkey not match"
-	}
-
-	appKey := app_t(app)
-	perApp, appExists := perRealm[appKey]
-	if !appExists {
-		return nil, nil, "AppKey not match"
-	}
-
-	sliceKey := slice_t(slice)
-	perSlice, sliceExists := perApp[sliceKey]
-	if !sliceExists {
-		return nil, nil, "Slice key not match"
-	}
-
-	classNameKey := className_t(class)
-	var schemas []*schema_t
-
-	if brwf == "B" {
-		schemas = perSlice.BRSchema[classNameKey]
-	} else if brwf == "W" {
-		schemas = perSlice.WFSchema[classNameKey]
-	}
-
-	if len(schemas) == 0 {
-		return nil, nil, "No schemas found for the given class"
-	}
-
-	patternSchemaJSON, err := json.Marshal(schemas[0].PatternSchema)
-	if err != nil {
-		return nil, nil, "JSON failed to marshal pattern"
-	}
-
-	actionSchemaJSON, err := json.Marshal(schemas[0].ActionSchema)
-	if err != nil {
-		return nil, nil, "JSON failed to marshal action"
-	}
-
-	return patternSchemaJSON, actionSchemaJSON, "success"
-}
-
-func retrieveRulesetFromCache(realm int, app string, class string, slice int,
-	brwf string) ([]byte, []byte, string, []*Ruleset_t) {
-	realmKey := realm_t(strconv.Itoa(realm))
-	perRealm, exists := rulesetCache[realmKey]
-	if !exists {
-		return nil, nil, "Realmkey not match", nil
-	}
-
-	appKey := app_t(app)
-	perApp, exists := perRealm[appKey]
-	if !exists {
-		return nil, nil, "AppKey not match", nil
-	}
-
-	sliceKey := slice_t(slice)
-	perSlice, exists := perApp[sliceKey]
-	if !exists {
-		return nil, nil, "Slice key not match", nil
-	}
-
-	classNameKey := className_t(class)
-	brwfKey := BrwfEnum(brwf)
-	var rulesets []*Ruleset_t
-
-	if brwfKey == "B" {
-		rulesets = perSlice.BRRulesets[classNameKey]
-	} else {
-		rulesets = perSlice.Workflows[classNameKey]
-	}
-
-	if len(rulesets) == 0 {
-		return nil, nil, "No rulesets found for the given class", nil
-	}
-
-	ruleset := rulesets[0]
-
-	RulePatterns, err := json.Marshal(ruleset.RulePatterns)
-	if err != nil {
-		return nil, nil, "JSON failed to marshal rule patterns", nil
-	}
-
-	RuleActions, err := json.Marshal(ruleset.RuleActions)
-	if err != nil {
-		return nil, nil, "JSON failed to marshal rule actions", nil
-	}
-
-	return RulePatterns, RuleActions, "success", ruleset.RuleActions.References
-}
-
 func purgeInternal() error {
 	rulesetCache = make(rulesetCache_t)
 	schemaCache = make(schemaCache_t)
@@ -254,17 +157,10 @@ func purgeInternal() error {
 
 }
 
-func Load() error {
+func Load(query sqlc.DBQuerier, ctx context.Context) error {
+
 	lockCache()
 	defer unlockCache()
-	ctx := context.Background()
-	conn, err := pgx.Connect(ctx, ConnectionString)
-	if err != nil {
-		log.Fatal("Failed to load data into cache:", err)
-		return err
-	}
-	defer conn.Close(ctx)
-	query := NewProvider(ConnectionString)
 
 	dbResponseSchema, err := query.AllSchemas(ctx)
 	if err != nil {
@@ -279,7 +175,8 @@ func Load() error {
 	if err != nil {
 		return err
 	}
-
+	initializeRuleSchemasFromCache(schemaCache)
+	initializeRuleSetsFromCache(rulesetCache)
 	return nil
 }
 
@@ -295,7 +192,7 @@ func Purge() error {
 	return nil
 }
 
-func Reload() error {
+func Reload(query sqlc.DBQuerier, ctx context.Context) error {
 	lockCache()
 	defer unlockCache()
 
@@ -303,14 +200,6 @@ func Reload() error {
 		log.Fatal("Failed to purge data from cache:", err)
 		return err
 	}
-	ctx := context.Background()
-	conn, err := pgx.Connect(ctx, ConnectionString)
-	if err != nil {
-		log.Fatal("Failed to load data into cache:", err)
-		return err
-	}
-	defer conn.Close(ctx)
-	query := NewProvider(ConnectionString)
 
 	dbResponseSchema, err := query.AllSchemas(ctx)
 	if err != nil {

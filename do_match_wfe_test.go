@@ -31,6 +31,7 @@ func testUCCCreation(tests *[]doMatchTest) {
 }
 
 func setupUCCCreationSchema() {
+
 	ruleSchemas = append(ruleSchemas, RuleSchema{
 		class: uccCreationClass,
 		patternSchema: []AttrSchema{
@@ -44,6 +45,7 @@ func setupUCCCreationSchema() {
 			properties: []string{nextStep, done},
 		},
 	})
+
 }
 
 func setupUCCCreationRuleSet() {

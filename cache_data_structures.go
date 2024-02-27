@@ -11,8 +11,6 @@ type slice_t int
 type className_t string
 type BrwfEnum string
 
-var ConnectionString = "host=localhost port=5432 user=postgres password=postgres dbname=crux sslmode=disable"
-
 type statsSchema_t struct {
 	NChecked int
 }
@@ -55,8 +53,8 @@ type attr_t struct {
 	LenMax   int      `json:"lenmax,omitempty"`
 }
 type actionSchema_t struct {
-	Tasks      []string          `json:"tasks"`
-	Properties map[string]string `json:"properties"`
+	Tasks      []string `json:"tasks"`
+	Properties []string `json:"properties"`
 }
 
 type rulePatternBlock_t struct {
@@ -95,8 +93,8 @@ type Ruleset_t struct {
 	RuleActions   ruleActionBlock_t    `json:"ruleactions"`
 	NMatched      int                  `json:"nMatched"`
 	NFailed       int                  `json:"nFailed"`
-	ReferenceType string               `json:"referenceType,omitempty""`
 	NextRuleset   *Ruleset_t
+	ReferenceType string `json:"referencetype,omitempty"`
 }
 
 type perSlice_t struct {

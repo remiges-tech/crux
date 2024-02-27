@@ -13,6 +13,7 @@ import (
 )
 
 var ruleSchemas = []RuleSchema{}
+
 var ruleSets = map[string]RuleSet{}
 
 func doMatch(entity Entity, ruleSet RuleSet, actionSet ActionSet, seenRuleSets map[string]bool) (ActionSet, bool, error) {
@@ -32,8 +33,10 @@ func doMatch(entity Entity, ruleSet RuleSet, actionSet ActionSet, seenRuleSets m
 				properties: make(map[string]string),
 			}, false, err
 		}
+
 		if matched {
 			actionSet = collectActions(actionSet, rule.ruleActions)
+
 			if len(rule.ruleActions.thenCall) > 0 {
 				setToCall := ruleSets[rule.ruleActions.thenCall]
 				if setToCall.class != entity.class {

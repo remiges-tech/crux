@@ -19,6 +19,9 @@ const (
 )
 
 var sampleEntity = Entity{
+	realm: "1",
+	app:   "test1",
+	slice: "1",
 	class: inventoryItemClass,
 	attrs: map[string]string{
 		"cat":        "textbook",
@@ -191,6 +194,7 @@ func setupRuleSetMainForTransaction() {
 }
 
 func setupRuleSetWinterDisc() {
+
 	rule1 := Rule{
 		[]RulePatternTerm{
 			{"productname", opEQ, "jacket"},
@@ -221,9 +225,11 @@ func setupRuleSetWinterDisc() {
 	ruleSets["winterdisc"] = RuleSet{1, transactionClass, "winterdisc",
 		[]Rule{rule1, rule2, rule3},
 	}
+
 }
 
 func setupRuleSetRegularDisc() {
+
 	rule1 := Rule{
 		[]RulePatternTerm{
 			{"ismember", opEQ, true},
@@ -236,9 +242,11 @@ func setupRuleSetRegularDisc() {
 	ruleSets["regulardisc"] = RuleSet{1, transactionClass, "regulardisc",
 		[]Rule{rule1},
 	}
+
 }
 
 func setupRuleSetMemberDisc() {
+
 	rule1 := Rule{
 		[]RulePatternTerm{
 			{"productname", opEQ, "lamp"},
@@ -268,9 +276,11 @@ func setupRuleSetMemberDisc() {
 	ruleSets["memberdisc"] = RuleSet{1, transactionClass, "memberdisc",
 		[]Rule{rule1, rule2, rule3},
 	}
+
 }
 
 func setupRuleSetNonMemberDisc() {
+
 	rule1 := Rule{
 		[]RulePatternTerm{
 			{"price", opLT, 50},
@@ -298,9 +308,11 @@ func setupRuleSetNonMemberDisc() {
 	ruleSets["nonmemberdisc"] = RuleSet{1, transactionClass, "nonmemberdisc",
 		[]Rule{rule1, rule2, rule3},
 	}
+
 }
 
 func testWinterDiscJacket60(tests *[]doMatchTest) {
+
 	entity := Entity{
 		class: transactionClass,
 		attrs: map[string]string{
@@ -325,9 +337,11 @@ func testWinterDiscJacket60(tests *[]doMatchTest) {
 		},
 		want,
 	})
+
 }
 
 func testWinterDiscJacket40(tests *[]doMatchTest) {
+
 	entity := Entity{
 		class: transactionClass,
 		attrs: map[string]string{
@@ -353,9 +367,11 @@ func testWinterDiscJacket40(tests *[]doMatchTest) {
 		},
 		want,
 	})
+
 }
 
 func testWinterDiscKettle110Cash(tests *[]doMatchTest) {
+
 	entity := Entity{
 		class: transactionClass,
 		attrs: map[string]string{
@@ -380,9 +396,11 @@ func testWinterDiscKettle110Cash(tests *[]doMatchTest) {
 		},
 		want,
 	})
+
 }
 
 func testWinterDiscKettle110Card(tests *[]doMatchTest) {
+
 	entity := Entity{
 		class: transactionClass,
 		attrs: map[string]string{
@@ -407,6 +425,7 @@ func testWinterDiscKettle110Card(tests *[]doMatchTest) {
 		},
 		want,
 	})
+
 }
 
 func testMemberDiscLamp60(tests *[]doMatchTest) {
@@ -437,6 +456,7 @@ func testMemberDiscLamp60(tests *[]doMatchTest) {
 }
 
 func testMemberDiscKettle60Card(tests *[]doMatchTest) {
+
 	entity := Entity{
 		class: transactionClass,
 		attrs: map[string]string{
@@ -462,9 +482,11 @@ func testMemberDiscKettle60Card(tests *[]doMatchTest) {
 		},
 		want,
 	})
+
 }
 
 func testMemberDiscKettle60Cash(tests *[]doMatchTest) {
+
 	entity := Entity{
 		class: transactionClass,
 		attrs: map[string]string{
@@ -489,9 +511,11 @@ func testMemberDiscKettle60Cash(tests *[]doMatchTest) {
 		},
 		want,
 	})
+
 }
 
 func testMemberDiscKettle110Card(tests *[]doMatchTest) {
+
 	entity := Entity{
 		class: transactionClass,
 		attrs: map[string]string{
@@ -517,6 +541,7 @@ func testMemberDiscKettle110Card(tests *[]doMatchTest) {
 		},
 		want,
 	})
+
 }
 
 func testMemberDiscKettle110Cash(tests *[]doMatchTest) {
@@ -548,6 +573,7 @@ func testMemberDiscKettle110Cash(tests *[]doMatchTest) {
 }
 
 func testNonMemberDiscLamp30(tests *[]doMatchTest) {
+
 	entity := Entity{
 		class: transactionClass,
 		attrs: map[string]string{
@@ -573,9 +599,11 @@ func testNonMemberDiscLamp30(tests *[]doMatchTest) {
 		},
 		want,
 	})
+
 }
 
 func testNonMemberDiscKettle70(tests *[]doMatchTest) {
+
 	entity := Entity{
 		class: transactionClass,
 		attrs: map[string]string{
@@ -601,9 +629,11 @@ func testNonMemberDiscKettle70(tests *[]doMatchTest) {
 		},
 		want,
 	})
+
 }
 
 func testNonMemberDiscKettle110Cash(tests *[]doMatchTest) {
+
 	entity := Entity{
 		class: transactionClass,
 		attrs: map[string]string{
@@ -629,9 +659,11 @@ func testNonMemberDiscKettle110Cash(tests *[]doMatchTest) {
 		},
 		want,
 	})
+
 }
 
 func testNonMemberDiscKettle110Card(tests *[]doMatchTest) {
+
 	entity := Entity{
 		class: transactionClass,
 		attrs: map[string]string{
@@ -657,6 +689,7 @@ func testNonMemberDiscKettle110Card(tests *[]doMatchTest) {
 		},
 		want,
 	})
+
 }
 
 func testPurchases(tests *[]doMatchTest) {
@@ -682,6 +715,7 @@ func testPurchases(tests *[]doMatchTest) {
 }
 
 func setupPurchaseRuleSchema() {
+
 	ruleSchemas = append(ruleSchemas, RuleSchema{
 		class: purchaseClass,
 		patternSchema: []AttrSchema{
@@ -695,9 +729,11 @@ func setupPurchaseRuleSchema() {
 			properties: []string{"discount", "pointsmult"},
 		},
 	})
+
 }
 
 func testJacket35(tests *[]doMatchTest) {
+
 	entity := Entity{
 		class: purchaseClass,
 		attrs: map[string]string{
@@ -721,9 +757,11 @@ func testJacket35(tests *[]doMatchTest) {
 		},
 		want,
 	})
+
 }
 
 func testJacket55ForMember(tests *[]doMatchTest) {
+
 	entity := Entity{
 		class: purchaseClass,
 		attrs: map[string]string{
@@ -747,9 +785,11 @@ func testJacket55ForMember(tests *[]doMatchTest) {
 		},
 		want,
 	})
+
 }
 
 func testJacket55ForNonMember(tests *[]doMatchTest) {
+
 	entity := Entity{
 		class: purchaseClass,
 		attrs: map[string]string{
@@ -773,9 +813,11 @@ func testJacket55ForNonMember(tests *[]doMatchTest) {
 		},
 		want,
 	})
+
 }
 
 func testJacket75ForMember(tests *[]doMatchTest) {
+
 	entity := Entity{
 		class: purchaseClass,
 		attrs: map[string]string{
@@ -799,9 +841,11 @@ func testJacket75ForMember(tests *[]doMatchTest) {
 		},
 		want,
 	})
+
 }
 
 func testJacket75ForNonMember(tests *[]doMatchTest) {
+
 	entity := Entity{
 		class: purchaseClass,
 		attrs: map[string]string{
@@ -825,9 +869,11 @@ func testJacket75ForNonMember(tests *[]doMatchTest) {
 		},
 		want,
 	})
+
 }
 
 func testLamp35(tests *[]doMatchTest) {
+
 	entity := Entity{
 		class: purchaseClass,
 		attrs: map[string]string{
@@ -851,6 +897,7 @@ func testLamp35(tests *[]doMatchTest) {
 		},
 		want,
 	})
+
 }
 
 func testLamp55(tests *[]doMatchTest) {
@@ -880,6 +927,7 @@ func testLamp55(tests *[]doMatchTest) {
 }
 
 func testLamp75ForMember(tests *[]doMatchTest) {
+
 	entity := Entity{
 		class: purchaseClass,
 		attrs: map[string]string{
@@ -903,9 +951,11 @@ func testLamp75ForMember(tests *[]doMatchTest) {
 		},
 		want,
 	})
+
 }
 
 func testLamp75ForNonMember(tests *[]doMatchTest) {
+
 	entity := Entity{
 		class: purchaseClass,
 		attrs: map[string]string{
@@ -929,9 +979,11 @@ func testLamp75ForNonMember(tests *[]doMatchTest) {
 		},
 		want,
 	})
+
 }
 
 func testKettle35(tests *[]doMatchTest) {
+
 	entity := Entity{
 		class: purchaseClass,
 		attrs: map[string]string{
@@ -954,9 +1006,11 @@ func testKettle35(tests *[]doMatchTest) {
 		},
 		want,
 	})
+
 }
 
 func testKettle55(tests *[]doMatchTest) {
+
 	entity := Entity{
 		class: purchaseClass,
 		attrs: map[string]string{
@@ -980,9 +1034,11 @@ func testKettle55(tests *[]doMatchTest) {
 		},
 		want,
 	})
+
 }
 
 func testKettle75ForMember(tests *[]doMatchTest) {
+
 	entity := Entity{
 		class: purchaseClass,
 		attrs: map[string]string{
@@ -1005,9 +1061,11 @@ func testKettle75ForMember(tests *[]doMatchTest) {
 		},
 		want,
 	})
+
 }
 
 func testKettle75ForNonMember(tests *[]doMatchTest) {
+
 	entity := Entity{
 		class: purchaseClass,
 		attrs: map[string]string{
@@ -1031,9 +1089,11 @@ func testKettle75ForNonMember(tests *[]doMatchTest) {
 		},
 		want,
 	})
+
 }
 
 func testOven35(tests *[]doMatchTest) {
+
 	entity := Entity{
 		class: purchaseClass,
 		attrs: map[string]string{
@@ -1057,9 +1117,11 @@ func testOven35(tests *[]doMatchTest) {
 		},
 		want,
 	})
+
 }
 
 func testOven55(tests *[]doMatchTest) {
+
 	entity := Entity{
 		class: purchaseClass,
 		attrs: map[string]string{
@@ -1082,6 +1144,7 @@ func testOven55(tests *[]doMatchTest) {
 		},
 		want,
 	})
+
 }
 
 func setupRuleSetForPurchases() {
@@ -1281,6 +1344,7 @@ func setupRuleSetPurchaseOrSIPForOrder() {
 }
 
 func setupRuleSetOtherOrderTypesForOrder() {
+
 	rule1 := Rule{
 		[]RulePatternTerm{
 			{"mode", opEQ, "physical"},
@@ -1310,9 +1374,11 @@ func setupRuleSetOtherOrderTypesForOrder() {
 	ruleSets["otherordertypes"] = RuleSet{1, orderClass, "otherordertypes",
 		[]Rule{rule1, rule2, rule3},
 	}
+
 }
 
 func testSIPOrder(tests *[]doMatchTest) {
+
 	entity := Entity{
 		class: orderClass,
 		attrs: map[string]string{
@@ -1338,6 +1404,7 @@ func testSIPOrder(tests *[]doMatchTest) {
 		},
 		want,
 	})
+
 }
 
 func testSwitchDematOrder(tests *[]doMatchTest) {
@@ -1369,6 +1436,7 @@ func testSwitchDematOrder(tests *[]doMatchTest) {
 }
 
 func testSwitchDematExtHours(tests *[]doMatchTest) {
+
 	entity := Entity{
 		class: orderClass,
 		attrs: map[string]string{
@@ -1394,6 +1462,7 @@ func testSwitchDematExtHours(tests *[]doMatchTest) {
 		},
 		want,
 	})
+
 }
 
 func testRedemptionDematExtHours(tests *[]doMatchTest) {
@@ -1453,6 +1522,7 @@ func testPurchaseOvernightOrder(tests *[]doMatchTest) {
 }
 
 func testSIPLiquidOrder(tests *[]doMatchTest) {
+
 	entity := Entity{
 		class: orderClass,
 		attrs: map[string]string{
@@ -1478,6 +1548,7 @@ func testSIPLiquidOrder(tests *[]doMatchTest) {
 		},
 		want,
 	})
+
 }
 
 func testSwitchPhysicalOrder(tests *[]doMatchTest) {
