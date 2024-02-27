@@ -60,7 +60,7 @@ func WorkflowDelete(c *gin.Context, s *service.Service) {
 
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
-		lh.Log("Error while getting query instance from service Dependencies")
+		lh.Log("error while getting query instance from service Dependencies")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
@@ -84,7 +84,7 @@ func WorkflowDelete(c *gin.Context, s *service.Service) {
 		wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(nil))
 		return
 	}
-	lh.Debug0().LogActivity("failed to delete data from DB:", tag.String())
+	lh.Debug0().LogActivity("failed to delete data from db:", tag.String())
 	wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_InvalidRequest, nil)}))
 }
 
