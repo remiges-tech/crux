@@ -23,8 +23,8 @@ go tool cover -html=./coverage/coverage_workflow.out -o ./coverage/coverage_work
 
 
 3. coverage_wfinstance:
-go test -coverprofile=./coverage/coverage_wfinstance.out -coverpkg=./... server/wfinstance/test/wfinstance_new_test.go  server/wfinstance/test/wfinstance_abort_test.go   server/wfinstance/test/main_test.go
+go test -coverprofile=./coverage/coverage_wfinstance.out -coverpkg=./... server/wfinstance/test/wfinstance_new_test.go  server/wfinstance/test/wfinstance_abort_test.go server/wfinstance/test/wfinstance_list_test.go   server/wfinstance/test/main_test.go
 
-go tool cover -html=./coverage/coverage_wfinstance.out -o ./coverage/coverage_wfinstance.html -html=./coverage/coverage_wfinstance.out -o ./coverage/coverage_wfinstance.html
-
+go tool cover -html=./coverage/coverage_wfinstance.out -o ./coverage/coverage_wfinstance.html 
+git add .
 

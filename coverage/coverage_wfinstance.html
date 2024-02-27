@@ -69,21 +69,23 @@
 				
 				<option value="file6">github.com/remiges-tech/crux/db/sqlc-gen/stepworkflow.sql.go (76.9%)</option>
 				
-				<option value="file7">github.com/remiges-tech/crux/db/sqlc-gen/wfinstance.sql.go (85.7%)</option>
+				<option value="file7">github.com/remiges-tech/crux/db/sqlc-gen/wfinstance.sql.go (80.9%)</option>
 				
 				<option value="file8">github.com/remiges-tech/crux/server/wfinstance/do_match.go (66.7%)</option>
 				
-				<option value="file9">github.com/remiges-tech/crux/server/wfinstance/wfinstance_abort.go (65.9%)</option>
+				<option value="file9">github.com/remiges-tech/crux/server/wfinstance/wfinstance_abort.go (61.7%)</option>
 				
-				<option value="file10">github.com/remiges-tech/crux/server/wfinstance/wfinstance_new.go (77.2%)</option>
+				<option value="file10">github.com/remiges-tech/crux/server/wfinstance/wfinstance_list.go (76.1%)</option>
 				
-				<option value="file11">github.com/remiges-tech/crux/server/wfinstance/wfinstancenew_add.go (85.4%)</option>
+				<option value="file11">github.com/remiges-tech/crux/server/wfinstance/wfinstance_new.go (77.2%)</option>
 				
-				<option value="file12">github.com/remiges-tech/crux/server/wfinstance/wfinstancenew_validation.go (75.0%)</option>
+				<option value="file12">github.com/remiges-tech/crux/server/wfinstance/wfinstancenew_add.go (85.4%)</option>
 				
-				<option value="file13">github.com/remiges-tech/crux/testutils/test_utils.go (0.0%)</option>
+				<option value="file13">github.com/remiges-tech/crux/server/wfinstance/wfinstancenew_validation.go (75.0%)</option>
 				
-				<option value="file14">github.com/remiges-tech/crux/types/types.go (42.9%)</option>
+				<option value="file14">github.com/remiges-tech/crux/testutils/test_utils.go (0.0%)</option>
+				
+				<option value="file15">github.com/remiges-tech/crux/types/types.go (42.9%)</option>
 				
 				</select>
 			</div>
@@ -131,10 +133,12 @@ func HandleDatabaseError(err error) wscutils.ErrorMessage <span class="cov0" tit
                 case "XX000":<span class="cov0" title="0"> //ERROR: cache lookup failed for type 67119 (SQLSTATE XX000)
                         return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_Internal_Retry, nil)</span>
                 }
-        } else<span class="cov0" title="0"> if err.Error() == "no rows in result set" </span><span class="cov0" title="0">{
-                field := "slice/app/class"
-                return wscutils.BuildErrorMessage(1006, server.ErrCode_InvalidRequest, &amp;field)
-        }</span> else<span class="cov0" title="0"> {
+        } else<span class="cov0" title="0"> if err != nil </span><span class="cov0" title="0">{
+                if err.Error() == "no rows in result set" </span><span class="cov0" title="0">{
+                        field := "slice/app/class"
+                        return wscutils.BuildErrorMessage(1006, server.ErrCode_InvalidRequest, &amp;field)
+                }</span>
+        } else<span class="cov0" title="0"> {
                 return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_DatabaseError, nil)
         }</span>
         <span class="cov0" title="0">return wscutils.ErrorMessage{}</span>
@@ -1514,16 +1518,29 @@ const wfschemadelete = `-- name: Wfschemadelete :exec
 DELETE from schema
 where
     id in (
-        SELECT schema.id
-        FROM schema, realm, realmslice
-        WHERE
-            schema.realm = realm.id
-            and schema.slice = realmslice.id
-            and schema.slice = $1
-            and realmslice.realm = realm.shortname
-            and realm.id = $4
-            and schema.class = $3
-            AND schema.app = $2
+        select id
+        from (
+                SELECT schema.id
+                FROM schema, realm, realmslice
+                WHERE
+                    schema.realm = realm.id
+                    and schema.slice = realmslice.id
+                    and schema.slice = $1
+                    and realmslice.realm = realm.shortname
+                    and schema.realm = $4
+                    and schema.class = $3
+                    AND schema.app =  $2
+            ) as id
+        where
+            id not in (
+                SELECT schemaid
+                FROM ruleset
+                where
+                    realm = $4
+                    and slice = $1
+                    and app =  $2
+                    and class = $3
+            )
     )
 `
 
@@ -1776,6 +1793,100 @@ func (q *Queries) GetWFINstance(ctx context.Context, arg GetWFINstanceParams) (i
         err := row.Scan(&amp;count)
         return count, err
 }</span>
+
+const getWFInstanceList = `-- name: GetWFInstanceList :many
+SELECT id, entityid, slice, app, class, workflow, step, loggedat, doneat, nextstep, parent FROM public.wfinstance
+WHERE 
+   ($1::INTEGER is null OR slice = $1::INTEGER)
+   AND ($2::text is null OR entityid = $2::text)
+   AND ($3::text is null OR app = $3::text)
+   AND ($4::text is null OR workflow = $4::text)
+   AND($5::INTEGER is null OR  parent = $5::INTEGER)
+`
+
+type GetWFInstanceListParams struct {
+        Slice    pgtype.Int4 `json:"slice"`
+        Entityid pgtype.Text `json:"entityid"`
+        App      pgtype.Text `json:"app"`
+        Workflow pgtype.Text `json:"workflow"`
+        Parent   pgtype.Int4 `json:"parent"`
+}
+
+func (q *Queries) GetWFInstanceList(ctx context.Context, arg GetWFInstanceListParams) ([]Wfinstance, error) <span class="cov8" title="1">{
+        rows, err := q.db.Query(ctx, getWFInstanceList,
+                arg.Slice,
+                arg.Entityid,
+                arg.App,
+                arg.Workflow,
+                arg.Parent,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">defer rows.Close()
+        var items []Wfinstance
+        for rows.Next() </span><span class="cov8" title="1">{
+                var i Wfinstance
+                if err := rows.Scan(
+                        &amp;i.ID,
+                        &amp;i.Entityid,
+                        &amp;i.Slice,
+                        &amp;i.App,
+                        &amp;i.Class,
+                        &amp;i.Workflow,
+                        &amp;i.Step,
+                        &amp;i.Loggedat,
+                        &amp;i.Doneat,
+                        &amp;i.Nextstep,
+                        &amp;i.Parent,
+                ); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov8" title="1">items = append(items, i)</span>
+        }
+        <span class="cov8" title="1">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return items, nil</span>
+}
+
+const getWFInstanceListByParents = `-- name: GetWFInstanceListByParents :many
+SELECT id, entityid, slice, app, class, workflow, step, loggedat, doneat, nextstep, parent FROM public.wfinstance
+WHERE 
+   ($1::INTEGER[] IS NOT NULL AND id = ANY($1::INTEGER[]))
+`
+
+func (q *Queries) GetWFInstanceListByParents(ctx context.Context, id []int32) ([]Wfinstance, error) <span class="cov8" title="1">{
+        rows, err := q.db.Query(ctx, getWFInstanceListByParents, id)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">defer rows.Close()
+        var items []Wfinstance
+        for rows.Next() </span><span class="cov8" title="1">{
+                var i Wfinstance
+                if err := rows.Scan(
+                        &amp;i.ID,
+                        &amp;i.Entityid,
+                        &amp;i.Slice,
+                        &amp;i.App,
+                        &amp;i.Class,
+                        &amp;i.Workflow,
+                        &amp;i.Step,
+                        &amp;i.Loggedat,
+                        &amp;i.Doneat,
+                        &amp;i.Nextstep,
+                        &amp;i.Parent,
+                ); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov8" title="1">items = append(items, i)</span>
+        }
+        <span class="cov8" title="1">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return items, nil</span>
+}
 </pre>
 		
 		<pre class="file" id="file8" style="display: none">package wfinstance
@@ -1906,6 +2017,7 @@ func inconsistentRuleSet(calledSetName string, currSetName string) (ActionSet, b
 
 import (
         "github.com/gin-gonic/gin"
+        "github.com/go-playground/validator/v10"
         "github.com/jackc/pgx/v5/pgtype"
         "github.com/remiges-tech/alya/service"
         "github.com/remiges-tech/alya/wscutils"
@@ -1917,8 +2029,8 @@ import (
 
 // AbortWFInstance rquest format
 type WFInstanceAbortRquest struct {
-        ID       *int32  `json:"id"`
-        EntityID *string `json:"entityid"`
+        ID       *int32  `json:"id,omitempty"`
+        EntityID *string `json:"entityid,omitempty"`
 }
 
 func GetWFInstanceAbort(c *gin.Context, s *service.Service) <span class="cov8" title="1">{
@@ -1947,7 +2059,14 @@ func GetWFInstanceAbort(c *gin.Context, s *service.Service) <span class="cov8" t
                 lh.Debug0().LogActivity("error while binding json request error:", err)
                 return
         }</span>
-        //validate request
+        // Standard validation of Incoming Request
+        <span class="cov8" title="1">validationErrors := wscutils.WscValidate(request, func(err validator.FieldError) []string </span><span class="cov0" title="0">{ return []string{} }</span>)
+        <span class="cov8" title="1">if len(validationErrors) &gt; 0 </span><span class="cov0" title="0">{
+                lh.Debug0().LogActivity("validation error:", validationErrors)
+                wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
+                return
+        }</span>
+        // Custom validation
         <span class="cov8" title="1">if request.ID != nil &amp;&amp; request.EntityID != nil </span><span class="cov8" title="1">{
                 lh.Debug0().Log("Both ID and EntityID cannot be present at the same time")
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_RequiredOneOf, server.ErrCode_RequiredOne))
@@ -1997,6 +2116,212 @@ func GetWFInstanceAbort(c *gin.Context, s *service.Service) <span class="cov8" t
 </pre>
 		
 		<pre class="file" id="file10" style="display: none">package wfinstance
+
+import (
+        "github.com/gin-gonic/gin"
+        "github.com/go-playground/validator/v10"
+        "github.com/jackc/pgx/v5/pgtype"
+        "github.com/remiges-tech/alya/service"
+        "github.com/remiges-tech/alya/wscutils"
+        "github.com/remiges-tech/crux/db"
+        "github.com/remiges-tech/crux/db/sqlc-gen"
+        "github.com/remiges-tech/crux/server"
+        "github.com/remiges-tech/crux/types"
+)
+
+// WFInstanceList rquest format
+type WFInstanceListRequest struct {
+        Slice    *int32  `json:"slice,omitempty"`
+        EntityID *string `json:"entityid,omitempty"`
+        App      *string `json:"app,omitempty"`
+        Workflow *string `json:"workflow,omitempty"`
+        Parent   *int32  `json:"parent,omitempty"`
+}
+
+// WFInstanceList response format
+type WFInstanceListResponse struct {
+        ID         int32            `json:"id"`
+        EntityID   string           `json:"entityid"`
+        Slice      int32            `json:"slice"`
+        App        string           `json:"app"`
+        Class      string           `json:"class"`
+        Workflow   string           `json:"workflow"`
+        Step       string           `json:"step"`
+        LoggedDate pgtype.Timestamp `json:"loggdat"`
+        DoneAt     string           `json:"doneat"`
+        Nextstep   string           `json:"nextstep"`
+        Parent     int32            `json:"parent,omitempty"`
+}
+
+type WFInstanceListParams struct {
+        Slice    int32
+        EntityID string
+        App      string
+        Workflow string
+        Parent   int32
+}
+
+func GetWFInstanceList(c *gin.Context, s *service.Service) <span class="cov8" title="1">{
+        lh := s.LogHarbour.WithWhatClass("wfinstance")
+        lh.Log("WFInstanceList request received")
+
+        var (
+                request WFInstanceListRequest
+                params  WFInstanceListParams
+        )
+
+        isCapable, _ := types.Authz_check(types.OpReq{
+                User: USERID,
+        }, false)
+
+        if !isCapable </span><span class="cov0" title="0">{
+                lh.Info().LogActivity("Unauthorized user:", USERID)
+                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
+                return
+        }</span>
+
+        // Bind request
+        <span class="cov8" title="1">err := wscutils.BindJSON(c, &amp;request)
+        if err != nil </span><span class="cov0" title="0">{
+                lh.Debug0().LogActivity("error while binding json request error:", err)
+                return
+        }</span>
+
+        // Check for validation error
+        <span class="cov8" title="1">valError := wscutils.WscValidate(request, func(err validator.FieldError) []string </span><span class="cov0" title="0">{ return []string{} }</span>)
+        <span class="cov8" title="1">if len(valError) &gt; 0 </span><span class="cov0" title="0">{
+                wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, valError))
+                lh.LogActivity("validation error:", valError)
+                return
+        }</span>
+
+        // To get request parameters
+        <span class="cov8" title="1">params = GetParams(request, params)
+        lh.Debug0().LogActivity("Parameters from request :", params)
+
+        query, ok := s.Dependencies["queries"].(*sqlc.Queries)
+        if !ok </span><span class="cov0" title="0">{
+                lh.Log("Error while getting query instance from service Dependencies")
+                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
+                return
+        }</span>
+
+        // To get requested wfinstance list
+        <span class="cov8" title="1">wfinstanceList, error := query.GetWFInstanceList(c, sqlc.GetWFInstanceListParams{
+                Slice:    pgtype.Int4{Int32: params.Slice, Valid: params.Slice != 0},
+                Entityid: pgtype.Text{String: params.EntityID, Valid: !types.IsStringEmpty(&amp;params.EntityID)},
+                App:      pgtype.Text{String: params.App, Valid: !types.IsStringEmpty(&amp;params.App)},
+                Workflow: pgtype.Text{String: params.Workflow, Valid: !types.IsStringEmpty(&amp;params.Workflow)},
+                Parent:   pgtype.Int4{Int32: params.Parent, Valid: params.Parent != 0},
+        })
+        if error != nil </span><span class="cov0" title="0">{
+                lh.LogActivity("error while getting wfinstance List  :", error.Error())
+                errmsg := db.HandleDatabaseError(err)
+                wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+                return
+        }</span>
+
+        <span class="cov8" title="1">if len(wfinstanceList) == 0 </span><span class="cov8" title="1">{
+                lh.Debug0().Log("requestd wfinstanceList not found")
+                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ErrCode_NotFound))
+                return
+        }</span>
+
+        // To Get parentList from WFInstanceList data
+        <span class="cov8" title="1">parentList := getParentList(wfinstanceList)
+        lh.Debug0().LogActivity("Parameters from request :", params)
+
+        for parentList != nil </span><span class="cov8" title="1">{
+                lh.Debug0().Log("Inside for loop : if parentList is Not Nil ")
+                // To get GetWFInstanceList by parentList
+                wfinstanceListByParents, err := query.GetWFInstanceListByParents(c, parentList)
+                if err != nil </span><span class="cov0" title="0">{
+                        lh.LogActivity("error while getting wfinstance List by parentList  :", err.Error())
+                        errmsg := db.HandleDatabaseError(err)
+                        wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+                        return
+                }</span>
+
+                // Append wfinstanceListByParents data
+                <span class="cov8" title="1">wfinstanceList = append(wfinstanceList, wfinstanceListByParents...)
+
+                // Update parentList using getParentList function
+                parentList = getParentList(wfinstanceListByParents)
+                lh.Debug0().LogActivity(" updated ParentList :", parentList)</span>
+        }
+        <span class="cov8" title="1">var responseList []WFInstanceListResponse
+        for _, val := range wfinstanceList </span><span class="cov8" title="1">{
+                var response WFInstanceListResponse
+                response.ID = val.ID
+                response.EntityID = val.Entityid
+                response.Slice = val.Slice
+                response.App = val.App
+                response.Class = val.Class
+                response.Workflow = val.Workflow
+                response.Step = val.Step
+                response.LoggedDate = val.Loggedat
+                response.Nextstep = val.Nextstep
+
+                // Handling the omitted Parent field
+                if val.Parent.Valid </span><span class="cov8" title="1">{
+                        response.Parent = val.Parent.Int32
+                }</span>
+
+                // Handling the DoneAt field
+                <span class="cov8" title="1">if !val.Doneat.Valid </span><span class="cov8" title="1">{
+                        response.DoneAt = ""
+                }</span> else<span class="cov0" title="0"> {
+                        response.DoneAt = val.Doneat.Time.String()
+                }</span>
+
+                <span class="cov8" title="1">responseList = append(responseList, response)</span>
+        }
+
+        <span class="cov8" title="1">lh.Debug0().Log("Record found finished execution of WfinstaceList request")
+        wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(map[string][]WFInstanceListResponse{"wfinstance": responseList}))</span>
+}
+
+// To Get Parameters from WFInstanceList Request
+func GetParams(req WFInstanceListRequest, params WFInstanceListParams) WFInstanceListParams <span class="cov8" title="1">{
+
+        if req.Slice != nil </span><span class="cov8" title="1">{
+                params.Slice = *req.Slice
+        }</span>
+        <span class="cov8" title="1">if req.EntityID != nil </span><span class="cov8" title="1">{
+                params.EntityID = *req.EntityID
+        }</span>
+        <span class="cov8" title="1">if req.App != nil </span><span class="cov8" title="1">{
+                params.App = *req.App
+        }</span>
+        <span class="cov8" title="1">if req.Workflow != nil </span><span class="cov8" title="1">{
+                params.Workflow = *req.Workflow
+        }</span>
+        <span class="cov8" title="1">if req.Parent != nil </span><span class="cov8" title="1">{
+                params.Parent = *req.Parent
+        }</span>
+        <span class="cov8" title="1">return params</span>
+}
+
+// To Get ParentList from WFInstanceList data respone
+func getParentList(data []sqlc.Wfinstance) []int32 <span class="cov8" title="1">{
+        var parentsMap = make(map[int32]bool)
+        var parents []int32
+
+        for _, val := range data </span><span class="cov8" title="1">{
+                if val.Parent.Valid </span><span class="cov8" title="1">{
+                        parentValue := val.Parent.Int32
+                        if !parentsMap[parentValue] </span><span class="cov8" title="1">{
+                                parents = append(parents, parentValue)
+                                parentsMap[parentValue] = true
+                        }</span>
+                }
+        }
+        <span class="cov8" title="1">return parents</span>
+
+}
+</pre>
+		
+		<pre class="file" id="file11" style="display: none">package wfinstance
 
 import (
         "fmt"
@@ -2138,7 +2463,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) <span class="cov8" tit
                 }
                 response, err = addTasks(addTaskRequest, s, c)
                 if err != nil </span><span class="cov0" title="0">{
-                        lh.LogActivity("error while adding multiple steps in wfinstanvce table :", error.Error())
+                        lh.LogActivity("error while adding multiple steps in wfinstance table :", error.Error())
                         wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
                         return
                 }</span>
@@ -2165,7 +2490,7 @@ func getValidPropertyAttr(a ActionSet) (map[string]string, error) <span class="c
 }
 </pre>
 		
-		<pre class="file" id="file11" style="display: none">package wfinstance
+		<pre class="file" id="file12" style="display: none">package wfinstance
 
 import (
         "errors"
@@ -2301,7 +2626,7 @@ func ConvertToPGType(value int32) pgtype.Int4 <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file12" style="display: none">package wfinstance
+		<pre class="file" id="file13" style="display: none">package wfinstance
 
 import (
         "encoding/json"
@@ -2585,7 +2910,7 @@ func getEntity(en map[string]string) Entity <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file13" style="display: none">package testutils
+		<pre class="file" id="file14" style="display: none">package testutils
 
 import (
         "encoding/json"
@@ -2628,7 +2953,7 @@ type TestCasesStruct struct {
 }
 </pre>
 		
-		<pre class="file" id="file14" style="display: none">package types
+		<pre class="file" id="file15" style="display: none">package types
 
 import (
         "encoding/json"

@@ -50,7 +50,7 @@ func TestGetWFInstanceAbort(t *testing.T) {
 
 func wfInstanceAbortTestcase() []testutils.TestCasesStruct {
 	var (
-		ID              int32  = 77
+		ID              int32  = 777777
 		entityID        string = "0eb8da50-aece-11ee-b168-3b192f7cd2b6"
 		invalidID       int32  = 233
 		invalidEntityID string = "0eb8da50-aece-11ee-b168"

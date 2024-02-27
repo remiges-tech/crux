@@ -1,0 +1,33 @@
+{
+    "status": "success",
+    "data": {
+        "wfinstance": [
+            {
+                "id": 77,
+                "entityid": "tempentityid",
+                "slice": 2,
+                "app": "retailBANK",
+                "class": "inventoryitems",
+                "workflow": "temp",
+                "step": "tempstep",
+                "loggdat": "2024-02-05T00:00:00Z",
+                "doneat": "",
+                "nextstep": "temp",
+                "parent": 78
+            },
+            {
+                "id": 78,
+                "entityid": "tempentityid",
+                "slice": 2,
+                "app": "retailBANK",
+                "class": "inventoryitems",
+                "workflow": "temp",
+                "step": "tempstep",
+                "loggdat": "2024-02-05T00:00:00Z",
+                "doneat": "",
+                "nextstep": "temp"
+            }
+        ]
+    },
+    "messages": null
+}
