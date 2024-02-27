@@ -72,10 +72,10 @@ type Property struct {
 }
 
 type WorkflowGetReq struct {
-	Slice int32  `json:"slice" validate:"required,gt=0,max=10"`
-	App   string `json:"app" validate:"required,alpha,max=10"`
-	Class string `json:"class" validate:"required,alpha,max=10"`
-	Name  string `json:"name" validate:"required,alpha,max=10"`
+	Slice int32  `json:"slice" validate:"required,gt=0,lt=15"`
+	App   string `json:"app" validate:"required,alpha,lt=15"`
+	Class string `json:"class" validate:"required,alpha,lt=15"`
+	Name  string `json:"name" validate:"required,alpha,lt=15"`
 }
 
 type WorkflowgetRow struct {
@@ -93,26 +93,11 @@ type WorkflowgetRow struct {
 	Editedby   pgtype.Text      `json:"editedby"`
 }
 
-// Workflow represents the structure of a workflow entry
-type WorkflowListResp struct {
-	ID         int32            `json:"id" validate:"gt=0"`
-	Slice      int32            `json:"slice" validate:"gt=0"`
-	App        string           `json:"app"`
-	Class      string           `json:"class"`
-	Name       string           `json:"name"`
-	IsActive   bool             `json:"is_active"`
-	IsInternal bool             `json:"is_internal"`
-	CreatedAt  pgtype.Timestamp `json:"createdat"`
-	CreatedBy  string           `json:"createdby"`
-	EditedAt   pgtype.Timestamp `json:"editedat"`
-	EditedBy   string           `json:"editedby"`
-}
-
 type WorkflowListReq struct {
-	Slice      *int32  `json:"slice,omitempty"`
-	App        *string `json:"app,omitempty"`
-	Class      *string `json:"class,omitempty"`
-	Name       *string `json:"name,omitempty"`
-	IsActive   *bool   `json:"is_active,omitempty"`
-	IsInternal *bool   `json:"is_internal,omitempty"`
+	Slice      int32  `json:"slice,omitempty" validate:"lt=15"`
+	App        string `json:"app,omitempty" validate:"lt=15"`
+	Class      string `json:"class,omitempty" validate:"lt=15"`
+	Name       string `json:"name,omitempty" validate:"lt=15"`
+	IsActive   bool   `json:"is_active,omitempty"`
+	IsInternal bool   `json:"is_internal,omitempty"`
 }

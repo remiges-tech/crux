@@ -97,17 +97,19 @@ func main() {
 	customValidationMap := map[string]int{
 		"required":  101,
 		"gt":        102,
-		"max":       105,
 		"alpha":     103,
 		"lowercase": 104,
+		"max":       105,
+		"lt":        106,
 	}
 	// Custom validation tag-to-error code map
 	customErrCodeMap := map[string]string{
 		"required":  "required",
 		"gt":        "greater",
-		"max":       "exceed the maximum value allowed",
 		"alpha":     "alphabet",
 		"lowercase": "lowercase",
+		"max":       "exceed the maximum value allowed",
+		"lt":        "exceed the limit value allowed",
 	}
 	// Register the custom map with wscutils
 	wscutils.SetValidationTagToMsgIDMap(customValidationMap)
@@ -142,7 +144,7 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/workflowNew", workflow.WorkFlowNew)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/workflowUpdate", workflow.WorkFlowUpdate)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodDelete, "/workflowdelete", workflow.WorkflowDelete)
-
+	//wfinstance
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstancenew", wfinstance.GetWFinstanceNew)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstanceabort", wfinstance.GetWFInstanceAbort)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstancelist", wfinstance.GetWFInstanceList)

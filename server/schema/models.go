@@ -16,10 +16,11 @@ type SchemaGetReq struct {
 	Class string `json:"class" validate:"required,alpha,lt=15"`
 }
 
+// used in test cases no need for validation
 type SchemaListStruct struct {
-	Slice *int32  `form:"slice" validate:"omitempty,gt=0"`
-	App   *string `form:"app" validate:"omitempty,alpha,lt=15"`
-	Class *string `form:"class" validate:"omitempty,lowercase,lt=15"`
+	Slice *int32  `form:"slice"`
+	App   *string `form:"app"`
+	Class *string `form:"class"`
 }
 
 type attribute struct {
@@ -29,9 +30,9 @@ type attribute struct {
 	ValType   string   `json:"valtype,omitempty"`
 	Vals      []string `json:"vals,omitempty"`
 	Enumdesc  []string `json:"enumdesc,omitempty"`
-	Vallt    int32    `json:"vallt,omitempty"`
+	Vallt     int32    `json:"vallt,omitempty"`
 	ValMin    int32    `json:"valmin,omitempty"`
-	Lenlt    int32    `json:"lenlt,omitempty"`
+	Lenlt     int32    `json:"lenlt,omitempty"`
 	LenMin    int32    `json:"lenmin,omitempty"`
 }
 type patternSchema struct {

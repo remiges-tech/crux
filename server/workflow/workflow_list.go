@@ -33,7 +33,6 @@ func WorkflowList(c *gin.Context, s *service.Service) {
 	var (
 		userID     = "1234"
 		capForList = []string{"workflow"}
-		// userRealm  int32 = 1 //this is implemented in processRequest() below
 	)
 	isCapable, _ := server.Authz_check(types.OpReq{
 		User:      userID,
@@ -48,7 +47,6 @@ func WorkflowList(c *gin.Context, s *service.Service) {
 
 	var (
 		request    WorkflowListReq
-		params     WorkflowListParams
 		dbResponse []sqlc.WorkflowListRow
 	)
 
@@ -59,10 +57,10 @@ func WorkflowList(c *gin.Context, s *service.Service) {
 	}
 
 	// Check for validation error
-	valError := wscutils.WscValidate(request, func(err validator.FieldError) []string { return []string{} })
-	if len(valError) > 0 {
-		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, valError))
-		lh.Debug0().LogActivity("validation error:", valError)
+	validationErrors := wscutils.WscValidate(request, func(err validator.FieldError) []string { return []string{} })
+	if len(validationErrors) > 0 {
+		lh.Debug0().LogDebug("standard validation errors", validationErrors)
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
 		return
 	}
 
@@ -72,19 +70,17 @@ func WorkflowList(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
-	// Populate parameters
-	populateParams(&request, &params)
 
 	// Check if the caller has root capabilities
 	hasRootCapabilities := HasRootCapabilities()
 
 	// Process the request based on the provided BRD
-	dbResponse, err = processRequest(c, lh, hasRootCapabilities, query, params, &request)
+	dbResponse, err = processRequest(c, lh, hasRootCapabilities, query, &request)
 
 	if err != nil {
 		if err.Error() == AUTH_ERROR {
 			// Generate "auth" error
-			lh.Debug0().Error(err).Log("error while getting query instance from service dependencies")
+			lh.Debug0().Error(err).Log(AUTH_ERROR)
 			wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Unauthorized, server.ErrCode_Unauthorized, nil)}))
 			return
 		}
@@ -98,31 +94,8 @@ func WorkflowList(c *gin.Context, s *service.Service) {
 	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(map[string][]sqlc.WorkflowListRow{"workflows": dbResponse}))
 }
 
-// Function to populate parameters from the request
-func populateParams(request *WorkflowListReq, params *WorkflowListParams) {
-	if request.Slice != nil {
-		params.Slice = *request.Slice
-	}
-
-	if request.App != nil {
-		params.App = *request.App
-	}
-	if request.Class != nil {
-		params.Class = *request.Class
-	}
-	if request.Name != nil {
-		params.Name = *request.Name
-	}
-	if request.IsActive != nil {
-		params.IsActive = *request.IsActive
-	}
-	if request.IsInternal != nil {
-		params.IsInternal = *request.IsInternal
-	}
-}
-
 // Function to process the request and get the workflows
-func processRequest(c *gin.Context, lh *logharbour.Logger, hasRootCapabilities bool, query *sqlc.Queries, params WorkflowListParams, request *WorkflowListReq) ([]sqlc.WorkflowListRow, error) {
+func processRequest(c *gin.Context, lh *logharbour.Logger, hasRootCapabilities bool, query *sqlc.Queries, request *WorkflowListReq) ([]sqlc.WorkflowListRow, error) {
 	lh.Debug0().Log("processRequest request received")
 
 	// implement the user realm here
@@ -131,19 +104,19 @@ func processRequest(c *gin.Context, lh *logharbour.Logger, hasRootCapabilities b
 	if !hasRootCapabilities {
 		lh.Debug0().Log("user not have root cap")
 		//  if app parameter is present then
-		if !server.IsStringEmpty(request.App) {
+		if !server.IsStringEmpty(&request.App) {
 			lh.Debug0().Log("user has app params present")
 			// check if named app matches = user has "ruleset" rights
-			if server.HasRulesetRights(*request.App) {
+			if server.HasRulesetRights(request.App) {
 				lh.Debug0().Log("user has app rights")
 				return query.WorkflowList(c, sqlc.WorkflowListParams{
-					Slice:      pgtype.Int4{Int32: *request.Slice, Valid: request.Slice != nil},
-					App:        []string{*request.App},
+					Slice:      pgtype.Int4{Int32: request.Slice, Valid: request.Slice > 0},
+					App:        []string{request.App},
 					Realm:      userRealm,
-					Class:      pgtype.Text{String: *request.Class, Valid: !server.IsStringEmpty(request.Class)},
-					Setname:    pgtype.Text{String: *request.Name, Valid: !server.IsStringEmpty(request.Name)},
-					IsActive:   pgtype.Bool{Bool: *request.IsActive, Valid: request.IsActive != nil},
-					IsInternal: pgtype.Bool{Bool: *request.IsInternal, Valid: request.IsInternal != nil},
+					Class:      pgtype.Text{String: request.Class, Valid: !server.IsStringEmpty(&request.Class)},
+					Setname:    pgtype.Text{String: request.Name, Valid: !server.IsStringEmpty(&request.Name)},
+					IsActive:   pgtype.Bool{Bool: request.IsActive, Valid: &request.IsActive != nil},
+					IsInternal: pgtype.Bool{Bool: request.IsInternal, Valid: &request.IsInternal != nil},
 				})
 			}
 			lh.Debug0().Log("user not have 'ruleset' rights")
@@ -159,17 +132,17 @@ func processRequest(c *gin.Context, lh *logharbour.Logger, hasRootCapabilities b
 		})
 	}
 
-	if !server.IsStringEmpty(request.App) {
+	if !server.IsStringEmpty(&request.App) {
 		lh.Debug0().Log("user have root cap with 'app'")
 		// the workflows of that app
 		return query.WorkflowList(c, sqlc.WorkflowListParams{
-			Slice:      pgtype.Int4{Int32: *request.Slice, Valid: request.Slice != nil},
-			App:        []string{*request.App},
+			Slice:      pgtype.Int4{Int32: request.Slice, Valid: request.Slice > 0},
+			App:        []string{request.App},
 			Realm:      userRealm,
-			Class:      pgtype.Text{String: *request.Class, Valid: !server.IsStringEmpty(request.Class)},
-			Setname:    pgtype.Text{String: *request.Name, Valid: !server.IsStringEmpty(request.Name)},
-			IsActive:   pgtype.Bool{Bool: *request.IsActive, Valid: request.IsActive != nil},
-			IsInternal: pgtype.Bool{Bool: *request.IsInternal, Valid: request.IsInternal != nil},
+			Class:      pgtype.Text{String: request.Class, Valid: !server.IsStringEmpty(&request.Class)},
+			Setname:    pgtype.Text{String: request.Name, Valid: !server.IsStringEmpty(&request.Name)},
+			IsActive:   pgtype.Bool{Bool: request.IsActive, Valid: &request.IsActive != nil},
+			IsInternal: pgtype.Bool{Bool: request.IsInternal, Valid: &request.IsInternal != nil},
 		})
 	}
 	lh.Debug0().Log("user have root cap or 'app' is nil")

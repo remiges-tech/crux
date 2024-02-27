@@ -47,7 +47,7 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 	}, false)
 
 	if !isCapable {
-		lh.Info().LogActivity("Unauthorized user:", userID)
+		lh.Info().LogActivity("unauthorized user:", userID)
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
 		return
 	}
@@ -68,7 +68,7 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 	}
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
-		lh.Log("Error while getting query instance from service Dependencies")
+		lh.Log("error while getting query instance from service Dependencies")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
@@ -79,7 +79,7 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 		Realm: userRealm,
 	})
 	if err != nil {
-		lh.Debug0().Error(err).Log("failed to get data from DB:")
+		lh.Debug0().Error(err).Log("failed to get data from db")
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
@@ -87,12 +87,12 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 
 	errors := response.bindSchemaGetResp(s, dbResponse)
 	if len(errors) > 0 {
-		lh.Debug0().Error(err).Log("error while converting byte patternschema or action schema to struct:")
+		lh.Debug0().Error(err).Log("error while converting byte patternschema or action schema to struct")
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, errors))
 		return
 	}
 
-	lh.Debug0().Log("Record found finished execution of SchemaGet()")
+	lh.Debug0().Log("record found finished execution of SchemaGet()")
 	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(response))
 }
 
