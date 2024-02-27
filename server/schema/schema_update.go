@@ -19,9 +19,9 @@ import (
 )
 
 type updateSchema struct {
-	Slice         int32          `json:"slice" validate:"required,gt=0"`
-	App           string         `json:"App" validate:"required,alpha"`
-	Class         string         `json:"class" validate:"required,lowercase"`
+	Slice         int32          `json:"slice" validate:"required,gt=0,lt=15"`
+	App           string         `json:"App" validate:"required,alpha,lt=15"`
+	Class         string         `json:"class" validate:"required,lowercase,lt=15"`
 	PatternSchema *patternSchema `json:"patternSchema,omitempty"`
 	ActionSchema  *actionSchema  `json:"actionSchema,omitempty"`
 }
@@ -45,7 +45,7 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 
 	err := wscutils.BindJSON(c, &sh)
 	if err != nil {
-		l.LogActivity("Error Unmarshalling Query paramaeters to struct:", err.Error())
+		l.Error(err).Log("Error Unmarshalling Query paramaeters to struct:")
 		return
 	}
 
@@ -86,13 +86,13 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 func schemaUpdateWithTX(c context.Context, query *sqlc.Queries, connpool *pgxpool.Pool, l *logharbour.Logger, sh updateSchema) error {
 	patternSchema, err := json.Marshal(sh.PatternSchema)
 	if err != nil {
-		l.Debug1().LogDebug("Error while marshaling patternSchema", err)
+		l.Debug1().Error(err).Log("Error while marshaling patternSchema")
 		return err
 	}
 
 	actionSchema, err := json.Marshal(sh.ActionSchema)
 	if err != nil {
-		l.Debug1().LogDebug("Error while marshaling actionSchema", err)
+		l.Debug1().Error(err).Log("Error while marshaling actionSchema")
 		return err
 	}
 

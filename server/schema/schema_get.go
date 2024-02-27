@@ -55,7 +55,7 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 	// step 1: json request binding with a struct
 	err := wscutils.BindJSON(c, &request)
 	if err != nil {
-		lh.Debug0().LogActivity("error while binding json request error:", err.Error())
+		lh.Debug0().Error(err).Log("error while binding json request error:")
 		return
 	}
 
@@ -79,7 +79,7 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 		Realm: userRealm,
 	})
 	if err != nil {
-		lh.Debug0().LogActivity("failed to get data from DB:", err.Error())
+		lh.Debug0().Error(err).Log("failed to get data from DB:")
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
@@ -87,7 +87,7 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 
 	errors := response.bindSchemaGetResp(s, dbResponse)
 	if len(errors) > 0 {
-		lh.Debug0().LogActivity("error while converting byte patternschema or action schema to struct:", err)
+		lh.Debug0().Error(err).Log("error while converting byte patternschema or action schema to struct:")
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, errors))
 		return
 	}

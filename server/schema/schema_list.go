@@ -16,9 +16,9 @@ import (
 )
 
 type SchemaStruct struct {
-	Slice int32  `json:"slice"`
-	App   string `json:"app"`
-	Class string `json:"class"`
+	Slice int32  `json:"slice" validate:"lt=15"`
+	App   string `json:"app" validate:"lt=15"`
+	Class string `json:"class" validate:"lt=15"`
 }
 
 var CapForList = []string{"ruleset", "schema", "root", "report"}

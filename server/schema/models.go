@@ -3,23 +3,23 @@ package schema
 import "github.com/remiges-tech/crux/types"
 
 type Schema struct {
-	Slice         int32               `json:"slice" validate:"required,gt=0"`
-	App           string              `json:"App" validate:"required,alpha"`
-	Class         string              `json:"class" validate:"required,lowercase"`
+	Slice         int32               `json:"slice" validate:"required,gt=0,lt=15"`
+	App           string              `json:"App" validate:"required,alpha,lt=15"`
+	Class         string              `json:"class" validate:"required,lowercase,lt=15"`
 	PatternSchema types.PatternSchema `json:"patternSchema"`
 	ActionSchema  types.ActionSchema  `json:"actionSchema"`
 }
 
 type SchemaGetReq struct {
-	Slice int32  `json:"slice" validate:"required,gt=0",max=10`
-	App   string `json:"app" validate:"required,alpha,max=10"`
-	Class string `json:"class" validate:"required,alpha,max=10"`
+	Slice int32  `json:"slice" validate:"required,gt=0,lt=15"`
+	App   string `json:"app" validate:"required,alpha,lt=15"`
+	Class string `json:"class" validate:"required,alpha,lt=15"`
 }
 
 type SchemaListStruct struct {
 	Slice *int32  `form:"slice" validate:"omitempty,gt=0"`
-	App   *string `form:"app" validate:"omitempty,alpha"`
-	Class *string `form:"class" validate:"omitempty,lowercase"`
+	App   *string `form:"app" validate:"omitempty,alpha,lt=15"`
+	Class *string `form:"class" validate:"omitempty,lowercase,lt=15"`
 }
 
 type attribute struct {
@@ -29,9 +29,9 @@ type attribute struct {
 	ValType   string   `json:"valtype,omitempty"`
 	Vals      []string `json:"vals,omitempty"`
 	Enumdesc  []string `json:"enumdesc,omitempty"`
-	ValMax    int32    `json:"valmax,omitempty"`
+	Vallt    int32    `json:"vallt,omitempty"`
 	ValMin    int32    `json:"valmin,omitempty"`
-	LenMax    int32    `json:"lenmax,omitempty"`
+	Lenlt    int32    `json:"lenlt,omitempty"`
 	LenMin    int32    `json:"lenmin,omitempty"`
 }
 type patternSchema struct {

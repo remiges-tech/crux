@@ -34,7 +34,7 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 
 	err := wscutils.BindJSON(c, &sh)
 	if err != nil {
-		l.LogActivity("Error Unmarshalling Query parameters to struct:", err.Error())
+		l.Error(err).Log("Error Unmarshalling Query parameters to struct:")
 		return
 	}
 
@@ -80,7 +80,7 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 		Createdby:     userID,
 	})
 	if err != nil {
-		l.Info().LogActivity("Error while creating schema", err.Error())
+		l.Info().Error(err).Log("Error while creating schema")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
