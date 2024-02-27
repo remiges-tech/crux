@@ -11,9 +11,9 @@ type Schema struct {
 }
 
 type SchemaGetReq struct {
-	Slice int32  `json:"slice" validate:"required,gt=0"`
-	App   string `json:"app" validate:"required,alpha"`
-	Class string `json:"class" validate:"required,alpha"`
+	Slice int32  `json:"slice" validate:"required,gt=0",max=10`
+	App   string `json:"app" validate:"required,alpha,max=10"`
+	Class string `json:"class" validate:"required,alpha,max=10"`
 }
 
 type SchemaListStruct struct {

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/remiges-tech/alya/wscutils"
+	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/server/schema"
 	"github.com/remiges-tech/crux/testutils"
 	"github.com/remiges-tech/crux/types"
@@ -18,7 +19,7 @@ func TestSchemaDelete(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			// Setting up buffer
-			payload := bytes.NewBuffer(types.MarshalJson(tc.RequestPayload))
+			payload := bytes.NewBuffer(server.MarshalJson(tc.RequestPayload))
 
 			res := httptest.NewRecorder()
 			req, err := http.NewRequest(http.MethodDelete, "/wfschemadelete", payload)
@@ -28,10 +29,10 @@ func TestSchemaDelete(t *testing.T) {
 
 			require.Equal(t, tc.ExpectedHttpCode, res.Code)
 			if tc.ExpectedResult != nil {
-				jsonData := types.MarshalJson(tc.ExpectedResult)
+				jsonData := server.MarshalJson(tc.ExpectedResult)
 				require.JSONEq(t, string(jsonData), res.Body.String())
 			} else {
-				jsonData, err := types.ReadJsonFromFile(tc.TestJsonFile)
+				jsonData, err := server.ReadJsonFromFile(tc.TestJsonFile)
 				require.NoError(t, err)
 				require.JSONEq(t, string(jsonData), res.Body.String())
 			}

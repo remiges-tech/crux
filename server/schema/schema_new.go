@@ -19,7 +19,7 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
 	l.Debug0().Log("Starting execution of SchemaNew()")
 
-	isCapable, _ := types.Authz_check(types.OpReq{
+	isCapable, _ := server.Authz_check(types.OpReq{
 		User:      userID,
 		CapNeeded: capForNew,
 	}, false)

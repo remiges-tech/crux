@@ -28,7 +28,7 @@ func GetWFInstanceAbort(c *gin.Context, s *service.Service) {
 		entityid string
 	)
 
-	isCapable, _ := types.Authz_check(types.OpReq{
+	isCapable, _ := server.Authz_check(types.OpReq{
 		User: USERID,
 	}, false)
 
@@ -80,7 +80,7 @@ func GetWFInstanceAbort(c *gin.Context, s *service.Service) {
 
 	tag, error := query.DeleteWfInstance(c, sqlc.DeleteWfInstanceParams{
 		ID:       pgtype.Int4{Int32: id, Valid: id != 0},
-		Entityid: pgtype.Text{String: entityid, Valid: !types.IsStringEmpty(&entityid)},
+		Entityid: pgtype.Text{String: entityid, Valid: !server.IsStringEmpty(&entityid)},
 	})
 	if error != nil {
 		lh.LogActivity("error while deleting wfinstances  :", error.Error())

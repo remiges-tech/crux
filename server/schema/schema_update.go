@@ -30,7 +30,7 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
 	l.Debug0().Log("Starting execution of SchemaUpdate()")
 
-	isCapable, _ := types.Authz_check(types.OpReq{
+	isCapable, _ := server.Authz_check(types.OpReq{
 		User:      userID,
 		CapNeeded: capForUpdate,
 	}, false)

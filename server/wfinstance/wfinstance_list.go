@@ -53,7 +53,7 @@ func GetWFInstanceList(c *gin.Context, s *service.Service) {
 		params  WFInstanceListParams
 	)
 
-	isCapable, _ := types.Authz_check(types.OpReq{
+	isCapable, _ := server.Authz_check(types.OpReq{
 		User: USERID,
 	}, false)
 
@@ -92,9 +92,9 @@ func GetWFInstanceList(c *gin.Context, s *service.Service) {
 	// To get requested wfinstance list
 	wfinstanceList, error := query.GetWFInstanceList(c, sqlc.GetWFInstanceListParams{
 		Slice:    pgtype.Int4{Int32: params.Slice, Valid: params.Slice != 0},
-		Entityid: pgtype.Text{String: params.EntityID, Valid: !types.IsStringEmpty(&params.EntityID)},
-		App:      pgtype.Text{String: params.App, Valid: !types.IsStringEmpty(&params.App)},
-		Workflow: pgtype.Text{String: params.Workflow, Valid: !types.IsStringEmpty(&params.Workflow)},
+		Entityid: pgtype.Text{String: params.EntityID, Valid: !server.IsStringEmpty(&params.EntityID)},
+		App:      pgtype.Text{String: params.App, Valid: !server.IsStringEmpty(&params.App)},
+		Workflow: pgtype.Text{String: params.Workflow, Valid: !server.IsStringEmpty(&params.Workflow)},
 		Parent:   pgtype.Int4{Int32: params.Parent, Valid: params.Parent != 0},
 	})
 	if error != nil {

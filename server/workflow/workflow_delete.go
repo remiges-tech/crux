@@ -29,20 +29,20 @@ func WorkflowDelete(c *gin.Context, s *service.Service) {
 		capForList       = []string{"workflow"}
 		userRealm  int32 = 1
 	)
-	isCapable, _ := types.Authz_check(types.OpReq{
+	isCapable, _ := server.Authz_check(types.OpReq{
 		User:      userID,
 		CapNeeded: capForList,
 	}, false)
 
 	if !isCapable {
-		lh.Info().LogActivity("Unauthorized user:", userID)
+		lh.Info().LogActivity(server.ErrCode_Unauthorized, userID)
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
 		return
 	}
 
 	err := wscutils.BindJSON(c, &request)
 	if err != nil {
-		lh.LogActivity("error while binding json request error:", err.Error)
+		lh.Debug0().Error(err).Log("error while binding json request error")
 		return
 	}
 
@@ -73,13 +73,14 @@ func WorkflowDelete(c *gin.Context, s *service.Service) {
 		Realm:   userRealm,
 	})
 	if err != nil {
-		lh.LogActivity("failed to delete data from DB:", err.Error())
+		lh.Debug0().Error(err).Log("failed to delete data from db")
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
+	// if '1' contains means db transaction done
 	if strings.Contains(tag.String(), "1") {
-		lh.Debug0().Log("Record found finished execution of WorkflowDelete()")
+		lh.Debug0().Log("record found finished execution of WorkflowDelete()")
 		wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(nil))
 		return
 	}
@@ -89,6 +90,6 @@ func WorkflowDelete(c *gin.Context, s *service.Service) {
 
 // to check if the user has "schema" capability for the app this workflow belongs to
 func HasSchemaCap(app string) bool {
-	userRights := types.GetWorkflowsByRulesetRights()
+	userRights := server.GetWorkflowsByRulesetRights()
 	return slices.Contains(userRights, app)
 }
