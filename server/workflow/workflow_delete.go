@@ -12,6 +12,7 @@ import (
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/types"
+	"github.com/remiges-tech/logharbour/logharbour"
 )
 
 // WorkflowDelete will be responsible for processing the /workflowdelete request that comes through as a DELETE
@@ -65,6 +66,20 @@ func WorkflowDelete(c *gin.Context, s *service.Service) {
 		return
 	}
 
+	dbRecord, err := query.Workflowget(c, sqlc.WorkflowgetParams{
+		Slice:   request.Slice,
+		App:     request.App,
+		Class:   request.Class,
+		Setname: request.Name,
+		Realm:   userRealm,
+	})
+	if err != nil {
+		lh.Debug0().Error(err).Log("error while retriving record")
+		errmsg := db.HandleDatabaseError(err)
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+		return
+	}
+
 	tag, err := query.WorkflowDelete(c, sqlc.WorkflowDeleteParams{
 		Slice:   request.Slice,
 		App:     request.App,
@@ -78,14 +93,31 @@ func WorkflowDelete(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
+
 	// if '1' contains means db transaction done
 	if strings.Contains(tag.String(), "1") {
+		// do data change log
+		dataChangeLog(lh, dbRecord)
 		lh.Debug0().Log("record found finished execution of WorkflowDelete()")
 		wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(nil))
 		return
 	}
 	lh.Debug0().LogActivity("failed to delete data from db:", tag.String())
 	wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_InvalidRequest, nil)}))
+}
+
+func dataChangeLog(lh *logharbour.Logger, dbRecord sqlc.WorkflowgetRow) {
+	dclog := lh.WithWhatClass("ruleset").WithWhatInstanceId(string(dbRecord.ID))
+	dclog.LogDataChange("delete ruleset", logharbour.ChangeInfo{
+		Entity:    "ruleset",
+		Operation: "delete",
+		Changes: []logharbour.ChangeDetail{
+			{
+				Field:    "row",
+				OldValue: dbRecord,
+				NewValue: nil},
+		},
+	})
 }
 
 // to check if the user has "schema" capability for the app this workflow belongs to
