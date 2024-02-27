@@ -1,6 +1,6 @@
 -- name: GetWFINstance :one
 SELECT count(1)
-FROM public.wfinstance
+FROM wfinstance
 WHERE
     slice = $1
     AND app = $2
@@ -9,21 +9,18 @@ WHERE
 
 -- name: AddWFNewInstances :many
 INSERT INTO
-    public.wfinstance (
+    wfinstance (
         entityid, slice, app, class, workflow, step, loggedat, nextstep, parent
     )
 VALUES (
         @entityid, @slice, @app, @class, @workflow, unnest(@step::text []), (NOW()::timestamp), @nextstep, @parent
     )
-RETURNING
-    id,
-    loggedat,
-    step;
+RETURNING *;
 
 ;
 -- name: DeleteWfInstance :one
 WITH deleted_parents AS (
-   DELETE FROM public.wfinstance
+   DELETE FROM wfinstance
    WHERE
        (id = sqlc.narg('id')::INTEGER OR entityid = sqlc.narg('entityid')::TEXT)
    RETURNING parent
@@ -32,7 +29,7 @@ deletion_count AS (
    SELECT COUNT(*) AS cnt FROM deleted_parents
 ),
 delete_childrens AS (
-    DELETE FROM public.wfinstance
+    DELETE FROM wfinstance
     WHERE parent IN (SELECT parent FROM deleted_parents WHERE parent IS NOT NULL)
 )
 SELECT 
@@ -43,7 +40,7 @@ SELECT
 
 
 -- name: GetWFInstanceList :many
-SELECT * FROM public.wfinstance
+SELECT * FROM wfinstance
 WHERE 
    (sqlc.narg('slice')::INTEGER is null OR slice = sqlc.narg('slice')::INTEGER)
    AND (sqlc.narg('entityid')::text is null OR entityid = sqlc.narg('entityid')::text)
@@ -53,6 +50,21 @@ WHERE
 
     
 -- name: GetWFInstanceListByParents :many
-SELECT * FROM public.wfinstance
+SELECT * FROM wfinstance
 WHERE 
    (@id::INTEGER[] IS NOT NULL AND id = ANY(@id::INTEGER[]));
+
+
+
+
+-- name: DeleteWfinstanceByID :many
+  DELETE FROM wfinstance
+   WHERE
+       (id = sqlc.narg('id')::INTEGER OR entityid = sqlc.narg('entityid')::TEXT)
+   RETURNING *;
+    
+-- name: DeleteWFInstanceListByParents :many
+DELETE FROM wfinstance
+WHERE 
+   (@id::INTEGER[] IS NOT NULL AND id = ANY(@id::INTEGER[]) OR @parent::INTEGER[] IS NOT NULL AND parent = ANY(@parent::INTEGER[]))
+    RETURNING *;

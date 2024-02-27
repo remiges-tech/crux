@@ -13,16 +13,13 @@ import (
 
 const addWFNewInstances = `-- name: AddWFNewInstances :many
 INSERT INTO
-    public.wfinstance (
+    wfinstance (
         entityid, slice, app, class, workflow, step, loggedat, nextstep, parent
     )
 VALUES (
         $1, $2, $3, $4, $5, unnest($6::text []), (NOW()::timestamp), $7, $8
     )
-RETURNING
-    id,
-    loggedat,
-    step
+RETURNING id, entityid, slice, app, class, workflow, step, loggedat, doneat, nextstep, parent
 `
 
 type AddWFNewInstancesParams struct {
@@ -36,13 +33,7 @@ type AddWFNewInstancesParams struct {
 	Parent   pgtype.Int4 `json:"parent"`
 }
 
-type AddWFNewInstancesRow struct {
-	ID       int32            `json:"id"`
-	Loggedat pgtype.Timestamp `json:"loggedat"`
-	Step     string           `json:"step"`
-}
-
-func (q *Queries) AddWFNewInstances(ctx context.Context, arg AddWFNewInstancesParams) ([]AddWFNewInstancesRow, error) {
+func (q *Queries) AddWFNewInstances(ctx context.Context, arg AddWFNewInstancesParams) ([]Wfinstance, error) {
 	rows, err := q.db.Query(ctx, addWFNewInstances,
 		arg.Entityid,
 		arg.Slice,
@@ -57,10 +48,66 @@ func (q *Queries) AddWFNewInstances(ctx context.Context, arg AddWFNewInstancesPa
 		return nil, err
 	}
 	defer rows.Close()
-	var items []AddWFNewInstancesRow
+	var items []Wfinstance
 	for rows.Next() {
-		var i AddWFNewInstancesRow
-		if err := rows.Scan(&i.ID, &i.Loggedat, &i.Step); err != nil {
+		var i Wfinstance
+		if err := rows.Scan(
+			&i.ID,
+			&i.Entityid,
+			&i.Slice,
+			&i.App,
+			&i.Class,
+			&i.Workflow,
+			&i.Step,
+			&i.Loggedat,
+			&i.Doneat,
+			&i.Nextstep,
+			&i.Parent,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const deleteWFInstanceListByParents = `-- name: DeleteWFInstanceListByParents :many
+DELETE FROM wfinstance
+WHERE 
+   ($1::INTEGER[] IS NOT NULL AND id = ANY($1::INTEGER[]) OR $2::INTEGER[] IS NOT NULL AND parent = ANY($2::INTEGER[]))
+    RETURNING id, entityid, slice, app, class, workflow, step, loggedat, doneat, nextstep, parent
+`
+
+type DeleteWFInstanceListByParentsParams struct {
+	ID     []int32 `json:"id"`
+	Parent []int32 `json:"parent"`
+}
+
+func (q *Queries) DeleteWFInstanceListByParents(ctx context.Context, arg DeleteWFInstanceListByParentsParams) ([]Wfinstance, error) {
+	rows, err := q.db.Query(ctx, deleteWFInstanceListByParents, arg.ID, arg.Parent)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Wfinstance
+	for rows.Next() {
+		var i Wfinstance
+		if err := rows.Scan(
+			&i.ID,
+			&i.Entityid,
+			&i.Slice,
+			&i.App,
+			&i.Class,
+			&i.Workflow,
+			&i.Step,
+			&i.Loggedat,
+			&i.Doneat,
+			&i.Nextstep,
+			&i.Parent,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -73,7 +120,7 @@ func (q *Queries) AddWFNewInstances(ctx context.Context, arg AddWFNewInstancesPa
 
 const deleteWfInstance = `-- name: DeleteWfInstance :one
 WITH deleted_parents AS (
-   DELETE FROM public.wfinstance
+   DELETE FROM wfinstance
    WHERE
        (id = $1::INTEGER OR entityid = $2::TEXT)
    RETURNING parent
@@ -82,7 +129,7 @@ deletion_count AS (
    SELECT COUNT(*) AS cnt FROM deleted_parents
 ),
 delete_childrens AS (
-    DELETE FROM public.wfinstance
+    DELETE FROM wfinstance
     WHERE parent IN (SELECT parent FROM deleted_parents WHERE parent IS NOT NULL)
 )
 SELECT 
@@ -104,9 +151,53 @@ func (q *Queries) DeleteWfInstance(ctx context.Context, arg DeleteWfInstancePara
 	return result, err
 }
 
+const deleteWfinstanceByID = `-- name: DeleteWfinstanceByID :many
+  DELETE FROM wfinstance
+   WHERE
+       (id = $1::INTEGER OR entityid = $2::TEXT)
+   RETURNING id, entityid, slice, app, class, workflow, step, loggedat, doneat, nextstep, parent
+`
+
+type DeleteWfinstanceByIDParams struct {
+	ID       pgtype.Int4 `json:"id"`
+	Entityid pgtype.Text `json:"entityid"`
+}
+
+func (q *Queries) DeleteWfinstanceByID(ctx context.Context, arg DeleteWfinstanceByIDParams) ([]Wfinstance, error) {
+	rows, err := q.db.Query(ctx, deleteWfinstanceByID, arg.ID, arg.Entityid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Wfinstance
+	for rows.Next() {
+		var i Wfinstance
+		if err := rows.Scan(
+			&i.ID,
+			&i.Entityid,
+			&i.Slice,
+			&i.App,
+			&i.Class,
+			&i.Workflow,
+			&i.Step,
+			&i.Loggedat,
+			&i.Doneat,
+			&i.Nextstep,
+			&i.Parent,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getWFINstance = `-- name: GetWFINstance :one
 SELECT count(1)
-FROM public.wfinstance
+FROM wfinstance
 WHERE
     slice = $1
     AND app = $2
@@ -134,7 +225,7 @@ func (q *Queries) GetWFINstance(ctx context.Context, arg GetWFINstanceParams) (i
 }
 
 const getWFInstanceList = `-- name: GetWFInstanceList :many
-SELECT id, entityid, slice, app, class, workflow, step, loggedat, doneat, nextstep, parent FROM public.wfinstance
+SELECT id, entityid, slice, app, class, workflow, step, loggedat, doneat, nextstep, parent FROM wfinstance
 WHERE 
    ($1::INTEGER is null OR slice = $1::INTEGER)
    AND ($2::text is null OR entityid = $2::text)
@@ -190,7 +281,7 @@ func (q *Queries) GetWFInstanceList(ctx context.Context, arg GetWFInstanceListPa
 }
 
 const getWFInstanceListByParents = `-- name: GetWFInstanceListByParents :many
-SELECT id, entityid, slice, app, class, workflow, step, loggedat, doneat, nextstep, parent FROM public.wfinstance
+SELECT id, entityid, slice, app, class, workflow, step, loggedat, doneat, nextstep, parent FROM wfinstance
 WHERE 
    ($1::INTEGER[] IS NOT NULL AND id = ANY($1::INTEGER[]))
 `

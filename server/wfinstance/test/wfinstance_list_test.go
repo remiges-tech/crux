@@ -2,7 +2,6 @@ package wfinstance_test
 
 import (
 	"bytes"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -39,9 +38,7 @@ func TestGetWFInstanceList(t *testing.T) {
 				jsonData, err := server.ReadJsonFromFile(tc.TestJsonFile)
 				require.NoError(t, err)
 				expectedJSON := string(jsonData)
-				fmt.Println("<<<<<<<<<<<<expected :", expectedJSON)
 				actualJSON := res.Body.String()
-				fmt.Println("<<<<<<<<<<<<actual:", actualJSON)
 				require.JSONEq(t, expectedJSON, actualJSON)
 
 			}

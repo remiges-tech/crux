@@ -33,7 +33,7 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
 	lh.Debug0().Log("Inside ValidateWFInstaceNewReq()")
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
-		lh.Log("Error while getting query instance from service Dependencies")
+		lh.Log("GetWFinstanceNew||validateWFInstanceNewReq()||error while getting query instance from service Dependencies")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		errRes := append(errRes, wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_DatabaseError, nil))
 		return false, errRes
@@ -41,7 +41,7 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
 	// Validate request
 	isValidReq, errAry := validateWorkflow(r, s, c)
 	if len(errAry) > 0 || !isValidReq {
-		lh.Debug0().LogActivity("Invalid request:", errAry)
+		lh.Debug0().LogActivity("GetWFinstanceNew||validateWFInstanceNewReq()||invalid request:", errAry)
 		errRes = errAry
 		return false, errRes
 	}
@@ -50,7 +50,7 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
 	_, isKeyExist := entity[CLASS]
 
 	if !(entity != nil && isKeyExist) {
-		lh.Debug0().Log("Entity does not match with standard structure")
+		lh.Debug0().Log("GetWFinstanceNew||validateWFInstanceNewReq()||entity does not match with standard structure")
 		errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid_Entity, &ENTITY))
 		return false, errRes
 	}
@@ -64,27 +64,27 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
 		Realm: REALM,
 	})
 	if err != nil {
-		lh.LogActivity("failed to get schema pattern from DB:", err)
+		lh.Error(err).Log("GetWFinstanceNew||validateWFInstanceNewReq()||failed to get schema pattern from DB")
 		errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_NoSchemaFound, server.ErrCode_NotFound, nil))
 		return false, errRes
 	}
 
 	// Unmarshalling byte data to schemapatten struct
 	schmapattern, err := byteToPatternSchema(pattern)
-	lh.Debug0().LogActivity("patternschema :", schmapattern)
+	lh.Debug0().LogActivity("GetWFinstanceNew||validateWFInstanceNewReq()||patternschema :", schmapattern)
 	if err != nil {
-		lh.Debug0().LogActivity(" error while converting byte patternschema to struct:", err)
+		lh.Debug0().LogActivity("GetWFinstanceNew||validateWFInstanceNewReq()|| error while converting byte patternschema to struct:", err)
 		errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_NoSchemaFound, server.ErrCode_Invalid_pattern_schema, nil))
 	}
 
 	// Forming  requested entity  into proper Entity struct
 	EntityStruct := getEntity(r.Entity)
-	lh.Debug1().LogActivity("Entity stucture:", EntityStruct)
+	lh.Debug1().LogActivity("GetWFinstanceNew||validateWFInstanceNewReq()||entity stucture:", EntityStruct)
 
 	//  To match entity against patternschema
 	isValidEntity, err := ValidateEntity(EntityStruct, schmapattern, s)
 	if !isValidEntity || err != nil {
-		lh.Debug0().LogActivity(" error while validating entity against patternschema:", err)
+		lh.Debug0().LogActivity(" GetWFinstanceNew||validateWFInstanceNewReq()||error while validating entity against patternschema:", err)
 		errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid_Entity, &ENTITY))
 		return false, errRes
 
@@ -101,14 +101,14 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 	lh.Debug0().Log("Inside validateWorkflow()")
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
-		lh.Debug0().Log("Error while getting query instance from service Dependencies")
+		lh.Debug0().Log("GetWFinstanceNew||validateWorkflow()||error while getting query instance from service Dependencies")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		errors := append(errors, wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_DatabaseError, nil))
 		return false, errors
 	}
 
-	//1.The value of app specified in the request matches the app ID with which this workflow is associated
-	lh.Debug0().Log("verifying whether app present in request is valid")
+	// The value of app specified in the request matches the app ID with which this workflow is associated
+	lh.Debug0().Log("GetWFinstanceNew||validateWorkflow()||verifying whether app present in request is valid")
 	app, err := query.GetApp(c, sqlc.GetAppParams{
 		Slice: r.Slice,
 		App:   r.App,
@@ -117,12 +117,12 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 	})
 
 	if err != nil {
-		lh.LogActivity("failed to get app from DB:", err.Error())
+		lh.Error(err).Log("GetWFinstanceNew||validateWorkflow()||failed to get app from ruleset table")
 		errors = append(errors, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid_APP, &APP, r.App))
 	}
 
-	//2. The class of the workflow must match that of entity
-	lh.Debug0().Log("verifying whether class present in request is valid")
+	// The class of the workflow must match that of entity
+	lh.Debug0().Log("GetWFinstanceNew||validateWorkflow()||verifying whether class present in request is valid")
 	class, err := query.GetClass(c, sqlc.GetClassParams{
 		Slice: r.Slice,
 		App:   app,
@@ -131,14 +131,14 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 	})
 
 	if err != nil {
-		lh.LogActivity("failed to get class from DB:", err)
+		lh.Error(err).Log("GetWFinstanceNew||validateWorkflow()||failed to get class from ruleset table")
 		errors = append(errors, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid_Class, &CLASS, entityClass))
 	}
 
-	// 3.The workflow named has is_active == true and internal == false
+	// The workflow named has is_active == true and internal == false
 
-	//To get worflow active status
-	lh.Debug0().Log("verifying whether workflow active status is valid")
+	// To get worflow active status
+	lh.Debug0().Log("GetWFinstanceNew||validateWorkflow()||verifying whether workflow active status is valid")
 	wfActiveStatus, err := query.GetWFActiveStatus(c, sqlc.GetWFActiveStatusParams{
 		Slice:   r.Slice,
 		App:     app,
@@ -148,12 +148,12 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 	})
 
 	if err != nil || !wfActiveStatus.Bool {
-		lh.LogActivity("Invalid workflow is_active status :", err)
+		lh.LogActivity("GetWFinstanceNew||validateWorkflow()||invalid workflow is_active status", err)
 		errors = append(errors, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid_workflow_active_status, &WORKFLOW, fmt.Sprintf("%v", wfActiveStatus.Bool)))
 	}
 
-	//To get worflow Internal status
-	lh.Debug0().Log("verifying whether workflow internal status is valid")
+	// To get worflow Internal status
+	lh.Debug0().Log("GetWFinstanceNew||validateWorkflow()||verifying whether workflow internal status is valid")
 	wfInternalStatus, err := query.GetWFInternalStatus(c, sqlc.GetWFInternalStatusParams{
 		Slice:   r.Slice,
 		App:     app,
@@ -163,13 +163,13 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 	})
 
 	if err != nil || wfInternalStatus {
-		lh.LogActivity("Invalid workflow is_internal status:", err)
+		lh.LogActivity("GetWFinstanceNew||validateWorkflow()||invalid workflow is_internal status", err)
 		errors = append(errors, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid_workflow_Internal_status, &WORKFLOW, fmt.Sprintf("%v", wfInternalStatus)))
 
 	}
 
-	//4.There is no record in the wfinstance table with the same values for the tuple (slice,app,workflow,entityid)
-	lh.Log("verifying whether record is already exist in wfinstance table")
+	// There is no record in the wfinstance table with the same values for the tuple (slice,app,workflow,entityid)
+	lh.Log("GetWFinstanceNew||validateWorkflow()||verifying whether record is already exist in wfinstance table")
 	wfinstanceRecordCount, err := query.GetWFINstance(c, sqlc.GetWFINstanceParams{
 		Slice:    r.Slice,
 		App:      app,
@@ -178,7 +178,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 	})
 
 	if err != nil || wfinstanceRecordCount > 0 {
-		lh.LogActivity("Record already exist in wfinstance table :", err)
+		lh.LogActivity("GetWFinstanceNew||validateWorkflow()||record already exist in wfinstance table ", err)
 		errors = append(errors, wscutils.BuildErrorMessage(server.MsgId_AlreadyExist, server.ErrCode_AlreadyExist, &ENTITYID, r.EntityID))
 	}
 
@@ -196,7 +196,7 @@ func ValidateEntity(e Entity, ps *types.PatternSchema, s *service.Service) (bool
 	lh.Debug0().Log("Inside validateEntity()")
 	// Check if the entity class matches the expected class from the schema
 	if e.Class != ps.Class {
-		lh.Debug0().Log("Entity class does not match the expected class in the schema")
+		lh.Debug0().Log("GetWFinstanceNew||validateEntity()||entity class does not match the expected class in the schema")
 		return false, errors.New("Entity class does not match the expected class in the schema")
 	}
 	// Validate attributes
@@ -205,13 +205,13 @@ func ValidateEntity(e Entity, ps *types.PatternSchema, s *service.Service) (bool
 	for _, a := range e.Attributes {
 		t := getType(*ps, a.Name)
 		if t == "" {
-			lh.Debug0().LogActivity("schema does not contain attribute %v", a.Name)
+			lh.Debug0().LogActivity("GetWFinstanceNew||validateEntity()||schema does not contain attribute %v", a.Name)
 			return false, fmt.Errorf("schema does not contain attribute %v", a.Name)
 
 		}
 		_, err := convertEntityAttrVal(a.Val, t)
 		if err != nil {
-			lh.Debug0().LogActivity("attribute %v in entity has value of wrong type", a.Name)
+			lh.Debug0().LogActivity("GetWFinstanceNew||validateEntity()||attribute %v in entity has value of wrong type", a.Name)
 			return false, fmt.Errorf("attribute %v in entity has value of wrong type", a.Name)
 		}
 	}

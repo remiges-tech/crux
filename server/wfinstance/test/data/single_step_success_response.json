@@ -6,7 +6,6 @@
         "diwalisale": 1
       }
     ],
-    "nextstep": "",
     "loggedat": "2024-02-16T18:28:45.855894Z",
     "subflows": {
       "diwalisale": "dodiscountcheck"

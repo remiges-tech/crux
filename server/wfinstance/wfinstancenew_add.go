@@ -9,6 +9,7 @@ import (
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	"github.com/remiges-tech/crux/server"
+	"github.com/remiges-tech/logharbour/logharbour"
 )
 
 // Task request
@@ -22,7 +23,7 @@ type AddTaskRequest struct {
 type ResponseRequest struct {
 	Subflow      map[string]string
 	NextStep     string
-	ResponseData []sqlc.AddWFNewInstancesRow
+	ResponseData []sqlc.Wfinstance
 	Service      *service.Service
 }
 
@@ -33,11 +34,11 @@ func addTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanc
 	subflow := make(map[string]string)
 
 	lh := s.LogHarbour.WithWhatClass("wfinstance")
-	lh.Debug0().Log("Inside addTasks()")
+	lh.Debug0().Log("inside addTasks()")
 
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
-		lh.Log("Error while getting query instance from service Dependencies")
+		lh.Log("WFInstanceNew||addTasks()||error while getting query instance from service dependencies")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return WFInstanceNewResponse{}, errors.New(INVALID_DATABASE_DEPENDENCY)
 	}
@@ -57,12 +58,27 @@ func addTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanc
 		Parent:   parent,
 	})
 	if error != nil {
-		lh.LogActivity("error while adding Task steps in wfinstance table :", error.Error())
+		lh.Error(error).Log("WFInstanceNew||addTasks()||error while adding Task steps in wfinstance table")
 		return response, error
 	}
 
+	// data change log
+	for _, val := range responseData {
+		dclog := lh.WithWhatClass("wfinstance").WithWhatInstanceId(string(val.ID))
+		dclog.LogDataChange("created wfinstance ", logharbour.ChangeInfo{
+			Entity:    "wfinstance",
+			Operation: "create",
+			Changes: []logharbour.ChangeDetail{
+				{
+					Field:    "row",
+					OldValue: nil,
+					NewValue: val},
+			},
+		})
+	}
+
 	// To get workflow if step is present in stepworkflow table
-	lh.Debug0().Log("verifying whether step is workflow if it is, then append it to subflow")
+	lh.Debug0().Log("WFInstanceNew||addTasks()||verifying whether step is workflow if it is, then append it to subflow")
 	for _, step := range req.Steps {
 		workflowData, _ := query.GetWorkflow(c, step)
 
@@ -72,7 +88,7 @@ func addTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanc
 
 	}
 
-	// to get response
+	// To get response
 	responseRequest := ResponseRequest{
 		Subflow:      subflow,
 		NextStep:     req.Nextstep,
@@ -107,7 +123,7 @@ func getResponse(r ResponseRequest) WFInstanceNewResponse {
 		// response for multiple task steps
 		response = WFInstanceNewResponse{
 			Tasks:    tasks,
-			Nextstep: r.NextStep,
+			Nextstep: &r.NextStep,
 			Loggedat: loggedDate,
 			Subflows: &r.Subflow,
 		}

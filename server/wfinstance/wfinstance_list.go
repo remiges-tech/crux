@@ -14,11 +14,11 @@ import (
 
 // WFInstanceList rquest format
 type WFInstanceListRequest struct {
-	Slice    *int32  `json:"slice,omitempty"`
-	EntityID *string `json:"entityid,omitempty"`
-	App      *string `json:"app,omitempty"`
-	Workflow *string `json:"workflow,omitempty"`
-	Parent   *int32  `json:"parent,omitempty"`
+	Slice    *int32  `json:"slice" validate:"omitempty,gt=0,lt=15"`
+	EntityID *string `json:"entityid" validate:"omitempty,gt=0,lt=40"`
+	App      *string `json:"app" validate:"omitempty,alpha,gt=0,lt=15"`
+	Workflow *string `json:"workflow" validate:"omitempty,gt=0,lt=20"`
+	Parent   *int32  `json:"parent" validate:"omitempty,gt=0"`
 }
 
 // WFInstanceList response format
@@ -30,7 +30,7 @@ type WFInstanceListResponse struct {
 	Class      string           `json:"class"`
 	Workflow   string           `json:"workflow"`
 	Step       string           `json:"step"`
-	LoggedDate pgtype.Timestamp `json:"loggdat"`
+	LoggedDate pgtype.Timestamp `json:"loggedat"`
 	DoneAt     string           `json:"doneat"`
 	Nextstep   string           `json:"nextstep"`
 	Parent     int32            `json:"parent,omitempty"`
@@ -46,7 +46,7 @@ type WFInstanceListParams struct {
 
 func GetWFInstanceList(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour.WithWhatClass("wfinstance")
-	lh.Log("WFInstanceList request received")
+	lh.Log("GetWFInstanceList request received")
 
 	var (
 		request WFInstanceListRequest
@@ -58,7 +58,7 @@ func GetWFInstanceList(c *gin.Context, s *service.Service) {
 	}, false)
 
 	if !isCapable {
-		lh.Info().LogActivity("Unauthorized user:", USERID)
+		lh.Info().LogActivity("GetWFInstanceList||unauthorized user:", USERID)
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
 		return
 	}
@@ -66,7 +66,7 @@ func GetWFInstanceList(c *gin.Context, s *service.Service) {
 	// Bind request
 	err := wscutils.BindJSON(c, &request)
 	if err != nil {
-		lh.Debug0().LogActivity("error while binding json request error:", err)
+		lh.Error(err).Log("GetWFInstanceList||error while binding json request error")
 		return
 	}
 
@@ -74,17 +74,17 @@ func GetWFInstanceList(c *gin.Context, s *service.Service) {
 	valError := wscutils.WscValidate(request, func(err validator.FieldError) []string { return []string{} })
 	if len(valError) > 0 {
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, valError))
-		lh.LogActivity("validation error:", valError)
+		lh.LogActivity("GetWFInstanceList||validation error:", valError)
 		return
 	}
 
 	// To get request parameters
 	params = GetParams(request, params)
-	lh.Debug0().LogActivity("Parameters from request :", params)
+	lh.Debug0().LogActivity("GetWFInstanceList|parameters from request :", params)
 
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
-		lh.Log("Error while getting query instance from service Dependencies")
+		lh.Log("GetWFInstanceList||error while getting query instance from service dependencies")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
@@ -98,28 +98,28 @@ func GetWFInstanceList(c *gin.Context, s *service.Service) {
 		Parent:   pgtype.Int4{Int32: params.Parent, Valid: params.Parent != 0},
 	})
 	if error != nil {
-		lh.LogActivity("error while getting wfinstance List  :", error.Error())
+		lh.Error(error).Log("GetWFInstanceList||error while getting wfinstance List")
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
 
 	if len(wfinstanceList) == 0 {
-		lh.Debug0().Log("requestd wfinstanceList not found")
+		lh.Debug0().Log("GetWFInstanceList||requestd wfinstanceList not found")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ErrCode_NotFound))
 		return
 	}
 
 	// To Get parentList from WFInstanceList data
 	parentList := getParentList(wfinstanceList)
-	lh.Debug0().LogActivity("Parameters from request :", params)
+	lh.Debug0().LogActivity("GetWFInstanceList||parentlist form WFInstanceList data:", parentList)
 
 	for parentList != nil {
-		lh.Debug0().Log("Inside for loop : if parentList is Not Nil ")
+		lh.Debug0().Log("GetWFInstanceList||inside for loop : if parentList is Not Nil ")
 		// To get GetWFInstanceList by parentList
 		wfinstanceListByParents, err := query.GetWFInstanceListByParents(c, parentList)
 		if err != nil {
-			lh.LogActivity("error while getting wfinstance List by parentList  :", err.Error())
+			lh.Error(err).Log("GetWFInstanceList||error while getting wfinstance List by parentList")
 			errmsg := db.HandleDatabaseError(err)
 			wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 			return
@@ -130,7 +130,7 @@ func GetWFInstanceList(c *gin.Context, s *service.Service) {
 
 		// Update parentList using getParentList function
 		parentList = getParentList(wfinstanceListByParents)
-		lh.Debug0().LogActivity(" updated ParentList :", parentList)
+		lh.Debug0().LogActivity("GetWFInstanceList||updated ParentList :", parentList)
 	}
 	var responseList []WFInstanceListResponse
 	for _, val := range wfinstanceList {
@@ -160,7 +160,7 @@ func GetWFInstanceList(c *gin.Context, s *service.Service) {
 		responseList = append(responseList, response)
 	}
 
-	lh.Debug0().Log("Record found finished execution of WfinstaceList request")
+	lh.Debug0().Log("Record found finished execution of GetWFInstanceList request")
 	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(map[string][]WFInstanceListResponse{"wfinstance": responseList}))
 }
 
@@ -183,22 +183,4 @@ func GetParams(req WFInstanceListRequest, params WFInstanceListParams) WFInstanc
 		params.Parent = *req.Parent
 	}
 	return params
-}
-
-// To Get ParentList from WFInstanceList data respone
-func getParentList(data []sqlc.Wfinstance) []int32 {
-	var parentsMap = make(map[int32]bool)
-	var parents []int32
-
-	for _, val := range data {
-		if val.Parent.Valid {
-			parentValue := val.Parent.Int32
-			if !parentsMap[parentValue] {
-				parents = append(parents, parentValue)
-				parentsMap[parentValue] = true
-			}
-		}
-	}
-	return parents
-
 }

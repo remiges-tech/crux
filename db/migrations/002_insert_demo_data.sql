@@ -42,7 +42,7 @@ VALUES (
         3, 'MERCE', 'Merce Pvt ltd', true, NULL, NULL
     );
 
-    INSERT INTO
+INSERT INTO
     realmslice
 VALUES (
         4, 'REMIGES', 'REMIGES Pvt ltd', true, NULL, NULL
@@ -185,7 +185,7 @@ VALUES (
 ---- create above / drop below ----
 
 -- wfinstance
-DELETE FROM public.wfinstance;
+DELETE FROM wfinstance;
 
 -- stepworkflow
 DELETE FROM stepworkflow;
