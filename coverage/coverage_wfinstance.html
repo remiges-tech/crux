@@ -83,9 +83,11 @@
 				
 				<option value="file13">github.com/remiges-tech/crux/server/wfinstance/wfinstancenew_validation.go (75.0%)</option>
 				
-				<option value="file14">github.com/remiges-tech/crux/testutils/test_utils.go (0.0%)</option>
+				<option value="file14">github.com/remiges-tech/crux/server/wsc_utils.go (48.0%)</option>
 				
-				<option value="file15">github.com/remiges-tech/crux/types/types.go (42.9%)</option>
+				<option value="file15">github.com/remiges-tech/crux/testutils/test_utils.go (0.0%)</option>
+				
+				<option value="file16">github.com/remiges-tech/crux/types/types.go (0.0%)</option>
 				
 				</select>
 			</div>
@@ -2043,7 +2045,7 @@ func GetWFInstanceAbort(c *gin.Context, s *service.Service) <span class="cov8" t
                 entityid string
         )
 
-        isCapable, _ := types.Authz_check(types.OpReq{
+        isCapable, _ := server.Authz_check(types.OpReq{
                 User: USERID,
         }, false)
 
@@ -2095,7 +2097,7 @@ func GetWFInstanceAbort(c *gin.Context, s *service.Service) <span class="cov8" t
 
         <span class="cov8" title="1">tag, error := query.DeleteWfInstance(c, sqlc.DeleteWfInstanceParams{
                 ID:       pgtype.Int4{Int32: id, Valid: id != 0},
-                Entityid: pgtype.Text{String: entityid, Valid: !types.IsStringEmpty(&amp;entityid)},
+                Entityid: pgtype.Text{String: entityid, Valid: !server.IsStringEmpty(&amp;entityid)},
         })
         if error != nil </span><span class="cov0" title="0">{
                 lh.LogActivity("error while deleting wfinstances  :", error.Error())
@@ -2170,7 +2172,7 @@ func GetWFInstanceList(c *gin.Context, s *service.Service) <span class="cov8" ti
                 params  WFInstanceListParams
         )
 
-        isCapable, _ := types.Authz_check(types.OpReq{
+        isCapable, _ := server.Authz_check(types.OpReq{
                 User: USERID,
         }, false)
 
@@ -2209,9 +2211,9 @@ func GetWFInstanceList(c *gin.Context, s *service.Service) <span class="cov8" ti
         // To get requested wfinstance list
         <span class="cov8" title="1">wfinstanceList, error := query.GetWFInstanceList(c, sqlc.GetWFInstanceListParams{
                 Slice:    pgtype.Int4{Int32: params.Slice, Valid: params.Slice != 0},
-                Entityid: pgtype.Text{String: params.EntityID, Valid: !types.IsStringEmpty(&amp;params.EntityID)},
-                App:      pgtype.Text{String: params.App, Valid: !types.IsStringEmpty(&amp;params.App)},
-                Workflow: pgtype.Text{String: params.Workflow, Valid: !types.IsStringEmpty(&amp;params.Workflow)},
+                Entityid: pgtype.Text{String: params.EntityID, Valid: !server.IsStringEmpty(&amp;params.EntityID)},
+                App:      pgtype.Text{String: params.App, Valid: !server.IsStringEmpty(&amp;params.App)},
+                Workflow: pgtype.Text{String: params.Workflow, Valid: !server.IsStringEmpty(&amp;params.Workflow)},
                 Parent:   pgtype.Int4{Int32: params.Parent, Valid: params.Parent != 0},
         })
         if error != nil </span><span class="cov0" title="0">{
@@ -2369,7 +2371,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) <span class="cov8" tit
         var done, nextStep string
         var steps []string
 
-        isCapable, _ := types.Authz_check(types.OpReq{
+        isCapable, _ := server.Authz_check(types.OpReq{
                 User: USERID,
         }, false)
 
@@ -2910,50 +2912,7 @@ func getEntity(en map[string]string) Entity <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file14" style="display: none">package testutils
-
-import (
-        "encoding/json"
-        "fmt"
-        "io"
-        "log"
-        "os"
-
-        "github.com/remiges-tech/alya/wscutils"
-)
-
-func MarshalJson(data any) []byte <span class="cov0" title="0">{
-        jsonData, err := json.Marshal(&amp;data)
-        if err != nil </span><span class="cov0" title="0">{
-                log.Fatal("error marshaling")
-        }</span>
-        <span class="cov0" title="0">return jsonData</span>
-}
-
-func ReadJsonFromFile(filepath string) ([]byte, error) <span class="cov0" title="0">{
-        // var err error
-        file, err := os.Open(filepath)
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, fmt.Errorf("testFile path is not exist")
-        }</span>
-        <span class="cov0" title="0">defer file.Close()
-        jsonData, err := io.ReadAll(file)
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-        <span class="cov0" title="0">return jsonData, nil</span>
-}
-
-type TestCasesStruct struct {
-        Name             string
-        RequestPayload   wscutils.Request
-        ExpectedHttpCode int
-        TestJsonFile     string
-        ExpectedResult   *wscutils.Response
-}
-</pre>
-		
-		<pre class="file" id="file15" style="display: none">package types
+		<pre class="file" id="file14" style="display: none">package server
 
 import (
         "encoding/json"
@@ -2965,73 +2924,9 @@ import (
         "strings"
 
         "github.com/go-playground/validator/v10"
+        "github.com/remiges-tech/crux/types"
 )
 
-const (
-        DevEnv           Environment = "dev_env"
-        ProdEnv          Environment = "prod_env"
-        UATEnv           Environment = "uat_env"
-        RECORD_NOT_EXIST             = "record_does_not_exist"
-        OPERATION_FAILED             = "operation_failed"
-)
-
-var APP, SLICE, CLASS, NAME string = "App", "Slice", "Class", "Name"
-
-type Environment string
-
-type OpReq struct {
-        User      string   `json:"user"`
-        CapNeeded []string `json:"capNeeded"`
-        Scope     Scope    `json:"scope"`
-        Limit     Limit    `json:"limit"`
-}
-
-type Scope map[string]interface{}
-type Limit map[string]interface{}
-
-type QualifiedCap struct {
-        Id    string `json:"id"`
-        Cap   string `json:"cap"`
-        Scope Scope  `json:"scope"`
-        Limit Limit  `json:"limit"`
-}
-
-type Capabilities struct {
-        Name          string         `json:"name"` //either user name or group name
-        QualifiedCaps []QualifiedCap `json:"qualifiedCaps"`
-}
-
-type Attribute struct {
-        Name      string   `json:"name" validate:"required"`
-        ShortDesc string   `json:"shortdesc" validate:"required"`
-        LongDesc  string   `json:"longdesc" validate:"required"`
-        ValType   string   `json:"valtype" validate:"required"`
-        Vals      []string `json:"vals,omitempty"`
-        Enumdesc  []string `json:"enumdesc,omitempty"`
-        ValMax    *int32   `json:"valmax,omitempty"`
-        ValMin    *int32   `json:"valmin,omitempty"`
-        LenMax    *int32   `json:"lenmax,omitempty"`
-        LenMin    *int32   `json:"lenmin,omitempty"`
-}
-
-type PatternSchema struct {
-        Class string      `json:"class" validate:"required,lowercase"`
-        Attr  []Attribute `json:"attr" validate:"required,dive"`
-}
-
-type ActionSchema struct {
-        Class      string   `json:"class" validate:"required,lowercase"`
-        Tasks      []string `json:"tasks" validate:"required"`
-        Properties []string `json:"properties" validate:"required"`
-}
-
-func (env Environment) IsValid() bool <span class="cov0" title="0">{
-        switch env </span>{
-        case DevEnv, ProdEnv, UATEnv:<span class="cov0" title="0">
-                return true</span>
-        }
-        <span class="cov0" title="0">return false</span>
-}
 
 // CommonValidation is a generic function which setup standard validation utilizing
 // validator package and Maps the errorVals based on the map parameter and
@@ -3089,10 +2984,122 @@ func GetWorkflowsByRulesetRights() []string <span class="cov0" title="0">{
         return []string{"retailBANK", "nedbank"}
 }</span>
 
-func Authz_check(op OpReq, trace bool) (bool, []string) <span class="cov8" title="1">{
+func Authz_check(op types.OpReq, trace bool) (bool, []string) <span class="cov8" title="1">{
         caplist := op.CapNeeded
         return true, caplist
 }</span>
+</pre>
+		
+		<pre class="file" id="file15" style="display: none">package testutils
+
+import (
+        "encoding/json"
+        "fmt"
+        "io"
+        "log"
+        "os"
+
+        "github.com/remiges-tech/alya/wscutils"
+)
+
+func MarshalJson(data any) []byte <span class="cov0" title="0">{
+        jsonData, err := json.Marshal(&amp;data)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatal("error marshaling")
+        }</span>
+        <span class="cov0" title="0">return jsonData</span>
+}
+
+func ReadJsonFromFile(filepath string) ([]byte, error) <span class="cov0" title="0">{
+        // var err error
+        file, err := os.Open(filepath)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("testFile path is not exist")
+        }</span>
+        <span class="cov0" title="0">defer file.Close()
+        jsonData, err := io.ReadAll(file)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return jsonData, nil</span>
+}
+
+type TestCasesStruct struct {
+        Name             string
+        RequestPayload   wscutils.Request
+        ExpectedHttpCode int
+        TestJsonFile     string
+        ExpectedResult   *wscutils.Response
+}
+</pre>
+		
+		<pre class="file" id="file16" style="display: none">package types
+
+const (
+        DevEnv           Environment = "dev_env"
+        ProdEnv          Environment = "prod_env"
+        UATEnv           Environment = "uat_env"
+        RECORD_NOT_EXIST             = "record_does_not_exist"
+        OPERATION_FAILED             = "operation_failed"
+)
+
+var APP, SLICE, CLASS, NAME string = "App", "Slice", "Class", "Name"
+
+type Environment string
+
+func (env Environment) IsValid() bool <span class="cov0" title="0">{
+        switch env </span>{
+        case DevEnv, ProdEnv, UATEnv:<span class="cov0" title="0">
+                return true</span>
+        }
+        <span class="cov0" title="0">return false</span>
+}
+
+type OpReq struct {
+        User      string   `json:"user"`
+        CapNeeded []string `json:"capNeeded"`
+        Scope     Scope    `json:"scope"`
+        Limit     Limit    `json:"limit"`
+}
+
+type Scope map[string]interface{}
+type Limit map[string]interface{}
+
+type QualifiedCap struct {
+        Id    string `json:"id"`
+        Cap   string `json:"cap"`
+        Scope Scope  `json:"scope"`
+        Limit Limit  `json:"limit"`
+}
+
+type Capabilities struct {
+        Name          string         `json:"name"` //either user name or group name
+        QualifiedCaps []QualifiedCap `json:"qualifiedCaps"`
+}
+
+type Attribute struct {
+        Name      string   `json:"name" validate:"required"`
+        ShortDesc string   `json:"shortdesc" validate:"required"`
+        LongDesc  string   `json:"longdesc" validate:"required"`
+        ValType   string   `json:"valtype" validate:"required"`
+        Vals      []string `json:"vals,omitempty"`
+        Enumdesc  []string `json:"enumdesc,omitempty"`
+        ValMax    *int32   `json:"valmax,omitempty"`
+        ValMin    *int32   `json:"valmin,omitempty"`
+        LenMax    *int32   `json:"lenmax,omitempty"`
+        LenMin    *int32   `json:"lenmin,omitempty"`
+}
+
+type PatternSchema struct {
+        Class string      `json:"class" validate:"required,lowercase"`
+        Attr  []Attribute `json:"attr" validate:"required,dive"`
+}
+
+type ActionSchema struct {
+        Class      string   `json:"class" validate:"required,lowercase"`
+        Tasks      []string `json:"tasks" validate:"required"`
+        Properties []string `json:"properties" validate:"required"`
+}
 </pre>
 		
 		</div>

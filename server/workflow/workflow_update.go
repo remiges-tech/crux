@@ -19,10 +19,10 @@ import (
 )
 
 type WorkflowUpdate struct {
-	Slice     int32   `json:"slice" validate:"required,gt=0"`
-	App       string  `json:"app" validate:"required,alpha"`
-	Class     string  `json:"class" validate:"required,lowercase"`
-	Name      string  `json:"name" validate:"required,lowercase"`
+	Slice     int32   `json:"slice" validate:"required,gt=0,lt=15"`
+	App       string  `json:"app" validate:"required,alpha,lt=15"`
+	Class     string  `json:"class" validate:"required,lowercase,lt=15"`
+	Name      string  `json:"name" validate:"required,lowercase,lt=15"`
 	Flowrules []Rules `json:"flowrules" validate:"required,dive"`
 }
 
@@ -35,7 +35,7 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 
 	err := wscutils.BindJSON(c, &wf)
 	if err != nil {
-		l.LogActivity("Error Unmarshalling Query parameters to struct:", err.Error())
+		l.Error(err).Log("Error Unmarshalling Query parameters to struct:")
 		return
 	}
 
@@ -84,13 +84,13 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 	ruleSchema.Class = wf.Class
 	err = json.Unmarshal([]byte(schema.Patternschema), &ruleSchema.PatternSchema)
 	if err != nil {
-		l.Debug1().LogDebug("Error while Unmarshalling PatternSchema", err)
+		l.Debug1().Error(err).Log("Error while Unmarshalling PatternSchema")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
 	err = json.Unmarshal(schema.Actionschema, &ruleSchema.ActionSchema)
 	if err != nil {
-		l.Debug1().LogDebug("Error while Unmarshaling ActionSchema", err)
+		l.Debug1().Error(err).Log("Error while Unmarshaling ActionSchema")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}

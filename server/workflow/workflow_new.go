@@ -25,10 +25,10 @@ var (
 )
 
 type WorkflowNew struct {
-	Slice      int32   `json:"slice" validate:"required,gt=0"`
-	App        string  `json:"app" validate:"required,alpha"`
-	Class      string  `json:"class" validate:"required,lowercase"`
-	Name       string  `json:"name" validate:"required,lowercase"`
+	Slice      int32   `json:"slice" validate:"required,gt=0,lt=15"`
+	App        string  `json:"app" validate:"required,alpha,lt=15"`
+	Class      string  `json:"class" validate:"required,lowercase,lt=15"`
+	Name       string  `json:"name" validate:"required,lowercase,lt=15"`
 	IsInternal bool    `json:"is_internal" validate:"required"`
 	Flowrules  []Rules `json:"flowrules" validate:"required,dive"`
 }
@@ -52,7 +52,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 
 	err := wscutils.BindJSON(c, &wf)
 	if err != nil {
-		l.LogActivity("Error Unmarshalling Query parameters to struct:", err.Error())
+		l.Error(err).Log("Error Unmarshalling Query parameters to struct:")
 		return
 	}
 
@@ -78,7 +78,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 	}
 	tx, err := connpool.Begin(c)
 	if err != nil {
-		l.Info().LogActivity("Error while Begin tx", err.Error())
+		l.Info().Error(err).Log("Error while Begin tx")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
@@ -91,7 +91,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 		Class: wf.Class,
 	})
 	if err != nil {
-		l.Info().LogActivity("failed to get schema from DB:", err.Error())
+		l.Info().Error(err).Log("failed to get schema from DB:")
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
@@ -101,7 +101,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 	ruleSchema.Class = wf.Class
 	err = json.Unmarshal([]byte(schema.Patternschema), &ruleSchema.PatternSchema)
 	if err != nil {
-		l.Debug1().LogDebug("Error while Unmarshalling PatternSchema", err)
+		l.Debug1().Error(err).Log("Error while Unmarshalling PatternSchema")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
@@ -124,7 +124,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 	ruleset, err := json.Marshal(wf.Flowrules)
 	if err != nil {
 		patternSchema := "flowrules"
-		l.Debug1().LogDebug("Error while marshaling Flowrules", err)
+		l.Debug1().Error(err).Log("Error while marshaling Flowrules")
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_InvalidRequest, &patternSchema)}))
 		return
 	}
@@ -149,7 +149,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 		return
 	}
 	if err := tx.Commit(c); err != nil {
-		l.Info().LogActivity("Error while commits the transaction", err.Error())
+		l.Info().Error(err).Log("Error while commits the transaction")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}

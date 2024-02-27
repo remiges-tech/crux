@@ -81,9 +81,11 @@
 				
 				<option value="file12">github.com/remiges-tech/crux/server/schema/schema_update.go (66.1%)</option>
 				
-				<option value="file13">github.com/remiges-tech/crux/testutils/test_utils.go (75.0%)</option>
+				<option value="file13">github.com/remiges-tech/crux/server/wsc_utils.go (48.0%)</option>
 				
-				<option value="file14">github.com/remiges-tech/crux/types/types.go (42.9%)</option>
+				<option value="file14">github.com/remiges-tech/crux/testutils/test_utils.go (75.0%)</option>
+				
+				<option value="file15">github.com/remiges-tech/crux/types/types.go (0.0%)</option>
 				
 				</select>
 			</div>
@@ -1730,6 +1732,39 @@ func (q *Queries) AddWFNewInstances(ctx context.Context, arg AddWFNewInstancesPa
         <span class="cov0" title="0">return items, nil</span>
 }
 
+const deleteWfInstance = `-- name: DeleteWfInstance :one
+WITH deleted_parents AS (
+   DELETE FROM public.wfinstance
+   WHERE
+       (id = $1::INTEGER OR entityid = $2::TEXT)
+   RETURNING parent
+),
+deletion_count AS (
+   SELECT COUNT(*) AS cnt FROM deleted_parents
+),
+delete_childrens AS (
+    DELETE FROM public.wfinstance
+    WHERE parent IN (SELECT parent FROM deleted_parents WHERE parent IS NOT NULL)
+)
+SELECT 
+    CASE 
+        WHEN (SELECT cnt FROM deletion_count) &gt; 0 THEN 1
+        ELSE -1 
+    END AS result
+`
+
+type DeleteWfInstanceParams struct {
+        ID       pgtype.Int4 `json:"id"`
+        Entityid pgtype.Text `json:"entityid"`
+}
+
+func (q *Queries) DeleteWfInstance(ctx context.Context, arg DeleteWfInstanceParams) (int32, error) <span class="cov0" title="0">{
+        row := q.db.QueryRow(ctx, deleteWfInstance, arg.ID, arg.Entityid)
+        var result int32
+        err := row.Scan(&amp;result)
+        return result, err
+}</span>
+
 const getWFINstance = `-- name: GetWFINstance :one
 SELECT count(1)
 FROM public.wfinstance
@@ -1758,6 +1793,100 @@ func (q *Queries) GetWFINstance(ctx context.Context, arg GetWFINstanceParams) (i
         err := row.Scan(&amp;count)
         return count, err
 }</span>
+
+const getWFInstanceList = `-- name: GetWFInstanceList :many
+SELECT id, entityid, slice, app, class, workflow, step, loggedat, doneat, nextstep, parent FROM public.wfinstance
+WHERE 
+   ($1::INTEGER is null OR slice = $1::INTEGER)
+   AND ($2::text is null OR entityid = $2::text)
+   AND ($3::text is null OR app = $3::text)
+   AND ($4::text is null OR workflow = $4::text)
+   AND($5::INTEGER is null OR  parent = $5::INTEGER)
+`
+
+type GetWFInstanceListParams struct {
+        Slice    pgtype.Int4 `json:"slice"`
+        Entityid pgtype.Text `json:"entityid"`
+        App      pgtype.Text `json:"app"`
+        Workflow pgtype.Text `json:"workflow"`
+        Parent   pgtype.Int4 `json:"parent"`
+}
+
+func (q *Queries) GetWFInstanceList(ctx context.Context, arg GetWFInstanceListParams) ([]Wfinstance, error) <span class="cov0" title="0">{
+        rows, err := q.db.Query(ctx, getWFInstanceList,
+                arg.Slice,
+                arg.Entityid,
+                arg.App,
+                arg.Workflow,
+                arg.Parent,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">defer rows.Close()
+        var items []Wfinstance
+        for rows.Next() </span><span class="cov0" title="0">{
+                var i Wfinstance
+                if err := rows.Scan(
+                        &amp;i.ID,
+                        &amp;i.Entityid,
+                        &amp;i.Slice,
+                        &amp;i.App,
+                        &amp;i.Class,
+                        &amp;i.Workflow,
+                        &amp;i.Step,
+                        &amp;i.Loggedat,
+                        &amp;i.Doneat,
+                        &amp;i.Nextstep,
+                        &amp;i.Parent,
+                ); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov0" title="0">items = append(items, i)</span>
+        }
+        <span class="cov0" title="0">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return items, nil</span>
+}
+
+const getWFInstanceListByParents = `-- name: GetWFInstanceListByParents :many
+SELECT id, entityid, slice, app, class, workflow, step, loggedat, doneat, nextstep, parent FROM public.wfinstance
+WHERE 
+   ($1::INTEGER[] IS NOT NULL AND id = ANY($1::INTEGER[]))
+`
+
+func (q *Queries) GetWFInstanceListByParents(ctx context.Context, id []int32) ([]Wfinstance, error) <span class="cov0" title="0">{
+        rows, err := q.db.Query(ctx, getWFInstanceListByParents, id)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">defer rows.Close()
+        var items []Wfinstance
+        for rows.Next() </span><span class="cov0" title="0">{
+                var i Wfinstance
+                if err := rows.Scan(
+                        &amp;i.ID,
+                        &amp;i.Entityid,
+                        &amp;i.Slice,
+                        &amp;i.App,
+                        &amp;i.Class,
+                        &amp;i.Workflow,
+                        &amp;i.Step,
+                        &amp;i.Loggedat,
+                        &amp;i.Doneat,
+                        &amp;i.Nextstep,
+                        &amp;i.Parent,
+                ); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov0" title="0">items = append(items, i)</span>
+        }
+        <span class="cov0" title="0">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return items, nil</span>
+}
 </pre>
 		
 		<pre class="file" id="file8" style="display: none">package schema
@@ -1778,7 +1907,7 @@ func SchemaDelete(c *gin.Context, s *service.Service) <span class="cov8" title="
         lh := s.LogHarbour
         lh.Log("SchemaDelete request received")
 
-        isCapable, _ := types.Authz_check(types.OpReq{
+        isCapable, _ := server.Authz_check(types.OpReq{
                 User:      userID,
                 CapNeeded: CapForList,
         }, false)
@@ -1872,7 +2001,7 @@ func SchemaGet(c *gin.Context, s *service.Service) <span class="cov8" title="1">
                 response wfschemagetRow
         )
 
-        isCapable, _ := types.Authz_check(types.OpReq{
+        isCapable, _ := server.Authz_check(types.OpReq{
                 User:      userID,
                 CapNeeded: CapForList,
         }, false)
@@ -1886,7 +2015,7 @@ func SchemaGet(c *gin.Context, s *service.Service) <span class="cov8" title="1">
         // step 1: json request binding with a struct
         <span class="cov8" title="1">err := wscutils.BindJSON(c, &amp;request)
         if err != nil </span><span class="cov0" title="0">{
-                lh.Debug0().LogActivity("error while binding json request error:", err.Error())
+                lh.Debug0().Error(err).Log("error while binding json request error:")
                 return
         }</span>
 
@@ -1910,7 +2039,7 @@ func SchemaGet(c *gin.Context, s *service.Service) <span class="cov8" title="1">
                 Realm: userRealm,
         })
         if err != nil </span><span class="cov0" title="0">{
-                lh.Debug0().LogActivity("failed to get data from DB:", err.Error())
+                lh.Debug0().Error(err).Log("failed to get data from DB:")
                 errmsg := db.HandleDatabaseError(err)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
                 return
@@ -1918,7 +2047,7 @@ func SchemaGet(c *gin.Context, s *service.Service) <span class="cov8" title="1">
 
         <span class="cov8" title="1">errors := response.bindSchemaGetResp(s, dbResponse)
         if len(errors) &gt; 0 </span><span class="cov0" title="0">{
-                lh.Debug0().LogActivity("error while converting byte patternschema or action schema to struct:", err)
+                lh.Debug0().Error(err).Log("error while converting byte patternschema or action schema to struct:")
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, errors))
                 return
         }</span>
@@ -1985,9 +2114,9 @@ import (
 )
 
 type SchemaStruct struct {
-        Slice int32  `json:"slice"`
-        App   string `json:"app"`
-        Class string `json:"class"`
+        Slice int32  `json:"slice" validate:"lt=15"`
+        App   string `json:"app" validate:"lt=15"`
+        Class string `json:"class" validate:"lt=15"`
 }
 
 var CapForList = []string{"ruleset", "schema", "root", "report"}
@@ -1996,15 +2125,15 @@ var err error
 
 func SchemaList(c *gin.Context, s *service.Service) <span class="cov8" title="1">{
         l := s.LogHarbour
-        l.Debug0().Log("Starting execution of SchemaList()")
+        l.Debug0().Log("starting execution of SchemaList()")
 
-        isCapable, capList := types.Authz_check(types.OpReq{
+        isCapable, capList := server.Authz_check(types.OpReq{
                 User:      userID,
                 CapNeeded: CapForList,
         }, false)
 
         if !isCapable </span><span class="cov0" title="0">{
-                l.Info().LogActivity("Unauthorized user:", userID)
+                l.Info().LogActivity(server.ErrCode_Unauthorized, userID)
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
                 return
         }</span>
@@ -2013,7 +2142,7 @@ func SchemaList(c *gin.Context, s *service.Service) <span class="cov8" title="1"
 
         err = wscutils.BindJSON(c, &amp;sh)
         if err != nil </span><span class="cov8" title="1">{
-                l.LogActivity("Error Unmarshalling request payload to struct:", err.Error())
+                l.Debug0().Error(err).Log("error unmarshalling request payload to struct")
                 return
         }</span>
 
@@ -2026,7 +2155,7 @@ func SchemaList(c *gin.Context, s *service.Service) <span class="cov8" title="1"
         }</span>
         <span class="cov8" title="1">query, ok := s.Dependencies["queries"].(*sqlc.Queries)
         if !ok </span><span class="cov0" title="0">{
-                l.Debug0().Log("Error while getting query instance from service Dependencies")
+                l.Debug0().Log("error while getting query instance from service dependencies")
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
                 return
         }</span>
@@ -2037,31 +2166,31 @@ func SchemaList(c *gin.Context, s *service.Service) <span class="cov8" title="1"
                 if sh.App != "" </span><span class="cov8" title="1">{
                         schemaList, err = getSchemaList(c, sh, query)
                 }</span> else<span class="cov0" title="0"> {
-                        l.Info().LogActivity("Unauthorized user:", userID)
+                        l.Info().LogActivity(server.ErrCode_Unauthorized, userID)
                         wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
                         return
                 }</span>
         } else<span class="cov0" title="0"> {
-                l.Info().LogActivity("Unauthorized user:", userID)
+                l.Info().LogActivity(server.ErrCode_Unauthorized, userID)
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
                 return
         }</span>
         <span class="cov8" title="1">if err != nil || len(schemaList) == 0 </span><span class="cov0" title="0">{
-                l.LogActivity("Error while retrieving schema list", err)
+                l.Debug0().Error(err).Log("error while retrieving from db")
                 errmsg := db.HandleDatabaseError(err)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
                 return
         }</span>
         <span class="cov8" title="1">wscutils.SendSuccessResponse(c, &amp;wscutils.Response{Status: wscutils.SuccessStatus, Data: schemaList, Messages: nil})
-        l.Debug0().Log("Finished execution of SchemaList()")</span>
+        l.Debug0().Log("finished execution of SchemaList()")</span>
 }
 
 func getSchemaList(c *gin.Context, sh SchemaStruct, query *sqlc.Queries) ([]sqlc.WfSchemaListRow, error) <span class="cov8" title="1">{
         return query.WfSchemaList(c, sqlc.WfSchemaListParams{
                 Relam: realmID,
                 Slice: pgtype.Int4{Int32: sh.Slice, Valid: sh.Slice &gt; 0},
-                App:   pgtype.Text{String: sh.App, Valid: !types.IsStringEmpty(&amp;sh.App)},
-                Class: pgtype.Text{String: sh.Class, Valid: !types.IsStringEmpty(&amp;sh.Class)},
+                App:   pgtype.Text{String: sh.App, Valid: !server.IsStringEmpty(&amp;sh.App)},
+                Class: pgtype.Text{String: sh.Class, Valid: !server.IsStringEmpty(&amp;sh.Class)},
         })
 }</span>
 </pre>
@@ -2087,7 +2216,7 @@ func SchemaNew(c *gin.Context, s *service.Service) <span class="cov8" title="1">
         l := s.LogHarbour
         l.Debug0().Log("Starting execution of SchemaNew()")
 
-        isCapable, _ := types.Authz_check(types.OpReq{
+        isCapable, _ := server.Authz_check(types.OpReq{
                 User:      userID,
                 CapNeeded: capForNew,
         }, false)
@@ -2102,7 +2231,7 @@ func SchemaNew(c *gin.Context, s *service.Service) <span class="cov8" title="1">
 
         err := wscutils.BindJSON(c, &amp;sh)
         if err != nil </span><span class="cov8" title="1">{
-                l.LogActivity("Error Unmarshalling Query parameters to struct:", err.Error())
+                l.Error(err).Log("Error Unmarshalling Query parameters to struct:")
                 return
         }</span>
 
@@ -2148,7 +2277,7 @@ func SchemaNew(c *gin.Context, s *service.Service) <span class="cov8" title="1">
                 Createdby:     userID,
         })
         if err != nil </span><span class="cov0" title="0">{
-                l.Info().LogActivity("Error while creating schema", err.Error())
+                l.Info().Error(err).Log("Error while creating schema")
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
                 return
         }</span>
@@ -2332,9 +2461,9 @@ import (
 )
 
 type updateSchema struct {
-        Slice         int32          `json:"slice" validate:"required,gt=0"`
-        App           string         `json:"App" validate:"required,alpha"`
-        Class         string         `json:"class" validate:"required,lowercase"`
+        Slice         int32          `json:"slice" validate:"required,gt=0,lt=15"`
+        App           string         `json:"App" validate:"required,alpha,lt=15"`
+        Class         string         `json:"class" validate:"required,lowercase,lt=15"`
         PatternSchema *patternSchema `json:"patternSchema,omitempty"`
         ActionSchema  *actionSchema  `json:"actionSchema,omitempty"`
 }
@@ -2343,7 +2472,7 @@ func SchemaUpdate(c *gin.Context, s *service.Service) <span class="cov8" title="
         l := s.LogHarbour
         l.Debug0().Log("Starting execution of SchemaUpdate()")
 
-        isCapable, _ := types.Authz_check(types.OpReq{
+        isCapable, _ := server.Authz_check(types.OpReq{
                 User:      userID,
                 CapNeeded: capForUpdate,
         }, false)
@@ -2358,7 +2487,7 @@ func SchemaUpdate(c *gin.Context, s *service.Service) <span class="cov8" title="
 
         err := wscutils.BindJSON(c, &amp;sh)
         if err != nil </span><span class="cov8" title="1">{
-                l.LogActivity("Error Unmarshalling Query paramaeters to struct:", err.Error())
+                l.Error(err).Log("Error Unmarshalling Query paramaeters to struct:")
                 return
         }</span>
 
@@ -2399,13 +2528,13 @@ func SchemaUpdate(c *gin.Context, s *service.Service) <span class="cov8" title="
 func schemaUpdateWithTX(c context.Context, query *sqlc.Queries, connpool *pgxpool.Pool, l *logharbour.Logger, sh updateSchema) error <span class="cov8" title="1">{
         patternSchema, err := json.Marshal(sh.PatternSchema)
         if err != nil </span><span class="cov0" title="0">{
-                l.Debug1().LogDebug("Error while marshaling patternSchema", err)
+                l.Debug1().Error(err).Log("Error while marshaling patternSchema")
                 return err
         }</span>
 
         <span class="cov8" title="1">actionSchema, err := json.Marshal(sh.ActionSchema)
         if err != nil </span><span class="cov0" title="0">{
-                l.Debug1().LogDebug("Error while marshaling actionSchema", err)
+                l.Debug1().Error(err).Log("Error while marshaling actionSchema")
                 return err
         }</span>
 
@@ -2558,50 +2687,7 @@ func verifyActionSchemaUpdate(as *actionSchema) []wscutils.ErrorMessage <span cl
 }
 </pre>
 		
-		<pre class="file" id="file13" style="display: none">package testutils
-
-import (
-        "encoding/json"
-        "fmt"
-        "io"
-        "log"
-        "os"
-
-        "github.com/remiges-tech/alya/wscutils"
-)
-
-func MarshalJson(data any) []byte <span class="cov8" title="1">{
-        jsonData, err := json.Marshal(&amp;data)
-        if err != nil </span><span class="cov0" title="0">{
-                log.Fatal("error marshaling")
-        }</span>
-        <span class="cov8" title="1">return jsonData</span>
-}
-
-func ReadJsonFromFile(filepath string) ([]byte, error) <span class="cov8" title="1">{
-        // var err error
-        file, err := os.Open(filepath)
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, fmt.Errorf("testFile path is not exist")
-        }</span>
-        <span class="cov8" title="1">defer file.Close()
-        jsonData, err := io.ReadAll(file)
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-        <span class="cov8" title="1">return jsonData, nil</span>
-}
-
-type TestCasesStruct struct {
-        Name             string
-        RequestPayload   wscutils.Request
-        ExpectedHttpCode int
-        TestJsonFile     string
-        ExpectedResult   *wscutils.Response
-}
-</pre>
-		
-		<pre class="file" id="file14" style="display: none">package types
+		<pre class="file" id="file13" style="display: none">package server
 
 import (
         "encoding/json"
@@ -2613,73 +2699,9 @@ import (
         "strings"
 
         "github.com/go-playground/validator/v10"
+        "github.com/remiges-tech/crux/types"
 )
 
-const (
-        DevEnv           Environment = "dev_env"
-        ProdEnv          Environment = "prod_env"
-        UATEnv           Environment = "uat_env"
-        RECORD_NOT_EXIST             = "record_does_not_exist"
-        OPERATION_FAILED             = "operation_failed"
-)
-
-var APP, SLICE, CLASS, NAME string = "App", "Slice", "Class", "Name"
-
-type Environment string
-
-type OpReq struct {
-        User      string   `json:"user"`
-        CapNeeded []string `json:"capNeeded"`
-        Scope     Scope    `json:"scope"`
-        Limit     Limit    `json:"limit"`
-}
-
-type Scope map[string]interface{}
-type Limit map[string]interface{}
-
-type QualifiedCap struct {
-        Id    string `json:"id"`
-        Cap   string `json:"cap"`
-        Scope Scope  `json:"scope"`
-        Limit Limit  `json:"limit"`
-}
-
-type Capabilities struct {
-        Name          string         `json:"name"` //either user name or group name
-        QualifiedCaps []QualifiedCap `json:"qualifiedCaps"`
-}
-
-type Attribute struct {
-        Name      string   `json:"name" validate:"required"`
-        ShortDesc string   `json:"shortdesc" validate:"required"`
-        LongDesc  string   `json:"longdesc" validate:"required"`
-        ValType   string   `json:"valtype" validate:"required"`
-        Vals      []string `json:"vals,omitempty"`
-        Enumdesc  []string `json:"enumdesc,omitempty"`
-        ValMax    *int32   `json:"valmax,omitempty"`
-        ValMin    *int32   `json:"valmin,omitempty"`
-        LenMax    *int32   `json:"lenmax,omitempty"`
-        LenMin    *int32   `json:"lenmin,omitempty"`
-}
-
-type PatternSchema struct {
-        Class string      `json:"class" validate:"required,lowercase"`
-        Attr  []Attribute `json:"attr" validate:"required,dive"`
-}
-
-type ActionSchema struct {
-        Class      string   `json:"class" validate:"required,lowercase"`
-        Tasks      []string `json:"tasks" validate:"required"`
-        Properties []string `json:"properties" validate:"required"`
-}
-
-func (env Environment) IsValid() bool <span class="cov0" title="0">{
-        switch env </span>{
-        case DevEnv, ProdEnv, UATEnv:<span class="cov0" title="0">
-                return true</span>
-        }
-        <span class="cov0" title="0">return false</span>
-}
 
 // CommonValidation is a generic function which setup standard validation utilizing
 // validator package and Maps the errorVals based on the map parameter and
@@ -2737,10 +2759,122 @@ func GetWorkflowsByRulesetRights() []string <span class="cov0" title="0">{
         return []string{"retailBANK", "nedbank"}
 }</span>
 
-func Authz_check(op OpReq, trace bool) (bool, []string) <span class="cov8" title="1">{
+func Authz_check(op types.OpReq, trace bool) (bool, []string) <span class="cov8" title="1">{
         caplist := op.CapNeeded
         return true, caplist
 }</span>
+</pre>
+		
+		<pre class="file" id="file14" style="display: none">package testutils
+
+import (
+        "encoding/json"
+        "fmt"
+        "io"
+        "log"
+        "os"
+
+        "github.com/remiges-tech/alya/wscutils"
+)
+
+func MarshalJson(data any) []byte <span class="cov8" title="1">{
+        jsonData, err := json.Marshal(&amp;data)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatal("error marshaling")
+        }</span>
+        <span class="cov8" title="1">return jsonData</span>
+}
+
+func ReadJsonFromFile(filepath string) ([]byte, error) <span class="cov8" title="1">{
+        // var err error
+        file, err := os.Open(filepath)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("testFile path is not exist")
+        }</span>
+        <span class="cov8" title="1">defer file.Close()
+        jsonData, err := io.ReadAll(file)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return jsonData, nil</span>
+}
+
+type TestCasesStruct struct {
+        Name             string
+        RequestPayload   wscutils.Request
+        ExpectedHttpCode int
+        TestJsonFile     string
+        ExpectedResult   *wscutils.Response
+}
+</pre>
+		
+		<pre class="file" id="file15" style="display: none">package types
+
+const (
+        DevEnv           Environment = "dev_env"
+        ProdEnv          Environment = "prod_env"
+        UATEnv           Environment = "uat_env"
+        RECORD_NOT_EXIST             = "record_does_not_exist"
+        OPERATION_FAILED             = "operation_failed"
+)
+
+var APP, SLICE, CLASS, NAME string = "App", "Slice", "Class", "Name"
+
+type Environment string
+
+func (env Environment) IsValid() bool <span class="cov0" title="0">{
+        switch env </span>{
+        case DevEnv, ProdEnv, UATEnv:<span class="cov0" title="0">
+                return true</span>
+        }
+        <span class="cov0" title="0">return false</span>
+}
+
+type OpReq struct {
+        User      string   `json:"user"`
+        CapNeeded []string `json:"capNeeded"`
+        Scope     Scope    `json:"scope"`
+        Limit     Limit    `json:"limit"`
+}
+
+type Scope map[string]interface{}
+type Limit map[string]interface{}
+
+type QualifiedCap struct {
+        Id    string `json:"id"`
+        Cap   string `json:"cap"`
+        Scope Scope  `json:"scope"`
+        Limit Limit  `json:"limit"`
+}
+
+type Capabilities struct {
+        Name          string         `json:"name"` //either user name or group name
+        QualifiedCaps []QualifiedCap `json:"qualifiedCaps"`
+}
+
+type Attribute struct {
+        Name      string   `json:"name" validate:"required"`
+        ShortDesc string   `json:"shortdesc" validate:"required"`
+        LongDesc  string   `json:"longdesc" validate:"required"`
+        ValType   string   `json:"valtype" validate:"required"`
+        Vals      []string `json:"vals,omitempty"`
+        Enumdesc  []string `json:"enumdesc,omitempty"`
+        ValMax    *int32   `json:"valmax,omitempty"`
+        ValMin    *int32   `json:"valmin,omitempty"`
+        LenMax    *int32   `json:"lenmax,omitempty"`
+        LenMin    *int32   `json:"lenmin,omitempty"`
+}
+
+type PatternSchema struct {
+        Class string      `json:"class" validate:"required,lowercase"`
+        Attr  []Attribute `json:"attr" validate:"required,dive"`
+}
+
+type ActionSchema struct {
+        Class      string   `json:"class" validate:"required,lowercase"`
+        Tasks      []string `json:"tasks" validate:"required"`
+        Properties []string `json:"properties" validate:"required"`
+}
 </pre>
 		
 		</div>
