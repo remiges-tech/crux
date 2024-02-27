@@ -158,6 +158,7 @@ func registerRoutes(pool *dockertest.Pool, databaseUrl string) (*gin.Engine, err
 	s.RegisterRoute(http.MethodPut, "/BREschemaUpdate", schema.BRESchemaUpdate)
 	s.RegisterRoute(http.MethodDelete, "/BREschemaDelete", schema.BRESchemaDelete)
 	s.RegisterRoute(http.MethodPost, "/BREschemaList", schema.BRESchemaList)
+	s.RegisterRoute(http.MethodPost, "/BREschemaGet", schema.BRESchemaGet)
 	return r, nil
 
 }
