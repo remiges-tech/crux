@@ -149,23 +149,23 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
-	dclog := l.WithWhatClass("ruleset").WithWhatInstanceId(string(ruleset.ID))
+	dclog := l.WithClass("ruleset").WithInstanceId(string(ruleset.ID))
 	dclog.LogDataChange("Updated ruleset", logharbour.ChangeInfo{
-		Entity:    "ruleset",
-		Operation: "Update",
+		Entity: "ruleset",
+		Op:     "Update",
 		Changes: []logharbour.ChangeDetail{
 			{
-				Field:    "brwf",
-				OldValue: ruleset.Brwf,
-				NewValue: brwf},
+				Field:  "brwf",
+				OldVal: ruleset.Brwf,
+				NewVal: brwf},
 			{
-				Field:    "setname",
-				OldValue: ruleset.Setname,
-				NewValue: wf.Name},
+				Field:  "setname",
+				OldVal: ruleset.Setname,
+				NewVal: wf.Name},
 			{
-				Field:    "ruleset",
-				OldValue: string(ruleset.Ruleset),
-				NewValue: wf.Flowrules},
+				Field:  "ruleset",
+				OldVal: string(ruleset.Ruleset),
+				NewVal: wf.Flowrules},
 		},
 	})
 	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})

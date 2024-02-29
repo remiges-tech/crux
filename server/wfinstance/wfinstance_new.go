@@ -34,7 +34,7 @@ type WFInstanceNewResponse struct {
 
 // GetWFinstanceNew will be responsible for processing the /wfinstanceNew request that comes through as a POST
 func GetWFinstanceNew(c *gin.Context, s *service.Service) {
-	lh := s.LogHarbour.WithWhatClass("wfinstance")
+	lh := s.LogHarbour.WithClass("wfinstance")
 	lh.Log("GetWFinstanceNew request received")
 	var wfinstanceNewreq WFInstanceNewRequest
 	var actionSet ActionSet

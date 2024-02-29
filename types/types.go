@@ -5,7 +5,7 @@ const (
 	ProdEnv          Environment = "prod_env"
 	UATEnv           Environment = "uat_env"
 	RECORD_NOT_EXIST             = "record_does_not_exist"
-	OPERATION_FAILED             = "operation_failed"
+	Op_FAILED                    = "Op_failed"
 )
 
 var APP, SLICE, CLASS, NAME string = "App", "Slice", "Class", "Name"

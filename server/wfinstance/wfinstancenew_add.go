@@ -2,6 +2,7 @@ package wfinstance
 
 import (
 	"errors"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -33,7 +34,7 @@ func addTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanc
 	var parent pgtype.Int4
 	subflow := make(map[string]string)
 
-	lh := s.LogHarbour.WithWhatClass("wfinstance")
+	lh := s.LogHarbour.WithClass("wfinstance")
 	lh.Debug0().Log("inside addTasks()")
 
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
@@ -64,15 +65,15 @@ func addTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanc
 
 	// data change log
 	for _, val := range responseData {
-		dclog := lh.WithWhatClass("wfinstance").WithWhatInstanceId(string(val.ID))
+		dclog := lh.WithClass("wfinstance").WithInstanceId(strconv.Itoa(int(val.ID)))
 		dclog.LogDataChange("created wfinstance ", logharbour.ChangeInfo{
-			Entity:    "wfinstance",
-			Operation: "create",
+			Entity: "wfinstance",
+			Op:     "create",
 			Changes: []logharbour.ChangeDetail{
 				{
-					Field:    "row",
-					OldValue: nil,
-					NewValue: val},
+					Field:  "row",
+					OldVal: nil,
+					NewVal: val},
 			},
 		})
 	}
@@ -107,7 +108,7 @@ func getResponse(r ResponseRequest) WFInstanceNewResponse {
 	var loggedDate pgtype.Timestamp
 	var response WFInstanceNewResponse
 
-	lh := r.Service.LogHarbour.WithWhatClass("wfinstance")
+	lh := r.Service.LogHarbour.WithClass("wfinstance")
 	lh.Debug0().Log("Inside getResponse()")
 
 	for _, val := range r.ResponseData {

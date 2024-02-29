@@ -1,6 +1,8 @@
 package wfinstance
 
 import (
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -20,7 +22,7 @@ type WFInstanceAbortRquest struct {
 }
 
 func GetWFInstanceAbort(c *gin.Context, s *service.Service) {
-	lh := s.LogHarbour.WithWhatClass("wfinstance")
+	lh := s.LogHarbour.WithClass("wfinstance")
 	lh.Log("GetWFInstanceAbort request received")
 
 	var (
@@ -67,7 +69,7 @@ func GetWFInstanceAbort(c *gin.Context, s *service.Service) {
 	//Handle the request based on the presence of ID or EntityID
 	if request.ID != nil {
 		id = *request.ID
-		lh.WithWhatInstanceId(string(id))
+		lh.WithInstanceId(string(id))
 	} else {
 		entityid = *request.EntityID
 	}
@@ -124,15 +126,15 @@ func GetWFInstanceAbort(c *gin.Context, s *service.Service) {
 
 	// data change log
 	for _, val := range deletedWfinstaceListByID {
-		dclog := lh.WithWhatClass("wfinstance").WithWhatInstanceId(string(val.ID))
+		dclog := lh.WithClass("wfinstance").WithInstanceId(strconv.Itoa(int(val.ID)))
 		dclog.LogDataChange("deleted wfinstance ", logharbour.ChangeInfo{
-			Entity:    "wfinstance",
-			Operation: "delete",
+			Entity: "wfinstance",
+			Op:     "delete",
 			Changes: []logharbour.ChangeDetail{
 				{
-					Field:    "row",
-					OldValue: val,
-					NewValue: nil},
+					Field:  "row",
+					OldVal: val,
+					NewVal: nil},
 			},
 		})
 	}
