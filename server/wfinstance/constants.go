@@ -18,7 +18,7 @@ const (
 	SCHEMA_PATTERN_NOT_FOUND         = "schema_pattern_not_found"
 	INVALID_PATTERN                  = "entity_does_not_match_with_pattern"
 	INVALID_PROPERTY_ATTRIBUTES      = "invalid_property_attributes"
-	INSERT_OPERATION_FAILED          = "insert_operation_failed"
+	INSERT_Op_FAILED                 = "insert_Op_failed"
 	INVALID_DATABASE_DEPENDENCY      = "invalid_database_dependency"
 
 	// types constants

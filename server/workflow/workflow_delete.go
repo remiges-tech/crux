@@ -107,15 +107,15 @@ func WorkflowDelete(c *gin.Context, s *service.Service) {
 }
 
 func dataChangeLog(lh *logharbour.Logger, dbRecord sqlc.WorkflowgetRow) {
-	dclog := lh.WithWhatClass("ruleset").WithWhatInstanceId(string(dbRecord.ID))
+	dclog := lh.WithClass("ruleset").WithInstanceId(string(dbRecord.ID))
 	dclog.LogDataChange("delete ruleset", logharbour.ChangeInfo{
-		Entity:    "ruleset",
-		Operation: "delete",
+		Entity: "ruleset",
+		Op:     "delete",
 		Changes: []logharbour.ChangeDetail{
 			{
-				Field:    "row",
-				OldValue: dbRecord,
-				NewValue: nil},
+				Field:  "row",
+				OldVal: dbRecord,
+				NewVal: nil},
 		},
 	})
 }

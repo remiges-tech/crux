@@ -1,109 +1,168 @@
-
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-		<title>db: Go Coverage Report</title>
-		<style>
-			body {
-				background: black;
-				color: rgb(80, 80, 80);
-			}
-			body, pre, #legend span {
-				font-family: Menlo, monospace;
-				font-weight: bold;
-			}
-			#topbar {
-				background: black;
-				position: fixed;
-				top: 0; left: 0; right: 0;
-				height: 42px;
-				border-bottom: 1px solid rgb(80, 80, 80);
-			}
-			#content {
-				margin-top: 50px;
-			}
-			#nav, #legend {
-				float: left;
-				margin-left: 10px;
-			}
-			#legend {
-				margin-top: 12px;
-			}
-			#nav {
-				margin-top: 10px;
-			}
-			#legend span {
-				margin: 0 5px;
-			}
-			.cov0 { color: rgb(192, 0, 0) }
-.cov1 { color: rgb(128, 128, 128) }
-.cov2 { color: rgb(116, 140, 131) }
-.cov3 { color: rgb(104, 152, 134) }
-.cov4 { color: rgb(92, 164, 137) }
-.cov5 { color: rgb(80, 176, 140) }
-.cov6 { color: rgb(68, 188, 143) }
-.cov7 { color: rgb(56, 200, 146) }
-.cov8 { color: rgb(44, 212, 149) }
-.cov9 { color: rgb(32, 224, 152) }
-.cov10 { color: rgb(20, 236, 155) }
 
-		</style>
-	</head>
-	<body>
-		<div id="topbar">
-			<div id="nav">
-				<select id="files">
-				
-				<option value="file0">github.com/remiges-tech/crux/db/error.go (0.0%)</option>
-				
-				<option value="file1">github.com/remiges-tech/crux/db/pg.go (75.0%)</option>
-				
-				<option value="file2">github.com/remiges-tech/crux/db/sqlc-gen/db.go (50.0%)</option>
-				
-				<option value="file3">github.com/remiges-tech/crux/db/sqlc-gen/models.go (0.0%)</option>
-				
-				<option value="file4">github.com/remiges-tech/crux/db/sqlc-gen/ruleset.sql.go (39.0%)</option>
-				
-				<option value="file5">github.com/remiges-tech/crux/db/sqlc-gen/schema.sql.go (2.8%)</option>
-				
-				<option value="file6">github.com/remiges-tech/crux/db/sqlc-gen/stepworkflow.sql.go (76.9%)</option>
-				
-				<option value="file7">github.com/remiges-tech/crux/db/sqlc-gen/wfinstance.sql.go (60.3%)</option>
-				
-				<option value="file8">github.com/remiges-tech/crux/server/wfinstance/do_match.go (66.7%)</option>
-				
-				<option value="file9">github.com/remiges-tech/crux/server/wfinstance/wfinstance_abort.go (54.8%)</option>
-				
-				<option value="file10">github.com/remiges-tech/crux/server/wfinstance/wfinstance_list.go (73.4%)</option>
-				
-				<option value="file11">github.com/remiges-tech/crux/server/wfinstance/wfinstance_new.go (77.2%)</option>
-				
-				<option value="file12">github.com/remiges-tech/crux/server/wfinstance/wfinstancenew_add.go (86.4%)</option>
-				
-				<option value="file13">github.com/remiges-tech/crux/server/wfinstance/wfinstancenew_validation.go (75.0%)</option>
-				
-				<option value="file14">github.com/remiges-tech/crux/server/wfinstance/wfinstanceutils.go (100.0%)</option>
-				
-				<option value="file15">github.com/remiges-tech/crux/server/wsc_utils.go (48.0%)</option>
-				
-				<option value="file16">github.com/remiges-tech/crux/testutils/test_utils.go (0.0%)</option>
-				
-				<option value="file17">github.com/remiges-tech/crux/types/types.go (0.0%)</option>
-				
-				</select>
-			</div>
-			<div id="legend">
-				<span>not tracked</span>
-			
-				<span class="cov0">not covered</span>
-				<span class="cov8">covered</span>
-			
-			</div>
-		</div>
-		<div id="content">
-		
-		<pre class="file" id="file0" style="display: none">package db
+<head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <title>db: Go Coverage Report</title>
+        <style>
+                body {
+                        background: black;
+                        color: rgb(80, 80, 80);
+                }
+
+                body,
+                pre,
+                #legend span {
+                        font-family: Menlo, monospace;
+                        font-weight: bold;
+                }
+
+                #topbar {
+                        background: black;
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        height: 42px;
+                        border-bottom: 1px solid rgb(80, 80, 80);
+                }
+
+                #content {
+                        margin-top: 50px;
+                }
+
+                #nav,
+                #legend {
+                        float: left;
+                        margin-left: 10px;
+                }
+
+                #legend {
+                        margin-top: 12px;
+                }
+
+                #nav {
+                        margin-top: 10px;
+                }
+
+                #legend span {
+                        margin: 0 5px;
+                }
+
+                .cov0 {
+                        color: rgb(192, 0, 0)
+                }
+
+                .cov1 {
+                        color: rgb(128, 128, 128)
+                }
+
+                .cov2 {
+                        color: rgb(116, 140, 131)
+                }
+
+                .cov3 {
+                        color: rgb(104, 152, 134)
+                }
+
+                .cov4 {
+                        color: rgb(92, 164, 137)
+                }
+
+                .cov5 {
+                        color: rgb(80, 176, 140)
+                }
+
+                .cov6 {
+                        color: rgb(68, 188, 143)
+                }
+
+                .cov7 {
+                        color: rgb(56, 200, 146)
+                }
+
+                .cov8 {
+                        color: rgb(44, 212, 149)
+                }
+
+                .cov9 {
+                        color: rgb(32, 224, 152)
+                }
+
+                .cov10 {
+                        color: rgb(20, 236, 155)
+                }
+        </style>
+</head>
+
+<body>
+        <div id="topbar">
+                <div id="nav">
+                        <select id="files">
+
+                                <option value="file0">github.com/remiges-tech/crux/db/error.go (0.0%)</option>
+
+                                <option value="file1">github.com/remiges-tech/crux/db/pg.go (75.0%)</option>
+
+                                <option value="file2">github.com/remiges-tech/crux/db/sqlc-gen/db.go (50.0%)</option>
+
+                                <option value="file3">github.com/remiges-tech/crux/db/sqlc-gen/models.go (0.0%)</option>
+
+                                <option value="file4">github.com/remiges-tech/crux/db/sqlc-gen/ruleset.sql.go (39.0%)
+                                </option>
+
+                                <option value="file5">github.com/remiges-tech/crux/db/sqlc-gen/schema.sql.go (2.8%)
+                                </option>
+
+                                <option value="file6">github.com/remiges-tech/crux/db/sqlc-gen/stepworkflow.sql.go
+                                        (76.9%)</option>
+
+                                <option value="file7">github.com/remiges-tech/crux/db/sqlc-gen/wfinstance.sql.go (60.3%)
+                                </option>
+
+                                <option value="file8">github.com/remiges-tech/crux/server/wfinstance/do_match.go (66.7%)
+                                </option>
+
+                                <option value="file9">github.com/remiges-tech/crux/server/wfinstance/wfinstance_abort.go
+                                        (54.8%)</option>
+
+                                <option value="file10">github.com/remiges-tech/crux/server/wfinstance/wfinstance_list.go
+                                        (73.4%)</option>
+
+                                <option value="file11">github.com/remiges-tech/crux/server/wfinstance/wfinstance_new.go
+                                        (77.2%)</option>
+
+                                <option value="file12">
+                                        github.com/remiges-tech/crux/server/wfinstance/wfinstancenew_add.go (86.4%)
+                                </option>
+
+                                <option value="file13">
+                                        github.com/remiges-tech/crux/server/wfinstance/wfinstancenew_validation.go
+                                        (75.0%)</option>
+
+                                <option value="file14">github.com/remiges-tech/crux/server/wfinstance/wfinstanceutils.go
+                                        (100.0%)</option>
+
+                                <option value="file15">github.com/remiges-tech/crux/server/wsc_utils.go (48.0%)</option>
+
+                                <option value="file16">github.com/remiges-tech/crux/testutils/test_utils.go (0.0%)
+                                </option>
+
+                                <option value="file17">github.com/remiges-tech/crux/types/types.go (0.0%)</option>
+
+                        </select>
+                </div>
+                <div id="legend">
+                        <span>not tracked</span>
+
+                        <span class="cov0">not covered</span>
+                        <span class="cov8">covered</span>
+
+                </div>
+        </div>
+        <div id="content">
+
+                <pre class="file" id="file0" style="display: none">package db
 
 import (
         "errors"
@@ -148,8 +207,8 @@ func HandleDatabaseError(err error) wscutils.ErrorMessage <span class="cov0" tit
         <span class="cov0" title="0">return wscutils.ErrorMessage{}</span>
 }
 </pre>
-		
-		<pre class="file" id="file1" style="display: none">package db
+
+                <pre class="file" id="file1" style="display: none">package db
 
 import (
         "context"
@@ -170,8 +229,8 @@ func NewProvider(connString string) (*pgxpool.Pool, error) <span class="cov8" ti
         <span class="cov8" title="1">return connPool, err</span>
 }
 </pre>
-		
-		<pre class="file" id="file2" style="display: none">// Code generated by sqlc. DO NOT EDIT.
+
+                <pre class="file" id="file2" style="display: none">// Code generated by sqlc. DO NOT EDIT.
 // versions:
 //   sqlc v1.25.0
 
@@ -204,8 +263,8 @@ func (q *Queries) WithTx(tx pgx.Tx) *Queries <span class="cov0" title="0">{
         }
 }</span>
 </pre>
-		
-		<pre class="file" id="file3" style="display: none">// Code generated by sqlc. DO NOT EDIT.
+
+                <pre class="file" id="file3" style="display: none">// Code generated by sqlc. DO NOT EDIT.
 // versions:
 //   sqlc v1.25.0
 
@@ -375,8 +434,8 @@ type Wfinstance struct {
         Parent   pgtype.Int4      `json:"parent"`
 }
 </pre>
-		
-		<pre class="file" id="file4" style="display: none">// Code generated by sqlc. DO NOT EDIT.
+
+                <pre class="file" id="file4" style="display: none">// Code generated by sqlc. DO NOT EDIT.
 // versions:
 //   sqlc v1.25.0
 // source: ruleset.sql
@@ -824,8 +883,8 @@ func (q *Queries) Workflowget(ctx context.Context, arg WorkflowgetParams) (Workf
         return i, err
 }</span>
 </pre>
-		
-		<pre class="file" id="file5" style="display: none">// Code generated by sqlc. DO NOT EDIT.
+
+                <pre class="file" id="file5" style="display: none">// Code generated by sqlc. DO NOT EDIT.
 // versions:
 //   sqlc v1.25.0
 // source: schema.sql
@@ -1621,8 +1680,8 @@ func (q *Queries) Wfschemaget(ctx context.Context, arg WfschemagetParams) (Wfsch
         return i, err
 }</span>
 </pre>
-		
-		<pre class="file" id="file6" style="display: none">// Code generated by sqlc. DO NOT EDIT.
+
+                <pre class="file" id="file6" style="display: none">// Code generated by sqlc. DO NOT EDIT.
 // versions:
 //   sqlc v1.25.0
 // source: stepworkflow.sql
@@ -1662,8 +1721,8 @@ func (q *Queries) GetWorkflow(ctx context.Context, step string) ([]GetWorkflowRo
         <span class="cov8" title="1">return items, nil</span>
 }
 </pre>
-		
-		<pre class="file" id="file7" style="display: none">// Code generated by sqlc. DO NOT EDIT.
+
+                <pre class="file" id="file7" style="display: none">// Code generated by sqlc. DO NOT EDIT.
 // versions:
 //   sqlc v1.25.0
 // source: wfinstance.sql
@@ -1983,8 +2042,8 @@ func (q *Queries) GetWFInstanceListByParents(ctx context.Context, id []int32) ([
         <span class="cov8" title="1">return items, nil</span>
 }
 </pre>
-		
-		<pre class="file" id="file8" style="display: none">package wfinstance
+
+                <pre class="file" id="file8" style="display: none">package wfinstance
 
 /*
 This file contains doMatch() and a helper function called by doMatch().
@@ -2107,8 +2166,8 @@ func inconsistentRuleSet(calledSetName string, currSetName string) (ActionSet, b
         )
 }</span>
 </pre>
-		
-		<pre class="file" id="file9" style="display: none">package wfinstance
+
+                <pre class="file" id="file9" style="display: none">package wfinstance
 
 import (
         "github.com/gin-gonic/gin"
@@ -2130,7 +2189,7 @@ type WFInstanceAbortRquest struct {
 }
 
 func GetWFInstanceAbort(c *gin.Context, s *service.Service) <span class="cov8" title="1">{
-        lh := s.LogHarbour.WithWhatClass("wfinstance")
+        lh := s.LogHarbour.WithClass("wfinstance")
         lh.Log("GetWFInstanceAbort request received")
 
         var (
@@ -2177,7 +2236,7 @@ func GetWFInstanceAbort(c *gin.Context, s *service.Service) <span class="cov8" t
         //Handle the request based on the presence of ID or EntityID
         <span class="cov8" title="1">if request.ID != nil </span><span class="cov8" title="1">{
                 id = *request.ID
-                lh.WithWhatInstanceId(string(id))
+                lh.WithInstanceId(string(id))
         }</span> else<span class="cov8" title="1"> {
                 entityid = *request.EntityID
         }</span>
@@ -2234,15 +2293,15 @@ func GetWFInstanceAbort(c *gin.Context, s *service.Service) <span class="cov8" t
 
         // data change log
         <span class="cov8" title="1">for _, val := range deletedWfinstaceListByID </span><span class="cov8" title="1">{
-                dclog := lh.WithWhatClass("wfinstance").WithWhatInstanceId(string(val.ID))
+                dclog := lh.WithClass("wfinstance").WithInstanceId(string(val.ID))
                 dclog.LogDataChange("deleted wfinstance ", logharbour.ChangeInfo{
                         Entity:    "wfinstance",
-                        Operation: "delete",
+                        Op: "delete",
                         Changes: []logharbour.ChangeDetail{
                                 {
                                         Field:    "row",
-                                        OldValue: val,
-                                        NewValue: nil},
+                                        OldVal: val,
+                                        NewVal: nil},
                         },
                 })
         }</span>
@@ -2251,8 +2310,8 @@ func GetWFInstanceAbort(c *gin.Context, s *service.Service) <span class="cov8" t
 
 }
 </pre>
-		
-		<pre class="file" id="file10" style="display: none">package wfinstance
+
+                <pre class="file" id="file10" style="display: none">package wfinstance
 
 import (
         "github.com/gin-gonic/gin"
@@ -2299,7 +2358,7 @@ type WFInstanceListParams struct {
 }
 
 func GetWFInstanceList(c *gin.Context, s *service.Service) <span class="cov8" title="1">{
-        lh := s.LogHarbour.WithWhatClass("wfinstance")
+        lh := s.LogHarbour.WithClass("wfinstance")
         lh.Log("GetWFInstanceList request received")
 
         var (
@@ -2439,8 +2498,8 @@ func GetParams(req WFInstanceListRequest, params WFInstanceListParams) WFInstanc
         <span class="cov8" title="1">return params</span>
 }
 </pre>
-		
-		<pre class="file" id="file11" style="display: none">package wfinstance
+
+                <pre class="file" id="file11" style="display: none">package wfinstance
 
 import (
         "fmt"
@@ -2476,7 +2535,7 @@ type WFInstanceNewResponse struct {
 
 // GetWFinstanceNew will be responsible for processing the /wfinstanceNew request that comes through as a POST
 func GetWFinstanceNew(c *gin.Context, s *service.Service) <span class="cov8" title="1">{
-        lh := s.LogHarbour.WithWhatClass("wfinstance")
+        lh := s.LogHarbour.WithClass("wfinstance")
         lh.Log("GetWFinstanceNew request received")
         var wfinstanceNewreq WFInstanceNewRequest
         var actionSet ActionSet
@@ -2608,8 +2667,8 @@ func getValidPropertyAttr(a ActionSet) (map[string]string, error) <span class="c
         <span class="cov8" title="1">return attribute, nil</span>
 }
 </pre>
-		
-		<pre class="file" id="file12" style="display: none">package wfinstance
+
+                <pre class="file" id="file12" style="display: none">package wfinstance
 
 import (
         "errors"
@@ -2644,7 +2703,7 @@ func addTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanc
         var parent pgtype.Int4
         subflow := make(map[string]string)
 
-        lh := s.LogHarbour.WithWhatClass("wfinstance")
+        lh := s.LogHarbour.WithClass("wfinstance")
         lh.Debug0().Log("inside addTasks()")
 
         query, ok := s.Dependencies["queries"].(*sqlc.Queries)
@@ -2675,55 +2734,55 @@ func addTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanc
 
         // data change log
         <span class="cov8" title="1">for _, val := range responseData </span><span class="cov8" title="1">{
-                dclog := lh.WithWhatClass("wfinstance").WithWhatInstanceId(string(val.ID))
+                dclog := lh.WithClass("wfinstance").WithInstanceId(string(val.ID))
                 dclog.LogDataChange("created wfinstance ", logharbour.ChangeInfo{
                         Entity:    "wfinstance",
-                        Operation: "create",
+                        Op: "create",
                         Changes: []logharbour.ChangeDetail{
                                 {
                                         Field:    "id",
-                                        OldValue: nil,
-                                        NewValue: val.ID},
+                                        OldVal: nil,
+                                        NewVal: val.ID},
                                 {
                                         Field:    "entityid",
-                                        OldValue: nil,
-                                        NewValue: val.Entityid},
+                                        OldVal: nil,
+                                        NewVal: val.Entityid},
                                 {
                                         Field:    "slice",
-                                        OldValue: nil,
-                                        NewValue: val.Slice},
+                                        OldVal: nil,
+                                        NewVal: val.Slice},
                                 {
                                         Field:    "app",
-                                        OldValue: nil,
-                                        NewValue: val.App},
+                                        OldVal: nil,
+                                        NewVal: val.App},
                                 {
                                         Field:    "class",
-                                        OldValue: nil,
-                                        NewValue: val.Class},
+                                        OldVal: nil,
+                                        NewVal: val.Class},
                                 {
                                         Field:    "workflow",
-                                        OldValue: nil,
-                                        NewValue: val.Workflow},
+                                        OldVal: nil,
+                                        NewVal: val.Workflow},
                                 {
                                         Field:    "step",
-                                        OldValue: nil,
-                                        NewValue: val.Step},
+                                        OldVal: nil,
+                                        NewVal: val.Step},
                                 {
                                         Field:    "loggedat",
-                                        OldValue: nil,
-                                        NewValue: val.Loggedat},
+                                        OldVal: nil,
+                                        NewVal: val.Loggedat},
                                 {
                                         Field:    "doneat",
-                                        OldValue: nil,
-                                        NewValue: val.Doneat},
+                                        OldVal: nil,
+                                        NewVal: val.Doneat},
                                 {
                                         Field:    "nextstep",
-                                        OldValue: nil,
-                                        NewValue: val.Nextstep},
+                                        OldVal: nil,
+                                        NewVal: val.Nextstep},
                                 {
                                         Field:    "parent",
-                                        OldValue: nil,
-                                        NewValue: val.Parent},
+                                        OldVal: nil,
+                                        NewVal: val.Parent},
                         },
                 })
         }</span>
@@ -2758,7 +2817,7 @@ func getResponse(r ResponseRequest) WFInstanceNewResponse <span class="cov8" tit
         var loggedDate pgtype.Timestamp
         var response WFInstanceNewResponse
 
-        lh := r.Service.LogHarbour.WithWhatClass("wfinstance")
+        lh := r.Service.LogHarbour.WithClass("wfinstance")
         lh.Debug0().Log("Inside getResponse()")
 
         for _, val := range r.ResponseData </span><span class="cov8" title="1">{
@@ -2800,8 +2859,8 @@ func ConvertToPGType(value int32) pgtype.Int4 <span class="cov8" title="1">{
         <span class="cov0" title="0">return pgtype.Int4{Int32: value, Valid: false}</span>
 }
 </pre>
-		
-		<pre class="file" id="file13" style="display: none">package wfinstance
+
+                <pre class="file" id="file13" style="display: none">package wfinstance
 
 import (
         "encoding/json"
@@ -2829,7 +2888,7 @@ type EntityAttributes struct {
 }
 
 func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin.Context) (bool, []wscutils.ErrorMessage) <span class="cov8" title="1">{
-        lh := s.LogHarbour.WithWhatClass("wfinstance")
+        lh := s.LogHarbour.WithClass("wfinstance")
         entity := r.Entity
         var errRes []wscutils.ErrorMessage
 
@@ -2898,7 +2957,7 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
 // validate workflow
 func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context) (bool, []wscutils.ErrorMessage) <span class="cov8" title="1">{
         var errors []wscutils.ErrorMessage
-        lh := s.LogHarbour.WithWhatClass("wfinstance")
+        lh := s.LogHarbour.WithClass("wfinstance")
         entityClass := r.Entity[CLASS]
 
         lh.Debug0().Log("Inside validateWorkflow()")
@@ -3084,8 +3143,8 @@ func getEntity(en map[string]string) Entity <span class="cov8" title="1">{
         <span class="cov8" title="1">return EntityStruct</span>
 }
 </pre>
-		
-		<pre class="file" id="file14" style="display: none">package wfinstance
+
+                <pre class="file" id="file14" style="display: none">package wfinstance
 
 import "github.com/remiges-tech/crux/db/sqlc-gen"
 
@@ -3108,8 +3167,8 @@ func getParentList(data []sqlc.Wfinstance) []int32 <span class="cov8" title="1">
 
 }
 </pre>
-		
-		<pre class="file" id="file15" style="display: none">package server
+
+                <pre class="file" id="file15" style="display: none">package server
 
 import (
         "encoding/json"
@@ -3186,8 +3245,8 @@ func Authz_check(op types.OpReq, trace bool) (bool, []string) <span class="cov8"
         return true, caplist
 }</span>
 </pre>
-		
-		<pre class="file" id="file16" style="display: none">package testutils
+
+                <pre class="file" id="file16" style="display: none">package testutils
 
 import (
         "encoding/json"
@@ -3229,15 +3288,15 @@ type TestCasesStruct struct {
         ExpectedResult   *wscutils.Response
 }
 </pre>
-		
-		<pre class="file" id="file17" style="display: none">package types
+
+                <pre class="file" id="file17" style="display: none">package types
 
 const (
         DevEnv           Environment = "dev_env"
         ProdEnv          Environment = "prod_env"
         UATEnv           Environment = "uat_env"
         RECORD_NOT_EXIST             = "record_does_not_exist"
-        OPERATION_FAILED             = "operation_failed"
+        Op_FAILED             = "Op_failed"
 )
 
 var APP, SLICE, CLASS, NAME string = "App", "Slice", "Class", "Name"
@@ -3298,34 +3357,35 @@ type ActionSchema struct {
         Properties []string `json:"properties" validate:"required"`
 }
 </pre>
-		
-		</div>
-	</body>
-	<script>
-	(function() {
-		var files = document.getElementById('files');
-		var visible;
-		files.addEventListener('change', onChange, false);
-		function select(part) {
-			if (visible)
-				visible.style.display = 'none';
-			visible = document.getElementById(part);
-			if (!visible)
-				return;
-			files.value = part;
-			visible.style.display = 'block';
-			location.hash = part;
-		}
-		function onChange() {
-			select(files.value);
-			window.scrollTo(0, 0);
-		}
-		if (location.hash != "") {
-			select(location.hash.substr(1));
-		}
-		if (!visible) {
-			select("file0");
-		}
-	})();
-	</script>
+
+        </div>
+</body>
+<script>
+        (function () {
+                var files = document.getElementById('files');
+                var visible;
+                files.addEventListener('change', onChange, false);
+                function select(part) {
+                        if (visible)
+                                visible.style.display = 'none';
+                        visible = document.getElementById(part);
+                        if (!visible)
+                                return;
+                        files.value = part;
+                        visible.style.display = 'block';
+                        location.hash = part;
+                }
+                function onChange() {
+                        select(files.value);
+                        window.scrollTo(0, 0);
+                }
+                if (location.hash != "") {
+                        select(location.hash.substr(1));
+                }
+                if (!visible) {
+                        select("file0");
+                }
+        })();
+</script>
+
 </html>

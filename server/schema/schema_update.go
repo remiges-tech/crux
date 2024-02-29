@@ -159,19 +159,19 @@ func schemaUpdateWithTX(c context.Context, query *sqlc.Queries, connpool *pgxpoo
 	if err := tx.Commit(c); err != nil {
 		return err
 	}
-	dclog := l.WithWhatClass("schema").WithWhatInstanceId(string(schema.ID))
+	dclog := l.WithClass("schema").WithInstanceId(string(schema.ID))
 	dclog.LogDataChange("Updated schema", logharbour.ChangeInfo{
-		Entity:    "schema",
-		Operation: "Update",
+		Entity: "schema",
+		Op:     "Update",
 		Changes: []logharbour.ChangeDetail{
 			{
-				Field:    "patternSchema",
-				OldValue: string(schema.Patternschema),
-				NewValue: patternSchema},
+				Field:  "patternSchema",
+				OldVal: string(schema.Patternschema),
+				NewVal: patternSchema},
 			{
-				Field:    "actionSchema",
-				OldValue: string(schema.Actionschema),
-				NewValue: sh.ActionSchema},
+				Field:  "actionSchema",
+				OldVal: string(schema.Actionschema),
+				NewVal: sh.ActionSchema},
 		},
 	})
 

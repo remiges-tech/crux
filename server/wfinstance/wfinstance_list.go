@@ -45,7 +45,7 @@ type WFInstanceListParams struct {
 }
 
 func GetWFInstanceList(c *gin.Context, s *service.Service) {
-	lh := s.LogHarbour.WithWhatClass("wfinstance")
+	lh := s.LogHarbour.WithClass("wfinstance")
 	lh.Log("GetWFInstanceList request received")
 
 	var (

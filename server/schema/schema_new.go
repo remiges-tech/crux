@@ -84,39 +84,39 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
-	dclog := l.WithWhatClass("schema").WithWhatInstanceId(string(id))
+	dclog := l.WithClass("schema").WithInstanceId(string(id))
 	dclog.LogDataChange("created schema", logharbour.ChangeInfo{
-		Entity:    "schema",
-		Operation: "create",
+		Entity: "schema",
+		Op:     "create",
 		Changes: []logharbour.ChangeDetail{
 			{
-				Field:    "realm",
-				OldValue: nil,
-				NewValue: realmID},
+				Field:  "realm",
+				OldVal: nil,
+				NewVal: realmID},
 			{
-				Field:    "slice",
-				OldValue: nil,
-				NewValue: sh.Slice},
+				Field:  "slice",
+				OldVal: nil,
+				NewVal: sh.Slice},
 			{
-				Field:    "app",
-				OldValue: nil,
-				NewValue: sh.App},
+				Field:  "app",
+				OldVal: nil,
+				NewVal: sh.App},
 			{
-				Field:    "class",
-				OldValue: nil,
-				NewValue: sh.Class},
+				Field:  "class",
+				OldVal: nil,
+				NewVal: sh.Class},
 			{
-				Field:    "brwf",
-				OldValue: nil,
-				NewValue: sqlc.BrwfEnumW},
+				Field:  "brwf",
+				OldVal: nil,
+				NewVal: sqlc.BrwfEnumW},
 			{
-				Field:    "patternSchema",
-				OldValue: nil,
-				NewValue: patternSchema},
+				Field:  "patternSchema",
+				OldVal: nil,
+				NewVal: patternSchema},
 			{
-				Field:    "actionSchema",
-				OldValue: nil,
-				NewValue: sh.ActionSchema},
+				Field:  "actionSchema",
+				OldVal: nil,
+				NewVal: sh.ActionSchema},
 		},
 	})
 	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})
