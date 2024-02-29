@@ -69,25 +69,27 @@
 				
 				<option value="file6">github.com/remiges-tech/crux/db/sqlc-gen/stepworkflow.sql.go (76.9%)</option>
 				
-				<option value="file7">github.com/remiges-tech/crux/db/sqlc-gen/wfinstance.sql.go (80.9%)</option>
+				<option value="file7">github.com/remiges-tech/crux/db/sqlc-gen/wfinstance.sql.go (60.3%)</option>
 				
 				<option value="file8">github.com/remiges-tech/crux/server/wfinstance/do_match.go (66.7%)</option>
 				
-				<option value="file9">github.com/remiges-tech/crux/server/wfinstance/wfinstance_abort.go (61.7%)</option>
+				<option value="file9">github.com/remiges-tech/crux/server/wfinstance/wfinstance_abort.go (54.8%)</option>
 				
-				<option value="file10">github.com/remiges-tech/crux/server/wfinstance/wfinstance_list.go (76.1%)</option>
+				<option value="file10">github.com/remiges-tech/crux/server/wfinstance/wfinstance_list.go (73.4%)</option>
 				
 				<option value="file11">github.com/remiges-tech/crux/server/wfinstance/wfinstance_new.go (77.2%)</option>
 				
-				<option value="file12">github.com/remiges-tech/crux/server/wfinstance/wfinstancenew_add.go (85.4%)</option>
+				<option value="file12">github.com/remiges-tech/crux/server/wfinstance/wfinstancenew_add.go (86.4%)</option>
 				
 				<option value="file13">github.com/remiges-tech/crux/server/wfinstance/wfinstancenew_validation.go (75.0%)</option>
 				
-				<option value="file14">github.com/remiges-tech/crux/server/wsc_utils.go (48.0%)</option>
+				<option value="file14">github.com/remiges-tech/crux/server/wfinstance/wfinstanceutils.go (100.0%)</option>
 				
-				<option value="file15">github.com/remiges-tech/crux/testutils/test_utils.go (0.0%)</option>
+				<option value="file15">github.com/remiges-tech/crux/server/wsc_utils.go (48.0%)</option>
 				
-				<option value="file16">github.com/remiges-tech/crux/types/types.go (0.0%)</option>
+				<option value="file16">github.com/remiges-tech/crux/testutils/test_utils.go (0.0%)</option>
+				
+				<option value="file17">github.com/remiges-tech/crux/types/types.go (0.0%)</option>
 				
 				</select>
 			</div>
@@ -1676,16 +1678,13 @@ import (
 
 const addWFNewInstances = `-- name: AddWFNewInstances :many
 INSERT INTO
-    public.wfinstance (
+    wfinstance (
         entityid, slice, app, class, workflow, step, loggedat, nextstep, parent
     )
 VALUES (
         $1, $2, $3, $4, $5, unnest($6::text []), (NOW()::timestamp), $7, $8
     )
-RETURNING
-    id,
-    loggedat,
-    step
+RETURNING id, entityid, slice, app, class, workflow, step, loggedat, doneat, nextstep, parent
 `
 
 type AddWFNewInstancesParams struct {
@@ -1699,13 +1698,7 @@ type AddWFNewInstancesParams struct {
         Parent   pgtype.Int4 `json:"parent"`
 }
 
-type AddWFNewInstancesRow struct {
-        ID       int32            `json:"id"`
-        Loggedat pgtype.Timestamp `json:"loggedat"`
-        Step     string           `json:"step"`
-}
-
-func (q *Queries) AddWFNewInstances(ctx context.Context, arg AddWFNewInstancesParams) ([]AddWFNewInstancesRow, error) <span class="cov8" title="1">{
+func (q *Queries) AddWFNewInstances(ctx context.Context, arg AddWFNewInstancesParams) ([]Wfinstance, error) <span class="cov8" title="1">{
         rows, err := q.db.Query(ctx, addWFNewInstances,
                 arg.Entityid,
                 arg.Slice,
@@ -1720,10 +1713,22 @@ func (q *Queries) AddWFNewInstances(ctx context.Context, arg AddWFNewInstancesPa
                 return nil, err
         }</span>
         <span class="cov8" title="1">defer rows.Close()
-        var items []AddWFNewInstancesRow
+        var items []Wfinstance
         for rows.Next() </span><span class="cov8" title="1">{
-                var i AddWFNewInstancesRow
-                if err := rows.Scan(&amp;i.ID, &amp;i.Loggedat, &amp;i.Step); err != nil </span><span class="cov0" title="0">{
+                var i Wfinstance
+                if err := rows.Scan(
+                        &amp;i.ID,
+                        &amp;i.Entityid,
+                        &amp;i.Slice,
+                        &amp;i.App,
+                        &amp;i.Class,
+                        &amp;i.Workflow,
+                        &amp;i.Step,
+                        &amp;i.Loggedat,
+                        &amp;i.Doneat,
+                        &amp;i.Nextstep,
+                        &amp;i.Parent,
+                ); err != nil </span><span class="cov0" title="0">{
                         return nil, err
                 }</span>
                 <span class="cov8" title="1">items = append(items, i)</span>
@@ -1734,9 +1739,53 @@ func (q *Queries) AddWFNewInstances(ctx context.Context, arg AddWFNewInstancesPa
         <span class="cov8" title="1">return items, nil</span>
 }
 
+const deleteWFInstanceListByParents = `-- name: DeleteWFInstanceListByParents :many
+DELETE FROM wfinstance
+WHERE 
+   ($1::INTEGER[] IS NOT NULL AND id = ANY($1::INTEGER[]) OR $2::INTEGER[] IS NOT NULL AND parent = ANY($2::INTEGER[]))
+    RETURNING id, entityid, slice, app, class, workflow, step, loggedat, doneat, nextstep, parent
+`
+
+type DeleteWFInstanceListByParentsParams struct {
+        ID     []int32 `json:"id"`
+        Parent []int32 `json:"parent"`
+}
+
+func (q *Queries) DeleteWFInstanceListByParents(ctx context.Context, arg DeleteWFInstanceListByParentsParams) ([]Wfinstance, error) <span class="cov0" title="0">{
+        rows, err := q.db.Query(ctx, deleteWFInstanceListByParents, arg.ID, arg.Parent)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">defer rows.Close()
+        var items []Wfinstance
+        for rows.Next() </span><span class="cov0" title="0">{
+                var i Wfinstance
+                if err := rows.Scan(
+                        &amp;i.ID,
+                        &amp;i.Entityid,
+                        &amp;i.Slice,
+                        &amp;i.App,
+                        &amp;i.Class,
+                        &amp;i.Workflow,
+                        &amp;i.Step,
+                        &amp;i.Loggedat,
+                        &amp;i.Doneat,
+                        &amp;i.Nextstep,
+                        &amp;i.Parent,
+                ); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov0" title="0">items = append(items, i)</span>
+        }
+        <span class="cov0" title="0">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return items, nil</span>
+}
+
 const deleteWfInstance = `-- name: DeleteWfInstance :one
 WITH deleted_parents AS (
-   DELETE FROM public.wfinstance
+   DELETE FROM wfinstance
    WHERE
        (id = $1::INTEGER OR entityid = $2::TEXT)
    RETURNING parent
@@ -1745,7 +1794,7 @@ deletion_count AS (
    SELECT COUNT(*) AS cnt FROM deleted_parents
 ),
 delete_childrens AS (
-    DELETE FROM public.wfinstance
+    DELETE FROM wfinstance
     WHERE parent IN (SELECT parent FROM deleted_parents WHERE parent IS NOT NULL)
 )
 SELECT 
@@ -1760,16 +1809,60 @@ type DeleteWfInstanceParams struct {
         Entityid pgtype.Text `json:"entityid"`
 }
 
-func (q *Queries) DeleteWfInstance(ctx context.Context, arg DeleteWfInstanceParams) (int32, error) <span class="cov8" title="1">{
+func (q *Queries) DeleteWfInstance(ctx context.Context, arg DeleteWfInstanceParams) (int32, error) <span class="cov0" title="0">{
         row := q.db.QueryRow(ctx, deleteWfInstance, arg.ID, arg.Entityid)
         var result int32
         err := row.Scan(&amp;result)
         return result, err
 }</span>
 
+const deleteWfinstanceByID = `-- name: DeleteWfinstanceByID :many
+  DELETE FROM wfinstance
+   WHERE
+       (id = $1::INTEGER OR entityid = $2::TEXT)
+   RETURNING id, entityid, slice, app, class, workflow, step, loggedat, doneat, nextstep, parent
+`
+
+type DeleteWfinstanceByIDParams struct {
+        ID       pgtype.Int4 `json:"id"`
+        Entityid pgtype.Text `json:"entityid"`
+}
+
+func (q *Queries) DeleteWfinstanceByID(ctx context.Context, arg DeleteWfinstanceByIDParams) ([]Wfinstance, error) <span class="cov8" title="1">{
+        rows, err := q.db.Query(ctx, deleteWfinstanceByID, arg.ID, arg.Entityid)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">defer rows.Close()
+        var items []Wfinstance
+        for rows.Next() </span><span class="cov8" title="1">{
+                var i Wfinstance
+                if err := rows.Scan(
+                        &amp;i.ID,
+                        &amp;i.Entityid,
+                        &amp;i.Slice,
+                        &amp;i.App,
+                        &amp;i.Class,
+                        &amp;i.Workflow,
+                        &amp;i.Step,
+                        &amp;i.Loggedat,
+                        &amp;i.Doneat,
+                        &amp;i.Nextstep,
+                        &amp;i.Parent,
+                ); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov8" title="1">items = append(items, i)</span>
+        }
+        <span class="cov8" title="1">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return items, nil</span>
+}
+
 const getWFINstance = `-- name: GetWFINstance :one
 SELECT count(1)
-FROM public.wfinstance
+FROM wfinstance
 WHERE
     slice = $1
     AND app = $2
@@ -1797,7 +1890,7 @@ func (q *Queries) GetWFINstance(ctx context.Context, arg GetWFINstanceParams) (i
 }</span>
 
 const getWFInstanceList = `-- name: GetWFInstanceList :many
-SELECT id, entityid, slice, app, class, workflow, step, loggedat, doneat, nextstep, parent FROM public.wfinstance
+SELECT id, entityid, slice, app, class, workflow, step, loggedat, doneat, nextstep, parent FROM wfinstance
 WHERE 
    ($1::INTEGER is null OR slice = $1::INTEGER)
    AND ($2::text is null OR entityid = $2::text)
@@ -1853,7 +1946,7 @@ func (q *Queries) GetWFInstanceList(ctx context.Context, arg GetWFInstanceListPa
 }
 
 const getWFInstanceListByParents = `-- name: GetWFInstanceListByParents :many
-SELECT id, entityid, slice, app, class, workflow, step, loggedat, doneat, nextstep, parent FROM public.wfinstance
+SELECT id, entityid, slice, app, class, workflow, step, loggedat, doneat, nextstep, parent FROM wfinstance
 WHERE 
    ($1::INTEGER[] IS NOT NULL AND id = ANY($1::INTEGER[]))
 `
@@ -2027,17 +2120,18 @@ import (
         "github.com/remiges-tech/crux/db/sqlc-gen"
         "github.com/remiges-tech/crux/server"
         "github.com/remiges-tech/crux/types"
+        "github.com/remiges-tech/logharbour/logharbour"
 )
 
 // AbortWFInstance rquest format
 type WFInstanceAbortRquest struct {
-        ID       *int32  `json:"id,omitempty"`
-        EntityID *string `json:"entityid,omitempty"`
+        ID       *int32  `json:"id" validate:"omitempty,gt=0"`
+        EntityID *string `json:"entityid" validate:"omitempty,gt=0,lt=40"`
 }
 
 func GetWFInstanceAbort(c *gin.Context, s *service.Service) <span class="cov8" title="1">{
         lh := s.LogHarbour.WithWhatClass("wfinstance")
-        lh.Log("AbortWFInstance request received")
+        lh.Log("GetWFInstanceAbort request received")
 
         var (
                 request  WFInstanceAbortRquest
@@ -2050,7 +2144,7 @@ func GetWFInstanceAbort(c *gin.Context, s *service.Service) <span class="cov8" t
         }, false)
 
         if !isCapable </span><span class="cov0" title="0">{
-                lh.Info().LogActivity("Unauthorized user:", USERID)
+                lh.Info().LogActivity("GetWFInstanceAbort||unauthorized user:", USERID)
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
                 return
         }</span>
@@ -2058,24 +2152,24 @@ func GetWFInstanceAbort(c *gin.Context, s *service.Service) <span class="cov8" t
         // Bind request
         <span class="cov8" title="1">err := wscutils.BindJSON(c, &amp;request)
         if err != nil </span><span class="cov0" title="0">{
-                lh.Debug0().LogActivity("error while binding json request error:", err)
+                lh.Error(err).Log("GetWFInstanceAbort||error while binding json request error:")
                 return
         }</span>
         // Standard validation of Incoming Request
         <span class="cov8" title="1">validationErrors := wscutils.WscValidate(request, func(err validator.FieldError) []string </span><span class="cov0" title="0">{ return []string{} }</span>)
         <span class="cov8" title="1">if len(validationErrors) &gt; 0 </span><span class="cov0" title="0">{
-                lh.Debug0().LogActivity("validation error:", validationErrors)
+                lh.Debug0().LogActivity("GetWFInstanceAbort||validation error:", validationErrors)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
                 return
         }</span>
         // Custom validation
         <span class="cov8" title="1">if request.ID != nil &amp;&amp; request.EntityID != nil </span><span class="cov8" title="1">{
-                lh.Debug0().Log("Both ID and EntityID cannot be present at the same time")
+                lh.Debug0().Log("GetWFInstanceAbort||both id and entityid cannot be present at the same time")
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_RequiredOneOf, server.ErrCode_RequiredOne))
                 return
         }</span>
         <span class="cov8" title="1">if request.ID == nil &amp;&amp; request.EntityID == nil </span><span class="cov0" title="0">{
-                lh.Debug0().Log("Either ID or EntityID must be present")
+                lh.Debug0().Log("GetWFInstanceAbort||either id or entityid must be present")
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_RequiredOneOf, server.ErrCode_RequiredOne))
                 return
         }</span>
@@ -2087,29 +2181,70 @@ func GetWFInstanceAbort(c *gin.Context, s *service.Service) <span class="cov8" t
         }</span> else<span class="cov8" title="1"> {
                 entityid = *request.EntityID
         }</span>
-        <span class="cov8" title="1">lh.Debug0().LogActivity("present values :", map[string]any{"ID": id, "EntityId": entityid})
+        <span class="cov8" title="1">lh.Debug0().LogActivity("GetWFInstanceAbort||present values :", map[string]any{"ID": id, "EntityId": entityid})
 
         query, ok := s.Dependencies["queries"].(*sqlc.Queries)
         if !ok </span><span class="cov0" title="0">{
-                lh.Log("Error while getting query instance from service Dependencies")
+                lh.Log("GetWFInstanceAbort||error while getting query instance from service Dependencies")
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
         }</span>
-
-        <span class="cov8" title="1">tag, error := query.DeleteWfInstance(c, sqlc.DeleteWfInstanceParams{
+        // delete wfinstance by ID or entityID
+        <span class="cov8" title="1">deletedWfinstaceListByID, error := query.DeleteWfinstanceByID(c, sqlc.DeleteWfinstanceByIDParams{
                 ID:       pgtype.Int4{Int32: id, Valid: id != 0},
                 Entityid: pgtype.Text{String: entityid, Valid: !server.IsStringEmpty(&amp;entityid)},
         })
         if error != nil </span><span class="cov0" title="0">{
-                lh.LogActivity("error while deleting wfinstances  :", error.Error())
+                lh.Error(error).Log("GetWFInstanceAbort||error while deleting wfinstances by id or entityid")
                 errmsg := db.HandleDatabaseError(err)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
                 return
         }</span>
-        <span class="cov8" title="1">lh.Debug0().LogActivity("tag :", tag)
-        if tag == -1 </span><span class="cov8" title="1">{
-                lh.Log("no record found to delete")
+
+        <span class="cov8" title="1">if len(deletedWfinstaceListByID) == 0 </span><span class="cov8" title="1">{
+                lh.Log("GetWFInstanceAbort||no record found to delete")
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ErrCode_NotFound))
                 return
+        }</span>
+
+        // To Get parentList from WFInstanceList data
+        <span class="cov8" title="1">parentList := getParentList(deletedWfinstaceListByID)
+        lh.Debug0().LogActivity("GetWFInstanceAbort||parentlist form WFInstanceListByID data:", parentList)
+
+        for parentList != nil </span><span class="cov0" title="0">{
+                lh.Debug0().Log("GetWFInstanceAbort||inside for loop : if parentList is Not Nil ")
+                // To get GetWFInstanceList by parentList
+                deletedWfinstanceListByParents, err := query.DeleteWFInstanceListByParents(c, sqlc.DeleteWFInstanceListByParentsParams{
+                        ID:     parentList,
+                        Parent: parentList,
+                })
+                if err != nil </span><span class="cov0" title="0">{
+                        lh.Error(err).Log("GetWFInstanceAbort||error while getting wfinstance List by parentList")
+                        errmsg := db.HandleDatabaseError(err)
+                        wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+                        return
+                }</span>
+
+                // Append wfinstanceListByParents data
+                <span class="cov0" title="0">deletedWfinstaceListByID = append(deletedWfinstaceListByID, deletedWfinstanceListByParents...)
+
+                // Update parentList using getParentList function
+                parentList = getParentList(deletedWfinstanceListByParents)
+                lh.Debug0().LogActivity("GetWFInstanceAbort||updated ParentList :", parentList)</span>
+        }
+
+        // data change log
+        <span class="cov8" title="1">for _, val := range deletedWfinstaceListByID </span><span class="cov8" title="1">{
+                dclog := lh.WithWhatClass("wfinstance").WithWhatInstanceId(string(val.ID))
+                dclog.LogDataChange("deleted wfinstance ", logharbour.ChangeInfo{
+                        Entity:    "wfinstance",
+                        Operation: "delete",
+                        Changes: []logharbour.ChangeDetail{
+                                {
+                                        Field:    "row",
+                                        OldValue: val,
+                                        NewValue: nil},
+                        },
+                })
         }</span>
 
         <span class="cov8" title="1">wscutils.SendSuccessResponse(c, &amp;wscutils.Response{Status: wscutils.SuccessStatus})</span>
@@ -2133,11 +2268,11 @@ import (
 
 // WFInstanceList rquest format
 type WFInstanceListRequest struct {
-        Slice    *int32  `json:"slice,omitempty"`
-        EntityID *string `json:"entityid,omitempty"`
-        App      *string `json:"app,omitempty"`
-        Workflow *string `json:"workflow,omitempty"`
-        Parent   *int32  `json:"parent,omitempty"`
+        Slice    *int32  `json:"slice" validate:"omitempty,gt=0,lt=15"`
+        EntityID *string `json:"entityid" validate:"omitempty,gt=0,lt=40"`
+        App      *string `json:"app" validate:"omitempty,alpha,gt=0,lt=15"`
+        Workflow *string `json:"workflow" validate:"omitempty,gt=0,lt=20"`
+        Parent   *int32  `json:"parent" validate:"omitempty,gt=0"`
 }
 
 // WFInstanceList response format
@@ -2149,7 +2284,7 @@ type WFInstanceListResponse struct {
         Class      string           `json:"class"`
         Workflow   string           `json:"workflow"`
         Step       string           `json:"step"`
-        LoggedDate pgtype.Timestamp `json:"loggdat"`
+        LoggedDate pgtype.Timestamp `json:"loggedat"`
         DoneAt     string           `json:"doneat"`
         Nextstep   string           `json:"nextstep"`
         Parent     int32            `json:"parent,omitempty"`
@@ -2165,7 +2300,7 @@ type WFInstanceListParams struct {
 
 func GetWFInstanceList(c *gin.Context, s *service.Service) <span class="cov8" title="1">{
         lh := s.LogHarbour.WithWhatClass("wfinstance")
-        lh.Log("WFInstanceList request received")
+        lh.Log("GetWFInstanceList request received")
 
         var (
                 request WFInstanceListRequest
@@ -2177,7 +2312,7 @@ func GetWFInstanceList(c *gin.Context, s *service.Service) <span class="cov8" ti
         }, false)
 
         if !isCapable </span><span class="cov0" title="0">{
-                lh.Info().LogActivity("Unauthorized user:", USERID)
+                lh.Info().LogActivity("GetWFInstanceList||unauthorized user:", USERID)
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
                 return
         }</span>
@@ -2185,7 +2320,7 @@ func GetWFInstanceList(c *gin.Context, s *service.Service) <span class="cov8" ti
         // Bind request
         <span class="cov8" title="1">err := wscutils.BindJSON(c, &amp;request)
         if err != nil </span><span class="cov0" title="0">{
-                lh.Debug0().LogActivity("error while binding json request error:", err)
+                lh.Error(err).Log("GetWFInstanceList||error while binding json request error")
                 return
         }</span>
 
@@ -2193,17 +2328,17 @@ func GetWFInstanceList(c *gin.Context, s *service.Service) <span class="cov8" ti
         <span class="cov8" title="1">valError := wscutils.WscValidate(request, func(err validator.FieldError) []string </span><span class="cov0" title="0">{ return []string{} }</span>)
         <span class="cov8" title="1">if len(valError) &gt; 0 </span><span class="cov0" title="0">{
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, valError))
-                lh.LogActivity("validation error:", valError)
+                lh.LogActivity("GetWFInstanceList||validation error:", valError)
                 return
         }</span>
 
         // To get request parameters
         <span class="cov8" title="1">params = GetParams(request, params)
-        lh.Debug0().LogActivity("Parameters from request :", params)
+        lh.Debug0().LogActivity("GetWFInstanceList|parameters from request :", params)
 
         query, ok := s.Dependencies["queries"].(*sqlc.Queries)
         if !ok </span><span class="cov0" title="0">{
-                lh.Log("Error while getting query instance from service Dependencies")
+                lh.Log("GetWFInstanceList||error while getting query instance from service dependencies")
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
                 return
         }</span>
@@ -2217,28 +2352,28 @@ func GetWFInstanceList(c *gin.Context, s *service.Service) <span class="cov8" ti
                 Parent:   pgtype.Int4{Int32: params.Parent, Valid: params.Parent != 0},
         })
         if error != nil </span><span class="cov0" title="0">{
-                lh.LogActivity("error while getting wfinstance List  :", error.Error())
+                lh.Error(error).Log("GetWFInstanceList||error while getting wfinstance List")
                 errmsg := db.HandleDatabaseError(err)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
                 return
         }</span>
 
         <span class="cov8" title="1">if len(wfinstanceList) == 0 </span><span class="cov8" title="1">{
-                lh.Debug0().Log("requestd wfinstanceList not found")
+                lh.Debug0().Log("GetWFInstanceList||requestd wfinstanceList not found")
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ErrCode_NotFound))
                 return
         }</span>
 
         // To Get parentList from WFInstanceList data
         <span class="cov8" title="1">parentList := getParentList(wfinstanceList)
-        lh.Debug0().LogActivity("Parameters from request :", params)
+        lh.Debug0().LogActivity("GetWFInstanceList||parentlist form WFInstanceList data:", parentList)
 
         for parentList != nil </span><span class="cov8" title="1">{
-                lh.Debug0().Log("Inside for loop : if parentList is Not Nil ")
+                lh.Debug0().Log("GetWFInstanceList||inside for loop : if parentList is Not Nil ")
                 // To get GetWFInstanceList by parentList
                 wfinstanceListByParents, err := query.GetWFInstanceListByParents(c, parentList)
                 if err != nil </span><span class="cov0" title="0">{
-                        lh.LogActivity("error while getting wfinstance List by parentList  :", err.Error())
+                        lh.Error(err).Log("GetWFInstanceList||error while getting wfinstance List by parentList")
                         errmsg := db.HandleDatabaseError(err)
                         wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
                         return
@@ -2249,7 +2384,7 @@ func GetWFInstanceList(c *gin.Context, s *service.Service) <span class="cov8" ti
 
                 // Update parentList using getParentList function
                 parentList = getParentList(wfinstanceListByParents)
-                lh.Debug0().LogActivity(" updated ParentList :", parentList)</span>
+                lh.Debug0().LogActivity("GetWFInstanceList||updated ParentList :", parentList)</span>
         }
         <span class="cov8" title="1">var responseList []WFInstanceListResponse
         for _, val := range wfinstanceList </span><span class="cov8" title="1">{
@@ -2279,7 +2414,7 @@ func GetWFInstanceList(c *gin.Context, s *service.Service) <span class="cov8" ti
                 <span class="cov8" title="1">responseList = append(responseList, response)</span>
         }
 
-        <span class="cov8" title="1">lh.Debug0().Log("Record found finished execution of WfinstaceList request")
+        <span class="cov8" title="1">lh.Debug0().Log("Record found finished execution of GetWFInstanceList request")
         wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(map[string][]WFInstanceListResponse{"wfinstance": responseList}))</span>
 }
 
@@ -2303,24 +2438,6 @@ func GetParams(req WFInstanceListRequest, params WFInstanceListParams) WFInstanc
         }</span>
         <span class="cov8" title="1">return params</span>
 }
-
-// To Get ParentList from WFInstanceList data respone
-func getParentList(data []sqlc.Wfinstance) []int32 <span class="cov8" title="1">{
-        var parentsMap = make(map[int32]bool)
-        var parents []int32
-
-        for _, val := range data </span><span class="cov8" title="1">{
-                if val.Parent.Valid </span><span class="cov8" title="1">{
-                        parentValue := val.Parent.Int32
-                        if !parentsMap[parentValue] </span><span class="cov8" title="1">{
-                                parents = append(parents, parentValue)
-                                parentsMap[parentValue] = true
-                        }</span>
-                }
-        }
-        <span class="cov8" title="1">return parents</span>
-
-}
 </pre>
 		
 		<pre class="file" id="file11" style="display: none">package wfinstance
@@ -2339,19 +2456,19 @@ import (
 
 // Incoming request format
 type WFInstanceNewRequest struct {
-        Slice    int32             `json:"slice" validate:"required"`
-        App      string            `json:"app" validate:"required,alpha"`
-        EntityID string            `json:"entityid" validate:"required"`
+        Slice    int32             `json:"slice" validate:"required,gt=0,lt=85"`
+        App      string            `json:"app" validate:"required,alpha,lt=15"`
+        EntityID string            `json:"entityid" validate:"required,gt=0,lt=40"`
         Entity   map[string]string `json:"entity" validate:"required"`
-        Workflow string            `json:"workflow" validate:"required"`
-        Trace    *int              `json:"trace,omitempty"`
-        Parent   *int32            `json:"parent,omitempty"`
+        Workflow string            `json:"workflow" validate:"required,gt=0,lt=20"`
+        Trace    *int              `json:"trace" validate:"omitempty,lte=2"`
+        Parent   *int32            `json:"parent" validate:"omitempty,gt=0"`
 }
 
 // WFInstanceNew response format
 type WFInstanceNewResponse struct {
-        Tasks     []map[string]int32 `json:"tasks"  validate:"required"`
-        Nextstep  string             `json:"nextstep"`
+        Tasks     []map[string]int32 `json:"tasks"`
+        Nextstep  *string            `json:"nextstep,omitempty"`
         Loggedat  pgtype.Timestamp   `json:"loggedat"`
         Subflows  *map[string]string `json:"subflows"`
         Tracedata *map[string]string `json:"tracedata"`
@@ -2376,7 +2493,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) <span class="cov8" tit
         }, false)
 
         if !isCapable </span><span class="cov0" title="0">{
-                lh.Info().LogActivity("Unauthorized user:", USERID)
+                lh.Info().LogActivity("unauthorized user:", USERID)
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
                 return
         }</span>
@@ -2384,13 +2501,13 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) <span class="cov8" tit
         // Bind request
         <span class="cov8" title="1">err := wscutils.BindJSON(c, &amp;wfinstanceNewreq)
         if err != nil </span><span class="cov0" title="0">{
-                lh.Debug0().LogActivity("error while binding json request error:", err)
+                lh.Error(err).Log("GetWFinstanceNew||error while binding json request error")
                 return
         }</span>
         // Standard validation of Incoming Request
         <span class="cov8" title="1">validationErrors := wscutils.WscValidate(wfinstanceNewreq, func(err validator.FieldError) []string </span><span class="cov0" title="0">{ return []string{} }</span>)
         <span class="cov8" title="1">if len(validationErrors) &gt; 0 </span><span class="cov0" title="0">{
-                lh.Debug0().LogActivity("validation error:", validationErrors)
+                lh.Debug0().LogActivity("GetWFinstanceNew||validation error:", validationErrors)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
                 return
         }</span>
@@ -2398,7 +2515,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) <span class="cov8" tit
         <span class="cov8" title="1">existingEntity := wfinstanceNewreq.Entity
         isValidReq, errStr := validateWFInstanceNewReq(wfinstanceNewreq, s, c)
         if len(errStr) &gt; 0 || !isValidReq </span><span class="cov8" title="1">{
-                lh.Debug0().LogActivity("request validation error:", errStr)
+                lh.Debug0().LogActivity("GetWFinstanceNew||request validation error:", errStr)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, errStr))
                 return
 
@@ -2412,7 +2529,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) <span class="cov8" tit
         // call doMatch()
         actionSet, _, err = doMatch(entity, ruleSet, actionSet, seenRuleSets)
         if err != nil </span><span class="cov0" title="0">{
-                lh.LogActivity("error while calling doMatch Method :", err.Error())
+                lh.Error(err).Log("GetWFinstanceNew||error while calling doMatch Method")
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid))
                 return
         }</span>
@@ -2420,7 +2537,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) <span class="cov8" tit
         // To verify actionSet Properties and get their values
         <span class="cov8" title="1">attribute, error := getValidPropertyAttr(actionSet)
         if error != nil </span><span class="cov8" title="1">{
-                lh.Debug0().LogActivity("error while verifying actionset properties :", error.Error())
+                lh.Debug0().LogActivity("GetWFinstanceNew||error while verifying actionset properties :", error.Error())
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid_property_attributes))
                 return
         }</span>
@@ -2433,7 +2550,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) <span class="cov8" tit
         <span class="cov8" title="1">if done == TRUE </span><span class="cov8" title="1">{
                 response := make(map[string]bool)
                 response[DONE] = true
-                lh.Log(fmt.Sprintf("Response : %v", map[string]any{"response": response}))
+                lh.Log(fmt.Sprintf("response : %v", map[string]any{"response": response}))
                 wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(response))
         }</span>
 
@@ -2449,7 +2566,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) <span class="cov8" tit
                 }
                 response, err = addTasks(addTaskRequest, s, c)
                 if err != nil </span><span class="cov0" title="0">{
-                        lh.LogActivity("error while adding single step in wfinstance table :", err.Error())
+                        lh.LogActivity("GetWFinstanceNew||error while adding single step in wfinstance table :", err.Error())
                         wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
                         return
                 }</span>
@@ -2465,7 +2582,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) <span class="cov8" tit
                 }
                 response, err = addTasks(addTaskRequest, s, c)
                 if err != nil </span><span class="cov0" title="0">{
-                        lh.LogActivity("error while adding multiple steps in wfinstance table :", error.Error())
+                        lh.LogActivity("GetWFinstanceNew||error while adding multiple steps in wfinstance table :", error.Error())
                         wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
                         return
                 }</span>
@@ -2484,7 +2601,7 @@ func getValidPropertyAttr(a ActionSet) (map[string]string, error) <span class="c
                 }</span> else<span class="cov8" title="1"> if attr == NEXTSTEP </span><span class="cov8" title="1">{
                         attribute[attr] = val
                 }</span> else<span class="cov8" title="1"> {
-                        return nil, fmt.Errorf("property attributes does not contain either done or nextstep")
+                        return nil, fmt.Errorf("GetWFinstanceNew||getValidPropertyAttr||property attributes does not contain either done or nextstep")
                 }</span>
 
         }
@@ -2503,6 +2620,7 @@ import (
         "github.com/remiges-tech/alya/wscutils"
         "github.com/remiges-tech/crux/db/sqlc-gen"
         "github.com/remiges-tech/crux/server"
+        "github.com/remiges-tech/logharbour/logharbour"
 )
 
 // Task request
@@ -2516,7 +2634,7 @@ type AddTaskRequest struct {
 type ResponseRequest struct {
         Subflow      map[string]string
         NextStep     string
-        ResponseData []sqlc.AddWFNewInstancesRow
+        ResponseData []sqlc.Wfinstance
         Service      *service.Service
 }
 
@@ -2527,11 +2645,11 @@ func addTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanc
         subflow := make(map[string]string)
 
         lh := s.LogHarbour.WithWhatClass("wfinstance")
-        lh.Debug0().Log("Inside addTasks()")
+        lh.Debug0().Log("inside addTasks()")
 
         query, ok := s.Dependencies["queries"].(*sqlc.Queries)
         if !ok </span><span class="cov0" title="0">{
-                lh.Log("Error while getting query instance from service Dependencies")
+                lh.Log("WFInstanceNew||addTasks()||error while getting query instance from service dependencies")
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
                 return WFInstanceNewResponse{}, errors.New(INVALID_DATABASE_DEPENDENCY)
         }</span>
@@ -2551,12 +2669,67 @@ func addTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanc
                 Parent:   parent,
         })
         if error != nil </span><span class="cov0" title="0">{
-                lh.LogActivity("error while adding Task steps in wfinstance table :", error.Error())
+                lh.Error(error).Log("WFInstanceNew||addTasks()||error while adding Task steps in wfinstance table")
                 return response, error
         }</span>
 
+        // data change log
+        <span class="cov8" title="1">for _, val := range responseData </span><span class="cov8" title="1">{
+                dclog := lh.WithWhatClass("wfinstance").WithWhatInstanceId(string(val.ID))
+                dclog.LogDataChange("created wfinstance ", logharbour.ChangeInfo{
+                        Entity:    "wfinstance",
+                        Operation: "create",
+                        Changes: []logharbour.ChangeDetail{
+                                {
+                                        Field:    "id",
+                                        OldValue: nil,
+                                        NewValue: val.ID},
+                                {
+                                        Field:    "entityid",
+                                        OldValue: nil,
+                                        NewValue: val.Entityid},
+                                {
+                                        Field:    "slice",
+                                        OldValue: nil,
+                                        NewValue: val.Slice},
+                                {
+                                        Field:    "app",
+                                        OldValue: nil,
+                                        NewValue: val.App},
+                                {
+                                        Field:    "class",
+                                        OldValue: nil,
+                                        NewValue: val.Class},
+                                {
+                                        Field:    "workflow",
+                                        OldValue: nil,
+                                        NewValue: val.Workflow},
+                                {
+                                        Field:    "step",
+                                        OldValue: nil,
+                                        NewValue: val.Step},
+                                {
+                                        Field:    "loggedat",
+                                        OldValue: nil,
+                                        NewValue: val.Loggedat},
+                                {
+                                        Field:    "doneat",
+                                        OldValue: nil,
+                                        NewValue: val.Doneat},
+                                {
+                                        Field:    "nextstep",
+                                        OldValue: nil,
+                                        NewValue: val.Nextstep},
+                                {
+                                        Field:    "parent",
+                                        OldValue: nil,
+                                        NewValue: val.Parent},
+                        },
+                })
+        }</span>
+
         // To get workflow if step is present in stepworkflow table
-        <span class="cov8" title="1">lh.Debug0().Log("verifying whether step is workflow if it is, then append it to subflow")
+        <span class="cov8" title="1">lh.Debug0().Log("WFInstanceNew||addTasks()||verifying whether step is workflow if it is, then append it to subflow")
         for _, step := range req.Steps </span><span class="cov8" title="1">{
                 workflowData, _ := query.GetWorkflow(c, step)
 
@@ -2566,7 +2739,7 @@ func addTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanc
 
         }
 
-        // to get response
+        // To get response
         <span class="cov8" title="1">responseRequest := ResponseRequest{
                 Subflow:      subflow,
                 NextStep:     req.Nextstep,
@@ -2601,7 +2774,7 @@ func getResponse(r ResponseRequest) WFInstanceNewResponse <span class="cov8" tit
                 // response for multiple task steps
                 response = WFInstanceNewResponse{
                         Tasks:    tasks,
-                        Nextstep: r.NextStep,
+                        Nextstep: &amp;r.NextStep,
                         Loggedat: loggedDate,
                         Subflows: &amp;r.Subflow,
                 }
@@ -2663,7 +2836,7 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
         lh.Debug0().Log("Inside ValidateWFInstaceNewReq()")
         query, ok := s.Dependencies["queries"].(*sqlc.Queries)
         if !ok </span><span class="cov0" title="0">{
-                lh.Log("Error while getting query instance from service Dependencies")
+                lh.Log("GetWFinstanceNew||validateWFInstanceNewReq()||error while getting query instance from service Dependencies")
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
                 errRes := append(errRes, wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_DatabaseError, nil))
                 return false, errRes
@@ -2671,7 +2844,7 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
         // Validate request
         <span class="cov8" title="1">isValidReq, errAry := validateWorkflow(r, s, c)
         if len(errAry) &gt; 0 || !isValidReq </span><span class="cov8" title="1">{
-                lh.Debug0().LogActivity("Invalid request:", errAry)
+                lh.Debug0().LogActivity("GetWFinstanceNew||validateWFInstanceNewReq()||invalid request:", errAry)
                 errRes = errAry
                 return false, errRes
         }</span>
@@ -2680,7 +2853,7 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
         <span class="cov8" title="1">_, isKeyExist := entity[CLASS]
 
         if !(entity != nil &amp;&amp; isKeyExist) </span><span class="cov0" title="0">{
-                lh.Debug0().Log("Entity does not match with standard structure")
+                lh.Debug0().Log("GetWFinstanceNew||validateWFInstanceNewReq()||entity does not match with standard structure")
                 errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid_Entity, &amp;ENTITY))
                 return false, errRes
         }</span>
@@ -2694,27 +2867,27 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
                 Realm: REALM,
         })
         if err != nil </span><span class="cov0" title="0">{
-                lh.LogActivity("failed to get schema pattern from DB:", err)
+                lh.Error(err).Log("GetWFinstanceNew||validateWFInstanceNewReq()||failed to get schema pattern from DB")
                 errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_NoSchemaFound, server.ErrCode_NotFound, nil))
                 return false, errRes
         }</span>
 
         // Unmarshalling byte data to schemapatten struct
         <span class="cov8" title="1">schmapattern, err := byteToPatternSchema(pattern)
-        lh.Debug0().LogActivity("patternschema :", schmapattern)
+        lh.Debug0().LogActivity("GetWFinstanceNew||validateWFInstanceNewReq()||patternschema :", schmapattern)
         if err != nil </span><span class="cov0" title="0">{
-                lh.Debug0().LogActivity(" error while converting byte patternschema to struct:", err)
+                lh.Debug0().LogActivity("GetWFinstanceNew||validateWFInstanceNewReq()|| error while converting byte patternschema to struct:", err)
                 errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_NoSchemaFound, server.ErrCode_Invalid_pattern_schema, nil))
         }</span>
 
         // Forming  requested entity  into proper Entity struct
         <span class="cov8" title="1">EntityStruct := getEntity(r.Entity)
-        lh.Debug1().LogActivity("Entity stucture:", EntityStruct)
+        lh.Debug1().LogActivity("GetWFinstanceNew||validateWFInstanceNewReq()||entity stucture:", EntityStruct)
 
         //  To match entity against patternschema
         isValidEntity, err := ValidateEntity(EntityStruct, schmapattern, s)
         if !isValidEntity || err != nil </span><span class="cov0" title="0">{
-                lh.Debug0().LogActivity(" error while validating entity against patternschema:", err)
+                lh.Debug0().LogActivity(" GetWFinstanceNew||validateWFInstanceNewReq()||error while validating entity against patternschema:", err)
                 errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid_Entity, &amp;ENTITY))
                 return false, errRes
 
@@ -2731,14 +2904,14 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
         lh.Debug0().Log("Inside validateWorkflow()")
         query, ok := s.Dependencies["queries"].(*sqlc.Queries)
         if !ok </span><span class="cov0" title="0">{
-                lh.Debug0().Log("Error while getting query instance from service Dependencies")
+                lh.Debug0().Log("GetWFinstanceNew||validateWorkflow()||error while getting query instance from service Dependencies")
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
                 errors := append(errors, wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_DatabaseError, nil))
                 return false, errors
         }</span>
 
-        //1.The value of app specified in the request matches the app ID with which this workflow is associated
-        <span class="cov8" title="1">lh.Debug0().Log("verifying whether app present in request is valid")
+        // The value of app specified in the request matches the app ID with which this workflow is associated
+        <span class="cov8" title="1">lh.Debug0().Log("GetWFinstanceNew||validateWorkflow()||verifying whether app present in request is valid")
         app, err := query.GetApp(c, sqlc.GetAppParams{
                 Slice: r.Slice,
                 App:   r.App,
@@ -2747,12 +2920,12 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
         })
 
         if err != nil </span><span class="cov8" title="1">{
-                lh.LogActivity("failed to get app from DB:", err.Error())
+                lh.Error(err).Log("GetWFinstanceNew||validateWorkflow()||failed to get app from ruleset table")
                 errors = append(errors, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid_APP, &amp;APP, r.App))
         }</span>
 
-        //2. The class of the workflow must match that of entity
-        <span class="cov8" title="1">lh.Debug0().Log("verifying whether class present in request is valid")
+        // The class of the workflow must match that of entity
+        <span class="cov8" title="1">lh.Debug0().Log("GetWFinstanceNew||validateWorkflow()||verifying whether class present in request is valid")
         class, err := query.GetClass(c, sqlc.GetClassParams{
                 Slice: r.Slice,
                 App:   app,
@@ -2761,14 +2934,14 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
         })
 
         if err != nil </span><span class="cov8" title="1">{
-                lh.LogActivity("failed to get class from DB:", err)
+                lh.Error(err).Log("GetWFinstanceNew||validateWorkflow()||failed to get class from ruleset table")
                 errors = append(errors, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid_Class, &amp;CLASS, entityClass))
         }</span>
 
-        // 3.The workflow named has is_active == true and internal == false
+        // The workflow named has is_active == true and internal == false
 
-        //To get worflow active status
-        <span class="cov8" title="1">lh.Debug0().Log("verifying whether workflow active status is valid")
+        // To get worflow active status
+        <span class="cov8" title="1">lh.Debug0().Log("GetWFinstanceNew||validateWorkflow()||verifying whether workflow active status is valid")
         wfActiveStatus, err := query.GetWFActiveStatus(c, sqlc.GetWFActiveStatusParams{
                 Slice:   r.Slice,
                 App:     app,
@@ -2778,12 +2951,12 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
         })
 
         if err != nil || !wfActiveStatus.Bool </span><span class="cov8" title="1">{
-                lh.LogActivity("Invalid workflow is_active status :", err)
+                lh.LogActivity("GetWFinstanceNew||validateWorkflow()||invalid workflow is_active status", err)
                 errors = append(errors, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid_workflow_active_status, &amp;WORKFLOW, fmt.Sprintf("%v", wfActiveStatus.Bool)))
         }</span>
 
-        //To get worflow Internal status
-        <span class="cov8" title="1">lh.Debug0().Log("verifying whether workflow internal status is valid")
+        // To get worflow Internal status
+        <span class="cov8" title="1">lh.Debug0().Log("GetWFinstanceNew||validateWorkflow()||verifying whether workflow internal status is valid")
         wfInternalStatus, err := query.GetWFInternalStatus(c, sqlc.GetWFInternalStatusParams{
                 Slice:   r.Slice,
                 App:     app,
@@ -2793,13 +2966,13 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
         })
 
         if err != nil || wfInternalStatus </span><span class="cov8" title="1">{
-                lh.LogActivity("Invalid workflow is_internal status:", err)
+                lh.LogActivity("GetWFinstanceNew||validateWorkflow()||invalid workflow is_internal status", err)
                 errors = append(errors, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid_workflow_Internal_status, &amp;WORKFLOW, fmt.Sprintf("%v", wfInternalStatus)))
 
         }</span>
 
-        //4.There is no record in the wfinstance table with the same values for the tuple (slice,app,workflow,entityid)
-        <span class="cov8" title="1">lh.Log("verifying whether record is already exist in wfinstance table")
+        // There is no record in the wfinstance table with the same values for the tuple (slice,app,workflow,entityid)
+        <span class="cov8" title="1">lh.Log("GetWFinstanceNew||validateWorkflow()||verifying whether record is already exist in wfinstance table")
         wfinstanceRecordCount, err := query.GetWFINstance(c, sqlc.GetWFINstanceParams{
                 Slice:    r.Slice,
                 App:      app,
@@ -2808,7 +2981,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
         })
 
         if err != nil || wfinstanceRecordCount &gt; 0 </span><span class="cov8" title="1">{
-                lh.LogActivity("Record already exist in wfinstance table :", err)
+                lh.LogActivity("GetWFinstanceNew||validateWorkflow()||record already exist in wfinstance table ", err)
                 errors = append(errors, wscutils.BuildErrorMessage(server.MsgId_AlreadyExist, server.ErrCode_AlreadyExist, &amp;ENTITYID, r.EntityID))
         }</span>
 
@@ -2826,7 +2999,7 @@ func ValidateEntity(e Entity, ps *types.PatternSchema, s *service.Service) (bool
         lh.Debug0().Log("Inside validateEntity()")
         // Check if the entity class matches the expected class from the schema
         if e.Class != ps.Class </span><span class="cov0" title="0">{
-                lh.Debug0().Log("Entity class does not match the expected class in the schema")
+                lh.Debug0().Log("GetWFinstanceNew||validateEntity()||entity class does not match the expected class in the schema")
                 return false, errors.New("Entity class does not match the expected class in the schema")
         }</span>
         // Validate attributes
@@ -2835,13 +3008,13 @@ func ValidateEntity(e Entity, ps *types.PatternSchema, s *service.Service) (bool
         for _, a := range e.Attributes </span><span class="cov8" title="1">{
                 t := getType(*ps, a.Name)
                 if t == "" </span><span class="cov0" title="0">{
-                        lh.Debug0().LogActivity("schema does not contain attribute %v", a.Name)
+                        lh.Debug0().LogActivity("GetWFinstanceNew||validateEntity()||schema does not contain attribute %v", a.Name)
                         return false, fmt.Errorf("schema does not contain attribute %v", a.Name)
 
                 }</span>
                 <span class="cov8" title="1">_, err := convertEntityAttrVal(a.Val, t)
                 if err != nil </span><span class="cov0" title="0">{
-                        lh.Debug0().LogActivity("attribute %v in entity has value of wrong type", a.Name)
+                        lh.Debug0().LogActivity("GetWFinstanceNew||validateEntity()||attribute %v in entity has value of wrong type", a.Name)
                         return false, fmt.Errorf("attribute %v in entity has value of wrong type", a.Name)
                 }</span>
         }
@@ -2912,7 +3085,31 @@ func getEntity(en map[string]string) Entity <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file14" style="display: none">package server
+		<pre class="file" id="file14" style="display: none">package wfinstance
+
+import "github.com/remiges-tech/crux/db/sqlc-gen"
+
+// To Get ParentList from WFInstanceList data respone
+func getParentList(data []sqlc.Wfinstance) []int32 <span class="cov8" title="1">{
+        var parentsMap = make(map[int32]struct{})
+        var parents []int32
+
+        for _, val := range data </span><span class="cov8" title="1">{
+                if val.Parent.Valid </span><span class="cov8" title="1">{
+                        parentValue := val.Parent.Int32
+                        _, exists := parentsMap[parentValue]
+                        if !exists </span><span class="cov8" title="1">{
+                                parents = append(parents, parentValue)
+                                parentsMap[parentValue] = struct{}{}
+                        }</span>
+                }
+        }
+        <span class="cov8" title="1">return parents</span>
+
+}
+</pre>
+		
+		<pre class="file" id="file15" style="display: none">package server
 
 import (
         "encoding/json"
@@ -2990,7 +3187,7 @@ func Authz_check(op types.OpReq, trace bool) (bool, []string) <span class="cov8"
 }</span>
 </pre>
 		
-		<pre class="file" id="file15" style="display: none">package testutils
+		<pre class="file" id="file16" style="display: none">package testutils
 
 import (
         "encoding/json"
@@ -3033,7 +3230,7 @@ type TestCasesStruct struct {
 }
 </pre>
 		
-		<pre class="file" id="file16" style="display: none">package types
+		<pre class="file" id="file17" style="display: none">package types
 
 const (
         DevEnv           Environment = "dev_env"

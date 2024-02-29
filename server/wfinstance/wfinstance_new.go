@@ -14,19 +14,19 @@ import (
 
 // Incoming request format
 type WFInstanceNewRequest struct {
-	Slice    int32             `json:"slice" validate:"required"`
-	App      string            `json:"app" validate:"required,alpha"`
-	EntityID string            `json:"entityid" validate:"required"`
+	Slice    int32             `json:"slice" validate:"required,gt=0,lt=85"`
+	App      string            `json:"app" validate:"required,alpha,lt=15"`
+	EntityID string            `json:"entityid" validate:"required,gt=0,lt=40"`
 	Entity   map[string]string `json:"entity" validate:"required"`
-	Workflow string            `json:"workflow" validate:"required"`
-	Trace    *int              `json:"trace,omitempty"`
-	Parent   *int32            `json:"parent,omitempty"`
+	Workflow string            `json:"workflow" validate:"required,gt=0,lt=20"`
+	Trace    *int              `json:"trace" validate:"omitempty,lte=2"`
+	Parent   *int32            `json:"parent" validate:"omitempty,gt=0"`
 }
 
 // WFInstanceNew response format
 type WFInstanceNewResponse struct {
-	Tasks     []map[string]int32 `json:"tasks"  validate:"required"`
-	Nextstep  string             `json:"nextstep"`
+	Tasks     []map[string]int32 `json:"tasks"`
+	Nextstep  *string            `json:"nextstep,omitempty"`
 	Loggedat  pgtype.Timestamp   `json:"loggedat"`
 	Subflows  *map[string]string `json:"subflows"`
 	Tracedata *map[string]string `json:"tracedata"`
@@ -51,7 +51,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	}, false)
 
 	if !isCapable {
-		lh.Info().LogActivity("Unauthorized user:", USERID)
+		lh.Info().LogActivity("unauthorized user:", USERID)
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
 		return
 	}
@@ -59,13 +59,13 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	// Bind request
 	err := wscutils.BindJSON(c, &wfinstanceNewreq)
 	if err != nil {
-		lh.Debug0().LogActivity("error while binding json request error:", err)
+		lh.Error(err).Log("GetWFinstanceNew||error while binding json request error")
 		return
 	}
 	// Standard validation of Incoming Request
 	validationErrors := wscutils.WscValidate(wfinstanceNewreq, func(err validator.FieldError) []string { return []string{} })
 	if len(validationErrors) > 0 {
-		lh.Debug0().LogActivity("validation error:", validationErrors)
+		lh.Debug0().LogActivity("GetWFinstanceNew||validation error:", validationErrors)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
 		return
 	}
@@ -73,7 +73,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	existingEntity := wfinstanceNewreq.Entity
 	isValidReq, errStr := validateWFInstanceNewReq(wfinstanceNewreq, s, c)
 	if len(errStr) > 0 || !isValidReq {
-		lh.Debug0().LogActivity("request validation error:", errStr)
+		lh.Debug0().LogActivity("GetWFinstanceNew||request validation error:", errStr)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, errStr))
 		return
 
@@ -87,7 +87,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	// call doMatch()
 	actionSet, _, err = doMatch(entity, ruleSet, actionSet, seenRuleSets)
 	if err != nil {
-		lh.LogActivity("error while calling doMatch Method :", err.Error())
+		lh.Error(err).Log("GetWFinstanceNew||error while calling doMatch Method")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid))
 		return
 	}
@@ -95,7 +95,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	// To verify actionSet Properties and get their values
 	attribute, error := getValidPropertyAttr(actionSet)
 	if error != nil {
-		lh.Debug0().LogActivity("error while verifying actionset properties :", error.Error())
+		lh.Debug0().LogActivity("GetWFinstanceNew||error while verifying actionset properties :", error.Error())
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid_property_attributes))
 		return
 	}
@@ -108,7 +108,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	if done == TRUE {
 		response := make(map[string]bool)
 		response[DONE] = true
-		lh.Log(fmt.Sprintf("Response : %v", map[string]any{"response": response}))
+		lh.Log(fmt.Sprintf("response : %v", map[string]any{"response": response}))
 		wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(response))
 	}
 
@@ -124,7 +124,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 		}
 		response, err = addTasks(addTaskRequest, s, c)
 		if err != nil {
-			lh.LogActivity("error while adding single step in wfinstance table :", err.Error())
+			lh.LogActivity("GetWFinstanceNew||error while adding single step in wfinstance table :", err.Error())
 			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 			return
 		}
@@ -140,7 +140,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 		}
 		response, err = addTasks(addTaskRequest, s, c)
 		if err != nil {
-			lh.LogActivity("error while adding multiple steps in wfinstance table :", error.Error())
+			lh.LogActivity("GetWFinstanceNew||error while adding multiple steps in wfinstance table :", error.Error())
 			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 			return
 		}
@@ -159,7 +159,7 @@ func getValidPropertyAttr(a ActionSet) (map[string]string, error) {
 		} else if attr == NEXTSTEP {
 			attribute[attr] = val
 		} else {
-			return nil, fmt.Errorf("property attributes does not contain either done or nextstep")
+			return nil, fmt.Errorf("GetWFinstanceNew||getValidPropertyAttr||property attributes does not contain either done or nextstep")
 		}
 
 	}

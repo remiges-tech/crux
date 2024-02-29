@@ -10,7 +10,7 @@
                 "class": "inventoryitems",
                 "workflow": "temp",
                 "step": "tempstep",
-                "loggdat": "2024-02-05T00:00:00Z",
+                "loggedat": "2024-02-05T00:00:00Z",
                 "doneat": "",
                 "nextstep": "temp",
                 "parent": 78
@@ -23,7 +23,7 @@
                 "class": "inventoryitems",
                 "workflow": "temp",
                 "step": "tempstep",
-                "loggdat": "2024-02-05T00:00:00Z",
+                "loggedat": "2024-02-05T00:00:00Z",
                 "doneat": "",
                 "nextstep": "temp"
             }
