@@ -1,6 +1,6 @@
 package ruleset
 
-type WorkflowNew struct {
+type RuleSetNew struct {
 	Slice      int32   `json:"slice" validate:"required,gt=0"`
 	App        string  `json:"app" validate:"required,alpha"`
 	Class      string  `json:"class" validate:"required,lowercase"`

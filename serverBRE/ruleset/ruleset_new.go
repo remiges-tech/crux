@@ -21,7 +21,7 @@ func BRERuleSetNew(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
 	l.Log("Starting execution of BRERuleSetNew()")
 
-	var wf WorkflowNew
+	var wf RuleSetNew
 	var ruleSchema schema.Schema
 
 	err := wscutils.BindJSON(c, &wf)
@@ -126,10 +126,10 @@ func BRERuleSetNew(c *gin.Context, s *service.Service) {
 		return
 	}
 	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})
-	l.Log("Finished execution of WorkFlowNew()")
+	l.Log("Finished execution of RuleSetNew()")
 }
 
-func customValidationErrors(wf WorkflowNew, ruleSchema schema.Schema) []wscutils.ErrorMessage {
+func customValidationErrors(wf RuleSetNew, ruleSchema schema.Schema) []wscutils.ErrorMessage {
 	var validationErrors []wscutils.ErrorMessage
 	if len(wf.Flowrules) == 0 {
 		fieldName := "flowrules"
@@ -144,7 +144,7 @@ func customValidationErrors(wf WorkflowNew, ruleSchema schema.Schema) []wscutils
 	return validationErrors
 }
 
-func verifyRulePatterns(ruleSet WorkflowNew, ruleSchema schema.Schema) []wscutils.ErrorMessage {
+func verifyRulePatterns(ruleSet RuleSetNew, ruleSchema schema.Schema) []wscutils.ErrorMessage {
 	var validationErrors []wscutils.ErrorMessage
 
 	for i, rule := range ruleSet.Flowrules {
@@ -232,7 +232,7 @@ func verifyType(val any, valType string) bool {
 	return ok
 }
 
-func verifyRuleActions(ruleSet WorkflowNew, ruleSchema schema.Schema) []wscutils.ErrorMessage {
+func verifyRuleActions(ruleSet RuleSetNew, ruleSchema schema.Schema) []wscutils.ErrorMessage {
 	var validationErrors []wscutils.ErrorMessage
 	for i, rule := range ruleSet.Flowrules {
 		i++
