@@ -159,6 +159,7 @@ func main() {
 	serviceBRE.RegisterRouteWithGroup(apiV1GroupBRE, http.MethodDelete, "/BREschemaDelete", breSchema.BRESchemaDelete)
 	// -------- RuleSet for BRE ---------------
 	serviceBRE.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/ruleSetNew", ruleset.BRERuleSetNew)
+	serviceBRE.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/ruleSetList", ruleset.BRERuleSetList)
 	appServerPortStr := strconv.Itoa(appServerPort)
 	r.Run(":" + appServerPortStr)
 	if err != nil {

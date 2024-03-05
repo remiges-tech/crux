@@ -1,5 +1,10 @@
 package ruleset
 
+const (
+	DbError   = "failed to get data from DB"
+	AuthError = "authorization_error"
+)
+
 type RuleSetNew struct {
 	Slice      int32   `json:"slice" validate:"required,gt=0"`
 	App        string  `json:"app" validate:"required,alpha"`
@@ -32,4 +37,13 @@ type RuleActions struct {
 type Property struct {
 	Name string `json:"name" validate:"required"`
 	Val  string `json:"val" validate:"required"`
+}
+
+type RuleSetListReq struct {
+	Slice      *int32  `json:"slice,omitempty"`
+	App        *string `json:"app,omitempty"`
+	Class      *string `json:"class,omitempty"`
+	Name       *string `json:"name,omitempty"`
+	IsActive   *bool   `json:"is_active,omitempty"`
+	IsInternal *bool   `json:"is_internal,omitempty"`
 }
