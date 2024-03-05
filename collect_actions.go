@@ -2,7 +2,7 @@
 
 package main
 
-func collectActions(actionSet ActionSet, ruleActions RuleActions) ActionSet {
+func collectActions(actionSet ActionSet, ruleActions ruleActionBlock_t) ActionSet {
 
 	newActionSet := ActionSet{
 		tasks:      []string{},
@@ -11,7 +11,7 @@ func collectActions(actionSet ActionSet, ruleActions RuleActions) ActionSet {
 
 	// Union-set of tasks
 	newActionSet.tasks = append(newActionSet.tasks, actionSet.tasks...)
-	for _, newTask := range ruleActions.tasks {
+	for _, newTask := range ruleActions.Task {
 		found := false
 		for _, task := range newActionSet.tasks {
 			if newTask == task {
@@ -31,7 +31,7 @@ func collectActions(actionSet ActionSet, ruleActions RuleActions) ActionSet {
 	}
 
 	// Update properties from ruleActions
-	for propName, propertyVal := range ruleActions.properties {
+	for propName, propertyVal := range ruleActions.Properties {
 		found := false
 		for existingPropName := range newActionSet.properties {
 			if existingPropName == propName {

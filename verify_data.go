@@ -33,79 +33,148 @@ var validOps = map[string]bool{
 // Parameters
 // rs RuleSchema: the RuleSchema to be verified
 // isWF bool: true if the RuleSchema applies to a workflow, otherwise false
-func verifyRuleSchema(rs RuleSchema, isWF bool) (bool, error) {
-	if len(rs.class) == 0 {
-		return false, fmt.Errorf("schema class is empty string")
-	}
-	if _, err := verifyPatternSchema(rs, isWF); err != nil {
-		return false, err
-	}
-	if _, err := verifyActionSchema(rs, isWF); err != nil {
-		return false, err
+func verifyRuleSchema(rschema []*schema_t, isWF bool) (bool, error) {
+	for _, rs := range rschema {
+		//fmt.Printf(" verifyRuleSchema rs %v \n", *rs)
+		if len(rs.Class) == 0 {
+			return false, fmt.Errorf("schema class is an empty string")
+		}
+		if _, err := verifyPatternSchema(*rs, isWF); err != nil {
+			return false, err
+		}
+		if _, err := verifyActionSchema(*rs, isWF); err != nil {
+			return false, err
+		}
 	}
 	return true, nil
 }
 
-func verifyPatternSchema(rs RuleSchema, isWF bool) (bool, error) {
-	if len(rs.patternSchema) == 0 {
-		return false, fmt.Errorf("pattern-schema for %v is empty", rs.class)
+func verifyPatternSchema(rs schema_t, isWF bool) (bool, error) {
+	if len(rs.PatternSchema.Attr) == 0 {
+		return false, fmt.Errorf("pattern-schema for %v is empty", rs.Class)
 	}
 	re := regexp.MustCompile(cruxIDRegExp)
 	// Bools needed for workflows only
 	stepFound, stepFailedFound := false, false
 
-	for _, attrSchema := range rs.patternSchema {
-		if !re.MatchString(attrSchema.name) {
-			return false, fmt.Errorf("attribute name %v is not a valid CruxID", attrSchema.name)
-		} else if !validTypes[attrSchema.valType] {
-			return false, fmt.Errorf("%v is not a valid value-type", attrSchema.valType)
-		} else if attrSchema.valType == typeEnum && len(attrSchema.vals) == 0 {
-			return false, fmt.Errorf("no valid values for enum %v", attrSchema.name)
+	for _, attrSchema := range rs.PatternSchema.Attr {
+
+		if _, exists := validTypes[attrSchema.ValType]; exists {
+
+		} else {
+			return false, fmt.Errorf("%v is not a valid value-type", attrSchema.ValType)
 		}
-		for val := range attrSchema.vals {
+
+		if !re.MatchString(attrSchema.Name) {
+			return false, fmt.Errorf("attribute name %v is not a valid CruxID", attrSchema.Name)
+		} else if attrSchema.ValType == typeEnum && len(attrSchema.EnumVals) == 0 {
+			return false, fmt.Errorf("no valid values for enum %v", attrSchema.Name)
+		}
+		for val := range attrSchema.EnumVals {
 			if !re.MatchString(val) && val != start {
 				return false, fmt.Errorf("enum value %v is not a valid CruxID", val)
 			}
 		}
 
 		// Workflows only
-		if attrSchema.name == step && attrSchema.valType == typeEnum {
+		if attrSchema.Name == step && attrSchema.ValType == typeEnum {
 			stepFound = true
 		}
-		if isWF && attrSchema.name == step && !attrSchema.vals[start] {
-			return false, fmt.Errorf("workflow schema for %v doesn't allow step=START", rs.class)
+
+		if isWF && attrSchema.Name == step && !attrSchema.EnumVals[start] {
+			return false, fmt.Errorf("workflow schema for %v doesn't allow step=START", rs.Class)
 		}
-		if attrSchema.name == stepFailed && attrSchema.valType == typeBool {
+		if attrSchema.Name == stepFailed && attrSchema.ValType == typeBool {
 			stepFailedFound = true
 		}
 	}
 
 	// Workflows only
 	if isWF && (!stepFound || !stepFailedFound) {
-		return false, fmt.Errorf("necessary workflow attributes absent in schema for class %v", rs.class)
+		return false, fmt.Errorf("necessary workflow attributes absent in schema for class %v", rs.Class)
 	}
 
 	return true, nil
+
 }
 
-func verifyActionSchema(rs RuleSchema, isWF bool) (bool, error) {
-	re := regexp.MustCompile(cruxIDRegExp)
-	if len(rs.actionSchema.tasks) == 0 && len(rs.actionSchema.properties) == 0 {
-		return false, fmt.Errorf("both tasks and properties are empty in schema for class %v", rs.class)
+/*
+	func verifyPatternSchema(rs schema_t, isWF bool) (bool, error) {
+		if len(rs.PatternSchema.Attr) == 0 {
+			return false, fmt.Errorf("pattern-schema for %v is empty", rs.Class)
+		}
+		re := regexp.MustCompile(cruxIDRegExp)
+		// Bools needed for workflows only
+		stepFound, stepFailedFound := false, false
+
+		for _, attrSchema := range rs.PatternSchema.Attr {
+
+			// Accessing the map
+			if _, exists := validTypes[attrSchema.ValType]; exists {
+
+			} else {
+				return false, fmt.Errorf("%v is not a valid value-type", attrSchema.ValType)
+			}
+
+			if !re.MatchString(attrSchema.Name) {
+
+				return false, fmt.Errorf("attribute name %v is not a valid CruxID", attrSchema.Name)
+			} else if !validTypes[attrSchema.ValType] {
+
+			} else if attrSchema.ValType == typeEnum && len(attrSchema.EnumVals) == 0 {
+
+				return false, fmt.Errorf("no valid values for enum %v", attrSchema.Name)
+			}
+
+			// Workflows only
+			if attrSchema.Name == step && attrSchema.ValType == typeEnum {
+				stepFound = true
+			}
+			fmt.Printf("attrSchema.EnumVals[start] %v \n", attrSchema.EnumVals[start])
+			if _, exists := attrSchema.EnumVals[start]; exists {
+				fmt.Printf("exists %v \n", exists)
+				if isWF && attrSchema.Name == step {
+					return false, fmt.Errorf("workflow schema for %v doesn't allow step=START", rs.Class)
+				}
+
+			} else {
+				return false, fmt.Errorf("%v is not a valid value-type", attrSchema.ValType)
+			}
+
+			if attrSchema.Name == stepFailed && attrSchema.ValType == typeBool {
+				stepFailedFound = true
+			}
+		}
+
+		// Workflows only
+
+		if isWF && (!stepFound || !stepFailedFound) {
+			return false, fmt.Errorf("necessary workflow attributes absent in schema for class %v", rs.Class)
+		}
+
+		return true, nil
 	}
-	for _, task := range rs.actionSchema.tasks {
+*/
+func verifyActionSchema(rs schema_t, isWF bool) (bool, error) {
+	re := regexp.MustCompile(cruxIDRegExp)
+	if len(rs.ActionSchema.Tasks) == 0 && len(rs.ActionSchema.Properties) == 0 {
+		return false, fmt.Errorf("both tasks and properties are empty in schema for class %v", rs.Class)
+	}
+	for _, task := range rs.ActionSchema.Tasks {
 		if !re.MatchString(task) {
 			return false, fmt.Errorf("task %v is not a valid CruxID", task)
 		}
 	}
 
 	// Workflows only
-	if isWF && len(rs.actionSchema.properties) != 2 {
-		return false, fmt.Errorf("action-schema for %v does not contain exactly two properties", rs.class)
+
+	if isWF && len(rs.ActionSchema.Properties) != 2 {
+		return false, fmt.Errorf("action-schema for %v does not contain exactly two properties", rs.Class)
 	}
 	nextStepFound, doneFound := false, false
 
-	for _, propName := range rs.actionSchema.properties {
+	for _, propName := range rs.ActionSchema.Properties {
+
 		if !re.MatchString(propName) {
 			return false, fmt.Errorf("property name %v is not a valid CruxID", propName)
 		} else if propName == nextStep {
@@ -117,10 +186,10 @@ func verifyActionSchema(rs RuleSchema, isWF bool) (bool, error) {
 
 	// Workflows only
 	if isWF && (!nextStepFound || !doneFound) {
-		return false, fmt.Errorf("action-schema for %v does not contain both the properties 'nextstep' and 'done'", rs.class)
+		return false, fmt.Errorf("action-schema for %v does not contain both the properties 'nextstep' and 'done'", rs.Class)
 	}
-	if isWF && !reflect.DeepEqual(getTasksMapForWF(rs.actionSchema.tasks), getStepAttrVals(rs)) {
-		return false, fmt.Errorf("action-schema tasks for %v are not the same as valid values for 'step' in pattern-schema", rs.class)
+	if isWF && !reflect.DeepEqual(getTasksMapForWF(rs.ActionSchema.Tasks), getStepAttrVals(rs)) {
+		return false, fmt.Errorf("action-schema tasks for %v are not the same as valid values for 'step' in pattern-schema", rs.Class)
 	}
 	return true, nil
 }
@@ -132,23 +201,30 @@ func getTasksMapForWF(tasks []string) map[string]bool {
 	}
 	// To allow comparison with the set of valid values for the 'step' attribute, which includes "START"
 	tm[start] = true
+
 	return tm
 }
 
-func getStepAttrVals(rs RuleSchema) map[string]bool {
-	for _, ps := range rs.patternSchema {
-		if ps.name == step {
-			return ps.vals
+func getStepAttrVals(rs schema_t) map[string]bool {
+
+	for _, ps := range rs.PatternSchema.Attr {
+
+		if ps.Name == step {
+
+			return ps.EnumVals
 		}
 	}
 	return nil
+
 }
 
 // Parameters
 // rs RuleSet: the RuleSet to be verified
 // isWF bool: true if the RuleSet is a workflow, otherwise false
-func verifyRuleSet(rs RuleSet, isWF bool) (bool, error) {
-	schema, err := getSchema(rs.class)
+func verifyRuleSet(entiry Entity, rs []*Ruleset_t, isWF bool) (bool, error) {
+	schema, err := getSchema(entiry, entiry.class)
+
+	fmt.Printf("schema %v \n", schema)
 	if err != nil {
 		return false, err
 	}
@@ -156,61 +232,80 @@ func verifyRuleSet(rs RuleSet, isWF bool) (bool, error) {
 		return false, err
 	}
 	if _, err = verifyRuleActions(rs, schema, isWF); err != nil {
+		fmt.Printf("verifyRuleActions %v \n ", err)
+
 		return false, err
 	}
+	fmt.Printf("verifyRuleSet Success \n")
 	return true, nil
 }
 
-func verifyRulePatterns(ruleSet RuleSet, schema RuleSchema, isWF bool) (bool, error) {
-	for _, rule := range ruleSet.rules {
-		for _, term := range rule.rulePattern {
-			valType := getType(schema, term.attrName)
-			if valType == "" {
-				// If the attribute name is not in the pattern-schema, we check if it's a task "tag"
-				// by checking for its presence in the action-schema
-				if !isStringInArray(term.attrName, schema.actionSchema.tasks) {
-					return false, fmt.Errorf("attribute does not exist in schema: %v", term.attrName)
+func verifyRulePatterns(ruleSets []*Ruleset_t, schema *schema_t, isWF bool) (bool, error) {
+	for _, ruleset := range ruleSets {
+		for _, rule := range ruleset.Rules {
+
+			for _, term := range rule.RulePatterns {
+				fmt.Printf("rule.RulePatterns %v \n", rule.RulePatterns)
+				valType := getType(schema, term.Attr)
+				fmt.Printf("erm.Val %v valType %v term.Val %v \n", term.Attr, valType, term.Val)
+				if valType == "" {
+					// If the attribute name is not in the pattern-schema, we check if it's a task "tag"
+					// by checking for its presence in the action-schema
+
+					if !isStringInArray(term.Attr, schema.ActionSchema.Tasks) {
+						return false, fmt.Errorf("attribute does not exist in schema: %v", term.Attr)
+					}
+					// If it is a tag, the value type is set to bool
+					valType = typeStr
 				}
-				// If it is a tag, the value type is set to bool
-				valType = typeBool
-			}
-			if !verifyType(term.attrVal, valType) {
-				return false, fmt.Errorf("value of this attribute does not match schema type: %v", term.attrName)
-			}
-			if !validOps[term.op] {
-				return false, fmt.Errorf("invalid operation in rule: %v", term.op)
-			}
-		}
-		// Workflows only
-		if isWF {
-			stepFound := false
-			for _, term := range rule.rulePattern {
-				if term.attrName == step {
-					stepFound = true
-					break
+				if !verifyType(term.Val, valType) {
+					fmt.Println("1")
+					return false, fmt.Errorf("value of this attribute does not match schema type: %v", term.Attr)
+				}
+				if !validOps[term.Op] {
+					fmt.Println("2")
+					return false, fmt.Errorf("invalid operation in rule: %v", term.Op)
 				}
 			}
-			if !stepFound {
-				return false, fmt.Errorf("no 'step' attribute found in a rule in workflow %v", ruleSet.setName)
+			// Workflows only
+			if isWF {
+				stepFound := false
+				for _, term := range rule.RulePatterns {
+					if term.Attr == step {
+
+						stepFound = true
+						break
+					}
+				}
+				if !stepFound {
+					fmt.Println("3")
+					return false, fmt.Errorf("no 'step' attribute found in a rule in workflow %v", ruleset.SetName)
+				}
 			}
 		}
 	}
 	return true, nil
 }
 
-func getSchema(class string) (RuleSchema, error) {
-	for _, s := range ruleSchemas {
-		if class == s.class {
-			return s, nil
+func getSchema(entity Entity, class string) (*schema_t, error) {
+	ruleSchemas, _ := retriveRuleSchemasAndRuleSetsFromCache(entity.realm, entity.app, entity.class, entity.slice)
+
+	if len(ruleSchemas) > 0 {
+
+		for _, s := range ruleSchemas {
+
+			if class == s.Class {
+				return s, nil
+			}
 		}
 	}
-	return RuleSchema{}, fmt.Errorf("no schema found for class %v", class)
+	return nil, fmt.Errorf("no schema found for class %v", class)
 }
 
-func getType(rs RuleSchema, name string) string {
-	for _, as := range rs.patternSchema {
-		if as.name == name {
-			return as.valType
+func getType(rs *schema_t, name string) string {
+	for _, as := range rs.PatternSchema.Attr {
+		if as.Name == name {
+			return as.ValType
 		}
 	}
 	return ""
@@ -218,7 +313,9 @@ func getType(rs RuleSchema, name string) string {
 
 func isStringInArray(s string, arr []string) bool {
 	for _, a := range arr {
+		fmt.Printf("isStringInArray a %v s %v \n", a, s)
 		if a == s {
+			fmt.Printf("isStringInArray Matched a %v s %v \n", a, s)
 			return true
 		}
 	}
@@ -227,6 +324,7 @@ func isStringInArray(s string, arr []string) bool {
 
 // Returns whether or not the type of "val" is the same as "valType"
 func verifyType(val any, valType string) bool {
+	fmt.Printf("verifyType val: %v, type: %T, expected type: %v\n", val, val, valType)
 	var ok bool
 	switch valType {
 	case typeBool:
@@ -235,53 +333,82 @@ func verifyType(val any, valType string) bool {
 		_, ok = val.(int)
 	case typeFloat:
 		_, ok = val.(float64)
-	case typeStr, typeEnum:
+	case typeStr:
+
+		_, ok = val.(string)
+	case typeEnum:
+
 		_, ok = val.(string)
 	case typeTS:
 		s, _ := val.(string)
 		_, err := time.Parse(timeLayout, s)
 		ok = (err == nil)
 	}
+
 	return ok
 }
 
+func verifyRuleActions(ruleSets []*Ruleset_t, schema *schema_t, isWF bool) (bool, error) {
+	for _, ruleset := range ruleSets {
+		for _, rule := range ruleset.Rules {
+			for _, t := range rule.RuleActions.Task {
+				fmt.Printf(" rule.RuleActions.Task %v \n", rule.RuleActions.Task)
+				doRet := rule.RuleActions.DoReturn
+				doExit := rule.RuleActions.DoExit
 
-func verifyRuleActions(ruleSet RuleSet, schema RuleSchema, isWF bool) (bool, error) {
-	for _, rule := range ruleSet.rules {
-		for _, t := range rule.ruleActions.tasks {
-			if !isStringInArray(t, schema.actionSchema.tasks) {
-				return false, fmt.Errorf("task %v not found in action-schema", t)
+				found := false
+
+				if doRet && doExit {
+					return false, fmt.Errorf("there is a rule with both the RETURN and EXIT instructions in ruleset %v", ruleset.SetName)
+				}
+				if isStringInArray(t, schema.ActionSchema.Tasks) {
+					found = true
+					break
+				}
+
+				if !found {
+					return false, fmt.Errorf("task %v not found in any action-schema", t)
+				}
 			}
-		}
-		for propName := range rule.ruleActions.properties {
-			if !isStringInArray(propName, schema.actionSchema.properties) {
-				return false, fmt.Errorf("property name %v not found in action-schema", propName)
+
+			for propName := range rule.RuleActions.Properties {
+				found := false
+
+				if isStringInArray(propName, schema.ActionSchema.Properties) {
+					found = true
+					break
+				}
+
+				if !found {
+					return false, fmt.Errorf("property name %v not found in any action-schema", propName)
+				}
 			}
-		}
-		if rule.ruleActions.willReturn && rule.ruleActions.willExit {
-			return false, fmt.Errorf("there is a rule with both the RETURN and EXIT instructions in ruleset %v", ruleSet.setName)
-		}
-		// Workflows only
-		if isWF {
-			nsFound, doneFound := areNextStepAndDoneInProps(rule.ruleActions.properties)
-			if !nsFound && !doneFound {
-				return false, fmt.Errorf("rule found with neither 'nextstep' nor 'done' in ruleset %v", ruleSet.setName)
-			}
-			if !doneFound && len(rule.ruleActions.tasks) == 0 {
-				return false, fmt.Errorf("no tasks and no 'done=true' in a rule in ruleset %v", ruleSet.setName)
-			}
-			currNS := getNextStep(rule.ruleActions.properties)
-			if len(currNS) > 0 && !isStringInArray(currNS, rule.ruleActions.tasks) {
-				return false, fmt.Errorf("`nextstep` value not found in `tasks` in a rule in ruleset %v", ruleSet.setName)
+
+			// Workflows only
+			if isWF {
+				fmt.Printf(" rule.RuleActions.Properties %v \n", rule.RuleActions.Properties)
+				nsFound, doneFound := areNextStepAndDoneInProps(rule.RuleActions.Properties)
+				if !nsFound && !doneFound {
+					return false, fmt.Errorf("rule found with neither 'nextstep' nor 'done' in ruleset %v", ruleset.SetName)
+				}
+				if !doneFound && len(rule.RuleActions.Task) == 0 {
+					return false, fmt.Errorf("no tasks and no 'done=true' in a rule in ruleset %v", ruleset.SetName)
+				}
+				currNS := getNextStep(rule.RuleActions.Properties)
+				if len(currNS) > 0 && !isStringInArray(currNS, rule.RuleActions.Task) {
+					return false, fmt.Errorf("`nextstep` value not found in `tasks` in a rule in ruleset %v", ruleset.SetName)
+				}
 			}
 		}
 	}
+	fmt.Println("verifyRuleActions Success")
 	return true, nil
 }
 
 func areNextStepAndDoneInProps(props map[string]string) (bool, bool) {
 	nsFound, doneFound := false, false
 	for name, val := range props {
+		fmt.Printf(" areNextStepAndDoneInProps name %v  %v \n", name, nextStep)
 		if name == nextStep {
 			nsFound = true
 		}
@@ -301,41 +428,31 @@ func getNextStep(props map[string]string) string {
 	return ""
 }
 
-func doReferentialChecks() (bool, error) {
-	for _, rs := range ruleSets {
-		for _, r := range rs.rules {
-			ok, err := doesRuleSetExist(r.ruleActions.thenCall)
-			if !ok {
-				return false, err
+func doReferentialChecks(e Entity) (bool, error) {
+	_, ruleSets := retriveRuleSchemasAndRuleSetsFromCache(e.realm, e.app, e.class, e.slice)
+
+	for _, ruleset := range ruleSets {
+		for _, rule := range ruleset.Rules {
+			fmt.Printf("doReferentialChecks %v   rule.RuleActions.ReferenceType %v  \n ", rule.RuleActions.ThenCall, rule.RuleActions.ReferenceType)
+			if rule.RuleActions.ThenCall != "" {
+				return true, nil
 			}
-			ok, err = doesRuleSetExist(r.ruleActions.elseCall)
-			if !ok {
-				return false, err
+			if rule.RuleActions.ElseCall != "" {
+				return true, nil
 			}
 		}
 	}
 	return true, nil
 }
 
-func doesRuleSetExist(name string) (bool, error) {
-	// a zero-length THENCALL/ELSECALL means that we don't need to check for the existence of
-	// any ruleset and can simply return "true"
-	if len(name) == 0 {
-		return true, nil
-	}
-	_, found := ruleSets[name]
-	if !found {
-		return false, fmt.Errorf("ruleset %v does not exist", name)
-	}
-	return true, nil
-}
-
 func verifyEntity(e Entity) (bool, error) {
-	rs, err := getSchema(e.class)
+	rs, err := getSchema(e, e.class)
 	if err != nil {
 		return false, err
 	}
 	for attrName, attrVal := range e.attrs {
+
+		fmt.Printf("verifyEntity ,attrName %v \n ", attrName)
 		t := getType(rs, attrName)
 		if t == "" {
 			return false, fmt.Errorf("schema does not contain attribute %v", attrName)
@@ -345,7 +462,7 @@ func verifyEntity(e Entity) (bool, error) {
 			return false, fmt.Errorf("attribute %v in entity has value of wrong type", attrName)
 		}
 	}
-	if len(e.attrs) != len(rs.patternSchema) {
+	if len(e.attrs) != len(rs.PatternSchema.Attr) {
 		return false, fmt.Errorf("entity does not contain all the attributes in its pattern-schema")
 	}
 	return true, nil

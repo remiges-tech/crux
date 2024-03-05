@@ -42,6 +42,7 @@ func loadInternalSchema(dbResponseSchema []sqlc.Schema) error {
 			}
 
 			var patterns patternSchema_t
+
 			if err := json.Unmarshal(row.Patternschema, &patterns); err != nil {
 				log.Println("Error unmarshaling Patternschema:", err)
 				continue
@@ -104,29 +105,26 @@ func loadInternalRuleSet(dbResponseRuleSet []sqlc.Ruleset) error {
 				Workflows:  make(map[className_t][]*Ruleset_t),
 			}
 
-			var rulesets []Ruleset_t
+			var rules []rule_t
 
-			if err := json.Unmarshal(row.Ruleset, &rulesets); err != nil {
-				log.Println("Error unmarshaling Ruleset:", err, string(row.Ruleset))
-				continue
+			err := json.Unmarshal(row.Ruleset, &rules)
+			if err != nil {
+				fmt.Println("Error unmarshaling rules:", err)
+				return nil
 			}
 
-			for _, rule := range rulesets {
-				classNameKey := className_t(row.Class)
-				newRuleset := &Ruleset_t{
-					Class:        row.Class,
-					SetName:      row.Setname,
-					RulePatterns: rule.RulePatterns,
-					RuleActions:  rule.RuleActions,
-					NMatched:     rule.NMatched,
-					NFailed:      rule.NFailed,
-				}
-				if row.Brwf == "B" {
-					perApp[sliceKey].BRRulesets[classNameKey] = append(perApp[sliceKey].BRRulesets[classNameKey], newRuleset)
+			classNameKey := className_t(row.Setname)
+			newRuleset := &Ruleset_t{
+				//Id:     row.ID,
+				Class:   row.Class,
+				SetName: row.Setname,
+				Rules:   rules,
+			}
+			if row.Brwf == "B" {
+				perApp[sliceKey].BRRulesets[classNameKey] = append(perApp[sliceKey].BRRulesets[classNameKey], newRuleset)
 
-				} else if row.Brwf == "W" {
-					perApp[sliceKey].Workflows[classNameKey] = append(perApp[sliceKey].Workflows[classNameKey], newRuleset)
-				}
+			} else if row.Brwf == "W" {
+				perApp[sliceKey].Workflows[classNameKey] = append(perApp[sliceKey].Workflows[classNameKey], newRuleset)
 			}
 
 		}
@@ -175,8 +173,7 @@ func Load(query sqlc.DBQuerier, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	initializeRuleSchemasFromCache(schemaCache)
-	initializeRuleSetsFromCache(rulesetCache)
+
 	return nil
 }
 

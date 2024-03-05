@@ -4,6 +4,7 @@ import (
 	"context"
 	sqlc "crux/db/sqlc-gen"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"reflect"
@@ -38,15 +39,17 @@ func NewProvider(cfg string) sqlc.DBQuerier {
 
 func AddReferencesToRuleSetCache() {
 	for realmKey, perRealm := range rulesetCache {
-		for appKey, perApp := range perRealm {
+		for _, perApp := range perRealm {
 			for sliceKey, perSlice := range perApp {
 				for _, rulesets := range perSlice.BRRulesets {
 					for _, rule := range rulesets {
-						if rule.RuleActions.ThenCall != "" {
-							searchAndAddReferences(rule.RuleActions.ThenCall, rulesetCache, realmKey, appKey, sliceKey, rule, "thencall")
-						}
-						if rule.RuleActions.ElseCall != "" {
-							searchAndAddReferences(rule.RuleActions.ElseCall, rulesetCache, realmKey, appKey, sliceKey, rule, "elsecall")
+						for _, subRule := range rule.Rules {
+							if subRule.RuleActions.ThenCall != "" {
+								searchAndAddReferences(subRule.RuleActions.ThenCall, rulesetCache, realmKey, sliceKey, rule, "thencall")
+							}
+							if subRule.RuleActions.ElseCall != "" {
+								searchAndAddReferences(subRule.RuleActions.ElseCall, rulesetCache, realmKey, sliceKey, rule, "elsecall")
+							}
 						}
 					}
 				}
@@ -55,7 +58,7 @@ func AddReferencesToRuleSetCache() {
 	}
 }
 
-func searchAndAddReferences(targetSetName string, cache map[realm_t]perRealm_t, realmKey realm_t, appKey app_t,
+func searchAndAddReferences(targetSetName string, cache map[realm_t]perRealm_t, realmKey realm_t,
 	sliceKey slice_t, sourceRule *Ruleset_t, calltype string) {
 	for _, perApp := range cache[realmKey] {
 		for otherSliceKey, perSlice := range perApp {
@@ -66,7 +69,7 @@ func searchAndAddReferences(targetSetName string, cache map[realm_t]perRealm_t, 
 				for _, existingRule := range existingRulesets {
 					if existingRule.SetName == targetSetName {
 						existingRule.ReferenceType = calltype
-						sourceRule.RuleActions.References = append(sourceRule.RuleActions.References, existingRule)
+						sourceRule.Rules[0].RuleActions.References = append(sourceRule.Rules[0].RuleActions.References, existingRule)
 
 					}
 				}
@@ -75,7 +78,7 @@ func searchAndAddReferences(targetSetName string, cache map[realm_t]perRealm_t, 
 				for _, existingRule := range existingRulesets {
 					if existingRule.SetName == targetSetName {
 						existingRule.ReferenceType = calltype
-						sourceRule.RuleActions.References = append(sourceRule.RuleActions.References, existingRule)
+						sourceRule.Rules[0].RuleActions.References = append(sourceRule.Rules[0].RuleActions.References, existingRule)
 
 					}
 				}
@@ -94,21 +97,22 @@ func PrintAllRuleSetCache() {
 				fmt.Println("\t\t\tLoadedAt:", perSlice.LoadedAt)
 
 				// Print BRRulesets
+
 				for className, rulesets := range perSlice.BRRulesets {
 					fmt.Println("\t\t\tBRRulesets - Class:", className)
 					for _, rule := range rulesets {
-						fmt.Println("\t\t\t\tRulePatterns:", rule.RulePatterns)
-						fmt.Println("\t\t\t\tRuleActions:", rule.RuleActions)
-						fmt.Println("\t\t\t\tNMatched:", rule.NMatched)
-						fmt.Println("\t\t\t\tNFailed:", rule.NFailed)
+						fmt.Println("\t\t\t\tRulePatterns:", rule.Rules[0].RulePatterns)
+						fmt.Println("\t\t\t\tRuleActions:", rule.Rules[0].RuleActions)
+						fmt.Println("\t\t\t\tNMatched:", rule.Rules[0].NMatched)
+						fmt.Println("\t\t\t\tNFailed:", rule.Rules[0].NFailed)
 
 						// Print References if available
-						for _, reference := range rule.RuleActions.References {
+						for _, reference := range rule.Rules[0].RuleActions.References {
 							fmt.Println("\t\t\t\t\tReferenced Rule:")
-							fmt.Println("\t\t\t\t\t\tRulePatterns:", reference.RulePatterns)
-							fmt.Println("\t\t\t\t\t\tRuleActions:", reference.RuleActions)
-							fmt.Println("\t\t\t\t\t\tNMatched:", reference.NMatched)
-							fmt.Println("\t\t\t\t\t\tNFailed:", reference.NFailed)
+							fmt.Println("\t\t\t\t\t\tRulePatterns:", reference.Rules[0].RulePatterns)
+							fmt.Println("\t\t\t\t\t\tRuleActions:", reference.Rules[0].RuleActions)
+							fmt.Println("\t\t\t\t\t\tNMatched:", reference.Rules[0].NMatched)
+							fmt.Println("\t\t\t\t\t\tNFailed:", reference.Rules[0].NFailed)
 						}
 					}
 				}
@@ -117,18 +121,18 @@ func PrintAllRuleSetCache() {
 				for className, workflows := range perSlice.Workflows {
 					fmt.Println("\t\t\tWorkflows - Class:", className)
 					for _, workflow := range workflows {
-						fmt.Println("\t\t\t\tRulePatterns:", workflow.RulePatterns)
-						fmt.Println("\t\t\t\tRuleActions:", workflow.RuleActions)
-						fmt.Println("\t\t\t\tNMatched:", workflow.NMatched)
-						fmt.Println("\t\t\t\tNFailed:", workflow.NFailed)
+						fmt.Println("\t\t\t\tRulePatterns:", workflow.Rules[0].RulePatterns)
+						fmt.Println("\t\t\t\tRuleActions:", workflow.Rules[0].RuleActions)
+						fmt.Println("\t\t\t\tNMatched:", workflow.Rules[0].NMatched)
+						fmt.Println("\t\t\t\tNFailed:", workflow.Rules[0].NFailed)
 
 						// Print References if available
-						for _, reference := range workflow.RuleActions.References {
+						for _, reference := range workflow.Rules[0].RuleActions.References {
 							fmt.Println("\t\t\t\t\tReferenced Rule:")
-							fmt.Println("\t\t\t\t\t\tRulePatterns:", reference.RulePatterns)
-							fmt.Println("\t\t\t\t\t\tRuleActions:", reference.RuleActions)
-							fmt.Println("\t\t\t\t\t\tNMatched:", reference.NMatched)
-							fmt.Println("\t\t\t\t\t\tNFailed:", reference.NFailed)
+							fmt.Println("\t\t\t\t\t\tRulePatterns:", reference.Rules[0].RulePatterns)
+							fmt.Println("\t\t\t\t\t\tRuleActions:", reference.Rules[0].RuleActions)
+							fmt.Println("\t\t\t\t\t\tNMatched:", reference.Rules[0].NMatched)
+							fmt.Println("\t\t\t\t\t\tNFailed:", reference.Rules[0].NFailed)
 						}
 					}
 				}
@@ -244,8 +248,8 @@ func containsFieldName(value interface{}, fieldName string) bool {
 	}
 	return false
 }
-func retrieveSchemasFromCache(realm int, app string, class string, slice int, brwf string) ([]byte, []byte, string) {
-	realmKey := realm_t(strconv.Itoa(realm))
+func retrieveSchemasFromCacheByte(realm string, app string, class string, slice int, brwf string) ([]byte, []byte, string) {
+	realmKey := realm_t(realm)
 	perRealm, realmExists := schemaCache[realmKey]
 	if !realmExists {
 		return nil, nil, "Realmkey not match"
@@ -276,6 +280,10 @@ func retrieveSchemasFromCache(realm int, app string, class string, slice int, br
 		return nil, nil, "No schemas found for the given class"
 	}
 
+	if len(schemas) == 0 {
+		return nil, nil, "No schemas found for the given class"
+	}
+
 	patternSchemaJSON, err := json.Marshal(schemas[0].PatternSchema)
 	if err != nil {
 		return nil, nil, "JSON failed to marshal pattern"
@@ -289,9 +297,9 @@ func retrieveSchemasFromCache(realm int, app string, class string, slice int, br
 	return patternSchemaJSON, actionSchemaJSON, "success"
 }
 
-func retrieveRulesetFromCache(realm int, app string, class string, slice int,
+func retrieveRulesetFromCacheByte(realm string, app string, class string, slice int,
 	brwf string) ([]byte, []byte, string, []*Ruleset_t) {
-	realmKey := realm_t(strconv.Itoa(realm))
+	realmKey := realm_t(realm)
 	perRealm, exists := rulesetCache[realmKey]
 	if !exists {
 		return nil, nil, "Realmkey not match", nil
@@ -325,131 +333,65 @@ func retrieveRulesetFromCache(realm int, app string, class string, slice int,
 
 	ruleset := rulesets[0]
 
-	RulePatterns, err := json.Marshal(ruleset.RulePatterns)
+	RuleActions, err := json.Marshal(ruleset.Rules[0].RuleActions)
 	if err != nil {
-		return nil, nil, "JSON failed to marshal rule patterns", nil
-	}
 
-	RuleActions, err := json.Marshal(ruleset.RuleActions)
-	if err != nil {
 		return nil, nil, "JSON failed to marshal rule actions", nil
 	}
 
-	return RulePatterns, RuleActions, "success", ruleset.RuleActions.References
-}
-func initializeRuleSchemasFromCache(schemaCache schemaCache_t) {
-	// Reset the global variable
-	ruleSchemas = nil
+	RulePatterns, err := json.Marshal(ruleset.Rules[0].RulePatterns)
+	if err != nil {
 
-	// Iterate over schemaCache
-	for realmKey, perRealm := range schemaCache {
-		for appKey, perApp := range perRealm {
-			for sliceKey, perSlice := range perApp {
-				// Process BRSchema
-				for _, schemas := range perSlice.BRSchema {
-					processRuleSchemas(realmKey, appKey, sliceKey, schemas)
-				}
-
-				// Process WFSchema
-				for _, schemas := range perSlice.WFSchema {
-					processRuleSchemas(realmKey, appKey, sliceKey, schemas)
-				}
-			}
-		}
-	}
-}
-
-func processRuleSchemas(realmKey realm_t, appKey app_t, sliceKey slice_t, schemas []*schema_t) {
-	for _, schema := range schemas {
-		ruleSchema := RuleSchema{
-			class:         schema.Class,
-			patternSchema: processPatternSchema(schema.PatternSchema),
-			actionSchema:  processActionSchema(schema.ActionSchema),
-		}
-
-		ruleSchemas = append(ruleSchemas, ruleSchema)
-
-	}
-}
-
-func processPatternSchema(patternSchema patternSchema_t) []AttrSchema {
-	var attrSchemas []AttrSchema
-
-	for _, attr := range patternSchema.Attr {
-		attrSchema := AttrSchema{
-			name:    attr.Name,
-			valType: attr.ValType,
-			vals:    make(map[string]bool),
-			valMin:  attr.ValMin,
-			valMax:  attr.ValMax,
-			lenMin:  attr.LenMin,
-			lenMax:  attr.LenMax,
-		}
-
-		for _, val := range attr.EnumVals {
-			attrSchema.vals[val] = true
-		}
-
-		attrSchemas = append(attrSchemas, attrSchema)
-	}
-	return attrSchemas
-}
-
-func processActionSchema(actionSchema actionSchema_t) ActionSchema {
-	return ActionSchema{
-		tasks:      actionSchema.Tasks,
-		properties: actionSchema.Properties,
-	}
-}
-
-func initializeRuleSetsFromCache(rulesetCache rulesetCache_t) {
-
-	ruleSets = make(map[string]RuleSet)
-
-	for realmKey, perRealm := range rulesetCache {
-		for appKey, perApp := range perRealm {
-			for sliceKey, perSlice := range perApp {
-				for className, brRulesets := range perSlice.BRRulesets {
-					processRuleSets(realmKey, appKey, sliceKey, className, brRulesets)
-				}
-				for className, wfRulesets := range perSlice.Workflows {
-					processRuleSets(realmKey, appKey, sliceKey, className, wfRulesets)
-				}
-			}
-		}
-	}
-}
-
-func processRuleSets(realmKey realm_t, appKey app_t, sliceKey slice_t, className className_t, rulesets []*Ruleset_t) {
-	for _, rule := range rulesets {
-		newRule := Rule{
-			rulePattern: processRulePatterns(rule.RulePatterns),
-			ruleActions: processRuleActions(rule.RuleActions),
-		}
-
-		ruleSets[rule.SetName] = RuleSet{
-			class:   rule.Class,
-			setName: rule.SetName,
-			rules:   append(ruleSets[rule.SetName].rules, newRule),
-		}
-	}
-}
-
-func processRulePatterns(rulePatterns []rulePatternBlock_t) []RulePatternTerm {
-	var patternTerms []RulePatternTerm
-
-	for _, pattern := range rulePatterns {
-		patternTerm := RulePatternTerm{
-			attrName: pattern.Attr,
-			op:       pattern.Op,
-			attrVal:  convertAttrValue(pattern.Val, pattern.ValType),
-		}
-		patternTerms = append(patternTerms, patternTerm)
+		return nil, nil, "JSON failed to marshal rule patterns", nil
 	}
 
-	return patternTerms
+	return RulePatterns, RuleActions, "success", ruleset.Rules[0].RuleActions.References
+
 }
 
+func retrieveRuleSchemasFromCache(realm string, app string, class string, slice int) ([]*schema_t, error) {
+	realmKey := realm_t(realm)
+
+	perRealm, realmExists := schemaCache[realmKey]
+	if !realmExists {
+		fmt.Println("1")
+		return nil, errors.New("schema Realmkey not match")
+	}
+
+	appKey := app_t(app)
+	perApp, appExists := perRealm[appKey]
+	if !appExists {
+		fmt.Println("2")
+		return nil, errors.New("schema AppKey not match")
+	}
+
+	sliceKey := slice_t(slice)
+
+	perSlice, sliceExists := perApp[sliceKey]
+	if !sliceExists {
+		fmt.Println("3")
+		return nil, errors.New("schema Slice key not match")
+	}
+
+	var ruleSchemas []*schema_t
+
+	brSchemas, brExists := perSlice.BRSchema[className_t(class)]
+	if brExists {
+		for _, schemas := range brSchemas {
+
+			ruleSchemas = append(ruleSchemas, schemas)
+		}
+	}
+
+	wfSchemas, wfExists := perSlice.WFSchema[className_t(class)]
+	if wfExists {
+		for _, schemas := range wfSchemas {
+			ruleSchemas = append(ruleSchemas, schemas)
+		}
+	}
+
+	return ruleSchemas, nil
+}
 func convertAttrValue(entityAttrVal string, valType valType_t) any {
 
 	var entityAttrValConv any
@@ -472,13 +414,44 @@ func convertAttrValue(entityAttrVal string, valType valType_t) any {
 	return entityAttrValConv
 }
 
-func processRuleActions(ruleActions ruleActionBlock_t) RuleActions {
-	return RuleActions{
-		tasks:      ruleActions.Task,
-		properties: ruleActions.Properties,
-		thenCall:   ruleActions.ThenCall,
-		elseCall:   ruleActions.ElseCall,
-		willReturn: ruleActions.DoReturn,
-		willExit:   ruleActions.DoExit,
+func retrieveRuleSetsFromCache(realm string, app string, class string, slice int) ([]*Ruleset_t, error) {
+	realmKey := realm_t(realm)
+
+	perRealm, realmExists := rulesetCache[realmKey]
+	if !realmExists {
+		return nil, errors.New("ruleset realmkey not match")
 	}
+
+	appKey := app_t(app)
+	perApp, appExists := perRealm[appKey]
+	if !appExists {
+		return nil, errors.New("ruleset appKey not match")
+	}
+
+	sliceKey := slice_t(slice)
+	perSlice, sliceExists := perApp[sliceKey]
+	if !sliceExists {
+		return nil, errors.New("ruleset slice key not match")
+	}
+
+	var ruleSets []*Ruleset_t
+
+	for _, brRulesets := range perSlice.BRRulesets {
+		ruleSets = append(ruleSets, brRulesets...)
+	}
+	for _, wfRulesets := range perSlice.Workflows {
+		ruleSets = append(ruleSets, wfRulesets...)
+	}
+
+	return ruleSets, nil
+}
+
+func retriveRuleSchemasAndRuleSetsFromCache(realm string, app string, class string, slice string) ([]*schema_t, []*Ruleset_t) {
+	s, _ := strconv.Atoi(slice)
+
+	ruleSchemas, _ := retrieveRuleSchemasFromCache(realm, app, class, s)
+
+	ruleSets, _ := retrieveRuleSetsFromCache(realm, app, class, s)
+	return ruleSchemas, ruleSets
+
 }
