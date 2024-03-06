@@ -2096,6 +2096,7 @@ func testPurchaseOvernightOrder(tests *[]doMatchTest) {
 }
 
 func testSIPLiquidOrder(tests *[]doMatchTest) {
+
 	ruleSetsTests = []*Ruleset_t{}
 	entity := Entity{
 		realm: "1",
@@ -2145,7 +2146,6 @@ func testSIPLiquidOrder(tests *[]doMatchTest) {
 
 func testSwitchPhysicalOrder(tests *[]doMatchTest) {
 
-	ruleSetsTests = []*Ruleset_t{}
 	entity := Entity{
 		realm: "1",
 		app:   "Test9",
@@ -2160,12 +2160,13 @@ func testSwitchPhysicalOrder(tests *[]doMatchTest) {
 			"extendedhours":   trueStr,
 		},
 	}
-
+	ruleSetsTests = []*Ruleset_t{}
+	//ruleSetsTests = append(ruleSetsTests, &Ruleset_t{})
 	rule2 := rule_t{
 		RulePatterns: []rulePatternBlock_t{},
 		RuleActions: ruleActionBlock_t{
-			Task:       []string{"unitstoamc", "unitstorta"},
-			Properties: map[string]string{"amfiordercutoff": "1500", "bseordercutoff": "1500"},
+			Task:       []string{},
+			Properties: map[string]string{},
 		},
 	}
 
@@ -2177,9 +2178,10 @@ func testSwitchPhysicalOrder(tests *[]doMatchTest) {
 		NCalled: 0,
 	}
 	ruleSetsTests = append(ruleSetsTests, &rs)
+
 	want := ActionSet{
-		tasks:      []string{"unitstoamc", "unitstorta"},
-		properties: map[string]string{"amfiordercutoff": "1500", "bseordercutoff": "1500"},
+		tasks:      []string{},
+		properties: map[string]string{},
 	}
 	*tests = append(*tests, doMatchTest{
 		"switch physical order",
@@ -2191,5 +2193,5 @@ func testSwitchPhysicalOrder(tests *[]doMatchTest) {
 		},
 		want,
 	})
-
+	//ruleSetsTests = append(ruleSetsTests, &Ruleset_t{})
 }

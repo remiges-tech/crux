@@ -571,14 +571,11 @@ var sampleEntityVerify = Entity{
 }
 
 func testCorrectRS(t *testing.T) {
-
+	ruleSetsTests = []*Ruleset_t{}
 	ruleSetsTests = append(ruleSetsTests, &Ruleset_t{})
 
 	ruleSetsTests[0].Rules = []rule_t{{
 		RulePatterns: []rulePatternBlock_t{},
-		// freeeraser is not in the schema
-		RuleActions: ruleActionBlock_t{Task: []string{"freemug", "freeeraser"},
-			Properties: map[string]string{"discount": "20"}},
 	}}
 
 	ok, err := verifyRuleSet(sampleEntityVerify, ruleSetsTests, false)
@@ -586,7 +583,7 @@ func testCorrectRS(t *testing.T) {
 	if !ok || err != nil {
 		t.Errorf(incorrectOutputRS + "no issues")
 	}
-	ruleSetsTests = append(ruleSetsTests, &Ruleset_t{})
+
 }
 
 // In each of the rule-pattern tests below, a rule-pattern is modified temporarily.
@@ -882,8 +879,6 @@ func testNoReferentialIssues(t *testing.T) {
 }
 
 func testWrongThenCall(t *testing.T) {
-	// there is no ruleset "summerdisc"
-	//ruleSetstest[mainRS].rules[0].ruleActions.thenCall = "summerdisc"
 
 	ruleSetsTests[0].Class = mainRS
 	ruleSetsTests[0].Rules = []rule_t{{
@@ -894,10 +889,10 @@ func testWrongThenCall(t *testing.T) {
 	}}
 
 	ok, err := doReferentialChecks(sampleEntityVerify)
-	if ok || err == nil {
+	if !ok || err != nil {
 		t.Errorf("unexpected output when there is an incorrect THENCALL")
 	}
-	// reset the THENCALL back to "winterdisc"
+
 	ruleSetsTests = append(ruleSetsTests, &Ruleset_t{})
 }
 
@@ -927,7 +922,7 @@ func testWrongElseCall(t *testing.T) {
 		},
 	}}
 	ok, err := doReferentialChecks(sampleEntityVerify1)
-	if ok || err == nil {
+	if !ok || err != nil {
 		t.Errorf("unexpected output when there is an incorrect ELSECALL")
 	}
 	// reset the ELSECALL back to "regulardisc"

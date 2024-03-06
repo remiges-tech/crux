@@ -91,7 +91,24 @@ func TestDoMatch(t *testing.T) {
 }
 
 func testCycleError(t *testing.T) {
+
+	var sampleEntity = Entity{
+		realm: "1",
+		app:   "Test1",
+		slice: "1",
+		class: "inventoryitem2",
+		attrs: map[string]string{
+			"cat":        "textbook",
+			"fullname":   "Advanced Physics",
+			"ageinstock": "5",
+			"mrp":        "50.80",
+			"received":   "2018-06-01T15:04:05Z",
+			"bulkorder":  trueStr,
+		},
+	}
+
 	t.Log("Running cycle test")
+
 	setupRuleSetsForCycleError()
 	_, _, err := doMatch(sampleEntity, ruleSetsTests, ActionSet{
 		tasks:      []string{},
@@ -103,6 +120,7 @@ func testCycleError(t *testing.T) {
 }
 
 func setupRuleSetsForCycleError() {
+
 	// main ruleset that contains a ThenCall to ruleset "second"
 	rule1 := rule_t{
 		RulePatterns: []rulePatternBlock_t{
@@ -115,8 +133,8 @@ func setupRuleSetsForCycleError() {
 
 	rs := Ruleset_t{
 		Id:      1,
-		Class:   inventoryItemClass,
-		SetName: mainRS,
+		Class:   "inventoryitem2",
+		SetName: "second",
 		Rules:   []rule_t{rule1},
 		NCalled: 0,
 	}
@@ -134,7 +152,7 @@ func setupRuleSetsForCycleError() {
 	}
 	rs = Ruleset_t{
 		Id:      1,
-		Class:   inventoryItemClass,
+		Class:   "inventoryitem2",
 		SetName: "third",
 		Rules:   []rule_t{rule1},
 		NCalled: 0,
@@ -156,14 +174,14 @@ func setupRuleSetsForCycleError() {
 			{"cat", opEQ, "textbook"},
 		},
 		RuleActions: ruleActionBlock_t{
-			ThenCall: "second",
+			ThenCall: "main",
 		},
 	}
 
 	rs = Ruleset_t{
 		Id:      1,
-		Class:   inventoryItemClass,
-		SetName: "third",
+		Class:   "inventoryitem2",
+		SetName: "main",
 		Rules:   []rule_t{rule1, rule2},
 		NCalled: 0,
 	}
@@ -172,6 +190,9 @@ func setupRuleSetsForCycleError() {
 }
 
 func testThenCallWrongClass(t *testing.T) {
+
+	ruleSetsTests = []*Ruleset_t{}
+	ruleSetsTests = append(ruleSetsTests, &Ruleset_t{})
 
 	rule2 := rule_t{
 		RulePatterns: []rulePatternBlock_t{
@@ -191,7 +212,10 @@ func testThenCallWrongClass(t *testing.T) {
 	ruleSetsTests = append(ruleSetsTests, &rs)
 
 	entity := Entity{
-		class: inventoryItemClass,
+		realm: "1",
+		app:   "Test1",
+		slice: "1",
+		class: "inventoryitem2",
 		attrs: map[string]string{
 			"cat": "textbook",
 		},
@@ -201,6 +225,7 @@ func testThenCallWrongClass(t *testing.T) {
 		tasks:      []string{},
 		properties: make(map[string]string),
 	}, map[string]struct{}{})
+
 	if err == nil {
 		t.Errorf("unexpected output when erroneously 'calling' ruleset of different class")
 	}

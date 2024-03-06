@@ -12,10 +12,10 @@ import (
 	"fmt"
 )
 
-func doMatch(entity Entity, rulesets []*Ruleset_t, actionSet ActionSet, seenRuleSets map[string]struct{}) (ActionSet, bool, error) {
+func doMatch(entity Entity, ruleset []*Ruleset_t, actionSet ActionSet, seenRuleSets map[string]struct{}) (ActionSet, bool, error) {
 	ruleSchemas, ruleSets := retriveRuleSchemasAndRuleSetsFromCache(entity.realm, entity.app, entity.class, entity.slice)
 
-	for _, ruleSet := range rulesets {
+	for _, ruleSet := range ruleset {
 		if _, seen := seenRuleSets[ruleSet.SetName]; seen {
 			return ActionSet{
 				tasks:      []string{},
@@ -51,7 +51,7 @@ func doMatch(entity Entity, rulesets []*Ruleset_t, actionSet ActionSet, seenRule
 					}
 
 					if setToCall.Class != entity.class {
-						return inconsistentRuleSet(setToCall.SetName, ruleSet.SetName, rulesets)
+						return inconsistentRuleSet(setToCall.SetName, ruleSet.SetName, ruleset)
 					}
 
 					var err error
@@ -76,13 +76,13 @@ func doMatch(entity Entity, rulesets []*Ruleset_t, actionSet ActionSet, seenRule
 				}
 			} else if len(rule.RuleActions.ElseCall) > 0 {
 
-				setToCall, exists := findRuleSetByName(rulesets, rule.RuleActions.ElseCall)
+				setToCall, exists := findRuleSetByName(ruleset, rule.RuleActions.ElseCall)
 				if !exists {
 					return ActionSet{}, false, errors.New("set not found")
 				}
 
 				if setToCall.Class != entity.class {
-					return inconsistentRuleSet(setToCall.SetName, ruleSet.SetName, rulesets)
+					return inconsistentRuleSet(setToCall.SetName, ruleSet.SetName, ruleset)
 				}
 
 				var err error
@@ -106,11 +106,12 @@ func doMatch(entity Entity, rulesets []*Ruleset_t, actionSet ActionSet, seenRule
 
 func findRuleSetByName(ruleSets []*Ruleset_t, setName string) (*Ruleset_t, bool) {
 
-	for _, ruleSet := range ruleSets {
+	for _, ruleset := range ruleSets {
 
-		if ruleSet.SetName == setName {
-			return ruleSet, true
+		if ruleset.SetName == setName {
+			return ruleset, true
 		}
+
 	}
 	return nil, false
 }

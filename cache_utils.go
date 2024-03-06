@@ -45,10 +45,10 @@ func AddReferencesToRuleSetCache() {
 					for _, rule := range rulesets {
 						for _, subRule := range rule.Rules {
 							if subRule.RuleActions.ThenCall != "" {
-								searchAndAddReferences(subRule.RuleActions.ThenCall, rulesetCache, realmKey, sliceKey, rule, "thencall")
+								searchAndAddReferences(subRule.RuleActions.ThenCall, rulesetCache, realmKey, sliceKey, rule, "thencall", subRule)
 							}
 							if subRule.RuleActions.ElseCall != "" {
-								searchAndAddReferences(subRule.RuleActions.ElseCall, rulesetCache, realmKey, sliceKey, rule, "elsecall")
+								searchAndAddReferences(subRule.RuleActions.ElseCall, rulesetCache, realmKey, sliceKey, rule, "elsecall", subRule)
 							}
 						}
 					}
@@ -59,7 +59,7 @@ func AddReferencesToRuleSetCache() {
 }
 
 func searchAndAddReferences(targetSetName string, cache map[realm_t]perRealm_t, realmKey realm_t,
-	sliceKey slice_t, sourceRule *Ruleset_t, calltype string) {
+	sliceKey slice_t, sourceRule *Ruleset_t, calltype string, subRule rule_t) {
 	for _, perApp := range cache[realmKey] {
 		for otherSliceKey, perSlice := range perApp {
 			if otherSliceKey == sliceKey {
@@ -101,18 +101,20 @@ func PrintAllRuleSetCache() {
 				for className, rulesets := range perSlice.BRRulesets {
 					fmt.Println("\t\t\tBRRulesets - Class:", className)
 					for _, rule := range rulesets {
-						fmt.Println("\t\t\t\tRulePatterns:", rule.Rules[0].RulePatterns)
-						fmt.Println("\t\t\t\tRuleActions:", rule.Rules[0].RuleActions)
-						fmt.Println("\t\t\t\tNMatched:", rule.Rules[0].NMatched)
-						fmt.Println("\t\t\t\tNFailed:", rule.Rules[0].NFailed)
+						for _, t := range rule.Rules {
+							fmt.Println("\t\t\t\tRulePatterns:", t.RulePatterns)
+							fmt.Println("\t\t\t\tRuleActions:", t.RuleActions)
+							fmt.Println("\t\t\t\tNMatched:", t.NMatched)
+							fmt.Println("\t\t\t\tNFailed:", rule.Rules[0].NFailed)
 
-						// Print References if available
-						for _, reference := range rule.Rules[0].RuleActions.References {
-							fmt.Println("\t\t\t\t\tReferenced Rule:")
-							fmt.Println("\t\t\t\t\t\tRulePatterns:", reference.Rules[0].RulePatterns)
-							fmt.Println("\t\t\t\t\t\tRuleActions:", reference.Rules[0].RuleActions)
-							fmt.Println("\t\t\t\t\t\tNMatched:", reference.Rules[0].NMatched)
-							fmt.Println("\t\t\t\t\t\tNFailed:", reference.Rules[0].NFailed)
+							// Print References if available
+							for _, reference := range rule.Rules[0].RuleActions.References {
+								fmt.Println("\t\t\t\t\tReferenced Rule:")
+								fmt.Println("\t\t\t\t\t\tRulePatterns:", reference.Rules[0].RulePatterns)
+								fmt.Println("\t\t\t\t\t\tRuleActions:", reference.Rules[0].RuleActions)
+								fmt.Println("\t\t\t\t\t\tNMatched:", reference.Rules[0].NMatched)
+								fmt.Println("\t\t\t\t\t\tNFailed:", reference.Rules[0].NFailed)
+							}
 						}
 					}
 				}
@@ -354,14 +356,14 @@ func retrieveRuleSchemasFromCache(realm string, app string, class string, slice 
 
 	perRealm, realmExists := schemaCache[realmKey]
 	if !realmExists {
-		fmt.Println("1")
+
 		return nil, errors.New("schema Realmkey not match")
 	}
 
 	appKey := app_t(app)
 	perApp, appExists := perRealm[appKey]
 	if !appExists {
-		fmt.Println("2")
+
 		return nil, errors.New("schema AppKey not match")
 	}
 
@@ -369,7 +371,7 @@ func retrieveRuleSchemasFromCache(realm string, app string, class string, slice 
 
 	perSlice, sliceExists := perApp[sliceKey]
 	if !sliceExists {
-		fmt.Println("3")
+
 		return nil, errors.New("schema Slice key not match")
 	}
 

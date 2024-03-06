@@ -13,12 +13,12 @@ func TestCollectActionsBasic(t *testing.T) {
 		properties: map[string]string{"discount": "7", "shipby": "fedex"},
 	}
 
-	ruleActions := RuleActions{
-		tasks:      []string{"yearendsale", "summersale"},
-		properties: map[string]string{"cashback": "10", "discount": "9"},
-		thenCall:   "domesticpo",
-		willReturn: false,
-		willExit:   true,
+	ruleActions := ruleActionBlock_t{
+		Task:       []string{"yearendsale", "summersale"},
+		Properties: map[string]string{"cashback": "10", "discount": "9"},
+		ThenCall:   "domesticpo",
+		DoReturn:   false,
+		DoExit:     true,
 	}
 
 	want := ActionSet{
@@ -38,7 +38,7 @@ func TestCollectActionsWithEmptyRuleActions(t *testing.T) {
 		properties: map[string]string{"discount": "7", "shipby": "fedex"},
 	}
 
-	ruleActions := RuleActions{}
+	ruleActions := ruleActionBlock_t{}
 
 	want := ActionSet{
 		tasks:      []string{"dodiscount", "yearendsale"},
@@ -57,12 +57,12 @@ func TestCollectActionsWithEmptyActionSet(t *testing.T) {
 		properties: make(map[string]string),
 	}
 
-	ruleActions := RuleActions{
-		tasks:      []string{"dodiscount", "yearendsale"},
-		properties: map[string]string{"discount": "7", "shipby": "fedex"},
-		thenCall:   "overseaspo",
-		willReturn: true,
-		willExit:   false,
+	ruleActions := ruleActionBlock_t{
+		Task:       []string{"dodiscount", "yearendsale"},
+		Properties: map[string]string{"discount": "7", "shipby": "fedex"},
+		ThenCall:   "overseaspo",
+		DoReturn:   true,
+		DoExit:     false,
 	}
 
 	want := ActionSet{

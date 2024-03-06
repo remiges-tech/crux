@@ -11,8 +11,8 @@ var mockSchemasets = []sqlc.Schema{
 
 	{
 		Realm: 1,
-		App:   "Test5",
-		Slice: 5,
+		App:   "Test1",
+		Slice: 1,
 		Class: "inventoryitem2",
 
 		Brwf: sqlc.BrwfEnum("W"),
@@ -313,29 +313,32 @@ var mockSchemasets = []sqlc.Schema{
 }
 
 var mockRulesets = []sqlc.Ruleset{
+
 	{
 		Realm:   1,
 		App:     "Test1",
 		Slice:   1,
-		Class:   "inventoryitem1",
-		Setname: "yearendoffer",
+		Class:   "inventoryitem2",
+		Setname: "main",
 		Brwf:    "B",
-		Ruleset: []byte(`[{
-			"rulepattern": [
-				{"attr": "cat", "op": "eq", "val": "textbook"},
-				{"attr": "mrp", "op": "ge", "val": "5000"}
-			],
-			"ruleactions": {
-				"tasks": ["yearendsale", "summersale", "wintersale"],
-				"properties": {"discount": "15", "freegift": "mug"},
-				"thencall": "second"
-			
+		Ruleset: []byte(`[
+			{
+			  "rulepattern": [
+				{"attr": "cat", "op": "eq", "val": "notebook"},
+				{"attr": "mrp", "op": "ge", "val": "3000"}
+			  ],
+			  "ruleactions": {
+				"tasks": ["newyearsale"],
+				"properties": {"shipby": "dhl"},
+				"thenCall":"second"
+			  }
 			}
-		}]`),
+		  ]`),
 	},
+
 	{
 		Realm:   1,
-		App:     "Test2",
+		App:     "Test1",
 		Slice:   2,
 		Class:   "inventoryitem2",
 		Setname: "second",
@@ -349,10 +352,30 @@ var mockRulesets = []sqlc.Ruleset{
 			  "ruleactions": {
 				"tasks": ["newyearsale"],
 				"properties": {"shipby": "dhl"},
-				"thencall": "yearendoffer"
+				"thenCall":"third"
 			  }
 			}
 		  ]`),
+	},
+	{
+		Realm:   1,
+		App:     "Test1",
+		Slice:   3,
+		Class:   "inventoryitem2",
+		Setname: "third",
+		Brwf:    "B",
+		Ruleset: []byte(`[{
+			"rulepattern": [
+				{"attr": "cat", "op": "eq", "val": "textbook"},
+				{"attr": "mrp", "op": "ge", "val": "5000"}
+			],
+			"ruleactions": {
+				"tasks": ["yearendsale", "summersale", "wintersale"],
+				"properties": {"discount": "15", "freegift": "mug"},
+				"thencall": "second"
+			
+			}
+		}]`),
 	},
 	{
 		Realm:   1,

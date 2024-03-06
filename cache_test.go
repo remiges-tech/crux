@@ -68,8 +68,8 @@ func testLoad(tests *[]doMatchTest, t *testing.T) {
 
 	setSchemaRulesetCacheBuffer(t)
 
-	PrintAllSchemaCache()
-	PrintAllRuleSetCache()
+	//PrintAllSchemaCache()
+	//PrintAllRuleSetCache()
 
 }
 
