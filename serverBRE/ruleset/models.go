@@ -1,5 +1,7 @@
 package ruleset
 
+import "github.com/jackc/pgx/v5/pgtype"
+
 const (
 	DbError   = "failed to get data from DB"
 	AuthError = "authorization_error"
@@ -46,4 +48,26 @@ type RuleSetListReq struct {
 	Name       *string `json:"name,omitempty"`
 	IsActive   *bool   `json:"is_active,omitempty"`
 	IsInternal *bool   `json:"is_internal,omitempty"`
+}
+
+type RuleSetGetRow struct {
+	ID         int32            `json:"id"`
+	Slice      int32            `json:"slice"`
+	App        string           `json:"app"`
+	Class      string           `json:"class"`
+	Name       string           `json:"name"`
+	IsActive   bool             `json:"is_active"`
+	IsInternal bool             `json:"is_internal"`
+	Flowrules  interface{}      `json:"ruleset"`
+	Createdat  pgtype.Timestamp `json:"createdat"`
+	Createdby  string           `json:"createdby"`
+	Editedat   pgtype.Timestamp `json:"editedat"`
+	Editedby   pgtype.Text      `json:"editedby"`
+}
+
+type RuleSetGetReq struct {
+	Slice int32  `json:"slice" validate:"required,gt=0"`
+	App   string `json:"app" validate:"required,alpha"`
+	Class string `json:"class" validate:"required,alpha"`
+	Name  string `json:"name" validate:"required,alpha"`
 }
