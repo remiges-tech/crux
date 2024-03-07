@@ -12,60 +12,112 @@ import (
 	"fmt"
 )
 
-var ruleSchemas = []RuleSchema{}
-var ruleSets = map[string]RuleSet{}
+func doMatch(entity Entity, ruleset []*Ruleset_t, actionSet ActionSet, seenRuleSets map[string]struct{}) (ActionSet, bool, error) {
+	ruleSchemas, ruleSets := retriveRuleSchemasAndRuleSetsFromCache(entity.realm, entity.app, entity.class, entity.slice)
 
-func doMatch(entity Entity, ruleSet RuleSet, actionSet ActionSet, seenRuleSets map[string]bool) (ActionSet, bool, error) {
-	if seenRuleSets[ruleSet.setName] {
-		return ActionSet{}, false, errors.New("ruleset has already been traversed")
-	}
-	seenRuleSets[ruleSet.setName] = true
-	for _, rule := range ruleSet.rules {
-		willExit := false
-		matched, err := matchPattern(entity, rule.rulePattern, actionSet)
-		if err != nil {
-			return ActionSet{}, false, err
+	for _, ruleSet := range ruleset {
+		if _, seen := seenRuleSets[ruleSet.SetName]; seen {
+			return ActionSet{
+				tasks:      []string{},
+				properties: make(map[string]string),
+			}, false, errors.New("ruleset has already been traversed")
 		}
-		if matched {
-			actionSet = collectActions(actionSet, rule.ruleActions)
-			if len(rule.ruleActions.thenCall) > 0 {
-				setToCall := ruleSets[rule.ruleActions.thenCall]
-				if setToCall.class != entity.class {
-					return inconsistentRuleSet(setToCall.setName, ruleSet.setName)
-				}
-				var err error
-				actionSet, willExit, err = doMatch(entity, setToCall, actionSet, seenRuleSets)
-				if err != nil {
-					return ActionSet{}, false, err
-				}
-			}
-			if willExit || rule.ruleActions.willExit {
-				return actionSet, true, nil
-			}
-			if rule.ruleActions.willReturn {
-				delete(seenRuleSets, ruleSet.setName)
-				return actionSet, false, nil
-			}
-		} else if len(rule.ruleActions.elseCall) > 0 {
-			setToCall := ruleSets[rule.ruleActions.elseCall]
-			if setToCall.class != entity.class {
-				return inconsistentRuleSet(setToCall.setName, ruleSet.setName)
-			}
-			var err error
-			actionSet, willExit, err = doMatch(entity, setToCall, actionSet, seenRuleSets)
+
+		seenRuleSets[ruleSet.SetName] = struct{}{}
+
+		for _, rule := range ruleSet.Rules {
+
+			DoExit := false
+
+			matched, err := matchPattern(entity, rule.RulePatterns, actionSet, ruleSchemas)
+
 			if err != nil {
-				return ActionSet{}, false, err
-			} else if willExit {
-				return actionSet, true, nil
+				return ActionSet{
+					tasks:      []string{},
+					properties: make(map[string]string),
+				}, false, err
+			}
+
+			if matched {
+
+				actionSet = collectActions(actionSet, rule.RuleActions)
+
+				if len(rule.RuleActions.ThenCall) > 0 {
+
+					setToCall, exists := findRuleSetByName(ruleSets, rule.RuleActions.ThenCall)
+
+					if !exists {
+						return ActionSet{}, false, errors.New("set not found")
+					}
+
+					if setToCall.Class != entity.class {
+						return inconsistentRuleSet(setToCall.SetName, ruleSet.SetName, ruleset)
+					}
+
+					var err error
+					actionSet, DoExit, err = doMatch(entity, []*Ruleset_t{setToCall}, actionSet, seenRuleSets)
+					if err != nil {
+						return ActionSet{
+							tasks:      []string{},
+							properties: make(map[string]string),
+						}, false, err
+					}
+				}
+
+				if DoExit || rule.RuleActions.DoExit {
+
+					return actionSet, true, nil
+				}
+
+				if rule.RuleActions.DoReturn {
+
+					delete(seenRuleSets, ruleSet.SetName)
+					return actionSet, false, nil
+				}
+			} else if len(rule.RuleActions.ElseCall) > 0 {
+
+				setToCall, exists := findRuleSetByName(ruleset, rule.RuleActions.ElseCall)
+				if !exists {
+					return ActionSet{}, false, errors.New("set not found")
+				}
+
+				if setToCall.Class != entity.class {
+					return inconsistentRuleSet(setToCall.SetName, ruleSet.SetName, ruleset)
+				}
+
+				var err error
+				actionSet, DoExit, err = doMatch(entity, []*Ruleset_t{setToCall}, actionSet, seenRuleSets)
+				if err != nil {
+					return ActionSet{
+						tasks:      []string{},
+						properties: make(map[string]string),
+					}, false, err
+				} else if DoExit {
+					return actionSet, true, nil
+				}
 			}
 		}
+
+		delete(seenRuleSets, ruleSet.SetName)
 	}
-	delete(seenRuleSets, ruleSet.setName)
+
 	return actionSet, false, nil
 }
 
-func inconsistentRuleSet(calledSetName string, currSetName string) (ActionSet, bool, error) {
-	return ActionSet{}, false, fmt.Errorf("cannot call ruleset %v of class %v from ruleset %v of class %v",
-		calledSetName, ruleSets[calledSetName].class, currSetName, ruleSets[currSetName].class,
+func findRuleSetByName(ruleSets []*Ruleset_t, setName string) (*Ruleset_t, bool) {
+
+	for _, ruleset := range ruleSets {
+
+		if ruleset.SetName == setName {
+			return ruleset, true
+		}
+
+	}
+	return nil, false
+}
+
+func inconsistentRuleSet(calledSetName string, currSetName string, ruleSets []*Ruleset_t) (ActionSet, bool, error) {
+	return ActionSet{}, false, fmt.Errorf("cannot call ruleset %v from ruleset %v",
+		calledSetName, currSetName,
 	)
 }

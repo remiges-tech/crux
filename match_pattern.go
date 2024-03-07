@@ -30,47 +30,60 @@ const (
 	falseStr = "false"
 )
 
-func matchPattern(entity Entity, rulePattern []RulePatternTerm, actionSet ActionSet) (bool, error) {
+func matchPattern(entity Entity, rulePattern []rulePatternBlock_t, actionSet ActionSet, rSchema []*schema_t) (bool, error) {
+
 	for _, term := range rulePattern {
 		valType := ""
 		entityAttrVal := ""
-		for _, entityAttr := range entity.attrs {
-			if entityAttr.name == term.attrName {
-				entityAttrVal = entityAttr.val
-				valType = getTypeFromSchema(entity.class, entityAttr.name)
-			}
+
+		// Check whether the attribute name in the pattern term exists in the entity attrs map
+		if val, ok := entity.attrs[term.Attr]; ok {
+
+			entityAttrVal = val
+			valType = getTypeFromSchema(entity.class, term.Attr, rSchema)
+
 		}
+
+		// If the attribute value is still empty, check whether it matches any of the tasks in the action-set
 		if entityAttrVal == "" {
-			// Check whether the attribute name in the pattern term matches any of the tasks in
-			// the action-set
 			for _, task := range actionSet.tasks {
-				if task == term.attrName {
+				if task == term.Attr {
 					entityAttrVal = trueStr
 					valType = typeBool
 				}
 			}
 		}
+
+		// If the attribute value is still empty, default to false
 		if entityAttrVal == "" {
 			entityAttrVal = falseStr
 			valType = typeBool
 		}
-		matched, err := makeComparison(entityAttrVal, term.attrVal, valType, term.op)
+
+		matched, err := makeComparison(entityAttrVal, term.Val, valType, term.Op)
+
 		if err != nil {
 			return false, fmt.Errorf("error making comparison %w", err)
 		}
+
 		if !matched {
 			return false, nil
 		}
+
 	}
+
 	return true, nil
 }
 
-func getTypeFromSchema(class string, attrName string) string {
+func getTypeFromSchema(class string, attrName string, ruleSchemas []*schema_t) string {
 	for _, ruleSchema := range ruleSchemas {
-		if ruleSchema.class == class {
-			for _, attrSchema := range ruleSchema.patternSchema {
-				if attrSchema.name == attrName {
-					return attrSchema.valType
+
+		if ruleSchema.Class == class {
+			for _, attrSchema := range ruleSchema.PatternSchema.Attr {
+
+				if attrSchema.Name == attrName {
+
+					return attrSchema.ValType
 				}
 			}
 		}
@@ -82,6 +95,7 @@ func getTypeFromSchema(class string, attrName string) string {
 // For example, {7, gt (greater than), 5} is true but {3, gt, 5} is false
 func makeComparison(entityAttrVal string, termAttrVal any, valType string, op string) (bool, error) {
 	entityAttrValConv, err := convertEntityAttrVal(entityAttrVal, valType)
+
 	if err != nil {
 		return false, fmt.Errorf("error converting value: %w", err)
 	}
@@ -119,6 +133,7 @@ func makeComparison(entityAttrVal string, termAttrVal any, valType string, op st
 
 // Converts the string entityAttrVal to its schema-provided type
 func convertEntityAttrVal(entityAttrVal string, valType string) (any, error) {
+
 	var entityAttrValConv any
 	var err error
 	switch valType {
