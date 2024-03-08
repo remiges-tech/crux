@@ -165,6 +165,7 @@ func registerRoutes(pool *dockertest.Pool, databaseUrl string) (*gin.Engine, err
 
 	s.RegisterRoute(http.MethodPost, "/ruleSetNew", ruleset.BRERuleSetNew)
 	s.RegisterRoute(http.MethodPost, "/ruleSetList", ruleset.BRERuleSetList)
+	s.RegisterRoute(http.MethodPost, "/ruleSetGet", ruleset.BRERuleSetGet)
 
 	return r, nil
 
