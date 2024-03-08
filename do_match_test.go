@@ -15,6 +15,7 @@ package main
 
 import (
 	"reflect"
+	"strconv"
 	"testing"
 )
 
@@ -88,6 +89,8 @@ func TestDoMatch(t *testing.T) {
 	testCycleError(t)
 	// Test for a THENCALL to a ruleset that's for a different class
 	testThenCallWrongClass(t)
+
+	testGetStats(t)
 }
 
 func testCycleError(t *testing.T) {
@@ -229,4 +232,30 @@ func testThenCallWrongClass(t *testing.T) {
 	if err == nil {
 		t.Errorf("unexpected output when erroneously 'calling' ruleset of different class")
 	}
+}
+
+func testGetStats(t *testing.T) {
+	entity := Entity{
+		realm: "1",
+		app:   "Test1",
+		slice: "1",
+		class: "inventoryitem2",
+		attrs: map[string]string{
+			"cat": "textbook",
+		},
+	}
+	realm := realm_t(entity.realm)
+	app := app_t(entity.app)
+	slice, err := strconv.Atoi(entity.slice)
+	if err != nil {
+		t.Fatalf("Failed to convert slice to int: %v", err)
+	}
+
+	_, _, err1 := getStats(realm, app, slice_t(slice))
+	//fmt.Printf("GetStats  time %v \n", timestamp)
+	//printStats(stats)
+	if err1 != nil {
+		t.Errorf("unexpected output when erroneously 'calling' ruleset of different class")
+	}
+
 }

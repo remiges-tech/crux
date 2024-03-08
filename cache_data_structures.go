@@ -11,29 +11,6 @@ type slice_t int
 type className_t string
 type BrwfEnum string
 
-type statsSchema_t struct {
-	NChecked int
-}
-
-type statsRuleset_t struct {
-	NCalled    int
-	RulesStats []map[realm_t]map[app_t]map[slice_t][]statsSchema_t
-}
-
-type statsPerSlice_t struct {
-	LoadedAt   time.Time
-	BRSchema   map[className_t]statsSchema_t
-	BRRulesets map[className_t][]statsRuleset_t
-	WFSchema   map[className_t]statsSchema_t
-	Workflows  map[className_t][]statsRuleset_t
-}
-
-type statsPerApp_t map[slice_t]statsPerSlice_t
-
-type statsPerRealm_t map[app_t]statsPerApp_t
-
-type rulesetStats_t map[realm_t]statsPerRealm_t
-
 const (
 	valInt_t valType_t = iota
 	valFloat_t
@@ -118,8 +95,8 @@ type ruleActionBlock_t struct {
 type rule_t struct {
 	RulePatterns []rulePatternBlock_t `json:"rulepattern"`
 	RuleActions  ruleActionBlock_t    `json:"ruleactions"`
-	NMatched     int
-	NFailed      int
+	NMatched     int32
+	NFailed      int32
 }
 
 type Ruleset_t struct {
@@ -127,7 +104,7 @@ type Ruleset_t struct {
 	Class         string   `json:"class"`
 	SetName       string   `json:"setname"`
 	Rules         []rule_t `json:"rule"`
-	NCalled       int
+	NCalled       int32
 	ReferenceType string
 }
 
@@ -140,8 +117,7 @@ type rulesetCache_t map[realm_t]perRealm_t
 type schemaCache_t map[realm_t]perRealm_t
 
 var (
-	rulesetCache    rulesetCache_t
-	schemaCache     schemaCache_t
-	cacheLock       sync.RWMutex
-	nCheckedcounter int32
+	rulesetCache rulesetCache_t
+	schemaCache  schemaCache_t
+	cacheLock    sync.RWMutex
 )

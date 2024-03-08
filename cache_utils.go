@@ -457,3 +457,43 @@ func retriveRuleSchemasAndRuleSetsFromCache(realm string, app string, class stri
 	return ruleSchemas, ruleSets
 
 }
+func printStats(statsData rulesetStats_t) {
+	for realm, perRealm := range statsData {
+		for app, perApp := range perRealm {
+			for slice, perSlice := range perApp {
+				fmt.Printf("Realm: %v, App: %v, Slice: %v\n", realm, app, slice)
+				fmt.Printf("loadedAt: %v\n", perSlice.loadedAt)
+
+				// Print stats for BRSchema
+				for className, schema := range perSlice.BRSchema {
+					fmt.Printf("Class: %v, nChecked: %v\n", className, schema.nChecked)
+				}
+
+				// Print stats for BRRulesets
+				for className, rulesets := range perSlice.BRRulesets {
+					for _, ruleset := range rulesets {
+						fmt.Printf("Class: %v, nCalled: %v\n", className, ruleset.nCalled)
+						for _, rule := range ruleset.rulesStats {
+							fmt.Printf("nMatched: %v, nFailed: %v\n", rule.nMatched, rule.nFailed)
+						}
+					}
+				}
+
+				// Print stats for WFSchema
+				for className, schema := range perSlice.WFSchema {
+					fmt.Printf("Class: %v, nChecked: %v\n", className, schema.nChecked)
+				}
+
+				// Print stats for Workflows
+				for className, workflows := range perSlice.Workflows {
+					for _, workflow := range workflows {
+						fmt.Printf("Class: %v, nCalled: %v\n", className, workflow.nCalled)
+						for _, rule := range workflow.rulesStats {
+							fmt.Printf("nMatched: %v, nFailed: %v\n", rule.nMatched, rule.nFailed)
+						}
+					}
+				}
+			}
+		}
+	}
+}

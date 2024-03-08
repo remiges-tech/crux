@@ -59,9 +59,7 @@ func loadInternalSchema(dbResponseSchema []sqlc.Schema) error {
 				Class:         row.Class,
 				PatternSchema: patterns,
 				ActionSchema:  actions,
-				NChecked:      nCheckedcounter,
 			}
-			nCheckedcounter++
 
 			classNameKey := className_t(row.Class)
 			if row.Brwf == "B" {
