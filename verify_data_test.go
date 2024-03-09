@@ -78,7 +78,7 @@ func testCorrectBRSchema(tests *[]verifySchemaTest) {
 				{Name: "productname", ValType: typeStr},
 				{Name: "price", ValType: typeInt},
 				{Name: "inwintersale", ValType: typeBool},
-				{Name: "paymenttype", ValType: typeEnum, EnumVals: map[string]bool{"cash": true, "card": true}},
+				{Name: "paymenttype", ValType: typeEnum, EnumVals: map[string]struct{}{"cash": {}, "card": {}}},
 				{Name: "ismember", ValType: typeBool},
 			},
 		},
@@ -108,7 +108,7 @@ func testSchemaEmptyClass(tests *[]verifySchemaTest) {
 				{Name: "productname", ValType: typeStr},
 				{Name: "price", ValType: typeInt},
 				{Name: "inwintersale", ValType: typeBool},
-				{Name: "paymenttype", ValType: typeEnum, EnumVals: map[string]bool{"cash": true, "card": true}},
+				{Name: "paymenttype", ValType: typeEnum, EnumVals: map[string]struct{}{"cash": {}, "card": {}}},
 				{Name: "ismember", ValType: typeBool},
 			},
 		},
@@ -161,7 +161,7 @@ func testAttrNameIsNotCruxID(tests *[]verifySchemaTest) {
 				{Name: "1productname", ValType: typeStr},
 				{Name: "price", ValType: typeInt},
 				{Name: "inwintersale", ValType: typeBool},
-				{Name: "paymenttype", ValType: typeEnum, EnumVals: map[string]bool{"cash": true, "card": true}},
+				{Name: "paymenttype", ValType: typeEnum, EnumVals: map[string]struct{}{"cash": {}, "card": {}}},
 				{Name: "ismember", ValType: typeBool},
 			},
 		},
@@ -191,7 +191,7 @@ func testInvalidValType(tests *[]verifySchemaTest) {
 				{Name: "price", ValType: typeInt},
 				// "abc" is not a valid valType
 				{Name: "inwintersale", ValType: "abc"},
-				{Name: "paymenttype", ValType: typeEnum, EnumVals: map[string]bool{"cash": true, "card": true}},
+				{Name: "paymenttype", ValType: typeEnum, EnumVals: map[string]struct{}{"cash": {}, "card": {}}},
 				{Name: "ismember", ValType: typeBool},
 			},
 		},
@@ -222,7 +222,7 @@ func testNoValsForEnum(tests *[]verifySchemaTest) {
 				{Name: "inwintersale", ValType: typeBool},
 				// The "EnumVals" "hash-set" below, which is the set of valid values for the
 				// enum "paymenttype", should not be empty
-				{Name: "paymenttype", ValType: typeEnum, EnumVals: map[string]bool{}},
+				{Name: "paymenttype", ValType: typeEnum, EnumVals: map[string]struct{}{}},
 				{Name: "ismember", ValType: typeBool},
 			},
 		},
@@ -253,7 +253,7 @@ func testEnumValIsNotCruxID(tests *[]verifySchemaTest) {
 				{Name: "price", ValType: typeInt},
 				{Name: "inwintersale", ValType: typeBool},
 				// "1cash" is not a CruxID
-				{Name: "paymenttype", ValType: typeEnum, EnumVals: map[string]bool{"1cash": true, "card": true}},
+				{Name: "paymenttype", ValType: typeEnum, EnumVals: map[string]struct{}{"1cash": {}, "card": {}}},
 				{Name: "ismember", ValType: typeBool},
 			},
 		},
@@ -282,7 +282,7 @@ func testBothTasksAndPropsEmpty(tests *[]verifySchemaTest) {
 				{Name: "productname", ValType: typeStr},
 				{Name: "price", ValType: typeInt},
 				{Name: "inwintersale", ValType: typeBool},
-				{Name: "paymenttype", ValType: typeEnum, EnumVals: map[string]bool{"cash": true, "card": true}},
+				{Name: "paymenttype", ValType: typeEnum, EnumVals: map[string]struct{}{"cash": {}, "card": {}}},
 				{Name: "ismember", ValType: typeBool},
 			},
 		},
@@ -311,7 +311,7 @@ func testTaskIsNotCruxID(tests *[]verifySchemaTest) {
 				{Name: "productname", ValType: typeStr},
 				{Name: "price", ValType: typeInt},
 				{Name: "inwintersale", ValType: typeBool},
-				{Name: "paymenttype", ValType: typeEnum, EnumVals: map[string]bool{"cash": true, "card": true}},
+				{Name: "paymenttype", ValType: typeEnum, EnumVals: map[string]struct{}{"cash": {}, "card": {}}},
 				{Name: "ismember", ValType: typeBool},
 			},
 		},
@@ -340,7 +340,7 @@ func testPropNameNotCruxID(tests *[]verifySchemaTest) {
 				{Name: "productname", ValType: typeStr},
 				{Name: "price", ValType: typeInt},
 				{Name: "inwintersale", ValType: typeBool},
-				{Name: "paymenttype", ValType: typeEnum, EnumVals: map[string]bool{"cash": true, "card": true}},
+				{Name: "paymenttype", ValType: typeEnum, EnumVals: map[string]struct{}{"cash": {}, "card": {}}},
 				{Name: "ismember", ValType: typeBool},
 			},
 		},
@@ -367,9 +367,9 @@ func testCorrectWFSchema(tests *[]verifySchemaTest) {
 		Class: transactionClass,
 		PatternSchema: patternSchema_t{
 			Attr: []attr_t{
-				{Name: step, ValType: typeEnum, EnumVals: map[string]bool{start: true, "getcustdetails": true, "aof": true, "sendauthlinktoclient": true}},
+				{Name: step, ValType: typeEnum, EnumVals: map[string]struct{}{start: {}, "getcustdetails": {}, "aof": {}, "sendauthlinktoclient": {}}},
 				{Name: stepFailed, ValType: typeBool},
-				{Name: "mode", ValType: typeEnum, EnumVals: map[string]bool{"physical": true, "demat": true}},
+				{Name: "mode", ValType: typeEnum, EnumVals: map[string]struct{}{"physical": {}, "demat": {}}},
 			},
 		},
 		ActionSchema: actionSchema_t{
@@ -394,9 +394,9 @@ func testMissingStart(tests *[]verifySchemaTest) {
 		Class: uccCreationClass,
 		PatternSchema: patternSchema_t{
 			Attr: []attr_t{
-				{Name: step, ValType: typeEnum, EnumVals: map[string]bool{"getcustdetails": true, "aof": true, "sendauthlinktoclient": true}},
+				{Name: step, ValType: typeEnum, EnumVals: map[string]struct{}{"getcustdetails": {}, "aof": {}, "sendauthlinktoclient": {}}},
 				{Name: stepFailed, ValType: typeBool},
-				{Name: "mode", ValType: typeEnum, EnumVals: map[string]bool{"physical": true, "demat": true}},
+				{Name: "mode", ValType: typeEnum, EnumVals: map[string]struct{}{"physical": {}, "demat": {}}},
 			},
 		},
 		ActionSchema: actionSchema_t{
@@ -423,7 +423,7 @@ func testMissingStep(tests *[]verifySchemaTest) {
 		PatternSchema: patternSchema_t{
 			Attr: []attr_t{
 				{Name: stepFailed, ValType: typeBool},
-				{Name: "mode", ValType: typeEnum, EnumVals: map[string]bool{"physical": true, "demat": true}},
+				{Name: "mode", ValType: typeEnum, EnumVals: map[string]struct{}{"physical": {}, "demat": {}}},
 			},
 		},
 		ActionSchema: actionSchema_t{
@@ -448,10 +448,10 @@ func testAdditionalProps(tests *[]verifySchemaTest) {
 		PatternSchema: patternSchema_t{
 			Attr: []attr_t{
 				{Name: step, ValType: typeEnum,
-					EnumVals: map[string]bool{start: true, "getcustdetails": true, "aof": true, "sendauthlinktoclient": true},
+					EnumVals: map[string]struct{}{start: {}, "getcustdetails": {}, "aof": {}, "sendauthlinktoclient": {}},
 				},
 				{Name: stepFailed, ValType: typeBool},
-				{Name: "mode", ValType: typeEnum, EnumVals: map[string]bool{"physical": true, "demat": true}},
+				{Name: "mode", ValType: typeEnum, EnumVals: map[string]struct{}{"physical": {}, "demat": {}}},
 			},
 		},
 		ActionSchema: actionSchema_t{
@@ -477,10 +477,10 @@ func testMissingNextStep(tests *[]verifySchemaTest) {
 		PatternSchema: patternSchema_t{
 			Attr: []attr_t{
 				{Name: step, ValType: typeEnum,
-					EnumVals: map[string]bool{start: true, "getcustdetails": true, "aof": true, "sendauthlinktoclient": true},
+					EnumVals: map[string]struct{}{start: {}, "getcustdetails": {}, "aof": {}, "sendauthlinktoclient": {}},
 				},
 				{Name: stepFailed, ValType: typeBool},
-				{Name: "mode", ValType: typeEnum, EnumVals: map[string]bool{"physical": true, "demat": true}},
+				{Name: "mode", ValType: typeEnum, EnumVals: map[string]struct{}{"physical": {}, "demat": {}}},
 			},
 		},
 		ActionSchema: actionSchema_t{
@@ -506,10 +506,10 @@ func testTasksAndStepDiscrepancy(tests *[]verifySchemaTest) {
 		PatternSchema: patternSchema_t{
 			Attr: []attr_t{
 				{Name: step, ValType: typeEnum,
-					EnumVals: map[string]bool{start: true, "getcustdetails": true, "aof": true, "sendauthlinktoclient": true},
+					EnumVals: map[string]struct{}{start: {}, "getcustdetails": {}, "aof": {}, "sendauthlinktoclient": {}},
 				},
 				{Name: stepFailed, ValType: typeBool},
-				{Name: "mode", ValType: typeEnum, EnumVals: map[string]bool{"physical": true, "demat": true}},
+				{Name: "mode", ValType: typeEnum, EnumVals: map[string]struct{}{"physical": {}, "demat": {}}},
 			},
 		},
 		ActionSchema: actionSchema_t{

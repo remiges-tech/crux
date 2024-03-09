@@ -38,14 +38,14 @@ type patternSchema_t struct {
 	Attr []attr_t `json:"attr"`
 }
 type attr_t struct {
-	Name    string `json:"name"`
-	ValType string `json:"valtype"`
-	//EnumVals map[string]struct{} `json:"vals,omitempty"`
-	EnumVals map[string]bool `json:"vals,omitempty"`
-	ValMin   float64         `json:"valmin,omitempty"`
-	ValMax   float64         `json:"valmax,omitempty"`
-	LenMin   int             `json:"lenmin,omitempty"`
-	LenMax   int             `json:"lenmax,omitempty"`
+	Name     string              `json:"name"`
+	ValType  string              `json:"valtype"`
+	EnumVals map[string]struct{} `json:"vals,omitempty"`
+	//EnumVals map[string]bool `json:"vals,omitempty"`
+	ValMin float64 `json:"valmin,omitempty"`
+	ValMax float64 `json:"valmax,omitempty"`
+	LenMin int     `json:"lenmin,omitempty"`
+	LenMax int     `json:"lenmax,omitempty"`
 }
 
 type valType_t int

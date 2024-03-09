@@ -61,7 +61,7 @@ var mockSchemasets = []sqlc.Schema{
 				{
 					"name": "cat",
 					"valtype": "enum",
-					"vals": {"textbook":true, "book":true, "stationery":true, "refbooks":true}
+					"vals": {"textbook":{}, "book":{}, "stationery":{}, "refbooks":{}}
 				},
 				{
 					"name": "mrp",

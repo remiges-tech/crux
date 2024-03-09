@@ -13,7 +13,7 @@ import (
 )
 
 func doMatch(entity Entity, ruleset []*Ruleset_t, actionSet ActionSet, seenRuleSets map[string]struct{}) (ActionSet, bool, error) {
-	ruleSchemas, ruleSets := retriveRuleSchemasAndRuleSetsFromCache(entity.realm, entity.app, entity.class, entity.slice)
+	ruleSchemasCache, ruleSetsCache := retriveRuleSchemasAndRuleSetsFromCache(entity.realm, entity.app, entity.class, entity.slice)
 
 	for _, ruleSet := range ruleset {
 		if _, seen := seenRuleSets[ruleSet.SetName]; seen {
@@ -29,7 +29,7 @@ func doMatch(entity Entity, ruleset []*Ruleset_t, actionSet ActionSet, seenRuleS
 
 			DoExit := false
 
-			matched, err := matchPattern(entity, rule.RulePatterns, actionSet, ruleSchemas)
+			matched, err := matchPattern(entity, rule.RulePatterns, actionSet, ruleSchemasCache)
 
 			if err != nil {
 				return ActionSet{
@@ -44,7 +44,7 @@ func doMatch(entity Entity, ruleset []*Ruleset_t, actionSet ActionSet, seenRuleS
 
 				if len(rule.RuleActions.ThenCall) > 0 {
 
-					setToCall, exists := findRuleSetByName(ruleSets, rule.RuleActions.ThenCall)
+					setToCall, exists := findRuleSetByName(ruleSetsCache, rule.RuleActions.ThenCall)
 
 					if !exists {
 						return ActionSet{}, false, errors.New("set not found")
@@ -105,13 +105,24 @@ func doMatch(entity Entity, ruleset []*Ruleset_t, actionSet ActionSet, seenRuleS
 }
 
 func findRuleSetByName(ruleSets []*Ruleset_t, setName string) (*Ruleset_t, bool) {
-
 	for _, ruleset := range ruleSets {
-
 		if ruleset.SetName == setName {
-			return ruleset, true
-		}
 
+			ruleset.NCalled++
+			for _, rule := range ruleset.Rules {
+
+				rule.NMatched++
+
+			}
+			return ruleset, true
+		} else {
+
+			for _, rule := range ruleset.Rules {
+
+				rule.NFailed++
+
+			}
+		}
 	}
 	return nil, false
 }

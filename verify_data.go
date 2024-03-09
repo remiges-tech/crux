@@ -81,7 +81,7 @@ func verifyPatternSchema(rs schema_t, isWF bool) (bool, error) {
 			stepFound = true
 		}
 
-		if isWF && attrSchema.Name == step && !attrSchema.EnumVals[start] {
+		if isWF && attrSchema.Name == step && attrSchema.EnumVals[start] != struct{}{} {
 			return false, fmt.Errorf("workflow schema for %v doesn't allow step=START", rs.Class)
 		}
 		if attrSchema.Name == stepFailed && attrSchema.ValType == typeBool {
@@ -131,27 +131,28 @@ func verifyActionSchema(rs schema_t, isWF bool) (bool, error) {
 	if isWF && (!nextStepFound || !doneFound) {
 		return false, fmt.Errorf("action-schema for %v does not contain both the properties 'nextstep' and 'done'", rs.Class)
 	}
+
 	if isWF && !reflect.DeepEqual(getTasksMapForWF(rs.ActionSchema.Tasks), getStepAttrVals(rs)) {
 		return false, fmt.Errorf("action-schema tasks for %v are not the same as valid values for 'step' in pattern-schema", rs.Class)
 	}
 	return true, nil
 }
 
-func getTasksMapForWF(tasks []string) map[string]bool {
-	tm := map[string]bool{}
+func getTasksMapForWF(tasks []string) map[string]struct{} {
+	tm := map[string]struct{}{}
 	for _, t := range tasks {
-		tm[t] = true
+		tm[t] = struct{}{}
 	}
 	// To allow comparison with the set of valid values for the 'step' attribute, which includes "START"
-	tm[start] = true
+	tm[start] = struct{}{}
 
 	return tm
 }
 
-func getStepAttrVals(rs schema_t) map[string]bool {
+func getStepAttrVals(rs schema_t) map[string]struct{} {
 
 	for _, ps := range rs.PatternSchema.Attr {
-
+		//fmt.Printf(" ps.Name %v  %v ", ps.Name, step)
 		if ps.Name == step {
 
 			return ps.EnumVals

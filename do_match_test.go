@@ -76,7 +76,7 @@ func TestDoMatch(t *testing.T) {
 
 			if !deepEqualMap(got, tt.want) {
 
-				t.Errorf("$$$$$$$ \n\n  doMatch() = %v, \n\nwant        %v\n\n", got, tt.want)
+				t.Errorf("\n\n  doMatch() = %v, \n\nwant        %v\n\n", got, tt.want)
 
 			}
 		})
