@@ -165,7 +165,7 @@ func getStepAttrVals(rs schema_t) map[string]struct{} {
 // Parameters
 // rs RuleSet: the RuleSet to be verified
 // isWF bool: true if the RuleSet is a workflow, otherwise false
-func verifyRuleSet(entiry Entity, rs []*Ruleset_t, isWF bool) (bool, error) {
+func verifyRuleSet(entiry Entity, rs *Ruleset_t, isWF bool) (bool, error) {
 	schema, err := getSchema(entiry, entiry.class)
 
 	if err != nil {
@@ -183,50 +183,50 @@ func verifyRuleSet(entiry Entity, rs []*Ruleset_t, isWF bool) (bool, error) {
 	return true, nil
 }
 
-func verifyRulePatterns(ruleSets []*Ruleset_t, schema *schema_t, isWF bool) (bool, error) {
-	for _, ruleset := range ruleSets {
-		for _, rule := range ruleset.Rules {
+func verifyRulePatterns(ruleset *Ruleset_t, schema *schema_t, isWF bool) (bool, error) {
+	//for _, ruleset := range ruleSets {
+	for _, rule := range ruleset.Rules {
 
+		for _, term := range rule.RulePatterns {
+
+			valType := getType(schema, term.Attr)
+
+			if valType == "" {
+				// If the attribute name is not in the pattern-schema, we check if it's a task "tag"
+				// by checking for its presence in the action-schema
+
+				if !isStringInArray(term.Attr, schema.ActionSchema.Tasks) {
+					return false, fmt.Errorf("attribute does not exist in schema: %v", term.Attr)
+				}
+				// If it is a tag, the value type is set to bool
+				valType = typeStr
+			}
+			if !verifyType(term.Val, valType) {
+
+				return false, fmt.Errorf("value of this attribute does not match schema type: %v", term.Attr)
+			}
+			if !validOps[term.Op] {
+
+				return false, fmt.Errorf("invalid operation in rule: %v", term.Op)
+			}
+		}
+		// Workflows only
+		if isWF {
+			stepFound := false
 			for _, term := range rule.RulePatterns {
+				if term.Attr == step {
 
-				valType := getType(schema, term.Attr)
-
-				if valType == "" {
-					// If the attribute name is not in the pattern-schema, we check if it's a task "tag"
-					// by checking for its presence in the action-schema
-
-					if !isStringInArray(term.Attr, schema.ActionSchema.Tasks) {
-						return false, fmt.Errorf("attribute does not exist in schema: %v", term.Attr)
-					}
-					// If it is a tag, the value type is set to bool
-					valType = typeStr
-				}
-				if !verifyType(term.Val, valType) {
-
-					return false, fmt.Errorf("value of this attribute does not match schema type: %v", term.Attr)
-				}
-				if !validOps[term.Op] {
-
-					return false, fmt.Errorf("invalid operation in rule: %v", term.Op)
+					stepFound = true
+					break
 				}
 			}
-			// Workflows only
-			if isWF {
-				stepFound := false
-				for _, term := range rule.RulePatterns {
-					if term.Attr == step {
+			if !stepFound {
 
-						stepFound = true
-						break
-					}
-				}
-				if !stepFound {
-
-					return false, fmt.Errorf("no 'step' attribute found in a rule in workflow %v", ruleset.SetName)
-				}
+				return false, fmt.Errorf("no 'step' attribute found in a rule in workflow %v", ruleset.SetName)
 			}
 		}
 	}
+	//}
 	return true, nil
 }
 
@@ -291,59 +291,59 @@ func verifyType(val any, valType string) bool {
 	return ok
 }
 
-func verifyRuleActions(ruleSets []*Ruleset_t, schema *schema_t, isWF bool) (bool, error) {
-	for _, ruleset := range ruleSets {
-		for _, rule := range ruleset.Rules {
-			for _, t := range rule.RuleActions.Task {
+func verifyRuleActions(ruleset *Ruleset_t, schema *schema_t, isWF bool) (bool, error) {
+	//for _, ruleset := range ruleSets {
+	for _, rule := range ruleset.Rules {
+		for _, t := range rule.RuleActions.Task {
 
-				doRet := rule.RuleActions.DoReturn
-				doExit := rule.RuleActions.DoExit
+			doRet := rule.RuleActions.DoReturn
+			doExit := rule.RuleActions.DoExit
 
-				found := false
+			found := false
 
-				if doRet && doExit {
-					return false, fmt.Errorf("there is a rule with both the RETURN and EXIT instructions in ruleset %v", ruleset.SetName)
-				}
-				if isStringInArray(t, schema.ActionSchema.Tasks) {
-					found = true
-					break
-				}
-
-				if !found {
-					return false, fmt.Errorf("task %v not found in any action-schema", t)
-				}
+			if doRet && doExit {
+				return false, fmt.Errorf("there is a rule with both the RETURN and EXIT instructions in ruleset %v", ruleset.SetName)
+			}
+			if isStringInArray(t, schema.ActionSchema.Tasks) {
+				found = true
+				break
 			}
 
-			for propName := range rule.RuleActions.Properties {
-				found := false
+			if !found {
+				return false, fmt.Errorf("task %v not found in any action-schema", t)
+			}
+		}
 
-				if isStringInArray(propName, schema.ActionSchema.Properties) {
-					found = true
-					break
-				}
+		for propName := range rule.RuleActions.Properties {
+			found := false
 
-				if !found {
-					return false, fmt.Errorf("property name %v not found in any action-schema", propName)
-				}
+			if isStringInArray(propName, schema.ActionSchema.Properties) {
+				found = true
+				break
 			}
 
-			// Workflows only
-			if isWF {
+			if !found {
+				return false, fmt.Errorf("property name %v not found in any action-schema", propName)
+			}
+		}
 
-				nsFound, doneFound := areNextStepAndDoneInProps(rule.RuleActions.Properties)
-				if !nsFound && !doneFound {
-					return false, fmt.Errorf("rule found with neither 'nextstep' nor 'done' in ruleset %v", ruleset.SetName)
-				}
-				if !doneFound && len(rule.RuleActions.Task) == 0 {
-					return false, fmt.Errorf("no tasks and no 'done=true' in a rule in ruleset %v", ruleset.SetName)
-				}
-				currNS := getNextStep(rule.RuleActions.Properties)
-				if len(currNS) > 0 && !isStringInArray(currNS, rule.RuleActions.Task) {
-					return false, fmt.Errorf("`nextstep` value not found in `tasks` in a rule in ruleset %v", ruleset.SetName)
-				}
+		// Workflows only
+		if isWF {
+
+			nsFound, doneFound := areNextStepAndDoneInProps(rule.RuleActions.Properties)
+			if !nsFound && !doneFound {
+				return false, fmt.Errorf("rule found with neither 'nextstep' nor 'done' in ruleset %v", ruleset.SetName)
+			}
+			if !doneFound && len(rule.RuleActions.Task) == 0 {
+				return false, fmt.Errorf("no tasks and no 'done=true' in a rule in ruleset %v", ruleset.SetName)
+			}
+			currNS := getNextStep(rule.RuleActions.Properties)
+			if len(currNS) > 0 && !isStringInArray(currNS, rule.RuleActions.Task) {
+				return false, fmt.Errorf("`nextstep` value not found in `tasks` in a rule in ruleset %v", ruleset.SetName)
 			}
 		}
 	}
+	//}
 
 	return true, nil
 }

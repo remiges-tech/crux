@@ -25,7 +25,7 @@ var ruleSchemasTest = []*schema_t{}
 type doMatchTest struct {
 	name      string
 	entity    Entity
-	ruleSet   []*Ruleset_t
+	ruleSet   *Ruleset_t
 	actionSet ActionSet
 	want      ActionSet
 }
@@ -71,13 +71,11 @@ func TestDoMatch(t *testing.T) {
 	// Run all the tests above
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
+			// Assuming you have an index, adjust the index below accordingly
 			got, _, _ := doMatch(tt.entity, tt.ruleSet, tt.actionSet, map[string]struct{}{})
 
 			if !deepEqualMap(got, tt.want) {
-
 				t.Errorf("\n\n  doMatch() = %v, \n\nwant        %v\n\n", got, tt.want)
-
 			}
 		})
 	}
@@ -112,8 +110,8 @@ func testCycleError(t *testing.T) {
 
 	t.Log("Running cycle test")
 
-	setupRuleSetsForCycleError()
-	_, _, err := doMatch(sampleEntity, ruleSetsTests, ActionSet{
+	rs := setupRuleSetsForCycleError()
+	_, _, err := doMatch(sampleEntity, rs, ActionSet{
 		tasks:      []string{},
 		properties: make(map[string]string),
 	}, map[string]struct{}{})
@@ -122,7 +120,7 @@ func testCycleError(t *testing.T) {
 	}
 }
 
-func setupRuleSetsForCycleError() {
+func setupRuleSetsForCycleError() *Ruleset_t {
 
 	// main ruleset that contains a ThenCall to ruleset "second"
 	rule1 := rule_t{
@@ -134,18 +132,8 @@ func setupRuleSetsForCycleError() {
 		},
 	}
 
-	rs := Ruleset_t{
-		Id:      1,
-		Class:   "inventoryitem2",
-		SetName: "second",
-		Rules:   []rule_t{rule1},
-		NCalled: 0,
-	}
-
-	ruleSetsTests = append(ruleSetsTests, &rs)
-
 	// "second" ruleset that contains a ThenCall to ruleset "third"
-	rule1 = rule_t{
+	rule2 := rule_t{
 		RulePatterns: []rulePatternBlock_t{
 			{"cat", opEQ, "textbook"},
 		},
@@ -153,18 +141,9 @@ func setupRuleSetsForCycleError() {
 			ThenCall: "third",
 		},
 	}
-	rs = Ruleset_t{
-		Id:      1,
-		Class:   "inventoryitem2",
-		SetName: "third",
-		Rules:   []rule_t{rule1},
-		NCalled: 0,
-	}
-
-	ruleSetsTests = append(ruleSetsTests, &rs)
 
 	// "third" ruleset that contains a ThenCall back to ruleset "second"
-	rule1 = rule_t{
+	rule3 := rule_t{
 		RulePatterns: []rulePatternBlock_t{
 			{"cat", opEQ, "textbook"},
 		},
@@ -172,7 +151,7 @@ func setupRuleSetsForCycleError() {
 			Task: []string{"testtask"},
 		},
 	}
-	rule2 := rule_t{
+	rule4 := rule_t{
 		RulePatterns: []rulePatternBlock_t{
 			{"cat", opEQ, "textbook"},
 		},
@@ -181,21 +160,18 @@ func setupRuleSetsForCycleError() {
 		},
 	}
 
-	rs = Ruleset_t{
+	rs := Ruleset_t{
 		Id:      1,
 		Class:   "inventoryitem2",
 		SetName: "main",
-		Rules:   []rule_t{rule1, rule2},
+		Rules:   []rule_t{rule1, rule2, rule3, rule4},
 		NCalled: 0,
 	}
-	ruleSetsTests = append(ruleSetsTests, &rs)
+	return &rs
 
 }
 
 func testThenCallWrongClass(t *testing.T) {
-
-	ruleSetsTests = []*Ruleset_t{}
-	ruleSetsTests = append(ruleSetsTests, &Ruleset_t{})
 
 	rule2 := rule_t{
 		RulePatterns: []rulePatternBlock_t{
@@ -212,7 +188,6 @@ func testThenCallWrongClass(t *testing.T) {
 		Rules:   []rule_t{rule2},
 		NCalled: 0,
 	}
-	ruleSetsTests = append(ruleSetsTests, &rs)
 
 	entity := Entity{
 		realm: "1",
@@ -224,7 +199,7 @@ func testThenCallWrongClass(t *testing.T) {
 		},
 	}
 
-	_, _, err := doMatch(entity, ruleSetsTests, ActionSet{
+	_, _, err := doMatch(entity, &rs, ActionSet{
 		tasks:      []string{},
 		properties: make(map[string]string),
 	}, map[string]struct{}{})
