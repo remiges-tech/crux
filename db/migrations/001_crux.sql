@@ -23,7 +23,7 @@ CREATE TABLE realmslice (
     realm VARCHAR(255) REFERENCES realm (shortname) NOT NULL,
     descr VARCHAR(255) NOT NULL,
     active BOOLEAN NOT NULL,
-    activateat TIMESTAMP,
+    activateat TIMESTAMP DEFAULT NOW() :: timestamp,
     deactivateat TIMESTAMP
 );
 

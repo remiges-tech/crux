@@ -9,9 +9,10 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const copyConfig = `-- name: CopyConfig :execresult
+const cloneRecordInConfigBySliceID = `-- name: CloneRecordInConfigBySliceID :execresult
 INSERT INTO
     config (
         realm, slice, name, descr, val, ver, setby
@@ -22,17 +23,49 @@ WHERE
     config.slice = $1
 `
 
-type CopyConfigParams struct {
+type CloneRecordInConfigBySliceIDParams struct {
 	Slice   int32  `json:"slice"`
 	Slice_2 int32  `json:"slice_2"`
 	Setby   string `json:"setby"`
 }
 
-func (q *Queries) CopyConfig(ctx context.Context, arg CopyConfigParams) (pgconn.CommandTag, error) {
-	return q.db.Exec(ctx, copyConfig, arg.Slice, arg.Slice_2, arg.Setby)
+func (q *Queries) CloneRecordInConfigBySliceID(ctx context.Context, arg CloneRecordInConfigBySliceIDParams) (pgconn.CommandTag, error) {
+	return q.db.Exec(ctx, cloneRecordInConfigBySliceID, arg.Slice, arg.Slice_2, arg.Setby)
 }
 
-const copyRuleset = `-- name: CopyRuleset :execresult
+const cloneRecordInRealmSliceBySliceID = `-- name: CloneRecordInRealmSliceBySliceID :one
+INSERT INTO
+    realmslice (
+        realm, descr, active, activateat, deactivateat
+    )
+SELECT
+    realm,
+    COALESCE(descr, $3::text),
+    true,
+    activateat,
+    deactivateat
+FROM realmslice
+WHERE
+    realmslice.id = $1
+    AND realmslice.realm = $2
+RETURNING
+    realmslice.id
+`
+
+type CloneRecordInRealmSliceBySliceIDParams struct {
+	ID    int32       `json:"id"`
+	Realm string      `json:"realm"`
+	Descr pgtype.Text `json:"descr"`
+}
+
+func (q *Queries) CloneRecordInRealmSliceBySliceID(ctx context.Context, arg CloneRecordInRealmSliceBySliceIDParams) (int32, error) {
+	row := q.db.QueryRow(ctx, cloneRecordInRealmSliceBySliceID, arg.ID, arg.Realm, arg.Descr)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
+}
+
+const cloneRecordInRulesetBySliceID = `-- name: CloneRecordInRulesetBySliceID :execresult
 INSERT INTO
     ruleset (
         realm, slice, app, brwf, class, setname, schemaid, is_active, is_internal, ruleset, createdby
@@ -58,15 +91,15 @@ WHERE
     )
 `
 
-type CopyRulesetParams struct {
+type CloneRecordInRulesetBySliceIDParams struct {
 	Slice     int32    `json:"slice"`
 	Slice_2   int32    `json:"slice_2"`
 	Createdby string   `json:"createdby"`
 	App       []string `json:"app"`
 }
 
-func (q *Queries) CopyRuleset(ctx context.Context, arg CopyRulesetParams) (pgconn.CommandTag, error) {
-	return q.db.Exec(ctx, copyRuleset,
+func (q *Queries) CloneRecordInRulesetBySliceID(ctx context.Context, arg CloneRecordInRulesetBySliceIDParams) (pgconn.CommandTag, error) {
+	return q.db.Exec(ctx, cloneRecordInRulesetBySliceID,
 		arg.Slice,
 		arg.Slice_2,
 		arg.Createdby,
@@ -74,7 +107,7 @@ func (q *Queries) CopyRuleset(ctx context.Context, arg CopyRulesetParams) (pgcon
 	)
 }
 
-const copySchema = `-- name: CopySchema :execresult
+const cloneRecordInSchemaBySliceID = `-- name: CloneRecordInSchemaBySliceID :execresult
 INSERT INTO
     schema (
         realm, slice, app, brwf, class, patternschema, actionschema, createdby
@@ -97,15 +130,15 @@ WHERE
     )
 `
 
-type CopySchemaParams struct {
+type CloneRecordInSchemaBySliceIDParams struct {
 	Slice     int32    `json:"slice"`
 	Slice_2   int32    `json:"slice_2"`
 	Createdby string   `json:"createdby"`
 	App       []string `json:"app"`
 }
 
-func (q *Queries) CopySchema(ctx context.Context, arg CopySchemaParams) (pgconn.CommandTag, error) {
-	return q.db.Exec(ctx, copySchema,
+func (q *Queries) CloneRecordInSchemaBySliceID(ctx context.Context, arg CloneRecordInSchemaBySliceIDParams) (pgconn.CommandTag, error) {
+	return q.db.Exec(ctx, cloneRecordInSchemaBySliceID,
 		arg.Slice,
 		arg.Slice_2,
 		arg.Createdby,
@@ -113,61 +146,25 @@ func (q *Queries) CopySchema(ctx context.Context, arg CopySchemaParams) (pgconn.
 	)
 }
 
-const createNewSliceBY = `-- name: CreateNewSliceBY :one
-INSERT INTO
-    realmslice (
-        realm, descr, active, activateat, deactivateat
-    )
-SELECT
-    realm,
-    (
-        $3::VARCHAR is null
-        OR descr = $3::VARCHAR
-    ),
-    -- descr,
-    active,
-    activateat,
-    deactivateat
-FROM realmslice
-WHERE
-    realmslice.id = $1
-    AND realmslice.realm = $2
-RETURNING
-    realmslice.id
-`
-
-type CreateNewSliceBYParams struct {
-	ID    int32  `json:"id"`
-	Realm string `json:"realm"`
-	Descr string `json:"descr"`
-}
-
-func (q *Queries) CreateNewSliceBY(ctx context.Context, arg CreateNewSliceBYParams) (int32, error) {
-	row := q.db.QueryRow(ctx, createNewSliceBY, arg.ID, arg.Realm, arg.Descr)
-	var id int32
-	err := row.Scan(&id)
-	return id, err
-}
-
-const createRealmSlice = `-- name: CreateRealmSlice :one
+const insertNewRecordInRealmSlice = `-- name: InsertNewRecordInRealmSlice :one
 INSERT INTO
     realmslice (
         realm, descr, active
     )
 VALUES (
-    $1, $2, TRUE
+    $1, $2, true
 )
 RETURNING
    realmslice.id
 `
 
-type CreateRealmSliceParams struct {
+type InsertNewRecordInRealmSliceParams struct {
 	Realm string `json:"realm"`
 	Descr string `json:"descr"`
 }
 
-func (q *Queries) CreateRealmSlice(ctx context.Context, arg CreateRealmSliceParams) (int32, error) {
-	row := q.db.QueryRow(ctx, createRealmSlice, arg.Realm, arg.Descr)
+func (q *Queries) InsertNewRecordInRealmSlice(ctx context.Context, arg InsertNewRecordInRealmSliceParams) (int32, error) {
+	row := q.db.QueryRow(ctx, insertNewRecordInRealmSlice, arg.Realm, arg.Descr)
 	var id int32
 	err := row.Scan(&id)
 	return id, err
