@@ -40,4 +40,5 @@ const (
 	ErrCode_Required_Exactly_Two_Properties                       = "required_exactly_two_properties"
 	ErrCode_Does_Not_Contain_Both_Properties_Nextstep_And_Done    = "does_not_contain_both_properties_nextstep_and_done"
 	ErrCode_ActionSchema_Task_Not_Same_As_PatternSchema_Step_Attr = "actionschema_tasks_are_not_same_as_'step'_in_patternschema"
+	ErrCode_Invalid_NAME                                          = "invalid_name"
 )
