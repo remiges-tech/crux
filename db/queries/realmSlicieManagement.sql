@@ -1,16 +1,12 @@
--- name: CreateNewSliceBY :one
+-- name: CloneRecordInRealmSliceBySliceID :one
 INSERT INTO
     realmslice (
         realm, descr, active, activateat, deactivateat
     )
 SELECT
     realm,
-    (
-        @descr::VARCHAR is null
-        OR descr = @descr::VARCHAR
-    ),
-    -- descr,
-    active,
+    COALESCE(descr, sqlc.narg('descr')::text),
+    true,
     activateat,
     deactivateat
 FROM realmslice
@@ -20,7 +16,18 @@ WHERE
 RETURNING
     realmslice.id;
 
--- name: CopyConfig :execresult
+-- name: InsertNewRecordInRealmSlice :one
+INSERT INTO
+    realmslice (
+        realm, descr, active
+    )
+VALUES (
+    $1, $2, true
+)
+RETURNING
+   realmslice.id;
+
+-- name: CloneRecordInConfigBySliceID :execresult
 INSERT INTO
     config (
         realm, slice, name, descr, val, ver, setby
@@ -30,7 +37,7 @@ FROM config
 WHERE
     config.slice = $1;
 
--- name: CopySchema :execresult
+-- name: CloneRecordInSchemaBySliceID :execresult
 INSERT INTO
     schema (
         realm, slice, app, brwf, class, patternschema, actionschema, createdby
@@ -52,7 +59,7 @@ WHERE
         OR app = any (@app::text [])
     );
 
--- name: CopyRuleset :execresult
+-- name: CloneRecordInRulesetBySliceID :execresult
 INSERT INTO
     ruleset (
         realm, slice, app, brwf, class, setname, schemaid, is_active, is_internal, ruleset, createdby
@@ -77,13 +84,3 @@ WHERE
         OR app = any (@app::text [])
     );
 
--- name: CreateRealmSlice :one
-INSERT INTO
-    realmslice (
-        realm, descr, active
-    )
-VALUES (
-    $1, $2, TRUE
-)
-RETURNING
-   realmslice.id;

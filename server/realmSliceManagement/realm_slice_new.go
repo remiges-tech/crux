@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
@@ -73,7 +74,7 @@ func RealmSliceNew(c *gin.Context, s *service.Service) {
 	}
 
 	if req.CopyOf == 0 && req.App == nil {
-		newSliceID, err := query.CreateRealmSlice(c, sqlc.CreateRealmSliceParams{
+		newSliceID, err := query.InsertNewRecordInRealmSlice(c, sqlc.InsertNewRecordInRealmSliceParams{
 			Realm: realmName,
 			Descr: req.Descr,
 		})
@@ -98,10 +99,10 @@ func RealmSliceNew(c *gin.Context, s *service.Service) {
 	defer tx.Rollback(c)
 	qtx := query.WithTx(tx)
 
-	newSliceID, err := qtx.CreateNewSliceBY(c, sqlc.CreateNewSliceBYParams{
+	newSliceID, err := qtx.CloneRecordInRealmSliceBySliceID(c, sqlc.CloneRecordInRealmSliceBySliceIDParams{
 		ID:    int32(req.CopyOf),
 		Realm: realmName,
-		Descr: req.Descr,
+		Descr: pgtype.Text{String: req.Descr, Valid: true},
 	})
 	if err != nil {
 		tx.Rollback(c)
@@ -116,7 +117,7 @@ func RealmSliceNew(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	tag, err := qtx.CopyConfig(c, sqlc.CopyConfigParams{
+	tag, err := qtx.CloneRecordInConfigBySliceID(c, sqlc.CloneRecordInConfigBySliceIDParams{
 		Slice:   int32(req.CopyOf),
 		Slice_2: newSliceID,
 		Setby:   userID,
@@ -134,7 +135,7 @@ func RealmSliceNew(c *gin.Context, s *service.Service) {
 		// return
 	}
 
-	tag, err = qtx.CopySchema(c, sqlc.CopySchemaParams{
+	tag, err = qtx.CloneRecordInSchemaBySliceID(c, sqlc.CloneRecordInSchemaBySliceIDParams{
 		Slice:     int32(req.CopyOf),
 		Slice_2:   newSliceID,
 		Createdby: userID,
@@ -153,7 +154,7 @@ func RealmSliceNew(c *gin.Context, s *service.Service) {
 		// return
 	}
 
-	tag, err = qtx.CopyRuleset(c, sqlc.CopyRulesetParams{
+	tag, err = qtx.CloneRecordInRulesetBySliceID(c, sqlc.CloneRecordInRulesetBySliceIDParams{
 		Slice:     int32(req.CopyOf),
 		Slice_2:   newSliceID,
 		Createdby: userID,
