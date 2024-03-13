@@ -29,19 +29,16 @@ type perSlice_t struct {
 }
 
 type schema_t struct {
-	Class         string          `json:"class"`
-	PatternSchema patternSchema_t `json:"patternschema"`
-	ActionSchema  actionSchema_t  `json:"actionschema"`
-	NChecked      int32           `json:"n_checked"`
+	Class         string            `json:"class"`
+	PatternSchema []patternSchema_t `json:"patternschema"`
+	ActionSchema  actionSchema_t    `json:"actionschema"`
+	NChecked      int32             `json:"n_checked"`
 }
 type patternSchema_t struct {
-	Attr []attr_t `json:"attr"`
-}
-type attr_t struct {
-	Name     string              `json:"name"`
+	Attr     string              `json:"attr"`
 	ValType  string              `json:"valtype"`
 	EnumVals map[string]struct{} `json:"vals,omitempty"`
-	//EnumVals map[string]bool `json:"vals,omitempty"`
+
 	ValMin float64 `json:"valmin,omitempty"`
 	ValMax float64 `json:"valmax,omitempty"`
 	LenMin int     `json:"lenmin,omitempty"`

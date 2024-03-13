@@ -34,12 +34,11 @@ func setupUCCCreationSchema() {
 
 	ruleSchemasTest = append(ruleSchemasTest, &schema_t{
 		Class: uccCreationClass,
-		PatternSchema: patternSchema_t{
-			Attr: []attr_t{
-				{Name: step, ValType: typeEnum},
-				{Name: stepFailed, ValType: typeBool},
-				{Name: "mode", ValType: typeEnum},
-			},
+		PatternSchema: []patternSchema_t{
+
+			{Attr: step, ValType: typeEnum},
+			{Attr: stepFailed, ValType: typeBool},
+			{Attr: "mode", ValType: typeEnum},
 		},
 		ActionSchema: actionSchema_t{
 			Tasks:      []string{"getcustdetails", "aof", "kycvalid", "nomauth", "bankaccvalid", "dpandbankaccvalid", "sendauthlinktoclient"},
@@ -338,11 +337,10 @@ func testPrepareAOF(tests *[]doMatchTest) {
 
 	ruleSchemasTest = append(ruleSchemasTest, &schema_t{
 		Class: prepareAOFClass,
-		PatternSchema: patternSchema_t{
-			Attr: []attr_t{
-				{Name: step, ValType: typeEnum},
-				{Name: stepFailed, ValType: typeBool},
-			},
+		PatternSchema: []patternSchema_t{
+
+			{Attr: step, ValType: typeEnum},
+			{Attr: stepFailed, ValType: typeBool},
 		},
 	})
 
@@ -642,12 +640,11 @@ func setupRuleSetForPrepareAOF() *Ruleset_t {
 func testValidateAOF(tests *[]doMatchTest) {
 	ruleSchemasTest = append(ruleSchemasTest, &schema_t{
 		Class: validateAOFClass,
-		PatternSchema: patternSchema_t{
-			Attr: []attr_t{
-				{Name: step, ValType: typeEnum},
-				{Name: stepFailed, ValType: typeBool},
-				{Name: "aofexists", ValType: typeBool},
-			},
+		PatternSchema: []patternSchema_t{
+
+			{Attr: step, ValType: typeEnum},
+			{Attr: stepFailed, ValType: typeBool},
+			{Attr: "aofexists", ValType: typeBool},
 		},
 	})
 

@@ -50,14 +50,14 @@ func verifyRuleSchema(rschema []*schema_t, isWF bool) (bool, error) {
 }
 
 func verifyPatternSchema(rs schema_t, isWF bool) (bool, error) {
-	if len(rs.PatternSchema.Attr) == 0 {
+	if len(rs.PatternSchema) == 0 {
 		return false, fmt.Errorf("pattern-schema for %v is empty", rs.Class)
 	}
 	re := regexp.MustCompile(cruxIDRegExp)
 	// Bools needed for workflows only
 	stepFound, stepFailedFound := false, false
 
-	for _, attrSchema := range rs.PatternSchema.Attr {
+	for _, attrSchema := range rs.PatternSchema {
 
 		if _, exists := validTypes[attrSchema.ValType]; exists {
 
@@ -65,10 +65,10 @@ func verifyPatternSchema(rs schema_t, isWF bool) (bool, error) {
 			return false, fmt.Errorf("%v is not a valid value-type", attrSchema.ValType)
 		}
 
-		if !re.MatchString(attrSchema.Name) {
-			return false, fmt.Errorf("attribute name %v is not a valid CruxID", attrSchema.Name)
+		if !re.MatchString(attrSchema.Attr) {
+			return false, fmt.Errorf("attribute name %v is not a valid CruxID", attrSchema.Attr)
 		} else if attrSchema.ValType == typeEnum && len(attrSchema.EnumVals) == 0 {
-			return false, fmt.Errorf("no valid values for enum %v", attrSchema.Name)
+			return false, fmt.Errorf("no valid values for enum %v", attrSchema.Attr)
 		}
 		for val := range attrSchema.EnumVals {
 			if !re.MatchString(val) && val != start {
@@ -77,14 +77,14 @@ func verifyPatternSchema(rs schema_t, isWF bool) (bool, error) {
 		}
 
 		// Workflows only
-		if attrSchema.Name == step && attrSchema.ValType == typeEnum {
+		if attrSchema.Attr == step && attrSchema.ValType == typeEnum {
 			stepFound = true
 		}
 
-		if isWF && attrSchema.Name == step && attrSchema.EnumVals[start] != struct{}{} {
+		if isWF && attrSchema.Attr == step && attrSchema.EnumVals[start] != struct{}{} {
 			return false, fmt.Errorf("workflow schema for %v doesn't allow step=START", rs.Class)
 		}
-		if attrSchema.Name == stepFailed && attrSchema.ValType == typeBool {
+		if attrSchema.Attr == stepFailed && attrSchema.ValType == typeBool {
 			stepFailedFound = true
 		}
 	}
@@ -151,9 +151,8 @@ func getTasksMapForWF(tasks []string) map[string]struct{} {
 
 func getStepAttrVals(rs schema_t) map[string]struct{} {
 
-	for _, ps := range rs.PatternSchema.Attr {
-		//fmt.Printf(" ps.Name %v  %v ", ps.Name, step)
-		if ps.Name == step {
+	for _, ps := range rs.PatternSchema {
+		if ps.Attr == step {
 
 			return ps.EnumVals
 		}
@@ -246,8 +245,8 @@ func getSchema(entity Entity, class string) (*schema_t, error) {
 }
 
 func getType(rs *schema_t, name string) string {
-	for _, as := range rs.PatternSchema.Attr {
-		if as.Name == name {
+	for _, as := range rs.PatternSchema {
+		if as.Attr == name {
 			return as.ValType
 		}
 	}
@@ -403,7 +402,7 @@ func verifyEntity(e Entity) (bool, error) {
 			return false, fmt.Errorf("attribute %v in entity has value of wrong type", attrName)
 		}
 	}
-	if len(e.attrs) != len(rs.PatternSchema.Attr) {
+	if len(e.attrs) != len(rs.PatternSchema) {
 		return false, fmt.Errorf("entity does not contain all the attributes in its pattern-schema")
 	}
 	return true, nil

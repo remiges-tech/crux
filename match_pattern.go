@@ -79,9 +79,9 @@ func getTypeFromSchema(class string, attrName string, ruleSchemas []*schema_t) s
 	for _, ruleSchema := range ruleSchemas {
 
 		if ruleSchema.Class == class {
-			for _, attrSchema := range ruleSchema.PatternSchema.Attr {
+			for _, attrSchema := range ruleSchema.PatternSchema {
 
-				if attrSchema.Name == attrName {
+				if attrSchema.Attr == attrName {
 
 					return attrSchema.ValType
 				}

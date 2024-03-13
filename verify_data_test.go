@@ -73,14 +73,13 @@ func testCorrectBRSchema(tests *[]verifySchemaTest) {
 	ruleSchemasTest = make([]*schema_t, 0)
 	rs := &schema_t{
 		Class: transactionClass,
-		PatternSchema: patternSchema_t{
-			Attr: []attr_t{
-				{Name: "productname", ValType: typeStr},
-				{Name: "price", ValType: typeInt},
-				{Name: "inwintersale", ValType: typeBool},
-				{Name: "paymenttype", ValType: typeEnum, EnumVals: map[string]struct{}{"cash": {}, "card": {}}},
-				{Name: "ismember", ValType: typeBool},
-			},
+		PatternSchema: []patternSchema_t{
+
+			{Attr: "productname", ValType: typeStr},
+			{Attr: "price", ValType: typeInt},
+			{Attr: "inwintersale", ValType: typeBool},
+			{Attr: "paymenttype", ValType: typeEnum, EnumVals: map[string]struct{}{"cash": {}, "card": {}}},
+			{Attr: "ismember", ValType: typeBool},
 		},
 		ActionSchema: actionSchema_t{
 			Tasks:      []string{"freepen", "freemug", "freebag"},
@@ -103,14 +102,13 @@ func testSchemaEmptyClass(tests *[]verifySchemaTest) {
 	ruleSchemasTest = make([]*schema_t, 0)
 	rs := &schema_t{
 		Class: "",
-		PatternSchema: patternSchema_t{
-			Attr: []attr_t{
-				{Name: "productname", ValType: typeStr},
-				{Name: "price", ValType: typeInt},
-				{Name: "inwintersale", ValType: typeBool},
-				{Name: "paymenttype", ValType: typeEnum, EnumVals: map[string]struct{}{"cash": {}, "card": {}}},
-				{Name: "ismember", ValType: typeBool},
-			},
+		PatternSchema: []patternSchema_t{
+
+			{Attr: "productname", ValType: typeStr},
+			{Attr: "price", ValType: typeInt},
+			{Attr: "inwintersale", ValType: typeBool},
+			{Attr: "paymenttype", ValType: typeEnum, EnumVals: map[string]struct{}{"cash": {}, "card": {}}},
+			{Attr: "ismember", ValType: typeBool},
 		},
 		ActionSchema: actionSchema_t{
 			Tasks:      []string{"freepen", "freemug", "freebag"},
@@ -133,10 +131,8 @@ func testEmptyPatternSchema(tests *[]verifySchemaTest) {
 	ruleSchemasTest = make([]*schema_t, 0)
 
 	rs := &schema_t{
-		Class: transactionClass,
-		PatternSchema: patternSchema_t{
-			Attr: []attr_t{},
-		},
+		Class:         transactionClass,
+		PatternSchema: []patternSchema_t{},
 		ActionSchema: actionSchema_t{
 			Tasks:      []string{"freepen", "freemug", "freebag"},
 			Properties: []string{"discount", "pointsmult"},
@@ -156,14 +152,13 @@ func testAttrNameIsNotCruxID(tests *[]verifySchemaTest) {
 	ruleSchemasTest = make([]*schema_t, 0)
 	rs := &schema_t{
 		Class: transactionClass,
-		PatternSchema: patternSchema_t{
-			Attr: []attr_t{
-				{Name: "1productname", ValType: typeStr},
-				{Name: "price", ValType: typeInt},
-				{Name: "inwintersale", ValType: typeBool},
-				{Name: "paymenttype", ValType: typeEnum, EnumVals: map[string]struct{}{"cash": {}, "card": {}}},
-				{Name: "ismember", ValType: typeBool},
-			},
+		PatternSchema: []patternSchema_t{
+
+			{Attr: "1productname", ValType: typeStr},
+			{Attr: "price", ValType: typeInt},
+			{Attr: "inwintersale", ValType: typeBool},
+			{Attr: "paymenttype", ValType: typeEnum, EnumVals: map[string]struct{}{"cash": {}, "card": {}}},
+			{Attr: "ismember", ValType: typeBool},
 		},
 		ActionSchema: actionSchema_t{
 			Tasks:      []string{"freepen", "freemug", "freebag"},
@@ -185,15 +180,14 @@ func testInvalidValType(tests *[]verifySchemaTest) {
 	ruleSchemasTest = make([]*schema_t, 0)
 	rs := &schema_t{
 		Class: transactionClass,
-		PatternSchema: patternSchema_t{
-			Attr: []attr_t{
-				{Name: "productname", ValType: typeStr},
-				{Name: "price", ValType: typeInt},
-				// "abc" is not a valid valType
-				{Name: "inwintersale", ValType: "abc"},
-				{Name: "paymenttype", ValType: typeEnum, EnumVals: map[string]struct{}{"cash": {}, "card": {}}},
-				{Name: "ismember", ValType: typeBool},
-			},
+		PatternSchema: []patternSchema_t{
+
+			{Attr: "productname", ValType: typeStr},
+			{Attr: "price", ValType: typeInt},
+			// "abc" is not a valid valType
+			{Attr: "inwintersale", ValType: "abc"},
+			{Attr: "paymenttype", ValType: typeEnum, EnumVals: map[string]struct{}{"cash": {}, "card": {}}},
+			{Attr: "ismember", ValType: typeBool},
 		},
 		ActionSchema: actionSchema_t{
 			Tasks:      []string{"freepen", "freemug", "freebag"},
@@ -215,16 +209,15 @@ func testNoValsForEnum(tests *[]verifySchemaTest) {
 	ruleSchemasTest = make([]*schema_t, 0)
 	rs := &schema_t{
 		Class: transactionClass,
-		PatternSchema: patternSchema_t{
-			Attr: []attr_t{
-				{Name: "productname", ValType: typeStr},
-				{Name: "price", ValType: typeInt},
-				{Name: "inwintersale", ValType: typeBool},
-				// The "EnumVals" "hash-set" below, which is the set of valid values for the
-				// enum "paymenttype", should not be empty
-				{Name: "paymenttype", ValType: typeEnum, EnumVals: map[string]struct{}{}},
-				{Name: "ismember", ValType: typeBool},
-			},
+		PatternSchema: []patternSchema_t{
+
+			{Attr: "productname", ValType: typeStr},
+			{Attr: "price", ValType: typeInt},
+			{Attr: "inwintersale", ValType: typeBool},
+			// The "EnumVals" "hash-set" below, which is the set of valid values for the
+			// enum "paymenttype", should not be empty
+			{Attr: "paymenttype", ValType: typeEnum, EnumVals: map[string]struct{}{}},
+			{Attr: "ismember", ValType: typeBool},
 		},
 		ActionSchema: actionSchema_t{
 			Tasks:      []string{"freepen", "freemug", "freebag"},
@@ -247,15 +240,14 @@ func testEnumValIsNotCruxID(tests *[]verifySchemaTest) {
 	ruleSchemasTest = make([]*schema_t, 0)
 	rs := &schema_t{
 		Class: transactionClass,
-		PatternSchema: patternSchema_t{
-			Attr: []attr_t{
-				{Name: "productname", ValType: typeStr},
-				{Name: "price", ValType: typeInt},
-				{Name: "inwintersale", ValType: typeBool},
-				// "1cash" is not a CruxID
-				{Name: "paymenttype", ValType: typeEnum, EnumVals: map[string]struct{}{"1cash": {}, "card": {}}},
-				{Name: "ismember", ValType: typeBool},
-			},
+		PatternSchema: []patternSchema_t{
+
+			{Attr: "productname", ValType: typeStr},
+			{Attr: "price", ValType: typeInt},
+			{Attr: "inwintersale", ValType: typeBool},
+			// "1cash" is not a CruxID
+			{Attr: "paymenttype", ValType: typeEnum, EnumVals: map[string]struct{}{"1cash": {}, "card": {}}},
+			{Attr: "ismember", ValType: typeBool},
 		},
 		ActionSchema: actionSchema_t{
 			Tasks:      []string{"freepen", "freemug", "freebag"},
@@ -277,14 +269,13 @@ func testBothTasksAndPropsEmpty(tests *[]verifySchemaTest) {
 	ruleSchemasTest = make([]*schema_t, 0)
 	rs := &schema_t{
 		Class: transactionClass,
-		PatternSchema: patternSchema_t{
-			Attr: []attr_t{
-				{Name: "productname", ValType: typeStr},
-				{Name: "price", ValType: typeInt},
-				{Name: "inwintersale", ValType: typeBool},
-				{Name: "paymenttype", ValType: typeEnum, EnumVals: map[string]struct{}{"cash": {}, "card": {}}},
-				{Name: "ismember", ValType: typeBool},
-			},
+		PatternSchema: []patternSchema_t{
+
+			{Attr: "productname", ValType: typeStr},
+			{Attr: "price", ValType: typeInt},
+			{Attr: "inwintersale", ValType: typeBool},
+			{Attr: "paymenttype", ValType: typeEnum, EnumVals: map[string]struct{}{"cash": {}, "card": {}}},
+			{Attr: "ismember", ValType: typeBool},
 		},
 		ActionSchema: actionSchema_t{
 			Tasks:      []string{},
@@ -306,14 +297,13 @@ func testTaskIsNotCruxID(tests *[]verifySchemaTest) {
 	ruleSchemasTest = make([]*schema_t, 0)
 	rs := &schema_t{
 		Class: transactionClass,
-		PatternSchema: patternSchema_t{
-			Attr: []attr_t{
-				{Name: "productname", ValType: typeStr},
-				{Name: "price", ValType: typeInt},
-				{Name: "inwintersale", ValType: typeBool},
-				{Name: "paymenttype", ValType: typeEnum, EnumVals: map[string]struct{}{"cash": {}, "card": {}}},
-				{Name: "ismember", ValType: typeBool},
-			},
+		PatternSchema: []patternSchema_t{
+
+			{Attr: "productname", ValType: typeStr},
+			{Attr: "price", ValType: typeInt},
+			{Attr: "inwintersale", ValType: typeBool},
+			{Attr: "paymenttype", ValType: typeEnum, EnumVals: map[string]struct{}{"cash": {}, "card": {}}},
+			{Attr: "ismember", ValType: typeBool},
 		},
 		ActionSchema: actionSchema_t{
 			Tasks:      []string{"freepen", "free*mug", "freebag"},
@@ -335,14 +325,13 @@ func testPropNameNotCruxID(tests *[]verifySchemaTest) {
 	ruleSchemasTest = make([]*schema_t, 0)
 	rs := &schema_t{
 		Class: transactionClass,
-		PatternSchema: patternSchema_t{
-			Attr: []attr_t{
-				{Name: "productname", ValType: typeStr},
-				{Name: "price", ValType: typeInt},
-				{Name: "inwintersale", ValType: typeBool},
-				{Name: "paymenttype", ValType: typeEnum, EnumVals: map[string]struct{}{"cash": {}, "card": {}}},
-				{Name: "ismember", ValType: typeBool},
-			},
+		PatternSchema: []patternSchema_t{
+
+			{Attr: "productname", ValType: typeStr},
+			{Attr: "price", ValType: typeInt},
+			{Attr: "inwintersale", ValType: typeBool},
+			{Attr: "paymenttype", ValType: typeEnum, EnumVals: map[string]struct{}{"cash": {}, "card": {}}},
+			{Attr: "ismember", ValType: typeBool},
 		},
 		ActionSchema: actionSchema_t{
 			Tasks:      []string{"freepen", "freemug", "freebag"},
@@ -365,12 +354,11 @@ func testCorrectWFSchema(tests *[]verifySchemaTest) {
 	ruleSchemasTest = make([]*schema_t, 0)
 	rs := &schema_t{
 		Class: transactionClass,
-		PatternSchema: patternSchema_t{
-			Attr: []attr_t{
-				{Name: step, ValType: typeEnum, EnumVals: map[string]struct{}{start: {}, "getcustdetails": {}, "aof": {}, "sendauthlinktoclient": {}}},
-				{Name: stepFailed, ValType: typeBool},
-				{Name: "mode", ValType: typeEnum, EnumVals: map[string]struct{}{"physical": {}, "demat": {}}},
-			},
+		PatternSchema: []patternSchema_t{
+
+			{Attr: step, ValType: typeEnum, EnumVals: map[string]struct{}{start: {}, "getcustdetails": {}, "aof": {}, "sendauthlinktoclient": {}}},
+			{Attr: stepFailed, ValType: typeBool},
+			{Attr: "mode", ValType: typeEnum, EnumVals: map[string]struct{}{"physical": {}, "demat": {}}},
 		},
 		ActionSchema: actionSchema_t{
 			Tasks:      []string{"getcustdetails", "aof", "sendauthlinktoclient"},
@@ -392,12 +380,11 @@ func testMissingStart(tests *[]verifySchemaTest) {
 
 	rs := &schema_t{
 		Class: uccCreationClass,
-		PatternSchema: patternSchema_t{
-			Attr: []attr_t{
-				{Name: step, ValType: typeEnum, EnumVals: map[string]struct{}{"getcustdetails": {}, "aof": {}, "sendauthlinktoclient": {}}},
-				{Name: stepFailed, ValType: typeBool},
-				{Name: "mode", ValType: typeEnum, EnumVals: map[string]struct{}{"physical": {}, "demat": {}}},
-			},
+		PatternSchema: []patternSchema_t{
+
+			{Attr: step, ValType: typeEnum, EnumVals: map[string]struct{}{"getcustdetails": {}, "aof": {}, "sendauthlinktoclient": {}}},
+			{Attr: stepFailed, ValType: typeBool},
+			{Attr: "mode", ValType: typeEnum, EnumVals: map[string]struct{}{"physical": {}, "demat": {}}},
 		},
 		ActionSchema: actionSchema_t{
 			Tasks:      []string{"getcustdetails", "aof", "sendauthlinktoclient"},
@@ -420,11 +407,10 @@ func testMissingStep(tests *[]verifySchemaTest) {
 
 	rs := &schema_t{
 		Class: uccCreationClass,
-		PatternSchema: patternSchema_t{
-			Attr: []attr_t{
-				{Name: stepFailed, ValType: typeBool},
-				{Name: "mode", ValType: typeEnum, EnumVals: map[string]struct{}{"physical": {}, "demat": {}}},
-			},
+		PatternSchema: []patternSchema_t{
+
+			{Attr: stepFailed, ValType: typeBool},
+			{Attr: "mode", ValType: typeEnum, EnumVals: map[string]struct{}{"physical": {}, "demat": {}}},
 		},
 		ActionSchema: actionSchema_t{
 			Tasks:      []string{"getcustdetails", "aof", "sendauthlinktoclient"},
@@ -445,14 +431,13 @@ func testMissingStep(tests *[]verifySchemaTest) {
 func testAdditionalProps(tests *[]verifySchemaTest) {
 	rs := &schema_t{
 		Class: uccCreationClass,
-		PatternSchema: patternSchema_t{
-			Attr: []attr_t{
-				{Name: step, ValType: typeEnum,
-					EnumVals: map[string]struct{}{start: {}, "getcustdetails": {}, "aof": {}, "sendauthlinktoclient": {}},
-				},
-				{Name: stepFailed, ValType: typeBool},
-				{Name: "mode", ValType: typeEnum, EnumVals: map[string]struct{}{"physical": {}, "demat": {}}},
+		PatternSchema: []patternSchema_t{
+
+			{Attr: step, ValType: typeEnum,
+				EnumVals: map[string]struct{}{start: {}, "getcustdetails": {}, "aof": {}, "sendauthlinktoclient": {}},
 			},
+			{Attr: stepFailed, ValType: typeBool},
+			{Attr: "mode", ValType: typeEnum, EnumVals: map[string]struct{}{"physical": {}, "demat": {}}},
 		},
 		ActionSchema: actionSchema_t{
 			Tasks:      []string{"getcustdetails", "aof", "sendauthlinktoclient"},
@@ -474,14 +459,13 @@ func testMissingNextStep(tests *[]verifySchemaTest) {
 
 	rs := &schema_t{
 		Class: uccCreationClass,
-		PatternSchema: patternSchema_t{
-			Attr: []attr_t{
-				{Name: step, ValType: typeEnum,
-					EnumVals: map[string]struct{}{start: {}, "getcustdetails": {}, "aof": {}, "sendauthlinktoclient": {}},
-				},
-				{Name: stepFailed, ValType: typeBool},
-				{Name: "mode", ValType: typeEnum, EnumVals: map[string]struct{}{"physical": {}, "demat": {}}},
+		PatternSchema: []patternSchema_t{
+
+			{Attr: step, ValType: typeEnum,
+				EnumVals: map[string]struct{}{start: {}, "getcustdetails": {}, "aof": {}, "sendauthlinktoclient": {}},
 			},
+			{Attr: stepFailed, ValType: typeBool},
+			{Attr: "mode", ValType: typeEnum, EnumVals: map[string]struct{}{"physical": {}, "demat": {}}},
 		},
 		ActionSchema: actionSchema_t{
 			Tasks:      []string{"getcustdetails", "aof", "sendauthlinktoclient"},
@@ -503,14 +487,13 @@ func testTasksAndStepDiscrepancy(tests *[]verifySchemaTest) {
 
 	rs := &schema_t{
 		Class: uccCreationClass,
-		PatternSchema: patternSchema_t{
-			Attr: []attr_t{
-				{Name: step, ValType: typeEnum,
-					EnumVals: map[string]struct{}{start: {}, "getcustdetails": {}, "aof": {}, "sendauthlinktoclient": {}},
-				},
-				{Name: stepFailed, ValType: typeBool},
-				{Name: "mode", ValType: typeEnum, EnumVals: map[string]struct{}{"physical": {}, "demat": {}}},
+		PatternSchema: []patternSchema_t{
+
+			{Attr: step, ValType: typeEnum,
+				EnumVals: map[string]struct{}{start: {}, "getcustdetails": {}, "aof": {}, "sendauthlinktoclient": {}},
 			},
+			{Attr: stepFailed, ValType: typeBool},
+			{Attr: "mode", ValType: typeEnum, EnumVals: map[string]struct{}{"physical": {}, "demat": {}}},
 		},
 		ActionSchema: actionSchema_t{
 			Tasks:      []string{"getcustdetails", "aof", "sendauthlinktoclient"},

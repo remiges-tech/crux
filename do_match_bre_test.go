@@ -180,14 +180,13 @@ func testTransactions(tests *[]doMatchTest) {
 
 	rs := &schema_t{
 		Class: transactionClass,
-		PatternSchema: patternSchema_t{
-			Attr: []attr_t{
-				{Name: "productname", ValType: typeStr},
-				{Name: "price", ValType: typeInt},
-				{Name: "inwintersale", ValType: typeBool},
-				{Name: "paymenttype", ValType: typeEnum},
-				{Name: "ismember", ValType: typeBool},
-			},
+		PatternSchema: []patternSchema_t{
+
+			{Attr: "productname", ValType: typeStr},
+			{Attr: "price", ValType: typeInt},
+			{Attr: "inwintersale", ValType: typeBool},
+			{Attr: "paymenttype", ValType: typeEnum},
+			{Attr: "ismember", ValType: typeBool},
 		},
 		ActionSchema: actionSchema_t{},
 	}
@@ -1118,12 +1117,11 @@ func setupPurchaseRuleSchema() {
 
 	ruleSchemasTest = append(ruleSchemasTest, &schema_t{
 		Class: purchaseClass,
-		PatternSchema: patternSchema_t{
-			Attr: []attr_t{
-				{Name: "product", ValType: typeStr},
-				{Name: "price", ValType: typeFloat},
-				{Name: "ismember", ValType: typeBool},
-			},
+		PatternSchema: []patternSchema_t{
+
+			{Attr: "product", ValType: typeStr},
+			{Attr: "price", ValType: typeFloat},
+			{Attr: "ismember", ValType: typeBool},
 		},
 		ActionSchema: actionSchema_t{
 			Tasks: []string{"freepen", "freebottle", "freepencil", "freemug", "freejar", "freeplant",

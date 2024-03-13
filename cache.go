@@ -41,7 +41,7 @@ func loadInternalSchema(dbResponseSchema []sqlc.Schema) error {
 				WFSchema: make(map[className_t][]*schema_t),
 			}
 
-			var patterns patternSchema_t
+			var patterns []patternSchema_t
 
 			if err := json.Unmarshal(row.Patternschema, &patterns); err != nil {
 				log.Println("Error unmarshaling Patternschema:", err)
