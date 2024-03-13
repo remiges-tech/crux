@@ -13,6 +13,10 @@ import (
 
 type Querier interface {
 	AddWFNewInstances(ctx context.Context, arg AddWFNewInstancesParams) ([]Wfinstance, error)
+	CopyConfig(ctx context.Context, arg CopyConfigParams) (pgconn.CommandTag, error)
+	CopyRuleset(ctx context.Context, arg CopyRulesetParams) (pgconn.CommandTag, error)
+	CopySchema(ctx context.Context, arg CopySchemaParams) (pgconn.CommandTag, error)
+	CreateNewSliceBY(ctx context.Context, arg CreateNewSliceBYParams) (int32, error)
 	DeleteWFInstanceListByParents(ctx context.Context, arg DeleteWFInstanceListByParentsParams) ([]Wfinstance, error)
 	DeleteWfInstance(ctx context.Context, arg DeleteWfInstanceParams) (int32, error)
 	DeleteWfinstanceByID(ctx context.Context, arg DeleteWfinstanceByIDParams) ([]Wfinstance, error)
