@@ -10,7 +10,7 @@ CREATE TABLE realm (
 
 CREATE TABLE app (
     id SERIAL PRIMARY KEY,
-    realm VARCHAR(255) REFERENCES realm (shortname) NOT NULL UNIQUE,
+    realm VARCHAR(255) REFERENCES realm (shortname) NOT NULL ,
     shortname VARCHAR(255) UNIQUE NOT NULL CHECK (shortname ~ '^[a-zA-Z0-9]+$'),
     shortnamelc VARCHAR(255) NOT NULL,
     longname VARCHAR(255) NOT NULL,

@@ -6,8 +6,8 @@ INSERT INTO
 SELECT
     realm,
     (
-        @ descr::VARCHAR is null
-        OR descr = @ descr::VARCHAR
+        @descr::VARCHAR is null
+        OR descr = @descr::VARCHAR
     ),
     -- descr,
     active,
@@ -48,8 +48,8 @@ FROM schema
 WHERE
     schema.slice = $1
     AND (
-        @ app::text [] is null
-        OR app = any (@ app::text [])
+        @app::text [] is null
+        OR app = any (@app::text [])
     );
 
 -- name: CopyRuleset :execresult
@@ -73,6 +73,17 @@ FROM ruleset
 WHERE
     ruleset.slice = $1
     AND (
-        @ app::text [] is null
-        OR app = any (@ app::text [])
+        @app::text [] is null
+        OR app = any (@app::text [])
     );
+
+-- name: CreateRealmSlice :one
+INSERT INTO
+    realmslice (
+        realm, descr, active
+    )
+VALUES (
+    $1, $2, TRUE
+)
+RETURNING
+   realmslice.id;

@@ -21,8 +21,8 @@ var (
 	// realmID   = int32(11)
 )
 
-type request struct {
-	CopyOf int64    `json:"copyof" validate:"omitempty,number,gt=0"`
+type RealmSliceNewRequest struct {
+	CopyOf int64    `json:"copyof" validate:"omitempty,gt=0"`
 	Descr  string   `json:"descr" validate:"omitempty"`
 	App    []string `json:"app" validate:"omitempty,lt=15"`
 }
@@ -42,7 +42,7 @@ func RealmSliceNew(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	var req request
+	var req RealmSliceNewRequest
 
 	err := wscutils.BindJSON(c, &req)
 	if err != nil {
@@ -72,6 +72,22 @@ func RealmSliceNew(c *gin.Context, s *service.Service) {
 		return
 	}
 
+	if req.CopyOf == 0 && req.App == nil {
+		newSliceID, err := query.CreateRealmSlice(c, sqlc.CreateRealmSliceParams{
+			Realm: realmName,
+			Descr: req.Descr,
+		})
+		if err != nil {
+			l.Info().Error(err).Log("Error while creating new realmslice")
+			errmsg := db.HandleDatabaseError(err)
+			wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+			return
+		}
+		wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: newSliceID, Messages: nil})
+		l.Debug0().Log("Starting execution of RealmSliceNew()")
+		return
+	}
+
 	tx, err := connpool.Begin(c)
 	if err != nil {
 		l.Info().Log("Error while Begin transaction")
@@ -90,6 +106,11 @@ func RealmSliceNew(c *gin.Context, s *service.Service) {
 	if err != nil {
 		tx.Rollback(c)
 		l.Info().Error(err).Log("Error while creating copy of realmslice")
+		if err.Error() == "no rows in result set" {
+			feild := "CopyOf"
+			wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(1006, server.ErrCode_NotExist, &feild)}))
+			return
+		}
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
