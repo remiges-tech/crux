@@ -49,7 +49,7 @@ func setupUCCCreationSchema() {
 
 }
 
-func setupUCCCreationRuleSet() []rule_t {
+func setupUCCCreationRuleSet() *Ruleset_t {
 	rule1 := rule_t{
 		RulePatterns: []rulePatternBlock_t{
 			{step, opEQ, start},
@@ -118,7 +118,7 @@ func setupUCCCreationRuleSet() []rule_t {
 			Properties: map[string]string{done: trueStr},
 		},
 	}
-	rules := []rule_t{rule1, rule2, rule3, rule4, rule5, rule6, rule7, rule7}
+
 	rs := Ruleset_t{
 		Id:      1,
 		Class:   uccCreationClass,
@@ -127,17 +127,12 @@ func setupUCCCreationRuleSet() []rule_t {
 		NCalled: 0,
 	}
 
-	ruleSetsTests = append(ruleSetsTests, &rs)
-
-	return rules
+	return &rs
 }
 
 func testUCCStart(tests *[]doMatchTest) {
 
-	ruleSetsTests = append(ruleSetsTests, &Ruleset_t{})
 	rc := setupUCCCreationRuleSet()
-	ruleSetsTests[0].Class = uccCreation
-	ruleSetsTests[0].Rules = rc
 
 	entity := Entity{
 		realm: "1",
@@ -154,7 +149,7 @@ func testUCCStart(tests *[]doMatchTest) {
 		tasks:      []string{"getcustdetails"},
 		properties: map[string]string{nextStep: "getcustdetails"},
 	}
-	*tests = append(*tests, doMatchTest{"ucc start", entity, ruleSetsTests, ActionSet{
+	*tests = append(*tests, doMatchTest{"ucc start", entity, rc, ActionSet{
 		tasks:      []string{},
 		properties: make(map[string]string),
 	}, want})
@@ -172,12 +167,12 @@ func testUCCGetCustDetailsDemat(tests *[]doMatchTest) {
 			"mode":     "demat",
 		},
 	}
-
+	rc := setupUCCCreationRuleSet()
 	want := ActionSet{
 		tasks:      []string{"aof", "kycvalid", "nomauth", "dpandbankaccvalid"},
 		properties: map[string]string{nextStep: "aof"},
 	}
-	*tests = append(*tests, doMatchTest{"ucc getcustdetails demat", entity, ruleSetsTests, ActionSet{
+	*tests = append(*tests, doMatchTest{"ucc getcustdetails demat", entity, rc, ActionSet{
 		tasks:      []string{},
 		properties: make(map[string]string),
 	}, want})
@@ -195,11 +190,11 @@ func testUCCGetCustDetailsDematFail(tests *[]doMatchTest) {
 			"mode":     "demat",
 		},
 	}
-
+	rc := setupUCCCreationRuleSet()
 	want := ActionSet{
 		properties: map[string]string{done: trueStr},
 	}
-	*tests = append(*tests, doMatchTest{"ucc getcustdetails demat fail", entity, ruleSetsTests, ActionSet{
+	*tests = append(*tests, doMatchTest{"ucc getcustdetails demat fail", entity, rc, ActionSet{
 		tasks:      []string{},
 		properties: make(map[string]string),
 	}, want})
@@ -217,12 +212,12 @@ func testUCCGetCustDetailsPhysical(tests *[]doMatchTest) {
 			"mode":     "physical",
 		},
 	}
-
+	rc := setupUCCCreationRuleSet()
 	want := ActionSet{
 		tasks:      []string{"aof", "kycvalid", "nomauth", "bankaccvalid"},
 		properties: map[string]string{nextStep: "aof"},
 	}
-	*tests = append(*tests, doMatchTest{"ucc getcustdetails physical", entity, ruleSetsTests, ActionSet{
+	*tests = append(*tests, doMatchTest{"ucc getcustdetails physical", entity, rc, ActionSet{
 		tasks:      []string{},
 		properties: make(map[string]string),
 	}, want})
@@ -240,11 +235,11 @@ func testUCCGetCustDetailsPhysicalFail(tests *[]doMatchTest) {
 			"mode":     "physical",
 		},
 	}
-
+	rc := setupUCCCreationRuleSet()
 	want := ActionSet{
 		properties: map[string]string{done: trueStr},
 	}
-	*tests = append(*tests, doMatchTest{"ucc getcustdetails physical fail", entity, ruleSetsTests, ActionSet{
+	*tests = append(*tests, doMatchTest{"ucc getcustdetails physical fail", entity, rc, ActionSet{
 		tasks:      []string{},
 		properties: make(map[string]string),
 	}, want})
@@ -262,12 +257,12 @@ func testUCCAOF(tests *[]doMatchTest) {
 			"mode":     "demat",
 		},
 	}
-
+	rc := setupUCCCreationRuleSet()
 	want := ActionSet{
 		tasks:      []string{"sendauthlinktoclient"},
 		properties: map[string]string{nextStep: "sendauthlinktoclient"},
 	}
-	*tests = append(*tests, doMatchTest{"ucc aof", entity, ruleSetsTests, ActionSet{
+	*tests = append(*tests, doMatchTest{"ucc aof", entity, rc, ActionSet{
 		tasks:      []string{},
 		properties: make(map[string]string),
 	}, want})
@@ -285,11 +280,11 @@ func testUCCAOFFail(tests *[]doMatchTest) {
 			"mode":     "demat",
 		},
 	}
-
+	rc := setupUCCCreationRuleSet()
 	want := ActionSet{
 		properties: map[string]string{done: trueStr},
 	}
-	*tests = append(*tests, doMatchTest{"ucc aof fail", entity, ruleSetsTests, ActionSet{
+	*tests = append(*tests, doMatchTest{"ucc aof fail", entity, rc, ActionSet{
 		tasks:      []string{},
 		properties: make(map[string]string),
 	}, want})
@@ -307,11 +302,11 @@ func testUCCEndSuccess(tests *[]doMatchTest) {
 			"mode":     "demat",
 		},
 	}
-
+	rc := setupUCCCreationRuleSet()
 	want := ActionSet{
 		properties: map[string]string{done: trueStr},
 	}
-	*tests = append(*tests, doMatchTest{"ucc end-success", entity, ruleSetsTests, ActionSet{
+	*tests = append(*tests, doMatchTest{"ucc end-success", entity, rc, ActionSet{
 		tasks:      []string{},
 		properties: make(map[string]string),
 	}, want})
@@ -329,11 +324,11 @@ func testUCCEndFailure(tests *[]doMatchTest) {
 			"mode":     "demat",
 		},
 	}
-
+	rc := setupUCCCreationRuleSet()
 	want := ActionSet{
 		properties: map[string]string{done: trueStr},
 	}
-	*tests = append(*tests, doMatchTest{"ucc end-failure", entity, ruleSetsTests, ActionSet{
+	*tests = append(*tests, doMatchTest{"ucc end-failure", entity, rc, ActionSet{
 		tasks:      []string{},
 		properties: make(map[string]string),
 	}, want})
@@ -374,12 +369,12 @@ func testDownloadAOF(tests *[]doMatchTest) {
 			step: start,
 		},
 	}
-
+	rc := setupRuleSetForPrepareAOF()
 	want := ActionSet{
-		tasks:      []string{"getcustdetails", "downloadform"},
+		tasks:      []string{"downloadform"},
 		properties: map[string]string{nextStep: "downloadform"},
 	}
-	*tests = append(*tests, doMatchTest{"download aof", entity, ruleSetsTests, ActionSet{
+	*tests = append(*tests, doMatchTest{"download aof", entity, rc, ActionSet{
 		tasks:      []string{},
 		properties: make(map[string]string),
 	}, want})
@@ -396,11 +391,11 @@ func testDownloadAOFFail(tests *[]doMatchTest) {
 			stepFailed: trueStr,
 		},
 	}
-
+	rc := setupRuleSetForPrepareAOF()
 	want := ActionSet{
 		properties: map[string]string{done: trueStr},
 	}
-	*tests = append(*tests, doMatchTest{"download aof fail", entity, ruleSetsTests, ActionSet{
+	*tests = append(*tests, doMatchTest{"download aof fail", entity, rc, ActionSet{
 		tasks:      []string{},
 		properties: make(map[string]string),
 	}, want})
@@ -417,12 +412,12 @@ func testPrintAOF(tests *[]doMatchTest) {
 			stepFailed: falseStr,
 		},
 	}
-
+	rc := setupRuleSetForPrepareAOF()
 	want := ActionSet{
 		tasks:      []string{"printprefilledform"},
 		properties: map[string]string{nextStep: "printprefilledform"},
 	}
-	*tests = append(*tests, doMatchTest{"print prefilled aof", entity, ruleSetsTests, ActionSet{
+	*tests = append(*tests, doMatchTest{"print prefilled aof", entity, rc, ActionSet{
 		tasks:      []string{},
 		properties: make(map[string]string),
 	}, want})
@@ -439,12 +434,13 @@ func testSignAOF(tests *[]doMatchTest) {
 			stepFailed: falseStr,
 		},
 	}
+	rc := setupRuleSetForPrepareAOF()
 
 	want := ActionSet{
 		tasks:      []string{"signform"},
 		properties: map[string]string{nextStep: "signform"},
 	}
-	*tests = append(*tests, doMatchTest{"sign aof", entity, ruleSetsTests, ActionSet{
+	*tests = append(*tests, doMatchTest{"sign aof", entity, rc, ActionSet{
 		tasks:      []string{},
 		properties: make(map[string]string),
 	}, want})
@@ -461,11 +457,11 @@ func testSignAOFFail(tests *[]doMatchTest) {
 			stepFailed: trueStr,
 		},
 	}
-
+	rc := setupRuleSetForPrepareAOF()
 	want := ActionSet{
 		properties: map[string]string{done: trueStr},
 	}
-	*tests = append(*tests, doMatchTest{"sign aof fail", entity, ruleSetsTests, ActionSet{
+	*tests = append(*tests, doMatchTest{"sign aof fail", entity, rc, ActionSet{
 		tasks:      []string{},
 		properties: make(map[string]string),
 	}, want})
@@ -482,12 +478,12 @@ func testReceiveSignedAOF(tests *[]doMatchTest) {
 			stepFailed: falseStr,
 		},
 	}
-
+	rc := setupRuleSetForPrepareAOF()
 	want := ActionSet{
 		tasks:      []string{"receivesignedform"},
 		properties: map[string]string{nextStep: "receivesignedform"},
 	}
-	*tests = append(*tests, doMatchTest{"receive signed aof", entity, ruleSetsTests, ActionSet{
+	*tests = append(*tests, doMatchTest{"receive signed aof", entity, rc, ActionSet{
 		tasks:      []string{},
 		properties: make(map[string]string),
 	}, want})
@@ -504,12 +500,12 @@ func testUploadAOF(tests *[]doMatchTest) {
 			stepFailed: falseStr,
 		},
 	}
-
+	rc := setupRuleSetForPrepareAOF()
 	want := ActionSet{
 		tasks:      []string{"uploadsignedform"},
 		properties: map[string]string{nextStep: "uploadsignedform"},
 	}
-	*tests = append(*tests, doMatchTest{"upload signed aof", entity, ruleSetsTests, ActionSet{
+	*tests = append(*tests, doMatchTest{"upload signed aof", entity, rc, ActionSet{
 		tasks:      []string{},
 		properties: make(map[string]string),
 	}, want})
@@ -526,16 +522,17 @@ func testPrepareAOFEnd(tests *[]doMatchTest) {
 			stepFailed: falseStr,
 		},
 	}
+	rc := setupRuleSetForPrepareAOF()
 	want := ActionSet{
 		properties: map[string]string{done: trueStr},
 	}
-	*tests = append(*tests, doMatchTest{"prepare aof end", entity, ruleSetsTests, ActionSet{
+	*tests = append(*tests, doMatchTest{"prepare aof end", entity, rc, ActionSet{
 		tasks:      []string{},
 		properties: make(map[string]string),
 	}, want})
 }
 
-func setupRuleSetForPrepareAOF() {
+func setupRuleSetForPrepareAOF() *Ruleset_t {
 	rule1 := rule_t{
 		RulePatterns: []rulePatternBlock_t{
 			{step, opEQ, start},
@@ -639,7 +636,7 @@ func setupRuleSetForPrepareAOF() {
 		NCalled: 0,
 	}
 
-	ruleSetsTests = append(ruleSetsTests, &rs)
+	return &rs
 }
 
 func testValidateAOF(tests *[]doMatchTest) {
@@ -675,12 +672,12 @@ func testValidateExistingAOF(tests *[]doMatchTest) {
 			"aofexists": trueStr,
 		},
 	}
-
+	rc := setupRuleSetForValidateAOF()
 	want := ActionSet{
-		tasks:      []string{"getcustdetails", "downloadform"},
-		properties: map[string]string{done: trueStr, "nextstep": "downloadform"},
+
+		properties: map[string]string{done: trueStr},
 	}
-	*tests = append(*tests, doMatchTest{"validate existing aof", entity, ruleSetsTests, ActionSet{
+	*tests = append(*tests, doMatchTest{"validate existing aof", entity, rc, ActionSet{
 		tasks:      []string{},
 		properties: make(map[string]string),
 	}, want})
@@ -697,12 +694,13 @@ func testValidateAOFStart(tests *[]doMatchTest) {
 			"aofexists": falseStr,
 		},
 	}
+	rc := setupRuleSetForValidateAOF()
 
 	want := ActionSet{
-		tasks:      []string{"getcustdetails", "downloadform", "sendaoftorta"},
+		tasks:      []string{"sendaoftorta"},
 		properties: map[string]string{nextStep: "sendaoftorta"},
 	}
-	*tests = append(*tests, doMatchTest{"send aof to rta", entity, ruleSetsTests, ActionSet{
+	*tests = append(*tests, doMatchTest{"send aof to rta", entity, rc, ActionSet{
 		tasks:      []string{},
 		properties: make(map[string]string),
 	}, want})
@@ -720,11 +718,11 @@ func testSendAOFToRTAFail(tests *[]doMatchTest) {
 			"aofexists": falseStr,
 		},
 	}
-
+	rc := setupRuleSetForValidateAOF()
 	want := ActionSet{
 		properties: map[string]string{done: trueStr},
 	}
-	*tests = append(*tests, doMatchTest{"send aof to rta fail", entity, ruleSetsTests, ActionSet{
+	*tests = append(*tests, doMatchTest{"send aof to rta fail", entity, rc, ActionSet{
 		tasks:      []string{},
 		properties: make(map[string]string),
 	}, want})
@@ -742,12 +740,12 @@ func testAOFGetResponseFromRTA(tests *[]doMatchTest) {
 			"aofexists": falseStr,
 		},
 	}
-
+	rc := setupRuleSetForValidateAOF()
 	want := ActionSet{
 		tasks:      []string{"getresponsefromrta"},
 		properties: map[string]string{nextStep: "getresponsefromrta"},
 	}
-	*tests = append(*tests, doMatchTest{"aof - get response from rta", entity, ruleSetsTests, ActionSet{
+	*tests = append(*tests, doMatchTest{"aof - get response from rta", entity, rc, ActionSet{
 		tasks:      []string{},
 		properties: make(map[string]string),
 	}, want})
@@ -765,17 +763,17 @@ func testValidateAOFEnd(tests *[]doMatchTest) {
 			"aofexists": falseStr,
 		},
 	}
-
+	rc := setupRuleSetForValidateAOF()
 	want := ActionSet{
 		properties: map[string]string{done: trueStr},
 	}
-	*tests = append(*tests, doMatchTest{"validate aof end", entity, ruleSetsTests, ActionSet{
+	*tests = append(*tests, doMatchTest{"validate aof end", entity, rc, ActionSet{
 		tasks:      []string{},
 		properties: make(map[string]string),
 	}, want})
 }
 
-func setupRuleSetForValidateAOF() {
+func setupRuleSetForValidateAOF() *Ruleset_t {
 	rule1 := rule_t{
 		RulePatterns: []rulePatternBlock_t{
 			{step, opEQ, start},
@@ -834,6 +832,6 @@ func setupRuleSetForValidateAOF() {
 		Rules:   []rule_t{rule1, rule2, rule3, rule4, rule5},
 		NCalled: 0,
 	}
+	return &rs
 
-	ruleSetsTests = append(ruleSetsTests, &rs)
 }
