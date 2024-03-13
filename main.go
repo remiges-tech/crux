@@ -15,6 +15,7 @@ import (
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
+	"github.com/remiges-tech/crux/server/realmSliceManagement"
 	"github.com/remiges-tech/crux/server/schema"
 	"github.com/remiges-tech/crux/server/wfinstance"
 	"github.com/remiges-tech/crux/server/workflow"
@@ -24,8 +25,14 @@ import (
 )
 
 func main() {
+
+	// Logger setup
+	logFile, err := os.OpenFile("log.json", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
 	// logger setup
-	fallbackWriter := logharbour.NewFallbackWriter(os.Stdout, os.Stdout)
+	fallbackWriter := logharbour.NewFallbackWriter(logFile, os.Stdout)
 	lctx := logharbour.NewLoggerContext(logharbour.Debug0)
 	l := logharbour.NewLogger(lctx, "crux", fallbackWriter)
 
@@ -148,6 +155,8 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstancenew", wfinstance.GetWFinstanceNew)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstanceabort", wfinstance.GetWFInstanceAbort)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstancelist", wfinstance.GetWFInstanceList)
+	// Realm-slice management
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmSliceNew", realmSliceManagement.RealmSliceNew)
 
 	appServerPortStr := strconv.Itoa(appServerPort)
 	r.Run(":" + appServerPortStr)

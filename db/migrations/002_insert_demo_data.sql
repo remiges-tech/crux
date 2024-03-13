@@ -2,112 +2,126 @@
 INSERT INTO
     realm
 VALUES (
-        1, 'BSE', 'BSE', 'Bombay Stock Exchange', 'colty', '2022-12-26T09:03:46Z', '378'
+        11, 'BSE', 'BSE', 'Bombay Stock Exchange', 'colty', '2022-12-26T09:03:46Z', '378'
     );
 
 INSERT INTO
     realm
 VALUES (
-        2, 'NSE', 'NSE', 'National Stock Exchange', 'umflw', '1993-06-05T12:56:23Z', '216'
+        12, 'NSE', 'NSE', 'National Stock Exchange', 'umflw', '1993-06-05T12:56:23Z', '216'
     );
 
 INSERT INTO
     realm
 VALUES (
-        3, 'MERCE', 'MERCE', 'MERCE pvt LTD', 'iuykj', '1978-10-06T12:04:41Z', '886'
+        13, 'MERCE', 'MERCE', 'MERCE pvt LTD', 'iuykj', '1978-10-06T12:04:41Z', '886'
     );
 
 INSERT INTO
     realm
 VALUES (
-        4, 'REMIGES', 'REMIGES', 'REMIGES TECH PVT LTD', 'lgjix', '1970-11-24T02:08:37Z', '1009'
+        14, 'REMIGES', 'REMIGES', 'REMIGES TECH PVT LTD', 'lgjix', '1970-11-24T02:08:37Z', '1009'
     );
 
 -- realmslice(slice table)
 INSERT INTO
     realmslice
 VALUES (
-        1, 'NSE', 'Stock Market', true, NULL, NULL
+        11, 'NSE', 'Stock Market', true, NULL, NULL
     );
 
 INSERT INTO
     realmslice
 VALUES (
-        2, 'BSE', 'Stock Market', true, NULL, NULL
+        12, 'BSE', 'Stock Market', true, NULL, NULL
     );
 
 INSERT INTO
     realmslice
 VALUES (
-        3, 'MERCE', 'Merce Pvt ltd', true, NULL, NULL
+        13, 'MERCE', 'Merce Pvt ltd', true, NULL, NULL
     );
 
 INSERT INTO
     realmslice
 VALUES (
-        4, 'REMIGES', 'REMIGES Pvt ltd', true, NULL, NULL
+        14, 'REMIGES', 'REMIGES Pvt ltd', true, NULL, NULL
     );
 
 -- app
 INSERT INTO
     "app"
 VALUES (
-        1, 'BSE', 'retailBANK', 'retailBANK', 'retailbank pvt ltd', 'admin', '2024-01-29 00:00:00'
+        11, 'BSE', 'retailBANK', 'retailBANK', 'retailbank pvt ltd', 'admin', '2024-01-29 00:00:00'
     );
 
 INSERT INTO
     "app"
 VALUES (
-        2, 'NSE', 'retailbank', 'retailbank', 'retailbank pvt ltd', 'admin', '2024-01-29 00:00:00'
+        12, 'NSE', 'retailbank', 'retailbank', 'retailbank pvt ltd', 'admin', '2024-01-29 00:00:00'
     );
 
 INSERT INTO
     "app"
 VALUES (
-        3, 'MERCE', 'nedbank', 'nedbank', 'nedbank from canada', 'admin', '2024-01-29 00:00:00'
+        13, 'MERCE', 'nedbank', 'nedbank', 'nedbank from canada', 'admin', '2024-01-29 00:00:00'
     );
 
+-- config TABLE
+INSERT INTO
+    config (
+        realm, slice, name, descr, val, setby
+    )
+VALUES (
+        11, 11, 'CONFIG_A', 'Description for CONFIG_A', 'Value for CONFIG_A', 'User1'
+    ),
+    (
+        12, 12, 'CONFIG_B', 'Description for CONFIG_B', 'Value for CONFIG_B', 'User2'
+    ),
+    (
+        13, 13, 'CONFIG_C', 'Description for CONFIG_C', 'Value for CONFIG_C', 'User3'
+    );
 -- schema(schema table)
 INSERT INTO
     "schema"
 VALUES (
-        10, 1, 1, 'retailbank', 'B', 'custonboarding', '{"class":"custonboarding","attr":[{"name":"step","valtype":"enum","vals":["START","initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"]},{"name":"acctholdertype","valtype":"enum","vals":["individual","joint","corporate","hinduundivided","partnership"]},{"name":"branchtype","valtype":"enum","vals":["urban","semirural","rural"]},{"name":"branchcode","valtype":"str"},{"name":"refererquality","valtype":"int","valmin":0,"valmax":5},{"name":"districtcode","valtype":"int"},{"name":"accttype","valtype":"enum","vals":["savings","current","recurring","fixeddeposit","ppf"]}]}', '{"class":"retailcustomer","tasks":["initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"],"properties":["nextstep","done"]}', '2022-12-26T09:03:46Z', 'Mal Houndsom', '2023-07-12T01:33:32Z', 'Clerc Careless'
+        10, 11, 11, 'retailbank', 'B', 'custonboarding', '{"class":"custonboarding","attr":[{"name":"step","valtype":"enum","vals":["START","initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"]},{"name":"acctholdertype","valtype":"enum","vals":["individual","joint","corporate","hinduundivided","partnership"]},{"name":"branchtype","valtype":"enum","vals":["urban","semirural","rural"]},{"name":"branchcode","valtype":"str"},{"name":"refererquality","valtype":"int","valmin":0,"valmax":5},{"name":"districtcode","valtype":"int"},{"name":"accttype","valtype":"enum","vals":["savings","current","recurring","fixeddeposit","ppf"]}]}', '{"class":"retailcustomer","tasks":["initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"],"properties":["nextstep","done"]}', '2022-12-26T09:03:46Z', 'Mal Houndsom', '2023-07-12T01:33:32Z', 'Clerc Careless'
     );
 
 INSERT INTO
     "schema"
 VALUES (
-        11, 2, 2, 'nedbank', 'W', 'custonboarding', '{"class":"custonboarding","attr":[{"name":"step","valtype":"enum","vals":["START","initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"]},{"name":"acctholdertype","valtype":"enum","vals":["individual","joint","corporate","hinduundivided","partnership"]},{"name":"branchtype","valtype":"enum","vals":["urban","semirural","rural"]},{"name":"branchcode","valtype":"str"},{"name":"refererquality","valtype":"int","valmin":0,"valmax":5},{"name":"districtcode","valtype":"int"},{"name":"accttype","valtype":"enum","vals":["savings","current","recurring","fixeddeposit","ppf"]}]}', '{"class":"retailcustomer","tasks":["initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"],"properties":["nextstep","done"]}', '2021-01-03T06:02:41Z', 'Marielle Strongitharm', '2021-06-07T02:28:17Z', 'Therese Roselli'
+        11, 12, 12, 'nedbank', 'W', 'custonboarding', '{"class":"custonboarding","attr":[{"name":"step","valtype":"enum","vals":["START","initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"]},{"name":"acctholdertype","valtype":"enum","vals":["individual","joint","corporate","hinduundivided","partnership"]},{"name":"branchtype","valtype":"enum","vals":["urban","semirural","rural"]},{"name":"branchcode","valtype":"str"},{"name":"refererquality","valtype":"int","valmin":0,"valmax":5},{"name":"districtcode","valtype":"int"},{"name":"accttype","valtype":"enum","vals":["savings","current","recurring","fixeddeposit","ppf"]}]}', '{"class":"retailcustomer","tasks":["initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"],"properties":["nextstep","done"]}', '2021-01-03T06:02:41Z', 'Marielle Strongitharm', '2021-06-07T02:28:17Z', 'Therese Roselli'
     );
 
 insert into
     "schema"
 VALUES (
-        12, 1, 2, 'retailBANK', 'W', 'inventoryitems', '{"attr": [{"name": "cat", "vals": ["textbook", "notebook", "stationery", "refbooks"], "valtype": "enum", "enumdesc": ["Text books", "Notebooks", "Stationery and miscellaneous items", "Reference books, library books"], "longdesc": "Each item can belong to one of the following categories: textbooks, notebooks, stationery, or reference books.", "shortdesc": "Category of item"}, {"name": "mrp", "valmax": 20000, "valmin": 0, "valtype": "float", "longdesc": "The maximum retail price of the item in INR as declared by the manufacturer.", "shortdesc": "Maximum retail price"}, {"name": "fullname", "lenmax": 40, "lenmin": 5, "valtype": "str", "longdesc": "The full human-readable name of the item. Not unique, therefore sometimes confusing.", "shortdesc": "Full name of item"}, {"name": "ageinstock", "valmax": 1000, "valmin": 1, "valtype": "int", "longdesc": "The age in days that the oldest sample of this item has been lying in stock", "shortdesc": "Age in stock, in days"}, {"name": "inventoryqty", "valmax": 10000, "valmin": 0, "valtype": "int", "longdesc": "How many of these items are currently present in the inventory", "shortdesc": "Number of items in inventory"}], "class": "inventoryitems"}', '{"class":"retailcustomer","tasks":["initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"],"properties":["nextstep","done"]}', '2020-03-10T12:06:40Z', 'Marigold Sherwin', '2023-10-21T17:39:11Z', 'Brunhilde Bampkin'
+        12, 11, 12, 'retailBANK', 'W', 'inventoryitems', '{"attr": [{"name": "cat", "vals": ["textbook", "notebook", "stationery", "refbooks"], "valtype": "enum", "enumdesc": ["Text books", "Notebooks", "Stationery and miscellaneous items", "Reference books, library books"], "longdesc": "Each item can belong to one of the following categories: textbooks, notebooks, stationery, or reference books.", "shortdesc": "Category of item"}, {"name": "mrp", "valmax": 20000, "valmin": 0, "valtype": "float", "longdesc": "The maximum retail price of the item in INR as declared by the manufacturer.", "shortdesc": "Maximum retail price"}, {"name": "fullname", "lenmax": 40, "lenmin": 5, "valtype": "str", "longdesc": "The full human-readable name of the item. Not unique, therefore sometimes confusing.", "shortdesc": "Full name of item"}, {"name": "ageinstock", "valmax": 1000, "valmin": 1, "valtype": "int", "longdesc": "The age in days that the oldest sample of this item has been lying in stock", "shortdesc": "Age in stock, in days"}, {"name": "inventoryqty", "valmax": 10000, "valmin": 0, "valtype": "int", "longdesc": "How many of these items are currently present in the inventory", "shortdesc": "Number of items in inventory"}], "class": "inventoryitems"}', '{"class":"retailcustomer","tasks":["initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"],"properties":["nextstep","done"]}', '2020-03-10T12:06:40Z', 'Marigold Sherwin', '2023-10-21T17:39:11Z', 'Brunhilde Bampkin'
     );
 
 insert into
     "schema"
 VALUES (
-        13, 4, 2, 'retailBANK', 'B', 'custonboarding', '{"class":"custonboarding","attr":[{"name":"step","valtype":"enum","vals":["START","initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"]},{"name":"acctholdertype","valtype":"enum","vals":["individual","joint","corporate","hinduundivided","partnership"]},{"name":"branchtype","valtype":"enum","vals":["urban","semirural","rural"]},{"name":"branchcode","valtype":"str"},{"name":"refererquality","valtype":"int","valmin":0,"valmax":5},{"name":"districtcode","valtype":"int"},{"name":"accttype","valtype":"enum","vals":["savings","current","recurring","fixeddeposit","ppf"]}]}', '{"class":"retailcustomer","tasks":["initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"],"properties":["nextstep","done"]}', '2023-01-27T12:12:15Z', 'Adelaide Reape', '2023-01-04T22:00:12Z', 'Imogene Iaduccelli'
+        13, 14, 12, 'retailBANK', 'B', 'custonboarding', '{"class":"custonboarding","attr":[{"name":"step","valtype":"enum","vals":["START","initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"]},{"name":"acctholdertype","valtype":"enum","vals":["individual","joint","corporate","hinduundivided","partnership"]},{"name":"branchtype","valtype":"enum","vals":["urban","semirural","rural"]},{"name":"branchcode","valtype":"str"},{"name":"refererquality","valtype":"int","valmin":0,"valmax":5},{"name":"districtcode","valtype":"int"},{"name":"accttype","valtype":"enum","vals":["savings","current","recurring","fixeddeposit","ppf"]}]}', '{"class":"retailcustomer","tasks":["initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"],"properties":["nextstep","done"]}', '2023-01-27T12:12:15Z', 'Adelaide Reape', '2023-01-04T22:00:12Z', 'Imogene Iaduccelli'
     );
 
 insert into
     "schema"
 VALUES (
-        14, 1, 1, 'retailBANK', 'B', 'temp', '{"class":"temp","attr":[{"name":"step","valtype":"enum","vals":["START","initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"]},{"name":"acctholdertype","valtype":"enum","vals":["individual","joint","corporate","hinduundivided","partnership"]},{"name":"branchtype","valtype":"enum","vals":["urban","semirural","rural"]},{"name":"branchcode","valtype":"str"},{"name":"refererquality","valtype":"int","valmin":0,"valmax":5},{"name":"districtcode","valtype":"int"},{"name":"accttype","valtype":"enum","vals":["savings","current","recurring","fixeddeposit","ppf"]}]}', '{"class":"retailcustomer","tasks":["initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"],"properties":["nextstep","done"]}', '2022-12-24T19:38:52Z', 'Olly Gerrish', '2021-04-28T20:39:09Z', 'Ronni Matson'
+        14, 11, 11, 'retailBANK', 'B', 'temp', '{"class":"temp","attr":[{"name":"step","valtype":"enum","vals":["START","initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"]},{"name":"acctholdertype","valtype":"enum","vals":["individual","joint","corporate","hinduundivided","partnership"]},{"name":"branchtype","valtype":"enum","vals":["urban","semirural","rural"]},{"name":"branchcode","valtype":"str"},{"name":"refererquality","valtype":"int","valmin":0,"valmax":5},{"name":"districtcode","valtype":"int"},{"name":"accttype","valtype":"enum","vals":["savings","current","recurring","fixeddeposit","ppf"]}]}', '{"class":"retailcustomer","tasks":["initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"],"properties":["nextstep","done"]}', '2022-12-24T19:38:52Z', 'Olly Gerrish', '2021-04-28T20:39:09Z', 'Ronni Matson'
     );
 
 insert into
     "schema"
 VALUES (
-        15, 1, 2, 'retailBANK', 'W', 'members', '{"attr":[{"name":"cat","vals":["textbook","notebook","stationery","refbooks"],"valtype":"enum","enumdesc":["Text books","Notebooks","Stationery and miscellaneous items","Reference books, library books"],"longdesc":"Each item can belong to one of the following categories: textbooks, notebooks, stationery, or reference books.","shortdesc":"Category of item"},{"name":"mrp","valmax":20000,"valmin":0,"valtype":"float","longdesc":"The maximum retail price of the item in INR as declared by the manufacturer.","shortdesc":"Maximum retail price"},{"name":"fullname","lenmax":40,"lenmin":5,"valtype":"str","longdesc":"The full human-readable name of the item. Not unique, therefore sometimes confusing.","shortdesc":"Full name of item"},{"name":"ageinstock","valmax":1000,"valmin":1,"valtype":"int","longdesc":"The age in days that the oldest sample of this item has been lying in stock","shortdesc":"Age in stock, in days"},{"name":"inventoryqty","valmax":10000,"valmin":0,"valtype":"int","longdesc":"How many of these items are currently present in the inventory","shortdesc":"Number of items in inventory"}],"class":"members"}', '{"tasks":["invitefordiwali","allowretailsale","assigntotrash"],"properties":["discount","shipby"]}', '2020-03-10T12:06:40Z', 'Marigold Sherwin', '2023-10-21T17:39:11Z', 'Brunhilde Bampkin'
+        15, 11, 12, 'retailBANK', 'W', 'members', '{"attr":[{"name":"cat","vals":["textbook","notebook","stationery","refbooks"],"valtype":"enum","enumdesc":["Text books","Notebooks","Stationery and miscellaneous items","Reference books, library books"],"longdesc":"Each item can belong to one of the following categories: textbooks, notebooks, stationery, or reference books.","shortdesc":"Category of item"},{"name":"mrp","valmax":20000,"valmin":0,"valtype":"float","longdesc":"The maximum retail price of the item in INR as declared by the manufacturer.","shortdesc":"Maximum retail price"},{"name":"fullname","lenmax":40,"lenmin":5,"valtype":"str","longdesc":"The full human-readable name of the item. Not unique, therefore sometimes confusing.","shortdesc":"Full name of item"},{"name":"ageinstock","valmax":1000,"valmin":1,"valtype":"int","longdesc":"The age in days that the oldest sample of this item has been lying in stock","shortdesc":"Age in stock, in days"},{"name":"inventoryqty","valmax":10000,"valmin":0,"valtype":"int","longdesc":"How many of these items are currently present in the inventory","shortdesc":"Number of items in inventory"}],"class":"members"}', '{"tasks":["invitefordiwali","allowretailsale","assigntotrash"],"properties":["discount","shipby"]}', '2020-03-10T12:06:40Z', 'Marigold Sherwin', '2023-10-21T17:39:11Z', 'Brunhilde Bampkin'
     );
 
 INSERT INTO
     "schema"
 VALUES (
-        16, 2, 2, 'retailBANK', 'B', 'retailcustomer', '{"class":"retailcustomer","attr":[{"name":"step","valtype":"enum","vals":["START","initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"]},{"name":"acctholdertype","valtype":"enum","vals":["individual","joint","corporate","hinduundivided","partnership"]},{"name":"branchtype","valtype":"enum","vals":["urban","semirural","rural"]},{"name":"branchcode","valtype":"str"},{"name":"refererquality","valtype":"int","valmin":0,"valmax":5},{"name":"districtcode","valtype":"int"},{"name":"accttype","valtype":"enum","vals":["savings","current","recurring","fixeddeposit","ppf"]}]}', '{"class":"retailcustomer","tasks":["initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"],"properties":["nextstep","done"]}', '2020-03-10T12:06:40Z', 'Marigold Sherwin', '2023-10-21T17:39:11Z', 'Brunhilde Bampkin'
+        16, 12, 12, 'retailBANK', 'B', 'retailcustomer', '{"class":"retailcustomer","attr":[{"name":"step","valtype":"enum","vals":["START","initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"]},{"name":"acctholdertype","valtype":"enum","vals":["individual","joint","corporate","hinduundivided","partnership"]},{"name":"branchtype","valtype":"enum","vals":["urban","semirural","rural"]},{"name":"branchcode","valtype":"str"},{"name":"refererquality","valtype":"int","valmin":0,"valmax":5},{"name":"districtcode","valtype":"int"},{"name":"accttype","valtype":"enum","vals":["savings","current","recurring","fixeddeposit","ppf"]}]}', '{"class":"retailcustomer","tasks":["initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"],"properties":["nextstep","done"]}', '2020-03-10T12:06:40Z', 'Marigold Sherwin', '2023-10-21T17:39:11Z', 'Brunhilde Bampkin'
     );
 
 -- ruleset
@@ -116,7 +130,7 @@ INSERT INTO
         id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby, editedat, editedby
     )
 VALUES (
-        5, 1, 2, 'retailbank', 'members', 'W', 'goldstatus', true, true, 10, '[{"rulepattern":[{"op":"eq","val":"initialdoc","attr":"step"},{"op":"eq","val":"rural","attr":"branchtype"},{"op":"eq","val":"savings","attr":"accttype"}],"ruleactions":{"tasks":["aadhaarcheck"],"properties":[{"val":"aadhaarcheck","name":"nextstep"}]}},{"rulepattern":[{"op":"eq","val":"initialdoc","attr":"step"},{"op":"eq","val":"semirural","attr":"branchtype"},{"op":"ne","val":"ppf","attr":"accttype"}],"ruleactions":{"tasks":["creditbureauchk","bankdetails","panchk"],"properties":[{"val":"creditbureauchk","name":"nextstep"}]}}]', '2024-01-28T00:00:00Z', 'admin', '2024-01-15T00:00:00Z', 'admin'
+        5, 11, 11, 'retailbank', 'members', 'W', 'goldstatus', true, true, 10, '[{"rulepattern":[{"op":"eq","val":"initialdoc","attr":"step"},{"op":"eq","val":"rural","attr":"branchtype"},{"op":"eq","val":"savings","attr":"accttype"}],"ruleactions":{"tasks":["aadhaarcheck"],"properties":[{"val":"aadhaarcheck","name":"nextstep"}]}},{"rulepattern":[{"op":"eq","val":"initialdoc","attr":"step"},{"op":"eq","val":"semirural","attr":"branchtype"},{"op":"ne","val":"ppf","attr":"accttype"}],"ruleactions":{"tasks":["creditbureauchk","bankdetails","panchk"],"properties":[{"val":"creditbureauchk","name":"nextstep"}]}}]', '2024-01-28T00:00:00Z', 'admin', '2024-01-15T00:00:00Z', 'admin'
     );
 
 INSERT INTO
@@ -124,7 +138,7 @@ INSERT INTO
         id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby, editedat, editedby
     )
 VALUES (
-        6, 1, 2, 'retailBANK', 'members', 'W', 'temp', true, false, 13, '[{"rulepattern":[{"op":"eq","val":"initialdoc","attr":"step"},{"op":"eq","val":"rural","attr":"branchtype"},{"op":"eq","val":"savings","attr":"accttype"}],"ruleactions":{"tasks":["aadhaarcheck"],"properties":[{"val":"aadhaarcheck","name":"nextstep"}]}},{"rulepattern":[{"op":"eq","val":"initialdoc","attr":"step"},{"op":"eq","val":"semirural","attr":"branchtype"},{"op":"ne","val":"ppf","attr":"accttype"}],"ruleactions":{"tasks":["creditbureauchk","bankdetails","panchk"],"properties":[{"val":"creditbureauchk","name":"nextstep"}]}}]', '2024-01-28T00:00:00Z', 'admin', '2024-01-15T00:00:00Z', 'admin'
+        6, 11, 12, 'retailBANK', 'members', 'W', 'temp', true, false, 13, '[{"rulepattern":[{"op":"eq","val":"initialdoc","attr":"step"},{"op":"eq","val":"rural","attr":"branchtype"},{"op":"eq","val":"savings","attr":"accttype"}],"ruleactions":{"tasks":["aadhaarcheck"],"properties":[{"val":"aadhaarcheck","name":"nextstep"}]}},{"rulepattern":[{"op":"eq","val":"initialdoc","attr":"step"},{"op":"eq","val":"semirural","attr":"branchtype"},{"op":"ne","val":"ppf","attr":"accttype"}],"ruleactions":{"tasks":["creditbureauchk","bankdetails","panchk"],"properties":[{"val":"creditbureauchk","name":"nextstep"}]}}]', '2024-01-28T00:00:00Z', 'admin', '2024-01-15T00:00:00Z', 'admin'
 
 
 );
@@ -134,7 +148,7 @@ INSERT INTO
         id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby, editedat, editedby
     )
 VALUES (
-        7, 1, 3, 'nedbank', 'calls', 'W', 'vip', false, false, 13, '[{"rulepattern":[{"op":"eq","val":"initialdoc","attr":"step"},{"op":"eq","val":"rural","attr":"branchtype"},{"op":"eq","val":"savings","attr":"accttype"}],"ruleactions":{"tasks":["aadhaarcheck"],"properties":[{"val":"aadhaarcheck","name":"nextstep"}]}},{"rulepattern":[{"op":"eq","val":"initialdoc","attr":"step"},{"op":"eq","val":"semirural","attr":"branchtype"},{"op":"ne","val":"ppf","attr":"accttype"}],"ruleactions":{"tasks":["creditbureauchk","bankdetails","panchk"],"properties":[{"val":"creditbureauchk","name":"nextstep"}]}}]', '2024-01-28T00:00:00Z', 'aniket', '2024-01-15T00:00:00Z', 'tushar'
+        7, 11, 13, 'nedbank', 'calls', 'W', 'vip', false, false, 13, '[{"rulepattern":[{"op":"eq","val":"initialdoc","attr":"step"},{"op":"eq","val":"rural","attr":"branchtype"},{"op":"eq","val":"savings","attr":"accttype"}],"ruleactions":{"tasks":["aadhaarcheck"],"properties":[{"val":"aadhaarcheck","name":"nextstep"}]}},{"rulepattern":[{"op":"eq","val":"initialdoc","attr":"step"},{"op":"eq","val":"semirural","attr":"branchtype"},{"op":"ne","val":"ppf","attr":"accttype"}],"ruleactions":{"tasks":["creditbureauchk","bankdetails","panchk"],"properties":[{"val":"creditbureauchk","name":"nextstep"}]}}]', '2024-01-28T00:00:00Z', 'aniket', '2024-01-15T00:00:00Z', 'tushar'
     );
 
 INSERT INTO
@@ -142,19 +156,19 @@ INSERT INTO
         id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby, editedat, editedby
     )
 VALUES (
-        8, 1, 2, 'retailBANK', 'inventoryitems', 'W', 'discountcheck', true, false, 13, '[{"rulepattern":[{"op":"eq","val":"initialdoc","attr":"step"},{"op":"eq","val":"rural","attr":"branchtype"},{"op":"eq","val":"savings","attr":"accttype"}],"ruleactions":{"tasks":["aadhaarcheck"],"properties":[{"val":"aadhaarcheck","name":"nextstep"}]}},{"rulepattern":[{"op":"eq","val":"initialdoc","attr":"step"},{"op":"eq","val":"semirural","attr":"branchtype"},{"op":"ne","val":"ppf","attr":"accttype"}],"ruleactions":{"tasks":["creditbureauchk","bankdetails","panchk"],"properties":[{"val":"creditbureauchk","name":"nextstep"}]}}]', '2024-01-28T00:00:00Z', 'admin', '2024-01-15T00:00:00Z', 'admin'
+        8, 11, 12, 'retailBANK', 'inventoryitems', 'W', 'discountcheck', true, false, 13, '[{"rulepattern":[{"op":"eq","val":"initialdoc","attr":"step"},{"op":"eq","val":"rural","attr":"branchtype"},{"op":"eq","val":"savings","attr":"accttype"}],"ruleactions":{"tasks":["aadhaarcheck"],"properties":[{"val":"aadhaarcheck","name":"nextstep"}]}},{"rulepattern":[{"op":"eq","val":"initialdoc","attr":"step"},{"op":"eq","val":"semirural","attr":"branchtype"},{"op":"ne","val":"ppf","attr":"accttype"}],"ruleactions":{"tasks":["creditbureauchk","bankdetails","panchk"],"properties":[{"val":"creditbureauchk","name":"nextstep"}]}}]', '2024-01-28T00:00:00Z', 'admin', '2024-01-15T00:00:00Z', 'admin'
     );
 -- stepworkflow
 INSERT INTO
     stepworkflow
 VALUES (
-        2, 'retailBANK', 'yearendsale', 'doyearendsalechk'
+        12, 'retailBANK', 'yearendsale', 'doyearendsalechk'
     );
 
 INSERT INTO
     stepworkflow
 VALUES (
-        2, 'retailBANK', 'diwalisale', 'dodiscountcheck'
+        12, 'retailBANK', 'diwalisale', 'dodiscountcheck'
     );
 
 --  for test case
@@ -163,7 +177,7 @@ INSERT INTO
         "id", "slice", "class", "step", "entityid", "app", "workflow", "loggedat", "nextstep"
     )
 VALUES (
-        777777, 2, 'inventoryitems', 'tempstep', 'tempentityid', 'retailBANK', 'temp', '2024-02-05 00:00:00', 'temp'
+        777777, 12, 'inventoryitems', 'tempstep', 'tempentityid', 'retailBANK', 'temp', '2024-02-05 00:00:00', 'temp'
     );
 
 INSERT INTO
@@ -171,7 +185,7 @@ INSERT INTO
         "id", "slice", "class", "step", "entityid", "app", "workflow", "loggedat", "nextstep", "parent"
     )
 VALUES (
-        77, 2, 'inventoryitems', 'tempstep', 'tempentityid', 'retailBANK', 'temp', '2024-02-05 00:00:00', 'temp', 78
+        77, 12, 'inventoryitems', 'tempstep', 'tempentityid', 'retailBANK', 'temp', '2024-02-05 00:00:00', 'temp', 78
     );
 
 INSERT INTO
@@ -179,7 +193,7 @@ INSERT INTO
         "id", "slice", "class", "step", "entityid", "app", "workflow", "loggedat", "nextstep"
     )
 VALUES (
-        78, 2, 'inventoryitems', 'tempstep', 'tempentityid', 'retailBANK', 'temp', '2024-02-05 00:00:00', 'temp'
+        78, 12, 'inventoryitems', 'tempstep', 'tempentityid', 'retailBANK', 'temp', '2024-02-05 00:00:00', 'temp'
     );
 
 ---- create above / drop below ----
@@ -195,7 +209,8 @@ DELETE FROM ruleset;
 
 -- schema
 DELETE FROM "schema";
-
+-- config
+DELETE FROM "config";
 -- app
 DELETE FROM "app";
 
