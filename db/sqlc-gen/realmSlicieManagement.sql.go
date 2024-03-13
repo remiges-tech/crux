@@ -52,7 +52,10 @@ SELECT
 FROM ruleset
 WHERE
     ruleset.slice = $1
-    AND ( $4::text[] is null OR app = any( $4::text[]))
+    AND (
+        $4::text [] is null
+        OR app = any ($4::text [])
+    )
 `
 
 type CopyRulesetParams struct {
@@ -88,7 +91,10 @@ SELECT
 FROM schema
 WHERE
     schema.slice = $1
-    AND ( $4::text[] is null OR app = any( $4::text[]))
+    AND (
+        $4::text [] is null
+        OR app = any ($4::text [])
+    )
 `
 
 type CopySchemaParams struct {
@@ -114,7 +120,10 @@ INSERT INTO
     )
 SELECT
     realm,
-    ($3::VARCHAR is null OR descr = $3::VARCHAR),
+    (
+        $3::VARCHAR is null
+        OR descr = $3::VARCHAR
+    ),
     -- descr,
     active,
     activateat,
@@ -135,6 +144,30 @@ type CreateNewSliceBYParams struct {
 
 func (q *Queries) CreateNewSliceBY(ctx context.Context, arg CreateNewSliceBYParams) (int32, error) {
 	row := q.db.QueryRow(ctx, createNewSliceBY, arg.ID, arg.Realm, arg.Descr)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
+}
+
+const createRealmSlice = `-- name: CreateRealmSlice :one
+INSERT INTO
+    realmslice (
+        realm, descr, active
+    )
+VALUES (
+    $1, $2, TRUE
+)
+RETURNING
+   realmslice.id
+`
+
+type CreateRealmSliceParams struct {
+	Realm string `json:"realm"`
+	Descr string `json:"descr"`
+}
+
+func (q *Queries) CreateRealmSlice(ctx context.Context, arg CreateRealmSliceParams) (int32, error) {
+	row := q.db.QueryRow(ctx, createRealmSlice, arg.Realm, arg.Descr)
 	var id int32
 	err := row.Scan(&id)
 	return id, err
