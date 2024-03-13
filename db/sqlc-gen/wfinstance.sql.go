@@ -118,39 +118,6 @@ func (q *Queries) DeleteWFInstanceListByParents(ctx context.Context, arg DeleteW
 	return items, nil
 }
 
-const deleteWfInstance = `-- name: DeleteWfInstance :one
-WITH deleted_parents AS (
-   DELETE FROM wfinstance
-   WHERE
-       (id = $1::INTEGER OR entityid = $2::TEXT)
-   RETURNING parent
-),
-deletion_count AS (
-   SELECT COUNT(*) AS cnt FROM deleted_parents
-),
-delete_childrens AS (
-    DELETE FROM wfinstance
-    WHERE parent IN (SELECT parent FROM deleted_parents WHERE parent IS NOT NULL)
-)
-SELECT 
-    CASE 
-        WHEN (SELECT cnt FROM deletion_count) > 0 THEN 1
-        ELSE -1 
-    END AS result
-`
-
-type DeleteWfInstanceParams struct {
-	ID       pgtype.Int4 `json:"id"`
-	Entityid pgtype.Text `json:"entityid"`
-}
-
-func (q *Queries) DeleteWfInstance(ctx context.Context, arg DeleteWfInstanceParams) (int32, error) {
-	row := q.db.QueryRow(ctx, deleteWfInstance, arg.ID, arg.Entityid)
-	var result int32
-	err := row.Scan(&result)
-	return result, err
-}
-
 const deleteWfinstanceByID = `-- name: DeleteWfinstanceByID :many
   DELETE FROM wfinstance
    WHERE
