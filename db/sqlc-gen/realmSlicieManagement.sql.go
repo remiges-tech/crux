@@ -168,6 +168,57 @@ func (q *Queries) InsertNewRecordInRealmSlice(ctx context.Context, arg InsertNew
 	return id, err
 }
 
+const realmSliceActivate = `-- name: RealmSliceActivate :one
+
+UPDATE realmslice
+SET
+    active = $1,
+    activateat = CASE
+        WHEN ($2::TIMESTAMP) IS NULL
+            THEN NOW()
+        ELSE ($2::TIMESTAMP)
+    END,
+    deactivateat = NULL
+WHERE
+    id = $3
+    RETURNING id, realm, descr, active, activateat, deactivateat
+`
+
+type RealmSliceActivateParams struct {
+	Isactive   bool             `json:"isactive"`
+	Activateat pgtype.Timestamp `json:"activateat"`
+	ID         int32            `json:"id"`
+}
+
+// -- name: RealmSlicePurge :exec
+// DELETE stepworkflow st,
+// wfinstance w,
+// ruleset r,
+// schema s,
+// config c,
+// realmslice rs
+// FROM
+//
+//	stepworkflow st
+//	JOIN wfinstance w ON st.slice = w.slice
+//	JOIN ruleset r ON st.slice = r.slice
+//	JOIN schema s ON st.slice = s.slice
+//	JOIN config c ON st.slice = c.slice
+//	JOIN realmslice rs ON st.slice = rs.id;
+func (q *Queries) RealmSliceActivate(ctx context.Context, arg RealmSliceActivateParams) (Realmslice, error) {
+	row := q.db.QueryRow(ctx, realmSliceActivate, arg.Isactive, arg.Activateat, arg.ID)
+	var i Realmslice
+	err := row.Scan(
+		&i.ID,
+		&i.Realm,
+		&i.Descr,
+		&i.Active,
+		&i.Activateat,
+		&i.Deactivateat,
+	)
+	return i, err
+}
+
 const realmSliceAppsList = `-- name: RealmSliceAppsList :many
 SELECT a.shortname, a.longname
 FROM realmslice
@@ -199,4 +250,39 @@ func (q *Queries) RealmSliceAppsList(ctx context.Context, id int32) ([]RealmSlic
 		return nil, err
 	}
 	return items, nil
+}
+
+const realmSliceDeactivate = `-- name: RealmSliceDeactivate :one
+UPDATE realmslice
+SET
+    active = $1,
+    deactivateat = CASE
+        WHEN ($2::TIMESTAMP) IS NULL
+            THEN NOW()
+        ELSE ($2::TIMESTAMP)
+    END,
+    activateat = NULL
+WHERE
+    id = $3
+    RETURNING id, realm, descr, active, activateat, deactivateat
+`
+
+type RealmSliceDeactivateParams struct {
+	Isactive     bool             `json:"isactive"`
+	Deactivateat pgtype.Timestamp `json:"deactivateat"`
+	ID           int32            `json:"id"`
+}
+
+func (q *Queries) RealmSliceDeactivate(ctx context.Context, arg RealmSliceDeactivateParams) (Realmslice, error) {
+	row := q.db.QueryRow(ctx, realmSliceDeactivate, arg.Isactive, arg.Deactivateat, arg.ID)
+	var i Realmslice
+	err := row.Scan(
+		&i.ID,
+		&i.Realm,
+		&i.Descr,
+		&i.Active,
+		&i.Activateat,
+		&i.Deactivateat,
+	)
+	return i, err
 }

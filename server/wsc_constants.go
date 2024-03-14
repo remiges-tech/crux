@@ -29,6 +29,7 @@ const (
 	ErrCode_AlreadyExist                                          = "already_exist"
 	ErrCode_NotFound                                              = "not_found"
 	ErrCode_Unauthorized                                          = "Unauthorized"
+	ErrCode_TooEarly                                              = "tooearly"
 	ErrCode_Invalid_APP                                           = "invalid_app"
 	ErrCode_Invalid_Class                                         = "invalid_class"
 	ErrCode_Invalid_workflow_active_status                        = "invalid_workflow_active_status"

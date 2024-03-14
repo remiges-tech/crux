@@ -158,6 +158,8 @@ func main() {
 
 	// Realm-slice management
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmSliceNew", realmSliceManagement.RealmSliceNew)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmsliceactivate", realmSliceManagement.RealmSliceActivate)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmslicedeactivate", realmSliceManagement.RealmSliceDeactivate)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/realmSliceApps/:id", realmSliceManagement.RealmSliceApps)
 
 	appServerPortStr := strconv.Itoa(appServerPort)
