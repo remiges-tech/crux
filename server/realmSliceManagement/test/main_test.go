@@ -107,21 +107,24 @@ func registerRoutes(databaseUrl string) (*gin.Engine, error) {
 	fallbackWriter := logharbour.NewFallbackWriter(os.Stdout, os.Stdout)
 	lctx := logharbour.NewLoggerContext(logharbour.Info)
 	l := logharbour.NewLogger(lctx, "crux", fallbackWriter)
-
-	// Define a custom validation tag-to-message ID map
-	customValidationMap := map[string]int{
-		"required":  101,
-		"gt":        102,
-		"alpha":     103,
-		"lowercase": 104,
-	}
-	// Custom validation tag-to-error code map
-	customErrCodeMap := map[string]string{
-		"required":  "required",
-		"gt":        "greater",
-		"alpha":     "alphabet",
-		"lowercase": "lowercase",
-	}
+// Define a custom validation tag-to-message ID map
+customValidationMap := map[string]int{
+	"required":  101,
+	"gt":        102,
+	"alpha":     103,
+	"lowercase": 104,
+	"max":       105,
+	"lt":        106,
+}
+// Custom validation tag-to-error code map
+customErrCodeMap := map[string]string{
+	"required":  "required",
+	"gt":        "greater",
+	"alpha":     "alphabet",
+	"lowercase": "lowercase",
+	"max":       "exceed the maximum value allowed",
+	"lt":        "exceed the limit value allowed",
+}
 	// Register the custom map with wscutils
 	wscutils.SetValidationTagToMsgIDMap(customValidationMap)
 	wscutils.SetValidationTagToErrCodeMap(customErrCodeMap)

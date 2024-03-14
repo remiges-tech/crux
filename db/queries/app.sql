@@ -6,7 +6,18 @@ INSERT INTO
 VALUES (
         @realm, @shortname, @shortnamelc, @longname, @setby
     )
-    RETURNING *;
+RETURNING
+    *;
 
--- name: GetAppName :one
-select count(1) FROM app WHERE shortnamelc = $1 AND realm = $2;
+-- name: GetAppName :many
+select * FROM app WHERE shortnamelc = $1 AND realm = $2;
+
+-- name: AppUpdate :exec
+UPDATE app
+set
+    longname = @longname,
+    setat = NOW(),
+    setby = @setby
+WHERE
+    shortnamelc = @shortnamelc
+    AND realm = @realm;

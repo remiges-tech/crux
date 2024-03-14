@@ -17,7 +17,8 @@ INSERT INTO
 VALUES (
         $1, $2, $3, $4, $5
     )
-    RETURNING id, realm, shortname, shortnamelc, longname, setby, setat
+RETURNING
+    id, realm, shortname, shortnamelc, longname, setby, setat
 `
 
 type AppNewParams struct {
@@ -62,8 +63,36 @@ func (q *Queries) AppNew(ctx context.Context, arg AppNewParams) ([]App, error) {
 	return items, nil
 }
 
-const getAppName = `-- name: GetAppName :one
-select count(1) FROM app WHERE shortnamelc = $1 AND realm = $2
+const appUpdate = `-- name: AppUpdate :exec
+UPDATE app
+set
+    longname = $1,
+    setat = NOW(),
+    setby = $2
+WHERE
+    shortnamelc = $3
+    AND realm = $4
+`
+
+type AppUpdateParams struct {
+	Longname    string `json:"longname"`
+	Setby       string `json:"setby"`
+	Shortnamelc string `json:"shortnamelc"`
+	Realm       string `json:"realm"`
+}
+
+func (q *Queries) AppUpdate(ctx context.Context, arg AppUpdateParams) error {
+	_, err := q.db.Exec(ctx, appUpdate,
+		arg.Longname,
+		arg.Setby,
+		arg.Shortnamelc,
+		arg.Realm,
+	)
+	return err
+}
+
+const getAppName = `-- name: GetAppName :many
+select id, realm, shortname, shortnamelc, longname, setby, setat FROM app WHERE shortnamelc = $1 AND realm = $2
 `
 
 type GetAppNameParams struct {
@@ -71,9 +100,30 @@ type GetAppNameParams struct {
 	Realm       string `json:"realm"`
 }
 
-func (q *Queries) GetAppName(ctx context.Context, arg GetAppNameParams) (int64, error) {
-	row := q.db.QueryRow(ctx, getAppName, arg.Shortnamelc, arg.Realm)
-	var count int64
-	err := row.Scan(&count)
-	return count, err
+func (q *Queries) GetAppName(ctx context.Context, arg GetAppNameParams) ([]App, error) {
+	rows, err := q.db.Query(ctx, getAppName, arg.Shortnamelc, arg.Realm)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []App
+	for rows.Next() {
+		var i App
+		if err := rows.Scan(
+			&i.ID,
+			&i.Realm,
+			&i.Shortname,
+			&i.Shortnamelc,
+			&i.Longname,
+			&i.Setby,
+			&i.Setat,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

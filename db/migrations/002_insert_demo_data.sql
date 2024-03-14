@@ -52,7 +52,7 @@ VALUES (
 INSERT INTO
     "app"
 VALUES (
-        11, 'BSE', 'retailBANK', 'retailBANK', 'retailbank pvt ltd', 'admin', '2024-01-29 00:00:00'
+        11, 'BSE', 'retailBANK', 'retailbank', 'retailbank pvt ltd', 'admin', '2024-01-29 00:00:00'
     );
 
 INSERT INTO
