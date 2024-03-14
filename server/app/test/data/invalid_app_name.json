@@ -1,0 +1,16 @@
+{
+    "status": "error",
+    "data": null,
+    "messages": [
+        {
+            "msgid": 1003,
+            "errcode": "invalid_name",
+            "field": "app"
+        },
+        {
+            "msgid": 1003,
+            "errcode": "name_must_be_single_word",
+            "field": "app"
+        }
+    ]
+}

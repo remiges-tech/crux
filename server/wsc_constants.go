@@ -41,4 +41,8 @@ const (
 	ErrCode_Does_Not_Contain_Both_Properties_Nextstep_And_Done    = "does_not_contain_both_properties_nextstep_and_done"
 	ErrCode_ActionSchema_Task_Not_Same_As_PatternSchema_Step_Attr = "actionschema_tasks_are_not_same_as_'step'_in_patternschema"
 	ErrCode_Invalid_NAME                                          = "invalid_name"
+	Errcode_Single_Name                                           = "name_must_be_single_word"
+	Errcode_Reserved_name                                         = "reserved_name"
+	ErrCode_Name_Already_Exist                                    = "name_already exist"
+	ERRCode_Name_Not_Exist                                        = "name_not_exist"
 )

@@ -15,27 +15,19 @@ import (
 	"github.com/remiges-tech/logharbour/logharbour"
 )
 
-var (
-	RESERVED_APPNAMES = []string{"ALL"}
-	rootCapability    = []string{"root"}
-	USERID            = "1234"
-	REALM             = "BSE"
-	ADMIN             = "admin"
-)
-
 // Incoming request format
-type GetAppNewRequest struct {
+type GetAppUpdateRequest struct {
 	Name        string `json:"name" validate:"required,lt=25"`
 	Description string `json:"descr" validate:"required,gt=0,lt=40"`
 }
 
-// AppNew will be responsible for processing the /appnew request that comes through as a POST
-func AppNew(c *gin.Context, s *service.Service) {
+// AppUpdate will be responsible for processing the /appUpdate request that comes through as a POST
+func AppUpdate(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour.WithClass("app")
-	lh.Log("AppNew request received")
+	lh.Log("AppUpdate request received")
 
 	var (
-		request GetAppNewRequest
+		request GetAppUpdateRequest
 	)
 
 	isCapable, _ := server.Authz_check(types.OpReq{
@@ -52,13 +44,13 @@ func AppNew(c *gin.Context, s *service.Service) {
 	// Bind request
 	err := wscutils.BindJSON(c, &request)
 	if err != nil {
-		lh.Error(err).Log("AppNew() || error while binding json request error")
+		lh.Error(err).Log("AppUpdate() || error while binding json request error")
 		return
 	}
 	// Standard validation of Incoming Request
 	validationErrors := wscutils.WscValidate(request, func(err validator.FieldError) []string { return []string{} })
 	if len(validationErrors) > 0 {
-		lh.Debug0().LogActivity("AppNew()||validation error:", validationErrors)
+		lh.Debug0().LogActivity("AppUpdate()||validation error:", validationErrors)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
 		return
 	}
@@ -68,42 +60,64 @@ func AppNew(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
 		return
 	}
-
 	// validate app name
 	customError := validateAppName(request.Name)
 	if len(customError) > 0 {
-		lh.Debug0().LogActivity("AppNew()||error occurred while validating app name", customError)
+		lh.Debug0().LogActivity("AppUpdate()||error occurred while validating app name", customError)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, customError))
 		return
 	}
 
-	// Insert record
-	applc := strings.ToLower(request.Name)
-	appData, err := query.AppNew(c, sqlc.AppNewParams{
+	// To check whether app name already exist in database
+	appName := strings.ToLower(request.Name)
+	appData, err := query.GetAppName(c, sqlc.GetAppNameParams{
+		Shortnamelc: appName,
 		Realm:       REALM,
-		Shortname:   request.Name,
-		Shortnamelc: applc,
-		Longname:    request.Description,
-		Setby:       USERID,
 	})
-
 	if err != nil {
-		lh.Info().Error(err).Log("Error while inserting app")
+		lh.Info().Error(err).Log("Error while getting app count if present")
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
+	if len(appData) == 0 {
+		lh.Debug0().LogActivity("app name does not exist in db", request.Name)
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ERRCode_Name_Not_Exist))
+		return
+
+	}
+
+	// Update record
+	applc := strings.ToLower(request.Name)
+	err = query.AppUpdate(c, sqlc.AppUpdateParams{
+		Longname:    request.Description,
+		Setby:       USERID,
+		Shortnamelc: applc,
+		Realm:       REALM,
+	})
+	if err != nil {
+		lh.Info().Error(err).Log("Error while updating app")
+		errmsg := db.HandleDatabaseError(err)
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+		return
+	}
+
 	// data change log
 	for _, val := range appData {
 		dclog := lh.WithClass("app").WithInstanceId(strconv.Itoa(int(val.ID)))
-		dclog.LogDataChange("created app ", logharbour.ChangeInfo{
+		dclog.LogDataChange("update app ", logharbour.ChangeInfo{
 			Entity: "app",
-			Op:     "create",
+			Op:     "update",
 			Changes: []logharbour.ChangeDetail{
 				{
-					Field:  "row",
-					OldVal: nil,
-					NewVal: val},
+					Field:  "longname",
+					OldVal: val.Longname,
+					NewVal: request.Description,
+				}, {
+					Field:  "setby",
+					OldVal: val.Setby,
+					NewVal: USERID,
+				},
 			},
 		})
 	}

@@ -12,15 +12,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAppNew(t *testing.T) {
-	testCases := appNewTestcase()
+func TestAppUpdate(t *testing.T) {
+	testCases := appUpdateTestcase()
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 
 			payload := bytes.NewBuffer(testutils.MarshalJson(tc.RequestPayload))
 
 			res := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodPost, "/appnew", payload)
+			req, err := http.NewRequest(http.MethodPost, "/appupdate", payload)
 			require.NoError(t, err)
 
 			r.ServeHTTP(res, req)
@@ -39,13 +39,13 @@ func TestAppNew(t *testing.T) {
 
 }
 
-func appNewTestcase() []testutils.TestCasesStruct {
+func appUpdateTestcase() []testutils.TestCasesStruct {
 
-	appNewTestcase := []testutils.TestCasesStruct{
+	appUpdateTestcase := []testutils.TestCasesStruct{
 		{
 			Name: "ERROR: empty request",
 			RequestPayload: wscutils.Request{
-				Data: app.GetAppNewRequest{
+				Data: app.GetAppUpdateRequest{
 					Name:        "",
 					Description: "",
 				},
@@ -56,7 +56,7 @@ func appNewTestcase() []testutils.TestCasesStruct {
 		{
 			Name: "ERROR: Invalid App Name",
 			RequestPayload: wscutils.Request{Data: app.GetAppNewRequest{
-				Name:        "_SBI Bank",
+				Name:        "SBI Bank",
 				Description: "SBI bank services",
 			}},
 			ExpectedHttpCode: http.StatusBadRequest,
@@ -66,8 +66,8 @@ func appNewTestcase() []testutils.TestCasesStruct {
 			Name: "SUCCESS: Valid request",
 			RequestPayload: wscutils.Request{
 				Data: app.GetAppNewRequest{
-					Name:        "SBI",
-					Description: "SBI bank services",
+					Name:        "retailBANK",
+					Description: "Retail bank services",
 				},
 			},
 
@@ -79,16 +79,16 @@ func appNewTestcase() []testutils.TestCasesStruct {
 			},
 		},
 		{
-			Name: "ERROR: App already exist",
+			Name: "ERROR: Name does not exist",
 			RequestPayload: wscutils.Request{
 				Data: app.GetAppNewRequest{
-					Name:        "SBI",
+					Name:        "SBIs",
 					Description: "SBI bank services",
 				},
 			},
 
 			ExpectedHttpCode: http.StatusBadRequest,
-			TestJsonFile:     "../test/data/app_new_app_exists_res.json"},
+			TestJsonFile:     "../test/data/app_update_name_not_exist.json"},
 	}
-	return appNewTestcase
+	return appUpdateTestcase
 }

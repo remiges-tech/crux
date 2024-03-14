@@ -28,6 +28,6 @@ go test -coverprofile=./coverage/coverage_wfinstance.out -coverpkg=./... server/
 go tool cover -html=./coverage/coverage_wfinstance.out -o ./coverage/coverage_wfinstance.html 
 
 4. coverage_app:
-go test -coverprofile=./coverage/coverage_app.out -coverpkg=./... server/app/test/app_new_test.go server/app/test/main_test.go
+go test -coverprofile=./coverage/coverage_app.out -coverpkg=./... server/app/test/app_new_test.go server/app/test/app_update_test.go server/app/test/main_test.go
 
 go tool cover -html=./coverage/coverage_app.out -o ./coverage/coverage_app.html 
