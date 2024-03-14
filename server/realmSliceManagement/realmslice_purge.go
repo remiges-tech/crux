@@ -1,9 +1,13 @@
 package realmSliceManagement
 
 import (
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
+	"github.com/remiges-tech/crux/db"
+	"github.com/remiges-tech/crux/db/sqlc-gen"
 	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/types"
 )
@@ -23,5 +27,26 @@ func RealmSlicePurge(c *gin.Context, s *service.Service) {
 		return
 	}
 
+	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
+	if !ok {
+		l.Info().Log("Error while getting query instance from service Dependencies")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
+		return
+	}
 
+	tag, err := query.RealmSlicePurge(c)
+	if err != nil {
+		l.Info().Error(err).Log("Error while purging realmSlice")
+		errmsg := db.HandleDatabaseError(err)
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+		return
+	}
+	if strings.Contains(tag.String(), "0") {
+		l.Log("no record found to purse")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ERRCode_No_record_For_purge))
+		return
+	}
+
+	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})
+	l.Debug0().Log("Finished execution of RealmSlicePurge()")
 }

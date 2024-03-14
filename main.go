@@ -161,6 +161,7 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmsliceactivate", realmSliceManagement.RealmSliceActivate)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmslicedeactivate", realmSliceManagement.RealmSliceDeactivate)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/realmSliceApps/:id", realmSliceManagement.RealmSliceApps)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/RealmSlicePurge", realmSliceManagement.RealmSlicePurge)
 
 	appServerPortStr := strconv.Itoa(appServerPort)
 	r.Run(":" + appServerPortStr)
