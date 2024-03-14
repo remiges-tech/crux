@@ -1,0 +1,68 @@
+package realmSliceManagement_test
+
+import (
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/remiges-tech/alya/wscutils"
+	"github.com/remiges-tech/crux/db/sqlc-gen"
+	"github.com/remiges-tech/crux/testutils"
+	"github.com/stretchr/testify/require"
+)
+
+func TestRealmSliceApps(t *testing.T) {
+	testCases := RealmSliceAppsTestcase()
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+
+			res := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodGet, tc.Url, nil)
+			require.NoError(t, err)
+
+			r.ServeHTTP(res, req)
+
+			require.Equal(t, tc.ExpectedHttpCode, res.Code)
+			if tc.ExpectedResult != nil {
+				jsonData := testutils.MarshalJson(tc.ExpectedResult)
+				require.JSONEq(t, string(jsonData), res.Body.String())
+			} else {
+				jsonData, err := testutils.ReadJsonFromFile(tc.TestJsonFile)
+				require.NoError(t, err)
+				require.JSONEq(t, string(jsonData), res.Body.String())
+			}
+		})
+	}
+
+}
+
+func RealmSliceAppsTestcase() []testutils.TestCasesStruct {
+	realmSliceNeTestcase := []testutils.TestCasesStruct{
+		{
+			Name:             "Success- app list by id exist",
+			Url:              "/realmSliceApps/11",
+			ExpectedHttpCode: http.StatusOK,
+			ExpectedResult: &wscutils.Response{
+				Status: wscutils.SuccessStatus,
+				Data: []sqlc.RealmSliceAppsListRow{
+					{
+						Shortname: "retailbank",
+						Longname:  "retailbank pvt ltd",
+					},
+				},
+				Messages: nil,
+			},
+		},
+		{
+			Name:             "Success- app list by id not exist ",
+			Url:              "/realmSliceApps/111",
+			ExpectedHttpCode: http.StatusOK,
+			ExpectedResult: &wscutils.Response{
+				Status:   wscutils.SuccessStatus,
+				Data:     []sqlc.RealmSliceAppsListRow{},
+				Messages: nil,
+			},
+		},
+	}
+	return realmSliceNeTestcase
+}

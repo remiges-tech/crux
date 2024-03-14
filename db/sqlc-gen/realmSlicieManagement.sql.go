@@ -40,7 +40,9 @@ INSERT INTO
     )
 SELECT
     realm,
-    COALESCE(descr, $3::text),
+    COALESCE(
+        descr, $3::text
+    ),
     true,
     activateat,
     deactivateat
@@ -148,14 +150,10 @@ func (q *Queries) CloneRecordInSchemaBySliceID(ctx context.Context, arg CloneRec
 
 const insertNewRecordInRealmSlice = `-- name: InsertNewRecordInRealmSlice :one
 INSERT INTO
-    realmslice (
-        realm, descr, active
-    )
-VALUES (
-    $1, $2, true
-)
+    realmslice (realm, descr, active)
+VALUES ($1, $2, true)
 RETURNING
-   realmslice.id
+    realmslice.id
 `
 
 type InsertNewRecordInRealmSliceParams struct {
@@ -168,4 +166,53 @@ func (q *Queries) InsertNewRecordInRealmSlice(ctx context.Context, arg InsertNew
 	var id int32
 	err := row.Scan(&id)
 	return id, err
+}
+
+const realmSliceAppsList = `-- name: RealmSliceAppsList :many
+SELECT a.shortname, a.longname
+FROM realmslice
+    JOIN app a ON realmslice.realm = a.realm
+WHERE
+    realmslice.id = $1
+`
+
+type RealmSliceAppsListRow struct {
+	Shortname string `json:"shortname"`
+	Longname  string `json:"longname"`
+}
+
+func (q *Queries) RealmSliceAppsList(ctx context.Context, id int32) ([]RealmSliceAppsListRow, error) {
+	rows, err := q.db.Query(ctx, realmSliceAppsList, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []RealmSliceAppsListRow
+	for rows.Next() {
+		var i RealmSliceAppsListRow
+		if err := rows.Scan(&i.Shortname, &i.Longname); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const realmSlicePurge = `-- name: RealmSlicePurge :exec
+DELETE FROM stepworkflow
+USING  wfinstance, ruleset, schema, config, realmslice
+WHERE realmslice.id = config.slice
+  AND realmslice.id = schema.slice
+  AND realmslice.id = ruleset.slice
+  AND realmslice.id = wfinstance.slice
+  AND realmslice.id = stepworkflow.slice
+  AND realmslice.id = 12
+`
+
+func (q *Queries) RealmSlicePurge(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, realmSlicePurge)
+	return err
 }

@@ -27,13 +27,8 @@ import (
 
 func main() {
 
-	// Logger setup
-	logFile, err := os.OpenFile("log.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		log.Fatal(err)
-	}
 	// logger setup
-	fallbackWriter := logharbour.NewFallbackWriter(logFile, os.Stdout)
+	fallbackWriter := logharbour.NewFallbackWriter(os.Stdout, os.Stdout)
 	lctx := logharbour.NewLoggerContext(logharbour.Debug0)
 	l := logharbour.NewLogger(lctx, "crux", fallbackWriter)
 
@@ -162,6 +157,7 @@ func main() {
 
 	// Realm-slice management
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmSliceNew", realmSliceManagement.RealmSliceNew)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/realmSliceApps/:id", realmSliceManagement.RealmSliceApps)
 
 	appServerPortStr := strconv.Itoa(appServerPort)
 	r.Run(":" + appServerPortStr)
