@@ -103,3 +103,31 @@ WHERE
 --     JOIN schema s ON st.slice = s.slice
 --     JOIN config c ON st.slice = c.slice
 --     JOIN realmslice rs ON st.slice = rs.id;
+
+-- name: RealmSliceActivate :one
+UPDATE realmslice
+SET
+    active = @isactive,
+    activateat = CASE
+        WHEN (sqlc.narg('activateat')::TIMESTAMP) IS NULL
+            THEN NOW()
+        ELSE (sqlc.narg('activateat')::TIMESTAMP)
+    END,
+    deactivateat = NULL
+WHERE
+    id = @id
+    RETURNING *;
+
+-- name: RealmSliceDeactivate :one
+UPDATE realmslice
+SET
+    active = @isactive,
+    deactivateat = CASE
+        WHEN (sqlc.narg('deactivateat')::TIMESTAMP) IS NULL
+            THEN NOW()
+        ELSE (sqlc.narg('deactivateat')::TIMESTAMP)
+    END,
+    activateat = NULL
+WHERE
+    id = @id
+    RETURNING *;
