@@ -44,7 +44,7 @@ func AppUpdate(c *gin.Context, s *service.Service) {
 	// Bind request
 	err := wscutils.BindJSON(c, &request)
 	if err != nil {
-		lh.Error(err).Log("AppUpdate() || error while binding json request error")
+		lh.Error(err).Log("AppUpdate() || error while binding json request")
 		return
 	}
 	// Standard validation of Incoming Request
@@ -75,7 +75,7 @@ func AppUpdate(c *gin.Context, s *service.Service) {
 		Realm:       REALM,
 	})
 	if err != nil {
-		lh.Info().Error(err).Log("Error while getting app count if present")
+		lh.Info().Error(err).Log("Error while getting app details if present")
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
@@ -88,15 +88,14 @@ func AppUpdate(c *gin.Context, s *service.Service) {
 	}
 
 	// Update record
-	applc := strings.ToLower(request.Name)
 	err = query.AppUpdate(c, sqlc.AppUpdateParams{
 		Longname:    request.Description,
 		Setby:       USERID,
-		Shortnamelc: applc,
+		Shortnamelc: appName,
 		Realm:       REALM,
 	})
 	if err != nil {
-		lh.Info().Error(err).Log("Error while updating app")
+		lh.Info().Error(err).Log("error while updating app")
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
@@ -121,6 +120,7 @@ func AppUpdate(c *gin.Context, s *service.Service) {
 			},
 		})
 	}
+	lh.Debug0().Log("finished execution of AppUpdate()")
 	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(nil))
 
 }

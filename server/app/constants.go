@@ -1,5 +1,12 @@
 package app
 
+const (
+	USERID  = "1234"
+	REALM   = "BSE"
+	REALMID = 11
+)
+
 var (
-	APP = "app"
+	rootCapability = []string{"root"}
+	APP            = "name"
 )

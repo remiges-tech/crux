@@ -13,6 +13,9 @@ import (
 func validateAppName(app string) []wscutils.ErrorMessage {
 
 	var err []wscutils.ErrorMessage
+	if app == "" {
+		err = append(err, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Required, &APP))
+	}
 	// Check if the app name is one-word and follows identifier syntax rules
 	pattern := regexp.MustCompile(`^[a-zA-Z0-9]+$`)
 	if !pattern.MatchString(app) {

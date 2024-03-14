@@ -200,19 +200,3 @@ func (q *Queries) RealmSliceAppsList(ctx context.Context, id int32) ([]RealmSlic
 	}
 	return items, nil
 }
-
-const realmSlicePurge = `-- name: RealmSlicePurge :exec
-DELETE FROM stepworkflow
-USING  wfinstance, ruleset, schema, config, realmslice
-WHERE realmslice.id = config.slice
-  AND realmslice.id = schema.slice
-  AND realmslice.id = ruleset.slice
-  AND realmslice.id = wfinstance.slice
-  AND realmslice.id = stepworkflow.slice
-  AND realmslice.id = 12
-`
-
-func (q *Queries) RealmSlicePurge(ctx context.Context) error {
-	_, err := q.db.Exec(ctx, realmSlicePurge)
-	return err
-}

@@ -5,12 +5,12 @@
         {
             "msgid": 1003,
             "errcode": "invalid_name",
-            "field": "app"
+            "field": "name"
         },
         {
             "msgid": 1003,
             "errcode": "name_must_be_single_word",
-            "field": "app"
+            "field": "name"
         }
     ]
 }

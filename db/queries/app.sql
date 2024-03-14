@@ -21,3 +21,19 @@ set
 WHERE
     shortnamelc = @shortnamelc
     AND realm = @realm;
+
+-- name: AppExist :one
+SELECT
+    CASE
+        WHEN EXISTS (SELECT 1 FROM schema WHERE schema.app = @app) OR
+             EXISTS (SELECT 1 FROM ruleset WHERE ruleset.app = @app)
+        THEN 1
+        ELSE 0
+    END AS value_exists ;
+
+
+-- name: AppDelete :exec
+DELETE FROM app
+WHERE shortnamelc = @shortnamelc AND realm = @realm;
+
+

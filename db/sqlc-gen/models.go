@@ -64,16 +64,15 @@ type App struct {
 }
 
 type Capgrant struct {
-	ID        int32            `json:"id"`
-	Realm     int32            `json:"realm"`
-	User      string           `json:"user"`
-	App       pgtype.Text      `json:"app"`
-	Cap       string           `json:"cap"`
-	From      pgtype.Timestamp `json:"from"`
-	To        pgtype.Timestamp `json:"to"`
-	Setat     pgtype.Timestamp `json:"setat"`
-	Setby     string           `json:"setby"`
-	Isdeleted pgtype.Bool      `json:"isdeleted"`
+	ID    int32            `json:"id"`
+	Realm int32            `json:"realm"`
+	User  string           `json:"user"`
+	App   pgtype.Text      `json:"app"`
+	Cap   string           `json:"cap"`
+	From  pgtype.Timestamp `json:"from"`
+	To    pgtype.Timestamp `json:"to"`
+	Setat pgtype.Timestamp `json:"setat"`
+	Setby string           `json:"setby"`
 }
 
 type Config struct {
