@@ -31,3 +31,8 @@ go tool cover -html=./coverage/coverage_wfinstance.out -o ./coverage/coverage_wf
 go test -coverprofile=./coverage/coverage_app.out -coverpkg=./... server/app/test/app_new_test.go server/app/test/app_update_test.go server/app/test/main_test.go
 
 go tool cover -html=./coverage/coverage_app.out -o ./coverage/coverage_app.html 
+
+4. coverage_realmSliceManagement:
+go test -coverprofile=./coverage/coverage_realmSliceManagement.out -coverpkg=./... server/realmSliceManagement/test/realmSlice_apps_test.go server/realmSliceManagement/test/realmSlice_new_test.go server/realmSliceManagement/test/main_test.go
+
+go tool cover -html=./coverage/coverage_realmSliceManagement.out -o ./coverage/coverage_realmSliceManagement.html 

@@ -15,13 +15,6 @@ import (
 	"github.com/remiges-tech/crux/types"
 )
 
-var (
-	userID    = "1234"
-	capForNew = []string{"root"}
-	realmName = "NSE"
-	// realmID   = int32(11)
-)
-
 type RealmSliceNewRequest struct {
 	CopyOf int64    `json:"copyof" validate:"omitempty,gt=0"`
 	Descr  string   `json:"descr" validate:"omitempty"`
@@ -181,5 +174,5 @@ func RealmSliceNew(c *gin.Context, s *service.Service) {
 	}
 
 	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: newSliceID, Messages: nil})
-	l.Debug0().Log("Starting execution of RealmSliceNew()")
+	l.Debug0().Log("Finished execution of RealmSliceNew()")
 }

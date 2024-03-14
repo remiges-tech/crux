@@ -38,4 +38,5 @@ type TestCasesStruct struct {
 	ExpectedHttpCode int
 	TestJsonFile     string
 	ExpectedResult   *wscutils.Response
+	Url              string
 }

@@ -147,6 +147,7 @@ customErrCodeMap := map[string]string{
 		WithDependency("queries", queries)
 
 	s.RegisterRoute(http.MethodPost, "/realmSliceNew", realmSliceManagement.RealmSliceNew)
+	s.RegisterRoute(http.MethodGet, "/realmSliceApps/:id", realmSliceManagement.RealmSliceApps)
 
 	return r, nil
 

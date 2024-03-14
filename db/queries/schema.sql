@@ -40,7 +40,6 @@ UPDATE;
 -- name: SchemaDelete :one
 DELETE FROM schema WHERE id = $1 RETURNING id;
 
-DELETE FROM schema WHERE id = $1 RETURNING id;
 
 -- name: SchemaList :many
 SELECT schema.slice, realmslice.descr, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat

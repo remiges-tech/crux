@@ -32,6 +32,8 @@ type Querier interface {
 	GetWFInternalStatus(ctx context.Context, arg GetWFInternalStatusParams) (bool, error)
 	GetWorkflow(ctx context.Context, step string) ([]GetWorkflowRow, error)
 	InsertNewRecordInRealmSlice(ctx context.Context, arg InsertNewRecordInRealmSliceParams) (int32, error)
+	RealmSliceAppsList(ctx context.Context, id int32) ([]RealmSliceAppsListRow, error)
+	RealmSlicePurge(ctx context.Context) error
 	RulesetRowLock(ctx context.Context, arg RulesetRowLockParams) (Ruleset, error)
 	SchemaDelete(ctx context.Context, id int32) (int32, error)
 	SchemaGet(ctx context.Context, arg SchemaGetParams) ([]SchemaGetRow, error)
