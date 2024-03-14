@@ -35,23 +35,10 @@ type Querier interface {
 	GetWFInternalStatus(ctx context.Context, arg GetWFInternalStatusParams) (bool, error)
 	GetWorkflow(ctx context.Context, step string) ([]GetWorkflowRow, error)
 	InsertNewRecordInRealmSlice(ctx context.Context, arg InsertNewRecordInRealmSliceParams) (int32, error)
-	// -- name: RealmSlicePurge :exec
-	// DELETE stepworkflow st,
-	// wfinstance w,
-	// ruleset r,
-	// schema s,
-	// config c,
-	// realmslice rs
-	// FROM
-	//     stepworkflow st
-	//     JOIN wfinstance w ON st.slice = w.slice
-	//     JOIN ruleset r ON st.slice = r.slice
-	//     JOIN schema s ON st.slice = s.slice
-	//     JOIN config c ON st.slice = c.slice
-	//     JOIN realmslice rs ON st.slice = rs.id;
 	RealmSliceActivate(ctx context.Context, arg RealmSliceActivateParams) (Realmslice, error)
 	RealmSliceAppsList(ctx context.Context, id int32) ([]RealmSliceAppsListRow, error)
 	RealmSliceDeactivate(ctx context.Context, arg RealmSliceDeactivateParams) (Realmslice, error)
+	RealmSlicePurge(ctx context.Context) (pgconn.CommandTag, error)
 	RulesetRowLock(ctx context.Context, arg RulesetRowLockParams) (Ruleset, error)
 	SchemaDelete(ctx context.Context, id int32) (int32, error)
 	SchemaGet(ctx context.Context, arg SchemaGetParams) ([]SchemaGetRow, error)

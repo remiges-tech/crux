@@ -89,20 +89,31 @@ FROM realmslice
 WHERE
     realmslice.id = $1;
 
--- -- name: RealmSlicePurge :exec
--- DELETE stepworkflow st,
--- wfinstance w,
--- ruleset r,
--- schema s,
--- config c,
--- realmslice rs
--- FROM
---     stepworkflow st
---     JOIN wfinstance w ON st.slice = w.slice
---     JOIN ruleset r ON st.slice = r.slice
---     JOIN schema s ON st.slice = s.slice
---     JOIN config c ON st.slice = c.slice
---     JOIN realmslice rs ON st.slice = rs.id;
+-- name: RealmSlicePurge :execresult
+WITH
+    cte1 AS (
+        DELETE FROM stepworkflow
+    ),
+    cte2 AS (
+        DELETE FROM wfinstance
+    ),
+    cte3 AS (
+        DELETE FROM ruleset
+    ),
+    cte4 AS (
+        DELETE FROM schema
+    ),
+    cte5 AS (
+        DELETE FROM config
+    )
+DELETE FROM realmslice
+WHERE
+    id IN (
+        SELECT id
+        FROM realmslice
+        LIMIT 100
+    );
+
 
 -- name: RealmSliceActivate :one
 UPDATE realmslice

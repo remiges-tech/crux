@@ -1,23 +1,26 @@
 package realmSliceManagement_test
 
 import (
+	"bytes"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/remiges-tech/alya/wscutils"
-	"github.com/remiges-tech/crux/db/sqlc-gen"
+	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/testutils"
 	"github.com/stretchr/testify/require"
 )
 
-func TestRealmSliceApps(t *testing.T) {
-	testCases := RealmSliceAppsTestcase()
+func TestRealmSlicePurge(t *testing.T) {
+	testCases := RealmSlicePurgeTestcase()
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 
+			payload := bytes.NewBuffer(testutils.MarshalJson(tc.RequestPayload))
+
 			res := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodGet, tc.Url, nil)
+			req, err := http.NewRequest(http.MethodPost, "/RealmSlicePurge", payload)
 			require.NoError(t, err)
 
 			r.ServeHTTP(res, req)
@@ -36,32 +39,21 @@ func TestRealmSliceApps(t *testing.T) {
 
 }
 
-func RealmSliceAppsTestcase() []testutils.TestCasesStruct {
+func RealmSlicePurgeTestcase() []testutils.TestCasesStruct {
 	realmSliceNeTestcase := []testutils.TestCasesStruct{
 		{
-			Name:             "Success- app list by id exist",
-			Url:              "/realmSliceApps/11",
+			Name:             "success all realmSlice purged",
 			ExpectedHttpCode: http.StatusOK,
 			ExpectedResult: &wscutils.Response{
-				Status: wscutils.SuccessStatus,
-				Data: []sqlc.RealmSliceAppsListRow{
-					{
-						Shortname: "retailbank1",
-						Longname:  "retailbank pvt ltd",
-					},
-				},
+				Status:   wscutils.SuccessStatus,
+				Data:     nil,
 				Messages: nil,
 			},
 		},
 		{
-			Name:             "Success- app list by id not exist ",
-			Url:              "/realmSliceApps/111",
-			ExpectedHttpCode: http.StatusOK,
-			ExpectedResult: &wscutils.Response{
-				Status:   wscutils.SuccessStatus,
-				Data:     []sqlc.RealmSliceAppsListRow{},
-				Messages: nil,
-			},
+			Name:             "error no realmSlice for  purged",
+			ExpectedHttpCode: http.StatusBadRequest,
+			ExpectedResult:   wscutils.NewErrorResponse(server.MsgId_NotFound, server.ERRCode_No_record_For_purge),
 		},
 	}
 	return realmSliceNeTestcase

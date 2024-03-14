@@ -49,4 +49,5 @@ const (
 	ErrCode_Name_Already_Exist                                    = "name_already exist"
 	ERRCode_Name_Not_Exist                                        = "name_not_exist"
 	ERRCode_Missing                                               = "missing"
+	ERRCode_No_record_For_purge                                   = "no_record_for_purge"
 )

@@ -148,6 +148,7 @@ customErrCodeMap := map[string]string{
 
 	s.RegisterRoute(http.MethodPost, "/realmSliceNew", realmSliceManagement.RealmSliceNew)
 	s.RegisterRoute(http.MethodGet, "/realmSliceApps/:id", realmSliceManagement.RealmSliceApps)
+	s.RegisterRoute(http.MethodPost, "/RealmSlicePurge", realmSliceManagement.RealmSlicePurge)
 
 	return r, nil
 
