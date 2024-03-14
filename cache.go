@@ -113,7 +113,7 @@ func loadInternalRuleSet(dbResponseRuleSet []sqlc.Ruleset) error {
 
 			classNameKey := className_t(row.Setname)
 			newRuleset := &Ruleset_t{
-				//Id:     row.ID,
+				Id:      row.ID,
 				Class:   row.Class,
 				SetName: row.Setname,
 				Rules:   rules,
