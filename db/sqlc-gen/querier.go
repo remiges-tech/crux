@@ -13,12 +13,15 @@ import (
 
 type Querier interface {
 	AddWFNewInstances(ctx context.Context, arg AddWFNewInstancesParams) ([]Wfinstance, error)
+	AppDelete(ctx context.Context, arg AppDeleteParams) error
+	AppExist(ctx context.Context, app string) (int32, error)
 	AppNew(ctx context.Context, arg AppNewParams) ([]App, error)
 	AppUpdate(ctx context.Context, arg AppUpdateParams) error
 	CloneRecordInConfigBySliceID(ctx context.Context, arg CloneRecordInConfigBySliceIDParams) (pgconn.CommandTag, error)
 	CloneRecordInRealmSliceBySliceID(ctx context.Context, arg CloneRecordInRealmSliceBySliceIDParams) (int32, error)
 	CloneRecordInRulesetBySliceID(ctx context.Context, arg CloneRecordInRulesetBySliceIDParams) (pgconn.CommandTag, error)
 	CloneRecordInSchemaBySliceID(ctx context.Context, arg CloneRecordInSchemaBySliceIDParams) (pgconn.CommandTag, error)
+	DeleteCapGranForApp(ctx context.Context, arg DeleteCapGranForAppParams) error
 	DeleteWFInstanceListByParents(ctx context.Context, arg DeleteWFInstanceListByParentsParams) ([]Wfinstance, error)
 	DeleteWfinstanceByID(ctx context.Context, arg DeleteWfinstanceByIDParams) ([]Wfinstance, error)
 	GetApp(ctx context.Context, arg GetAppParams) (string, error)
@@ -33,7 +36,6 @@ type Querier interface {
 	GetWorkflow(ctx context.Context, step string) ([]GetWorkflowRow, error)
 	InsertNewRecordInRealmSlice(ctx context.Context, arg InsertNewRecordInRealmSliceParams) (int32, error)
 	RealmSliceAppsList(ctx context.Context, id int32) ([]RealmSliceAppsListRow, error)
-	RealmSlicePurge(ctx context.Context) error
 	RulesetRowLock(ctx context.Context, arg RulesetRowLockParams) (Ruleset, error)
 	SchemaDelete(ctx context.Context, id int32) (int32, error)
 	SchemaGet(ctx context.Context, arg SchemaGetParams) ([]SchemaGetRow, error)

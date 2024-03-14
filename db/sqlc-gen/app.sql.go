@@ -9,6 +9,38 @@ import (
 	"context"
 )
 
+const appDelete = `-- name: AppDelete :exec
+DELETE FROM app
+WHERE shortnamelc = $1 AND realm = $2
+`
+
+type AppDeleteParams struct {
+	Shortnamelc string `json:"shortnamelc"`
+	Realm       string `json:"realm"`
+}
+
+func (q *Queries) AppDelete(ctx context.Context, arg AppDeleteParams) error {
+	_, err := q.db.Exec(ctx, appDelete, arg.Shortnamelc, arg.Realm)
+	return err
+}
+
+const appExist = `-- name: AppExist :one
+SELECT
+    CASE
+        WHEN EXISTS (SELECT 1 FROM schema WHERE schema.app = $1) OR
+             EXISTS (SELECT 1 FROM ruleset WHERE ruleset.app = $1)
+        THEN 1
+        ELSE 0
+    END AS value_exists
+`
+
+func (q *Queries) AppExist(ctx context.Context, app string) (int32, error) {
+	row := q.db.QueryRow(ctx, appExist, app)
+	var value_exists int32
+	err := row.Scan(&value_exists)
+	return value_exists, err
+}
+
 const appNew = `-- name: AppNew :many
 INSERT INTO
     app (

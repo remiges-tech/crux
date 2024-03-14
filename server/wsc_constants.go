@@ -12,9 +12,11 @@ const (
 	MsgId_NotFound        = 1009 //Field <field> is not found
 	MsgId_Unauthorized    = 1010
 	MsgId_StepNotFound    = 1011
+	MsgId__NonEmpty       = 1012
 )
 
 const (
+	ErrCode_NonEmpty                                              = "non_empty"
 	ErrCode_NotExist                                              = "not_exist"
 	ErrCode_Internal                                              = "internal_err"
 	ErrCode_Internal_Retry                                        = "internal_err_retry"
@@ -45,4 +47,5 @@ const (
 	Errcode_Reserved_name                                         = "reserved_name"
 	ErrCode_Name_Already_Exist                                    = "name_already exist"
 	ERRCode_Name_Not_Exist                                        = "name_not_exist"
+	ERRCode_Missing                                               = "missing"
 )

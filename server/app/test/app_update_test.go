@@ -88,7 +88,7 @@ func appUpdateTestcase() []testutils.TestCasesStruct {
 			},
 
 			ExpectedHttpCode: http.StatusBadRequest,
-			TestJsonFile:     "../test/data/app_update_name_not_exist.json"},
+			TestJsonFile:     "../test/data/name_not_exist.json"},
 	}
 	return appUpdateTestcase
 }

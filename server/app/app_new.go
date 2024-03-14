@@ -17,10 +17,6 @@ import (
 
 var (
 	RESERVED_APPNAMES = []string{"ALL"}
-	rootCapability    = []string{"root"}
-	USERID            = "1234"
-	REALM             = "BSE"
-	ADMIN             = "admin"
 )
 
 // Incoming request format
@@ -52,7 +48,7 @@ func AppNew(c *gin.Context, s *service.Service) {
 	// Bind request
 	err := wscutils.BindJSON(c, &request)
 	if err != nil {
-		lh.Error(err).Log("AppNew() || error while binding json request error")
+		lh.Error(err).Log("AppNew() || error while binding json request ")
 		return
 	}
 	// Standard validation of Incoming Request
@@ -88,7 +84,7 @@ func AppNew(c *gin.Context, s *service.Service) {
 	})
 
 	if err != nil {
-		lh.Info().Error(err).Log("Error while inserting app")
+		lh.Info().Error(err).Log("error while inserting app")
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
@@ -107,6 +103,7 @@ func AppNew(c *gin.Context, s *service.Service) {
 			},
 		})
 	}
+	lh.Debug0().Log("finished execution of AppNew()")
 	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(nil))
 
 }
