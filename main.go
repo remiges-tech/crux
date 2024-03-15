@@ -155,6 +155,7 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/appnew", app.AppNew)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/appupdate", app.AppUpdate)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/appdelete/:name", app.AppDelete)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/applist", app.AppList)
 
 	// Realm-slice management
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmSliceNew", realmslice.RealmSliceNew)

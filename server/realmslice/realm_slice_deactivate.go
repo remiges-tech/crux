@@ -88,5 +88,5 @@ func RealmSliceDeactivate(c *gin.Context, s *service.Service) {
 		return
 	}
 	l.Debug0().LogActivity("exiting from RealmSliceDeactivate()", newSliceID)
-	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})
+	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(nil))
 }

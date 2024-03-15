@@ -7,6 +7,8 @@ package sqlc
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const appDelete = `-- name: AppDelete :exec
@@ -121,6 +123,68 @@ func (q *Queries) AppUpdate(ctx context.Context, arg AppUpdateParams) error {
 		arg.Realm,
 	)
 	return err
+}
+
+const getAppList = `-- name: GetAppList :many
+SELECT
+    a.shortnamelc AS name,
+    a.longname AS descr,
+    a.setat AS createdat,
+    a.setby AS createdby,
+    ( SELECT COUNT(DISTINCT "user")
+        FROM capgrant
+        WHERE app = a.shortnamelc
+    ) AS nusers,
+    ( SELECT COUNT(*)
+        FROM ruleset
+        WHERE app = a.shortnamelc AND brwf = 'B'
+    ) AS nrulesetsbre,
+    ( SELECT COUNT(*)
+        FROM ruleset
+        WHERE app = a.shortnamelc AND brwf = 'W'
+    ) AS nrulesetswfe
+FROM
+    app a
+WHERE
+a.realm= $1
+`
+
+type GetAppListRow struct {
+	Name         string           `json:"name"`
+	Descr        string           `json:"descr"`
+	Createdat    pgtype.Timestamp `json:"createdat"`
+	Createdby    string           `json:"createdby"`
+	Nusers       int64            `json:"nusers"`
+	Nrulesetsbre int64            `json:"nrulesetsbre"`
+	Nrulesetswfe int64            `json:"nrulesetswfe"`
+}
+
+func (q *Queries) GetAppList(ctx context.Context, realm string) ([]GetAppListRow, error) {
+	rows, err := q.db.Query(ctx, getAppList, realm)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAppListRow
+	for rows.Next() {
+		var i GetAppListRow
+		if err := rows.Scan(
+			&i.Name,
+			&i.Descr,
+			&i.Createdat,
+			&i.Createdby,
+			&i.Nusers,
+			&i.Nrulesetsbre,
+			&i.Nrulesetswfe,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getAppName = `-- name: GetAppName :many
