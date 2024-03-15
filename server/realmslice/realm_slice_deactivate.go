@@ -1,4 +1,4 @@
-package realmSliceManagement
+package realmslice
 
 import (
 	"time"
@@ -14,25 +14,18 @@ import (
 	"github.com/remiges-tech/crux/types"
 )
 
-// var (
-// 	userID    = "1234"
-// 	capForNew = []string{"root"}
-// 	realmName = "NSE"
-// 	// realmID   = int32(11)
-// )
+// type RealmSliceDeactivateReq struct {
+// 	// Id is refer to `realmslice_id` in db
+// 	Id int32 `json:"id" validate:"required,gt=0"`
+// 	//`from` is an optional timestamp parameter specifying
+// 	// from when the slice will be activated. This timestamp
+// 	// must be in the future.
+// 	From *time.Time `json:"from,omitempty"`
+// }
 
-type RealmSliceActivateReq struct {
-	// Id is refer to `realmslice_id` in db
-	Id int32 `json:"id" validate:"required,gt=0"`
-	//`from` is an optional timestamp parameter specifying
-	// from when the slice will be activated. This timestamp
-	// must be in the future.
-	From *time.Time `json:"from,omitempty"`
-}
-
-func RealmSliceActivate(c *gin.Context, s *service.Service) {
+func RealmSliceDeactivate(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
-	l.Debug0().Log("starting execution of RealmSliceActivate()")
+	l.Debug0().Log("starting execution of RealmSliceDeactivate()")
 
 	isCapable, _ := server.Authz_check(types.OpReq{
 		User:      userID,
@@ -46,9 +39,9 @@ func RealmSliceActivate(c *gin.Context, s *service.Service) {
 	}
 
 	var (
-		isActive bool = true
-		req      RealmSliceActivateReq
+		isActive bool
 		fromt    time.Time
+		req      RealmSliceActivateReq
 	)
 
 	err := wscutils.BindJSON(c, &req)
@@ -71,15 +64,10 @@ func RealmSliceActivate(c *gin.Context, s *service.Service) {
 			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_TooEarly))
 			return
 		} else {
-			isActive = false
+			isActive = true
 		}
 		fromt = *req.From
 	}
-
-	// else {
-	// 	currentTime := time.Now()
-	// 	req.From = &currentTime
-	// }
 
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
@@ -88,19 +76,17 @@ func RealmSliceActivate(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	newSliceID, err := query.RealmSliceActivate(c, sqlc.RealmSliceActivateParams{
-		ID:         req.Id,
-		Isactive:   isActive,
-		Activateat: pgtype.Timestamp{Time: fromt, Valid: req.From != nil},
+	newSliceID, err := query.RealmSliceDeactivate(c, sqlc.RealmSliceDeactivateParams{
+		ID:           req.Id,
+		Isactive:     isActive,
+		Deactivateat: pgtype.Timestamp{Time: fromt, Valid: req.From != nil},
 	})
 	if err != nil {
-		l.Info().Error(err).Log("error while changing active status with func RealmSliceActivate")
-
+		l.Info().Error(err).Log("error while changing active status with func RealmSliceDeactivate")
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
-	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: newSliceID, Messages: nil})
-	l.Debug0().Log("exiting from RealmSliceActivate()")
-	return
+	l.Debug0().LogActivity("exiting from RealmSliceDeactivate()", newSliceID)
+	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})
 }

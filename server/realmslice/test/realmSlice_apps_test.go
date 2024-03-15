@@ -1,4 +1,4 @@
-package realmSliceManagement_test
+package realmslice_test
 
 import (
 	"net/http"

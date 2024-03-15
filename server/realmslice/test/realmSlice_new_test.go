@@ -1,4 +1,4 @@
-package realmSliceManagement_test
+package realmslice_test
 
 import (
 	"bytes"
@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/remiges-tech/alya/wscutils"
-	"github.com/remiges-tech/crux/server/realmSliceManagement"
+	"github.com/remiges-tech/crux/server/realmslice"
 	"github.com/remiges-tech/crux/testutils"
 	"github.com/stretchr/testify/require"
 )
@@ -45,7 +45,7 @@ func RealmSliceNewTestcase() []testutils.TestCasesStruct {
 		{
 			Name: "err- standard validation",
 			RequestPayload: wscutils.Request{
-				Data: realmSliceManagement.RealmSliceNewRequest{
+				Data: realmslice.RealmSliceNewRequest{
 					CopyOf: -9,
 				},
 			},
@@ -56,7 +56,7 @@ func RealmSliceNewTestcase() []testutils.TestCasesStruct {
 		{
 			Name: "err- custom validation realmSlice not exist",
 			RequestPayload: wscutils.Request{
-				Data: realmSliceManagement.RealmSliceNewRequest{
+				Data: realmslice.RealmSliceNewRequest{
 					CopyOf: 99,
 					App:    []string{},
 				},
@@ -67,7 +67,7 @@ func RealmSliceNewTestcase() []testutils.TestCasesStruct {
 		{
 			Name: "Success- create new copy of realmSlice by old realmSlice id",
 			RequestPayload: wscutils.Request{
-				Data: realmSliceManagement.RealmSliceNewRequest{
+				Data: realmslice.RealmSliceNewRequest{
 					CopyOf: 11,
 				},
 			},
@@ -82,7 +82,7 @@ func RealmSliceNewTestcase() []testutils.TestCasesStruct {
 		{
 			Name: "Success- create new copy of realmSlice by old realmSlice id with only the listed apps",
 			RequestPayload: wscutils.Request{
-				Data: realmSliceManagement.RealmSliceNewRequest{
+				Data: realmslice.RealmSliceNewRequest{
 					CopyOf: 11,
 				},
 			},
@@ -97,7 +97,7 @@ func RealmSliceNewTestcase() []testutils.TestCasesStruct {
 		{
 			Name: "Success- create new of realmSlice with description",
 			RequestPayload: wscutils.Request{
-				Data: realmSliceManagement.RealmSliceNewRequest{
+				Data: realmslice.RealmSliceNewRequest{
 					CopyOf: 11,
 					Descr:  "description for new app",
 				},

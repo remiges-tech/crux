@@ -1,4 +1,4 @@
-package realmSliceManagement_test
+package realmslice_test
 
 import (
 	"bytes"
@@ -7,24 +7,25 @@ import (
 	"testing"
 
 	"github.com/remiges-tech/alya/wscutils"
-	"github.com/remiges-tech/crux/server"
+	"github.com/remiges-tech/crux/server/realmslice"
 	"github.com/remiges-tech/crux/testutils"
 	"github.com/stretchr/testify/require"
 )
 
-func TestRealmSlicePurge(t *testing.T) {
-	testCases := RealmSlicePurgeTestcase()
+const (
+	TestRealmSliceActivate_1 = "success: realm_slice_activate"
+	TestRealmSliceActivate_2 = "error: field validation"
+)
+
+func TestRealmSliceActivate(t *testing.T) {
+	testCases := RealmSliceActivateTestcase()
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-
 			payload := bytes.NewBuffer(testutils.MarshalJson(tc.RequestPayload))
-
 			res := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodPost, "/RealmSlicePurge", payload)
+			req, err := http.NewRequest(http.MethodPost, "/realmsliceactivate", payload)
 			require.NoError(t, err)
-
 			r.ServeHTTP(res, req)
-
 			require.Equal(t, tc.ExpectedHttpCode, res.Code)
 			if tc.ExpectedResult != nil {
 				jsonData := testutils.MarshalJson(tc.ExpectedResult)
@@ -39,10 +40,19 @@ func TestRealmSlicePurge(t *testing.T) {
 
 }
 
-func RealmSlicePurgeTestcase() []testutils.TestCasesStruct {
+func RealmSliceActivateTestcase() []testutils.TestCasesStruct {
+	id := "Id"
 	realmSliceNeTestcase := []testutils.TestCasesStruct{
+		// test 1
 		{
-			Name:             "success all realmSlice purged",
+			Name: TestRealmSliceActivate_1,
+			RequestPayload: wscutils.Request{
+				Data: realmslice.RealmSliceActivateReq{
+					Id: 11,
+					// From: ,
+				},
+			},
+
 			ExpectedHttpCode: http.StatusOK,
 			ExpectedResult: &wscutils.Response{
 				Status:   wscutils.SuccessStatus,
@@ -50,10 +60,24 @@ func RealmSlicePurgeTestcase() []testutils.TestCasesStruct {
 				Messages: nil,
 			},
 		},
+		// test 2
 		{
-			Name:             "error no realmSlice for  purged",
+			Name: TestRealmSliceActivate_2,
+			RequestPayload: wscutils.Request{
+				Data: realmslice.RealmSliceActivateReq{},
+			},
 			ExpectedHttpCode: http.StatusBadRequest,
-			ExpectedResult:   wscutils.NewErrorResponse(server.MsgId_NotFound, server.ERRCode_No_record_For_purge),
+			ExpectedResult: &wscutils.Response{
+				Status: wscutils.ErrorStatus,
+				Data:   nil,
+				Messages: []wscutils.ErrorMessage{
+					wscutils.ErrorMessage{
+						MsgID:   101,
+						ErrCode: "required",
+						Field:   &id,
+					},
+				},
+			},
 		},
 	}
 	return realmSliceNeTestcase

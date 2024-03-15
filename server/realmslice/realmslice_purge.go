@@ -1,8 +1,7 @@
-package realmSliceManagement
+package realmslice
 
 import (
-	"fmt"
-	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/remiges-tech/alya/service"
@@ -13,9 +12,9 @@ import (
 	"github.com/remiges-tech/crux/types"
 )
 
-func RealmSliceApps(c *gin.Context, s *service.Service) {
+func RealmSlicePurge(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
-	l.Debug0().Log("Starting execution of RealmSliceApps()")
+	l.Debug0().Log("Starting execution of RealmSlicePurge()")
 
 	isCapable, _ := server.Authz_check(types.OpReq{
 		User:      userID,
@@ -27,34 +26,27 @@ func RealmSliceApps(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
 		return
 	}
-	fmt.Println("(c.Param(id))", (c.Param("id")))
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		l.Error(err).Log("Error while parsing string param to int")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid_Request, server.ErrCode_InvalidRequest))
-		return
-	}
 
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
 		l.Info().Log("Error while getting query instance from service Dependencies")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
+		return
 	}
 
-	realmSliceAppsListRow, err := query.RealmSliceAppsList(c, int32(id))
+	tag, err := query.RealmSlicePurge(c)
 	if err != nil {
-		l.Info().Error(err).Log("Error while creating new realmslice")
+		l.Info().Error(err).Log("Error while purging realmSlice")
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
-	if realmSliceAppsListRow != nil {
-		wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: realmSliceAppsListRow, Messages: nil})
-		l.Debug0().Log("Finished execution of RealmSliceApps()")
-		return
-	} else {
-		wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: []sqlc.RealmSliceAppsListRow{}, Messages: nil})
-		l.Debug0().Log("Finished execution of RealmSliceApps()")
+	if strings.Contains(tag.String(), "0") {
+		l.Log("no record found to purse")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ERRCode_No_record_For_purge))
 		return
 	}
+
+	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})
+	l.Debug0().Log("Finished execution of RealmSlicePurge()")
 }
