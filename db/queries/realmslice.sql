@@ -146,3 +146,11 @@ WHERE
     id = @id
 RETURNING
     *;
+
+-- name: GetRealmSliceListByRealm :many
+SELECT
+    id,descr,active,deactivateat,createdat,createdby,editedat,editedby
+FROM
+    realmslice
+WHERE
+    realm= @realm;
