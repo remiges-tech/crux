@@ -13,6 +13,8 @@ import (
 
 type Querier interface {
 	AddWFNewInstances(ctx context.Context, arg AddWFNewInstancesParams) ([]Wfinstance, error)
+	AllRuleset(ctx context.Context) ([]Ruleset, error)
+	AllSchemas(ctx context.Context) ([]Schema, error)
 	AppDelete(ctx context.Context, arg AppDeleteParams) error
 	AppExist(ctx context.Context, app string) (int32, error)
 	AppNew(ctx context.Context, arg AppNewParams) ([]App, error)

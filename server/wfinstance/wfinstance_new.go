@@ -129,7 +129,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 			return
 		}
 		wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(response))
-
+       return
 	}
 	// if tasks of actionset contains multiple tasks
 	if len(actionSet.Tasks) > 1 && done == "" {

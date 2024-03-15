@@ -12,6 +12,49 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const allRuleset = `-- name: AllRuleset :many
+SELECT
+    id, realm, slice, app, brwf, class, setname, schemaid, is_active, is_internal, ruleset, createdat, createdby, editedat, editedby
+FROM
+    public.ruleset
+`
+
+func (q *Queries) AllRuleset(ctx context.Context) ([]Ruleset, error) {
+	rows, err := q.db.Query(ctx, allRuleset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Ruleset
+	for rows.Next() {
+		var i Ruleset
+		if err := rows.Scan(
+			&i.ID,
+			&i.Realm,
+			&i.Slice,
+			&i.App,
+			&i.Brwf,
+			&i.Class,
+			&i.Setname,
+			&i.Schemaid,
+			&i.IsActive,
+			&i.IsInternal,
+			&i.Ruleset,
+			&i.Createdat,
+			&i.Createdby,
+			&i.Editedat,
+			&i.Editedby,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getApp = `-- name: GetApp :one
 SELECT app
 FROM ruleset

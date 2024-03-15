@@ -11,6 +11,43 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const allSchemas = `-- name: AllSchemas :many
+SELECT id, realm, slice, app, brwf, class, patternschema, actionschema, createdat, createdby, editedat, editedby FROM public.schema
+`
+
+func (q *Queries) AllSchemas(ctx context.Context) ([]Schema, error) {
+	rows, err := q.db.Query(ctx, allSchemas)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Schema
+	for rows.Next() {
+		var i Schema
+		if err := rows.Scan(
+			&i.ID,
+			&i.Realm,
+			&i.Slice,
+			&i.App,
+			&i.Brwf,
+			&i.Class,
+			&i.Patternschema,
+			&i.Actionschema,
+			&i.Createdat,
+			&i.Createdby,
+			&i.Editedat,
+			&i.Editedby,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getSchemaWithLock = `-- name: GetSchemaWithLock :one
 SELECT
     id,
@@ -493,9 +530,7 @@ INSERT INTO
     )
 VALUES (
         $1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, $8
-    )
-    RETURNING
-    id
+    ) RETURNING id
 `
 
 type SchemaNewParams struct {
@@ -706,16 +741,16 @@ where
                     and realmslice.realm = realm.shortname
                     and schema.realm = $4
                     and schema.class = $3
-                    AND schema.app =  $2
+                    AND schema.app = $2
             ) as id
         where
-            id not in (
+            id not in(
                 SELECT schemaid
                 FROM ruleset
                 where
                     realm = $4
                     and slice = $1
-                    and app =  $2
+                    and app = $2
                     and class = $3
             )
     )
