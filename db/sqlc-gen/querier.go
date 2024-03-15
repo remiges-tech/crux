@@ -27,6 +27,7 @@ type Querier interface {
 	DeleteWFInstanceListByParents(ctx context.Context, arg DeleteWFInstanceListByParentsParams) ([]Wfinstance, error)
 	DeleteWfinstanceByID(ctx context.Context, arg DeleteWfinstanceByIDParams) ([]Wfinstance, error)
 	GetApp(ctx context.Context, arg GetAppParams) (string, error)
+	GetAppList(ctx context.Context, realm string) ([]GetAppListRow, error)
 	GetAppName(ctx context.Context, arg GetAppNameParams) ([]App, error)
 	GetCapGrantForApp(ctx context.Context, arg GetCapGrantForAppParams) ([]Capgrant, error)
 	GetClass(ctx context.Context, arg GetClassParams) (string, error)

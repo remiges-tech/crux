@@ -149,6 +149,7 @@ func registerRoutes(databaseUrl string) (*gin.Engine, error) {
 	s.RegisterRoute(http.MethodPost, "/appnew", app.AppNew)
 	s.RegisterRoute(http.MethodPost, "/appupdate", app.AppUpdate)
 	s.RegisterRoute(http.MethodPost, "/appdelete/:name", app.AppDelete)
+	s.RegisterRoute(http.MethodGet, "/applist", app.AppList)
 
 	return r, nil
 
