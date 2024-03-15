@@ -1,9 +1,9 @@
-package main
+package crux
 
 import (
 	"time"
 
-	"github.com/remiges-tech/crux/db/sqlc-gen"
+	sqlc "github.com/remiges-tech/crux/matching-engine/db/sqlc-gen"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -17,31 +17,31 @@ var mockSchemasets = []sqlc.Schema{
 		Class: "inventoryitem2",
 
 		Brwf: sqlc.BrwfEnum("W"),
-		Patternschema: []byte(`{
-			"attr": [
+		Patternschema: []byte(`[
+		
 				{
-					"name": "cat",
+					"attr": "cat",
 					"valtype": "str"
 					
 				},
 				{
-					"name": "mrp",
+					"attr": "mrp",
 					"valtype": "float"
 				},
 				{
-					"name": "fullname",
+					"attr": "fullname",
 					"valtype": "str"
 				},
 				{
-					"name": "ageinstock",
+					"attr": "ageinstock",
 					"valtype": "int"
 				},
 				{
-					"name": "inventoryqty",
+					"attr": "inventoryqty",
 					"valtype": "int"
 				}
-			]
-		}`),
+			
+		]`),
 		Actionschema: []byte(`{
 			
 		}`),
@@ -57,35 +57,35 @@ var mockSchemasets = []sqlc.Schema{
 		Class: "inventoryitem",
 
 		Brwf: sqlc.BrwfEnum("W"),
-		Patternschema: []byte(`{
-			"attr": [
+		Patternschema: []byte(`[
+			
 				{
-					"name": "cat",
+					"attr": "cat",
 					"valtype": "enum",
-					"vals": {"textbook":true, "book":true, "stationery":true, "refbooks":true}
+					"vals": {"textbook":{}, "book":{}, "stationery":{}, "refbooks":{}}
 				},
 				{
-					"name": "mrp",
+					"attr": "mrp",
 					"valtype": "float"
 				},
 				{
-					"name": "fullname",
+					"attr": "fullname",
 					"valtype": "str"
 				},
 				{
-					"name": "ageinstock",
+					"attr": "ageinstock",
 					"valtype": "int"
 				},
 				{
-					"name": "inventoryqty",
+					"attr": "inventoryqty",
 					"valtype": "int"
 				},
 				{
-					"name": "received",
+					"attr": "received",
 					"valtype": "ts"
 				}
-			]
-		}`),
+			
+		]`),
 		Actionschema: []byte(`{
 			
 		}`),
@@ -101,35 +101,35 @@ var mockSchemasets = []sqlc.Schema{
 		Slice: 7,
 		Class: "transaction",
 		Brwf:  sqlc.BrwfEnum("W"),
-		Patternschema: []byte(`{
-			"attr": [
+		Patternschema: []byte(`[
+			
 				{
-					"name": "productname",
+					"attr": "productname",
 					"valtype": "str"
 					
 				},
 				{
-					"name": "price",
+					"attr": "price",
 					"valtype": "int"
 				},
 				{
-					"name": "inwintersale",
+					"attr": "inwintersale",
 					"valtype": "bool"
 				},
 				{
-					"name": "paymenttype",
+					"attr": "paymenttype",
 					"valtype": "enum"
 				},
 				{
-					"name": "ismember",
+					"attr": "ismember",
 					"valtype": "bool"
 				},
 				{  
-					"name": "received",
+					"attr": "received",
 					"valtype": "ts"
 				}
-			]
-		}`),
+			
+		]`),
 		Actionschema: []byte(`{
 			
 		}`),
@@ -144,24 +144,24 @@ var mockSchemasets = []sqlc.Schema{
 		Slice: 8,
 		Class: "purchase",
 		Brwf:  sqlc.BrwfEnum("W"),
-		Patternschema: []byte(`{
-			"attr": [
+		Patternschema: []byte(`[
+			
 				{
-					"name": "product",
+					"attr": "product",
 					"valtype": "str"
 					
 				},
 				{
-					"name": "price",
+					"attr": "price",
 					"valtype": "float"
 				},
 				{
-					"name": "ismember",
+					"attr": "ismember",
 					"valtype": "bool"
 				}
 				
-			]
-		}`),
+			
+		]`),
 		Actionschema: []byte(`{
 			"tasks": ["freepen", "freebottle", "freepencil", "freemug", "freejar", "freeplant","freebag", "freenotebook"],
 			"properties": ["discount", "pointsmult"]
@@ -178,30 +178,30 @@ var mockSchemasets = []sqlc.Schema{
 		Slice: 9,
 		Class: "order",
 		Brwf:  sqlc.BrwfEnum("W"),
-		Patternschema: []byte(`{
-			"attr": [
+		Patternschema: []byte(`[
+			
 				{
-					"name": "ordertype",
+					"attr": "ordertype",
 					"valtype": "enum"
 					
 				},
 				{
-					"name": "mode",
+					"attr": "mode",
 					"valtype": "enum"
 				},
 				{
-					"name": "liquidscheme",
+					"attr": "liquidscheme",
 					"valtype": "bool"
 				},{
-					"name": "overnightscheme",
+					"attr": "overnightscheme",
 					"valtype": "bool"
 				},{
-					"name": "extendedhours",
+					"attr": "extendedhours",
 					"valtype": "bool"
 				}
 				
-			]
-		}`),
+			
+		]`),
 		Actionschema: []byte(`{
 			"tasks": ["unitstoamc", "unitstorta"],
 			"properties": ["amfiordercutoff", "bseordercutoff", "fundscutoff", "unitscutoff"]
@@ -218,25 +218,25 @@ var mockSchemasets = []sqlc.Schema{
 		Slice: 10,
 		Class: "ucccreation",
 		Brwf:  sqlc.BrwfEnum("W"),
-		Patternschema: []byte(`{
-			"attr": [
+		Patternschema: []byte(`[
+		
 				{
-					"name": "step",
+					"attr": "step",
 					"valtype": "enum"
 					
 				},
 				{
-					"name": "stepfailed",
+					"attr": "stepfailed",
 					"valtype": "bool"
 					
 				},
 				{
-					"name": "mode",
+					"attr": "mode",
 					"valtype": "enum"
 				}
 				
-			]
-		}`),
+			
+		]`),
 		Actionschema: []byte(`{
 			"tasks": ["getcustdetails", "aof", "kycvalid", "nomauth", "bankaccvalid", "dpandbankaccvalid", "sendauthlinktoclient"],
 			"properties": ["nextstep", "done"]
@@ -253,22 +253,22 @@ var mockSchemasets = []sqlc.Schema{
 		Slice: 11,
 		Class: "prepareaof",
 		Brwf:  sqlc.BrwfEnum("W"),
-		Patternschema: []byte(`{
-			"attr": [
+		Patternschema: []byte(`[
+			
 				{
-					"name": "step",
+					"attr": "step",
 					"valtype": "enum"
 					
 				},
 				{
-					"name": "stepfailed",
+					"attr": "stepfailed",
 					"valtype": "bool"
 					
 				}
 	
 				
-			]
-		}`),
+			
+		]`),
 		Actionschema: []byte(`{
 			
 		}`),
@@ -283,26 +283,26 @@ var mockSchemasets = []sqlc.Schema{
 		Slice: 12,
 		Class: "validateaof",
 		Brwf:  sqlc.BrwfEnum("W"),
-		Patternschema: []byte(`{
-			"attr": [
+		Patternschema: []byte(`[
+
 				{
-					"name": "step",
+					"attr": "step",
 					"valtype": "enum"
 					
 				},
 				{
-					"name": "stepfailed",
+					"attr": "stepfailed",
 					"valtype": "bool"
 					
 				},
 				{
-					"name": "aofexists",
+					"attr": "aofexists",
 					"valtype": "bool"
 					
 				}
 
-			]
-		}`),
+			
+		]`),
 		Actionschema: []byte(`{
 			
 		}`),

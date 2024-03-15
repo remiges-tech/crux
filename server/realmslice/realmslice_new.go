@@ -68,8 +68,9 @@ func RealmSliceNew(c *gin.Context, s *service.Service) {
 
 	if req.CopyOf == 0 && req.App == nil {
 		newSliceID, err := query.InsertNewRecordInRealmSlice(c, sqlc.InsertNewRecordInRealmSliceParams{
-			Realm: realmName,
-			Descr: req.Descr,
+			Realm:     realmName,
+			Descr:     req.Descr,
+			Createdby: userID,
 		})
 		if err != nil {
 			l.Info().Error(err).Log("Error while creating new realmslice")
@@ -78,7 +79,7 @@ func RealmSliceNew(c *gin.Context, s *service.Service) {
 			return
 		}
 		wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: newSliceID, Messages: nil})
-		l.Debug0().Log("Starting execution of RealmSliceNew()")
+		l.Debug0().Log("Finished execution of RealmSliceNew()")
 		return
 	}
 
@@ -93,13 +94,14 @@ func RealmSliceNew(c *gin.Context, s *service.Service) {
 	qtx := query.WithTx(tx)
 
 	newSliceID, err := qtx.CloneRecordInRealmSliceBySliceID(c, sqlc.CloneRecordInRealmSliceBySliceIDParams{
-		ID:    int32(req.CopyOf),
-		Realm: realmName,
-		Descr: pgtype.Text{String: req.Descr, Valid: true},
+		ID:        int32(req.CopyOf),
+		Realm:     realmName,
+		Createdby: userID,
+		Descr:     pgtype.Text{String: req.Descr, Valid: true},
 	})
 	if err != nil {
 		tx.Rollback(c)
-		l.Info().Error(err).Log("Error while creating copy of realmslice")
+		l.Info().Error(err).Log("Error while creating clone of realmslice")
 		if err.Error() == "no rows in result set" {
 			feild := "CopyOf"
 			wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(1006, server.ErrCode_NotExist, &feild)}))
@@ -117,15 +119,13 @@ func RealmSliceNew(c *gin.Context, s *service.Service) {
 	})
 	if err != nil {
 		tx.Rollback(c)
-		l.Info().Error(err).Log("Error while creating new record in config")
+		l.Info().Error(err).Log("Error while creating clone of config")
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
 	if strings.Contains(tag.String(), "0") {
-		l.Log("no record found in config to create new record")
-		// wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ErrCode_NotFound))
-		// return
+		l.Log("no record found in config to clone in config")
 	}
 
 	tag, err = qtx.CloneRecordInSchemaBySliceID(c, sqlc.CloneRecordInSchemaBySliceIDParams{
@@ -136,15 +136,14 @@ func RealmSliceNew(c *gin.Context, s *service.Service) {
 	})
 	if err != nil {
 		tx.Rollback(c)
-		l.Info().Error(err).Log("Error while creating copy of schema")
+		l.Info().Error(err).Log("Error while creating clone of schema")
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
 	if strings.Contains(tag.String(), "0") {
-		l.Log("no record found to create new record in schema")
-		// wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ErrCode_NotFound))
-		// return
+		l.Log("no record found to clone in schema")
+
 	}
 
 	tag, err = qtx.CloneRecordInRulesetBySliceID(c, sqlc.CloneRecordInRulesetBySliceIDParams{
@@ -156,15 +155,13 @@ func RealmSliceNew(c *gin.Context, s *service.Service) {
 
 	if err != nil {
 		tx.Rollback(c)
-		l.Info().Error(err).Log("Error while creating copy of ruleset")
+		l.Info().Error(err).Log("Error while creating clone of ruleset")
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
 	if strings.Contains(tag.String(), "0") {
-		l.Log("no record found to create new record in ")
-		// wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ErrCode_NotFound))
-		// return
+		l.Log("no record found to clone in ruleset")
 	}
 
 	if err := tx.Commit(c); err != nil {

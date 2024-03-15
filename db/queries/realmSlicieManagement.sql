@@ -1,7 +1,7 @@
 -- name: CloneRecordInRealmSliceBySliceID :one
 INSERT INTO
     realmslice (
-        realm, descr, active, activateat, deactivateat
+        realm, descr, active, activateat, deactivateat,createdby
     )
 SELECT
     realm,
@@ -10,7 +10,8 @@ SELECT
     ),
     true,
     activateat,
-    deactivateat
+    deactivateat,
+    $3
 FROM realmslice
 WHERE
     realmslice.id = $1
@@ -20,10 +21,10 @@ RETURNING
 
 -- name: InsertNewRecordInRealmSlice :one
 INSERT INTO
-    realmslice (realm, descr, active)
-VALUES ($1, $2, true)
-RETURNING
-    realmslice.id;
+    realmslice (
+        realm, descr, active, createdby
+    )
+VALUES ($1, $2, true, $3) RETURNING realmslice.id;
 
 -- name: CloneRecordInConfigBySliceID :execresult
 INSERT INTO
@@ -91,54 +92,57 @@ WHERE
 
 -- name: RealmSlicePurge :execresult
 WITH
-    cte1 AS (
+    del_stepworkflow AS (
         DELETE FROM stepworkflow
     ),
-    cte2 AS (
+    del_wfinstance AS (
         DELETE FROM wfinstance
     ),
-    cte3 AS (
+    del_ruleset AS (
         DELETE FROM ruleset
     ),
-    cte4 AS (
+    del_schema AS (
         DELETE FROM schema
     ),
-    cte5 AS (
+    del_config AS (
         DELETE FROM config
     )
 DELETE FROM realmslice
 WHERE
-    id IN (
-        SELECT id
-        FROM realmslice
-        LIMIT 100
-    );
-
+    realmslice.realm = $1;
 
 -- name: RealmSliceActivate :one
 UPDATE realmslice
 SET
     active = @isactive,
     activateat = CASE
-        WHEN (sqlc.narg('activateat')::TIMESTAMP) IS NULL
-            THEN NOW()
-        ELSE (sqlc.narg('activateat')::TIMESTAMP)
+        WHEN (
+            sqlc.narg ('activateat')::TIMESTAMP
+        ) IS NULL THEN NOW()
+        ELSE (
+            sqlc.narg ('activateat')::TIMESTAMP
+        )
     END,
     deactivateat = NULL
 WHERE
     id = @id
-    RETURNING *;
+RETURNING
+    *;
 
 -- name: RealmSliceDeactivate :one
 UPDATE realmslice
 SET
     active = @isactive,
     deactivateat = CASE
-        WHEN (sqlc.narg('deactivateat')::TIMESTAMP) IS NULL
-            THEN NOW()
-        ELSE (sqlc.narg('deactivateat')::TIMESTAMP)
+        WHEN (
+            sqlc.narg ('deactivateat')::TIMESTAMP
+        ) IS NULL THEN NOW()
+        ELSE (
+            sqlc.narg ('deactivateat')::TIMESTAMP
+        )
     END,
     activateat = NULL
 WHERE
     id = @id
-    RETURNING *;
+RETURNING
+    *;

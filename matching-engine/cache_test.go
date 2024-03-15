@@ -6,14 +6,14 @@ Some of the definitions of rulesets below deliberately use a lot of whitespace t
 and to make it easier to understand, add to, and edit these tests
 */
 
-package main
+package crux
 
 import (
 	"context"
 	"log"
 	"testing"
 
-	"github.com/remiges-tech/crux/db/sqlc-gen"
+	sqlc "github.com/remiges-tech/crux/matching-engine/db/sqlc-gen"
 
 	"github.com/jackc/pgx/v5"
 )

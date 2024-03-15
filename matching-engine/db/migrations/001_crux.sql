@@ -10,12 +10,12 @@ CREATE TABLE realm (
 
 CREATE TABLE app (
     id SERIAL PRIMARY KEY,
-    realm VARCHAR(255) REFERENCES realm (shortname) NOT NULL,
-    shortname VARCHAR(255)  NOT NULL CHECK (shortname ~ '^[a-zA-Z0-9]+$'),
-    shortnamelc VARCHAR(255) UNIQUE NOT NULL,
+    realm VARCHAR(255) REFERENCES realm (shortname) NOT NULL UNIQUE,
+    shortname VARCHAR(255) UNIQUE NOT NULL CHECK (shortname ~ '^[a-zA-Z0-9]+$'),
+    shortnamelc VARCHAR(255) NOT NULL,
     longname VARCHAR(255) NOT NULL,
     setby VARCHAR(255) NOT NULL,
-    setat TIMESTAMP NOT NULL DEFAULT (NOW() :: timestamp)
+    setat TIMESTAMP NOT NULL
 );
 
 CREATE TABLE realmslice (
@@ -23,12 +23,8 @@ CREATE TABLE realmslice (
     realm VARCHAR(255) REFERENCES realm (shortname) NOT NULL,
     descr VARCHAR(255) NOT NULL,
     active BOOLEAN NOT NULL,
-    activateat TIMESTAMP DEFAULT NOW() :: timestamp,
-    deactivateat TIMESTAMP,
-    createdat TIMESTAMP DEFAULT (NOW() :: timestamp) NOT NULL,
-    createdby VARCHAR(255) NOT NULL,
-    editedat TIMESTAMP DEFAULT (NOW() :: timestamp),
-    editedby VARCHAR(255)
+    activateat TIMESTAMP,
+    deactivateat TIMESTAMP
 );
 
 CREATE TABLE config (
@@ -48,13 +44,14 @@ CREATE TABLE capgrant (
     realm INTEGER REFERENCES realm (id) NOT NULL,
     "user" VARCHAR(255) NOT NULL,
     -- "user" is a reserved keyword in SQL, so it is enclosed in double quotes
-    app VARCHAR(255) REFERENCES app (shortnamelc),
+    app VARCHAR(255) REFERENCES app (shortname),
     cap VARCHAR(255) NOT NULL,
     "from" TIMESTAMP,
     "to" TIMESTAMP,
     setat TIMESTAMP NOT NULL,
     setby VARCHAR(255) NOT NULL,
-    UNIQUE (realm, "user", app, cap)
+    isdeleted BOOLEAN,
+    UNIQUE (realm, "user", app, cap, setat)
 );
 
 CREATE TABLE deactivated (
@@ -72,7 +69,7 @@ CREATE TABLE schema (
     id SERIAL PRIMARY KEY,
     realm INTEGER REFERENCES realm (id) NOT NULL,
     slice INTEGER REFERENCES realmslice (id) NOT NULL,
-    app VARCHAR(255) REFERENCES app (shortnamelc) NOT NULL,
+    app VARCHAR(255) REFERENCES app (shortname) NOT NULL,
     brwf brwf_enum NOT NULL,
     class VARCHAR(255) CHECK (class ~ '^[a-z_]+$') NOT NULL,
     patternschema JSONB NOT NULL,
@@ -88,7 +85,7 @@ CREATE TABLE ruleset (
     id SERIAL PRIMARY KEY,
     realm INTEGER REFERENCES realm (id) NOT NULL,
     slice INTEGER REFERENCES realmslice (id) NOT NULL,
-    app VARCHAR(255) REFERENCES app (shortnamelc) NOT NULL,
+    app VARCHAR(255) REFERENCES app (shortname) NOT NULL,
     brwf brwf_enum NOT NULL,
     class VARCHAR(255) CHECK (class ~ '^[a-z_]+$') NOT NULL,
     setname VARCHAR(255) CHECK (setname ~ '^[a-z_]+$') NOT NULL,
@@ -107,7 +104,7 @@ CREATE TABLE wfinstance (
     id SERIAL PRIMARY KEY,
     entityid VARCHAR(255) NOT NULL,
     slice INTEGER REFERENCES realmslice (id) NOT NULL,
-    app VARCHAR(255) REFERENCES app (shortnamelc) NOT NULL,
+    app VARCHAR(255) REFERENCES app (shortname) NOT NULL,
     class VARCHAR(255) CHECK (class ~ '^[a-z_]+$') NOT NULL,
     workflow VARCHAR(255) CHECK (workflow ~ '^[a-z_]+$') NOT NULL,
     step VARCHAR(255) NOT NULL,
@@ -120,7 +117,7 @@ CREATE TABLE wfinstance (
 
 CREATE TABLE stepworkflow (
     slice INTEGER REFERENCES realmslice (id) NOT NULL,
-    app VARCHAR(255) REFERENCES app (shortnamelc),
+    app VARCHAR(255) REFERENCES app (shortname),
     step varchar(255) NOT NULL,
     workflow varchar(255) NOT NULL
 );

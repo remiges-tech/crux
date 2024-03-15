@@ -1,4 +1,4 @@
-package main
+package crux
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/remiges-tech/crux/db/sqlc-gen"
+	sqlc "github.com/remiges-tech/crux/matching-engine/db/sqlc-gen"
 )
 
 func loadInternalSchema(dbResponseSchema []sqlc.Schema) error {
@@ -37,31 +37,29 @@ func loadInternalSchema(dbResponseSchema []sqlc.Schema) error {
 		if !exists {
 			perApp[sliceKey] = perSlice_t{
 				LoadedAt: time.Now(),
-				BRSchema: make(map[className_t][]*schema_t),
-				WFSchema: make(map[className_t][]*schema_t),
+				BRSchema: make(map[className_t][]*Schema_t),
+				WFSchema: make(map[className_t][]*Schema_t),
 			}
 
-			var patterns patternSchema_t
+			var patterns []PatternSchema_t
 
 			if err := json.Unmarshal(row.Patternschema, &patterns); err != nil {
 				log.Println("Error unmarshaling Patternschema:", err)
 				continue
 			}
 
-			var actions actionSchema_t
+			var actions ActionSchema_t
 
 			if err := json.Unmarshal(row.Actionschema, &actions); err != nil {
 				log.Println("Error parsing ActionSchema JSON:", err)
 				continue
 			}
 
-			schemaData := &schema_t{
+			schemaData := &Schema_t{
 				Class:         row.Class,
 				PatternSchema: patterns,
 				ActionSchema:  actions,
-				NChecked:      nCheckedcounter,
 			}
-			nCheckedcounter++
 
 			classNameKey := className_t(row.Class)
 			if row.Brwf == "B" {
@@ -115,7 +113,7 @@ func loadInternalRuleSet(dbResponseRuleSet []sqlc.Ruleset) error {
 
 			classNameKey := className_t(row.Setname)
 			newRuleset := &Ruleset_t{
-				//Id:     row.ID,
+				Id:      row.ID,
 				Class:   row.Class,
 				SetName: row.Setname,
 				Rules:   rules,
