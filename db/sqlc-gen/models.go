@@ -65,7 +65,7 @@ type App struct {
 
 type Capgrant struct {
 	ID    int32            `json:"id"`
-	Realm int32            `json:"realm"`
+	Realm string           `json:"realm"`
 	User  string           `json:"user"`
 	App   pgtype.Text      `json:"app"`
 	Cap   string           `json:"cap"`
@@ -76,7 +76,7 @@ type Capgrant struct {
 }
 
 type Config struct {
-	Realm int32            `json:"realm"`
+	Realm string           `json:"realm"`
 	Slice int32            `json:"slice"`
 	Name  string           `json:"name"`
 	Descr string           `json:"descr"`
@@ -119,7 +119,7 @@ type Realmslice struct {
 
 type Ruleset struct {
 	ID         int32            `json:"id"`
-	Realm      int32            `json:"realm"`
+	Realm      string           `json:"realm"`
 	Slice      int32            `json:"slice"`
 	App        string           `json:"app"`
 	Brwf       BrwfEnum         `json:"brwf"`
@@ -137,7 +137,7 @@ type Ruleset struct {
 
 type Schema struct {
 	ID            int32            `json:"id"`
-	Realm         int32            `json:"realm"`
+	Realm         string           `json:"realm"`
 	Slice         int32            `json:"slice"`
 	App           string           `json:"app"`
 	Brwf          BrwfEnum         `json:"brwf"`

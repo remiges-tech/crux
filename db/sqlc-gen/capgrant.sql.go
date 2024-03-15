@@ -18,7 +18,7 @@ DELETE FROM capgrant WHERE app = $1 AND realm = $2
 
 type DeleteCapGranForAppParams struct {
 	App   pgtype.Text `json:"app"`
-	Realm int32       `json:"realm"`
+	Realm string      `json:"realm"`
 }
 
 func (q *Queries) DeleteCapGranForApp(ctx context.Context, arg DeleteCapGranForAppParams) error {
@@ -33,7 +33,7 @@ SELECT id, realm, "user", app, cap, "from", "to", setat, setby FROM capgrant WHE
 
 type GetCapGrantForAppParams struct {
 	App   pgtype.Text `json:"app"`
-	Realm int32       `json:"realm"`
+	Realm string      `json:"realm"`
 }
 
 func (q *Queries) GetCapGrantForApp(ctx context.Context, arg GetCapGrantForAppParams) ([]Capgrant, error) {

@@ -29,6 +29,21 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
 	lh := s.LogHarbour.WithClass("wfinstance")
 	entity := r.Entity
 	var errRes []wscutils.ErrorMessage
+	// userID, err := server.ExtractUserNameFromJwt(c)
+	// if err != nil {
+	// 	lh.Info().Log("unable to extract userID from token")
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+	// 	errRes := append(errRes, wscutils.BuildErrorMessage(server.MsgId_Missing, server.ERRCode_Token_Data_Missing, nil))
+	// 	return false, errRes
+	// }
+
+	realmName, err := server.ExtractRealmFromJwt(c)
+	if err != nil {
+		lh.Info().Log("unable to extract realm from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		errRes := append(errRes, wscutils.BuildErrorMessage(server.MsgId_Missing, server.ERRCode_Token_Data_Missing, nil))
+		return false, errRes
+	}
 
 	lh.Debug0().Log("Inside ValidateWFInstaceNewReq()")
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
@@ -61,7 +76,7 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
 		Slice: r.Slice,
 		Class: class,
 		App:   r.App,
-		Realm: REALM,
+		Realm: realmName,
 	})
 	if err != nil {
 		lh.Error(err).Log("GetWFinstanceNew||validateWFInstanceNewReq()||failed to get schema pattern from DB")
@@ -98,6 +113,14 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 	lh := s.LogHarbour.WithClass("wfinstance")
 	entityClass := r.Entity[CLASS]
 
+	realmName, err := server.ExtractRealmFromJwt(c)
+	if err != nil {
+		lh.Info().Log("unable to extract realm from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		errRes := append(errors, wscutils.BuildErrorMessage(server.MsgId_Missing, server.ERRCode_Token_Data_Missing, nil))
+		return false, errRes
+	}
+
 	lh.Debug0().Log("Inside validateWorkflow()")
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
@@ -113,7 +136,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 		Slice: r.Slice,
 		App:   r.App,
 		Class: entityClass,
-		Realm: REALM,
+		Realm: realmName,
 	})
 
 	if err != nil {
@@ -127,7 +150,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 		Slice: r.Slice,
 		App:   app,
 		Class: entityClass,
-		Realm: REALM,
+		Realm: realmName,
 	})
 
 	if err != nil {
@@ -143,7 +166,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 		Slice:   r.Slice,
 		App:     app,
 		Class:   class,
-		Realm:   REALM,
+		Realm:   realmName,
 		Setname: r.Workflow,
 	})
 
@@ -158,7 +181,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 		Slice:   r.Slice,
 		App:     app,
 		Class:   class,
-		Realm:   REALM,
+		Realm:   realmName,
 		Setname: r.Workflow,
 	})
 

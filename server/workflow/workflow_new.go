@@ -19,9 +19,7 @@ import (
 )
 
 var (
-	username     = "admin"
 	capabilities = []string{"ruleset"}
-	realmID      = int32(1)
 )
 
 type WorkflowNew struct {
@@ -37,20 +35,34 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
 	l.Debug0().Log("Starting execution of WorkFlowNew()")
 
+	userID, err := server.ExtractUserNameFromJwt(c)
+	if err != nil {
+		l.Info().Log("unable to extract userID from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		return
+	}
+
+	realmName, err := server.ExtractRealmFromJwt(c)
+	if err != nil {
+		l.Info().Log("unable to extract realm from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		return
+	}
+
 	isCapable, _ := server.Authz_check(types.OpReq{
-		User:      username,
+		User:      userID,
 		CapNeeded: capabilities,
 	}, false)
 
 	if !isCapable {
-		l.Info().LogActivity("Unauthorized user:", username)
+		l.Info().LogActivity("Unauthorized user:", userID)
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
 		return
 	}
 	var wf WorkflowNew
 	var ruleSchema schema.SchemaNewReq
 
-	err := wscutils.BindJSON(c, &wf)
+	err = wscutils.BindJSON(c, &wf)
 	if err != nil {
 		l.Error(err).Log("Error Unmarshalling Query parameters to struct:")
 		return
@@ -130,7 +142,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 	}
 
 	err = qtx.WorkFlowNew(c, sqlc.WorkFlowNewParams{
-		Realm:      realmID,
+		Realm:      realmName,
 		Slice:      wf.Slice,
 		App:        wf.App,
 		Brwf:       brwf,
@@ -140,7 +152,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 		IsActive:   pgtype.Bool{Bool: false, Valid: true},
 		IsInternal: wf.IsInternal,
 		Ruleset:    ruleset,
-		Createdby:  username,
+		Createdby:  userID,
 	})
 	if err != nil {
 		l.Info().LogActivity("Error while Inserting data in ruleset", err.Error())

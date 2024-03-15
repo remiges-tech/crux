@@ -25,11 +25,22 @@ func WorkflowDelete(c *gin.Context, s *service.Service) {
 	)
 
 	// implement the user realm and all here
-	var (
-		userID           = "1234"
-		capForList       = []string{"workflow"}
-		userRealm  int32 = 1
-	)
+	var capForList = []string{"workflow"}
+
+	userID, err := server.ExtractUserNameFromJwt(c)
+	if err != nil {
+		lh.Info().Log("unable to extract userID from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		return
+	}
+
+	realmName, err := server.ExtractRealmFromJwt(c)
+	if err != nil {
+		lh.Info().Log("unable to extract realm from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		return
+	}
+
 	isCapable, _ := server.Authz_check(types.OpReq{
 		User:      userID,
 		CapNeeded: capForList,
@@ -41,7 +52,7 @@ func WorkflowDelete(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	err := wscutils.BindJSON(c, &request)
+	err = wscutils.BindJSON(c, &request)
 	if err != nil {
 		lh.Debug0().Error(err).Log("error while binding json request error")
 		return
@@ -71,7 +82,7 @@ func WorkflowDelete(c *gin.Context, s *service.Service) {
 		App:     request.App,
 		Class:   request.Class,
 		Setname: request.Name,
-		Realm:   userRealm,
+		Realm:   realmName,
 	})
 	if err != nil {
 		lh.Debug0().Error(err).Log("error while retriving record")
@@ -85,7 +96,7 @@ func WorkflowDelete(c *gin.Context, s *service.Service) {
 		App:     request.App,
 		Class:   request.Class,
 		Setname: request.Name,
-		Realm:   userRealm,
+		Realm:   realmName,
 	})
 	if err != nil {
 		lh.Debug0().Error(err).Log("failed to delete data from db")

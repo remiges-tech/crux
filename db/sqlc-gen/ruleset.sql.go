@@ -70,7 +70,7 @@ type GetAppParams struct {
 	Slice int32  `json:"slice"`
 	App   string `json:"app"`
 	Class string `json:"class"`
-	Realm int32  `json:"realm"`
+	Realm string `json:"realm"`
 }
 
 func (q *Queries) GetApp(ctx context.Context, arg GetAppParams) (string, error) {
@@ -100,7 +100,7 @@ type GetClassParams struct {
 	Slice int32  `json:"slice"`
 	App   string `json:"app"`
 	Class string `json:"class"`
-	Realm int32  `json:"realm"`
+	Realm string `json:"realm"`
 }
 
 func (q *Queries) GetClass(ctx context.Context, arg GetClassParams) (string, error) {
@@ -131,7 +131,7 @@ type GetWFActiveStatusParams struct {
 	Slice   int32  `json:"slice"`
 	App     string `json:"app"`
 	Class   string `json:"class"`
-	Realm   int32  `json:"realm"`
+	Realm   string `json:"realm"`
 	Setname string `json:"setname"`
 }
 
@@ -164,7 +164,7 @@ type GetWFInternalStatusParams struct {
 	Slice   int32  `json:"slice"`
 	App     string `json:"app"`
 	Class   string `json:"class"`
-	Realm   int32  `json:"realm"`
+	Realm   string `json:"realm"`
 	Setname string `json:"setname"`
 }
 
@@ -231,7 +231,7 @@ VALUES (
 `
 
 type WorkFlowNewParams struct {
-	Realm      int32       `json:"realm"`
+	Realm      string      `json:"realm"`
 	Slice      int32       `json:"slice"`
 	App        string      `json:"app"`
 	Brwf       BrwfEnum    `json:"brwf"`
@@ -314,7 +314,7 @@ type WorkflowDeleteParams struct {
 	App     string `json:"app"`
 	Class   string `json:"class"`
 	Setname string `json:"setname"`
-	Realm   int32  `json:"realm"`
+	Realm   string `json:"realm"`
 }
 
 func (q *Queries) WorkflowDelete(ctx context.Context, arg WorkflowDeleteParams) (pgconn.CommandTag, error) {
@@ -353,7 +353,7 @@ where
 `
 
 type WorkflowListParams struct {
-	Realm      int32       `json:"realm"`
+	Realm      string      `json:"realm"`
 	Slice      pgtype.Int4 `json:"slice"`
 	App        []string    `json:"app"`
 	Class      pgtype.Text `json:"class"`
@@ -445,7 +445,7 @@ type WorkflowgetParams struct {
 	App     string `json:"app"`
 	Class   string `json:"class"`
 	Setname string `json:"setname"`
-	Realm   int32  `json:"realm"`
+	Realm   string `json:"realm"`
 }
 
 type WorkflowgetRow struct {

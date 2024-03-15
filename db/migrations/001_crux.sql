@@ -32,7 +32,7 @@ CREATE TABLE realmslice (
 );
 
 CREATE TABLE config (
-    realm INTEGER REFERENCES realm (id) NOT NULL,
+    realm  VARCHAR(255) REFERENCES realm (shortname) NOT NULL,
     slice INTEGER REFERENCES realmslice (id) NOT NULL,
     name VARCHAR(255) CHECK (name ~ '^[A-Z_]+$') NOT NULL,
     descr VARCHAR(255) NOT NULL,
@@ -45,7 +45,7 @@ CREATE TABLE config (
 
 CREATE TABLE capgrant (
     id SERIAL PRIMARY KEY,
-    realm INTEGER REFERENCES realm (id) NOT NULL,
+    realm VARCHAR(255) REFERENCES realm (shortname) NOT NULL,
     "user" VARCHAR(255) NOT NULL,
     -- "user" is a reserved keyword in SQL, so it is enclosed in double quotes
     app VARCHAR(255) REFERENCES app (shortnamelc),
@@ -70,7 +70,7 @@ CREATE TYPE brwf_enum AS ENUM ('B', 'W');
 
 CREATE TABLE schema (
     id SERIAL PRIMARY KEY,
-    realm INTEGER REFERENCES realm (id) NOT NULL,
+    realm VARCHAR(255) REFERENCES realm (shortname) NOT NULL,
     slice INTEGER REFERENCES realmslice (id) NOT NULL,
     app VARCHAR(255) REFERENCES app (shortnamelc) NOT NULL,
     brwf brwf_enum NOT NULL,
@@ -86,7 +86,7 @@ CREATE TABLE schema (
 
 CREATE TABLE ruleset (
     id SERIAL PRIMARY KEY,
-    realm INTEGER REFERENCES realm (id) NOT NULL,
+    realm VARCHAR(255) REFERENCES realm (shortname) NOT NULL,
     slice INTEGER REFERENCES realmslice (id) NOT NULL,
     app VARCHAR(255) REFERENCES app (shortnamelc) NOT NULL,
     brwf brwf_enum NOT NULL,

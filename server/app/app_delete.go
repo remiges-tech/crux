@@ -20,23 +20,37 @@ func AppDelete(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour.WithClass("app")
 	lh.Log("AppDelete request received")
 
+	userID, err := server.ExtractUserNameFromJwt(c)
+	if err != nil {
+		lh.Info().Log("unable to extract userID from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		return
+	}
+
+	realmName, err := server.ExtractRealmFromJwt(c)
+	if err != nil {
+		lh.Info().Log("unable to extract realm from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		return
+	}
+
 	var (
 		appName = c.Param("name")
 	)
 
 	isCapable, _ := server.Authz_check(types.OpReq{
-		User:      USERID,
+		User:      userID,
 		CapNeeded: rootCapability,
 	}, false)
 
 	if !isCapable {
-		lh.Info().LogActivity("unauthorized user:", USERID)
+		lh.Info().LogActivity("unauthorized user:", userID)
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
 		return
 	}
 
 	// Bind request
-	err := c.ShouldBindQuery(appName)
+	err = c.ShouldBindQuery(appName)
 	if err != nil {
 		lh.Error(err).Log("AppDelete() || error while binding  app name")
 		return
@@ -61,7 +75,7 @@ func AppDelete(c *gin.Context, s *service.Service) {
 	applc := strings.ToLower(appName)
 	appData, err := query.GetAppName(c, sqlc.GetAppNameParams{
 		Shortnamelc: applc,
-		Realm:       REALM,
+		Realm:       realmName,
 	})
 	if err != nil {
 		lh.Info().Error(err).Log("error while getting app details if present")
@@ -92,7 +106,7 @@ func AppDelete(c *gin.Context, s *service.Service) {
 	// To get cap grants for app
 	capGrantData, err := query.GetCapGrantForApp(c, sqlc.GetCapGrantForAppParams{
 		App:   pgtype.Text{String: applc, Valid: true},
-		Realm: REALMID,
+		Realm: realmName,
 	})
 	if err != nil {
 		lh.Info().Error(err).Log("error while getting app capablity grants from db")
@@ -106,7 +120,7 @@ func AppDelete(c *gin.Context, s *service.Service) {
 		// table, then those capability grants are deleted too.
 		error := query.DeleteCapGranForApp(c, sqlc.DeleteCapGranForAppParams{
 			App:   pgtype.Text{String: applc, Valid: true},
-			Realm: REALMID,
+			Realm: realmName,
 		})
 		if error != nil {
 			lh.Info().Error(err).Log("error while deleting app capablity grants from db")
@@ -134,7 +148,7 @@ func AppDelete(c *gin.Context, s *service.Service) {
 	// delete app
 	err = query.AppDelete(c, sqlc.AppDeleteParams{
 		Shortnamelc: applc,
-		Realm:       REALM,
+		Realm:       realmName,
 	})
 	if err != nil {
 		lh.Info().Error(err).Log("error while deleting app from db")

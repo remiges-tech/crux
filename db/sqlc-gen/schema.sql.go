@@ -534,7 +534,7 @@ VALUES (
 `
 
 type SchemaNewParams struct {
-	Realm         int32    `json:"realm"`
+	Realm         string   `json:"realm"`
 	Slice         int32    `json:"slice"`
 	App           string   `json:"app"`
 	Brwf          BrwfEnum `json:"brwf"`
@@ -612,7 +612,7 @@ type WfPatternSchemaGetParams struct {
 	Slice int32  `json:"slice"`
 	Class string `json:"class"`
 	App   string `json:"app"`
-	Realm int32  `json:"realm"`
+	Realm string `json:"realm"`
 }
 
 func (q *Queries) WfPatternSchemaGet(ctx context.Context, arg WfPatternSchemaGetParams) ([]byte, error) {
@@ -675,7 +675,7 @@ and schema.slice = realmslice.id
 `
 
 type WfSchemaListParams struct {
-	Relam int32       `json:"relam"`
+	Relam string      `json:"relam"`
 	Slice pgtype.Int4 `json:"slice"`
 	App   pgtype.Text `json:"app"`
 	Class pgtype.Text `json:"class"`
@@ -760,7 +760,7 @@ type WfschemadeleteParams struct {
 	Slice int32  `json:"slice"`
 	App   string `json:"app"`
 	Class string `json:"class"`
-	Realm int32  `json:"realm"`
+	Realm string `json:"realm"`
 }
 
 func (q *Queries) Wfschemadelete(ctx context.Context, arg WfschemadeleteParams) error {
@@ -777,11 +777,11 @@ const wfschemaget = `-- name: Wfschemaget :one
 SELECT s.slice, s.app, s.class, rm.longname, s.patternschema, s.actionschema, s.createdat, s.createdby, s.editedat, s.editedby
 FROM schema as s, realm as rm, realmslice as rs
 WHERE
-    s.realm = rm.id
+    s.realm = rm.shortname
     and rs.realm = rm.shortname
     and s.slice = rs.id
     and s.slice = $1
-    and rm.id = $4
+    and rm.shortname = $4
     and s.class = $3
     AND s.app = $2
 `
@@ -790,7 +790,7 @@ type WfschemagetParams struct {
 	Slice int32  `json:"slice"`
 	App   string `json:"app"`
 	Class string `json:"class"`
-	Realm int32  `json:"realm"`
+	Realm string `json:"realm"`
 }
 
 type WfschemagetRow struct {

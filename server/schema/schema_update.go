@@ -26,9 +26,18 @@ type updateSchema struct {
 	ActionSchema  *actionSchema  `json:"actionSchema,omitempty"`
 }
 
+var userID string
+
 func SchemaUpdate(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
 	l.Debug0().Log("Starting execution of SchemaUpdate()")
+
+	userID, err := server.ExtractUserNameFromJwt(c)
+	if err != nil {
+		l.Info().Log("unable to extract userID from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		return
+	}
 
 	isCapable, _ := server.Authz_check(types.OpReq{
 		User:      userID,
@@ -43,7 +52,7 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 
 	var sh updateSchema
 
-	err := wscutils.BindJSON(c, &sh)
+	err = wscutils.BindJSON(c, &sh)
 	if err != nil {
 		l.Error(err).Log("Error Unmarshalling Query paramaeters to struct:")
 		return

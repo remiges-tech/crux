@@ -19,9 +19,9 @@ const (
 )
 
 var (
-	userID     = "1234"
+	// userID     = "1234"
 	capForNew  = []string{"schema"}
-	realmID    = int32(1)
+	// realmName  = int32(1)
 	validTypes = map[string]bool{
 		"int": true, "float": true, "str": true, "enum": true, "bool": true, "timestamps": true,
 	}

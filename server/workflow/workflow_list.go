@@ -24,14 +24,29 @@ type WorkflowListParams struct {
 	IsInternal bool
 }
 
+var realmName string
+
 // WorkflowList will be responsible for processing the /WorkflowList request that comes through as a POST
 func WorkflowList(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour
 	lh.Log("WorkflowList request received")
 
+	userID, err := server.ExtractUserNameFromJwt(c)
+	if err != nil {
+		lh.Info().Log("unable to extract userID from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		return
+	}
+
+	realmName, err = server.ExtractRealmFromJwt(c)
+	if err != nil {
+		lh.Info().Log("unable to extract realm from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		return
+	}
+
 	// implement the user realm and all here
 	var (
-		userID     = "1234"
 		capForList = []string{"workflow"}
 	)
 	isCapable, _ := server.Authz_check(types.OpReq{
@@ -50,7 +65,7 @@ func WorkflowList(c *gin.Context, s *service.Service) {
 		dbResponse []sqlc.WorkflowListRow
 	)
 
-	err := wscutils.BindJSON(c, &request)
+	err = wscutils.BindJSON(c, &request)
 	if err != nil {
 		lh.Debug0().Error(err).Log("error while binding json request")
 		return
@@ -98,9 +113,6 @@ func WorkflowList(c *gin.Context, s *service.Service) {
 func processRequest(c *gin.Context, lh *logharbour.Logger, hasRootCapabilities bool, query *sqlc.Queries, request *WorkflowListReq) ([]sqlc.WorkflowListRow, error) {
 	lh.Debug0().Log("processRequest request received")
 
-	// implement the user realm here
-	var userRealm int32 = 1
-
 	if !hasRootCapabilities {
 		lh.Debug0().Log("user not have root cap")
 		//  if app parameter is present then
@@ -112,7 +124,7 @@ func processRequest(c *gin.Context, lh *logharbour.Logger, hasRootCapabilities b
 				return query.WorkflowList(c, sqlc.WorkflowListParams{
 					Slice:      pgtype.Int4{Int32: request.Slice, Valid: request.Slice > 0},
 					App:        []string{request.App},
-					Realm:      userRealm,
+					Realm:      realmName,
 					Class:      pgtype.Text{String: request.Class, Valid: !server.IsStringEmpty(&request.Class)},
 					Setname:    pgtype.Text{String: request.Name, Valid: !server.IsStringEmpty(&request.Name)},
 					IsActive:   pgtype.Bool{Bool: request.IsActive, Valid: &request.IsActive != nil},
@@ -128,7 +140,7 @@ func processRequest(c *gin.Context, lh *logharbour.Logger, hasRootCapabilities b
 		lh.Debug0().LogActivity("app not present hence all user 'ruleset' rights:", app)
 		return query.WorkflowList(c, sqlc.WorkflowListParams{
 			App:   app,
-			Realm: userRealm,
+			Realm: realmName,
 		})
 	}
 
@@ -138,7 +150,7 @@ func processRequest(c *gin.Context, lh *logharbour.Logger, hasRootCapabilities b
 		return query.WorkflowList(c, sqlc.WorkflowListParams{
 			Slice:      pgtype.Int4{Int32: request.Slice, Valid: request.Slice > 0},
 			App:        []string{request.App},
-			Realm:      userRealm,
+			Realm:      realmName,
 			Class:      pgtype.Text{String: request.Class, Valid: !server.IsStringEmpty(&request.Class)},
 			Setname:    pgtype.Text{String: request.Name, Valid: !server.IsStringEmpty(&request.Name)},
 			IsActive:   pgtype.Bool{Bool: request.IsActive, Valid: &request.IsActive != nil},
@@ -147,5 +159,5 @@ func processRequest(c *gin.Context, lh *logharbour.Logger, hasRootCapabilities b
 	}
 	lh.Debug0().Log("user have root cap or 'app' is nil")
 	// the workflows of all the apps in the realm
-	return query.WorkflowList(c, sqlc.WorkflowListParams{Realm: userRealm})
+	return query.WorkflowList(c, sqlc.WorkflowListParams{Realm: realmName})
 }

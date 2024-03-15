@@ -109,11 +109,11 @@ WHERE
 SELECT s.slice, s.app, s.class, rm.longname, s.patternschema, s.actionschema, s.createdat, s.createdby, s.editedat, s.editedby
 FROM schema as s, realm as rm, realmslice as rs
 WHERE
-    s.realm = rm.id
+    s.realm = rm.shortname
     and rs.realm = rm.shortname
     and s.slice = rs.id
     and s.slice = $1
-    and rm.id = @realm
+    and rm.shortname = @realm
     and s.class = $3
     AND s.app = $2;
 
