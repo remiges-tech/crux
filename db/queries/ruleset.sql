@@ -128,3 +128,9 @@ WHERE
     AND class = $2
     AND app = $3
 FOR UPDATE; 
+
+-- name: AllRuleset :many
+SELECT
+    *
+FROM
+    public.ruleset;

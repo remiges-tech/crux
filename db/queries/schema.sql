@@ -5,9 +5,7 @@ INSERT INTO
     )
 VALUES (
         $1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, $8
-    )
-    RETURNING
-    id;
+    ) RETURNING id;
 
 -- name: SchemaUpdate :exec
 UPDATE schema
@@ -39,7 +37,6 @@ UPDATE;
 
 -- name: SchemaDelete :one
 DELETE FROM schema WHERE id = $1 RETURNING id;
-
 
 -- name: SchemaList :many
 SELECT schema.slice, realmslice.descr, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
@@ -135,16 +132,16 @@ where
                     and realmslice.realm = realm.shortname
                     and schema.realm = @realm
                     and schema.class = $3
-                    AND schema.app =  $2
+                    AND schema.app = $2
             ) as id
         where
-            id not in (
+            id not in(
                 SELECT schemaid
                 FROM ruleset
                 where
                     realm = @realm
                     and slice = $1
-                    and app =  $2
+                    and app = $2
                     and class = $3
             )
     );
@@ -176,3 +173,6 @@ and schema.slice = realmslice.id
     AND ((sqlc.narg('slice')::INTEGER is null) OR (schema.slice = @slice::INTEGER))
     AND ((sqlc.narg('app')::text is null) OR (schema.app = @app::text))
     AND (sqlc.narg('class')::text is null OR schema.class = sqlc.narg('class')::text);
+
+-- name: AllSchemas :many
+SELECT * FROM public.schema;
