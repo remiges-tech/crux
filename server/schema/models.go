@@ -1,14 +1,12 @@
 package schema
 
-import "github.com/remiges-tech/crux/types"
-
-type Schema struct {
-	Slice         int32               `json:"slice" validate:"required,gt=0,lt=15"`
-	App           string              `json:"App" validate:"required,alpha,lt=15"`
-	Class         string              `json:"class" validate:"required,lowercase,lt=15"`
-	PatternSchema types.PatternSchema `json:"patternSchema"`
-	ActionSchema  types.ActionSchema  `json:"actionSchema"`
-}
+// type SchemaNewReq struct {
+// 	Slice         int32               `json:"slice" validate:"required,gt=0,lt=15"`
+// 	App           string              `json:"App" validate:"required,alpha,lt=15"`
+// 	Class         string              `json:"class" validate:"required,lowercase,lt=15"`
+// 	PatternSchema types.PatternSchema `json:"patternSchema"`
+// 	ActionSchema  types.ActionSchema  `json:"actionSchema"`
+// }
 
 type SchemaGetReq struct {
 	Slice int32  `json:"slice" validate:"required,gt=0,lt=15"`

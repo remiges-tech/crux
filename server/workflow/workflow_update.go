@@ -31,7 +31,7 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 	l.Debug0().Log("Starting execution of WorkflowUpdate()")
 
 	var wf WorkflowUpdate
-	var ruleSchema schema.Schema
+	var ruleSchema schema.SchemaNewReq
 
 	err := wscutils.BindJSON(c, &wf)
 	if err != nil {
@@ -173,7 +173,7 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 
 }
 
-func customValidationErrorsForUpdate(wf WorkflowUpdate, ruleSchema schema.Schema) []wscutils.ErrorMessage {
+func customValidationErrorsForUpdate(wf WorkflowUpdate, ruleSchema schema.SchemaNewReq) []wscutils.ErrorMessage {
 	var validationErrors []wscutils.ErrorMessage
 	if len(wf.Flowrules) == 0 {
 		fieldName := "flowrules"
@@ -188,7 +188,7 @@ func customValidationErrorsForUpdate(wf WorkflowUpdate, ruleSchema schema.Schema
 	return validationErrors
 }
 
-func verifyRulePatternsForUpdate(ruleSet WorkflowUpdate, ruleSchema schema.Schema) []wscutils.ErrorMessage {
+func verifyRulePatternsForUpdate(ruleSet WorkflowUpdate, ruleSchema schema.SchemaNewReq) []wscutils.ErrorMessage {
 	var validationErrors []wscutils.ErrorMessage
 
 	for i, rule := range ruleSet.Flowrules {
@@ -239,7 +239,7 @@ func verifyRulePatternsForUpdate(ruleSet WorkflowUpdate, ruleSchema schema.Schem
 	return validationErrors
 }
 
-func verifyRuleActionsForUpdate(ruleSet WorkflowUpdate, ruleSchema schema.Schema) []wscutils.ErrorMessage {
+func verifyRuleActionsForUpdate(ruleSet WorkflowUpdate, ruleSchema schema.SchemaNewReq) []wscutils.ErrorMessage {
 	var validationErrors []wscutils.ErrorMessage
 	for i, rule := range ruleSet.Flowrules {
 		i++

@@ -1,6 +1,6 @@
 /* This file contains the collectActions() function */
 
-package main
+package crux
 
 func collectActions(actionSet ActionSet, ruleActions ruleActionBlock_t) ActionSet {
 

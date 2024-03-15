@@ -46,7 +46,7 @@ func schemaUpdateTestcase() []testutils.TestCasesStruct {
 	if err != nil {
 		log.Fatalln("Error reading JSON file:", err)
 	}
-	var payload schema.Schema
+	var payload schema.SchemaNewReq
 	if err := json.Unmarshal(valTestJson, &payload); err != nil {
 		log.Fatalln("Error unmarshalling JSON:", err)
 	}
@@ -55,7 +55,7 @@ func schemaUpdateTestcase() []testutils.TestCasesStruct {
 	if err != nil {
 		log.Fatalln("Error reading JSON file:", err)
 	}
-	var cusValPayload schema.Schema
+	var cusValPayload schema.SchemaNewReq
 	if err := json.Unmarshal(cusValTestJson, &cusValPayload); err != nil {
 		log.Fatalln("Error unmarshalling JSON:", err)
 	}
@@ -64,7 +64,7 @@ func schemaUpdateTestcase() []testutils.TestCasesStruct {
 	if err != nil {
 		log.Fatalln("Error reading JSON file:", err)
 	}
-	var successPayload schema.Schema
+	var successPayload schema.SchemaNewReq
 	if err := json.Unmarshal(successTestJson, &successPayload); err != nil {
 		log.Fatalln("Error unmarshalling JSON:", err)
 	}

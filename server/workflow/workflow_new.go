@@ -48,7 +48,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 		return
 	}
 	var wf WorkflowNew
-	var ruleSchema schema.Schema
+	var ruleSchema schema.SchemaNewReq
 
 	err := wscutils.BindJSON(c, &wf)
 	if err != nil {
@@ -157,7 +157,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 	l.Debug0().Log("Finished execution of WorkFlowNew()")
 }
 
-func customValidationErrors(wf WorkflowNew, ruleSchema schema.Schema) []wscutils.ErrorMessage {
+func customValidationErrors(wf WorkflowNew, ruleSchema schema.SchemaNewReq) []wscutils.ErrorMessage {
 	var validationErrors []wscutils.ErrorMessage
 	if len(wf.Flowrules) == 0 {
 		fieldName := "flowrules"
@@ -172,7 +172,7 @@ func customValidationErrors(wf WorkflowNew, ruleSchema schema.Schema) []wscutils
 	return validationErrors
 }
 
-func verifyRulePatterns(ruleSet WorkflowNew, ruleSchema schema.Schema) []wscutils.ErrorMessage {
+func verifyRulePatterns(ruleSet WorkflowNew, ruleSchema schema.SchemaNewReq) []wscutils.ErrorMessage {
 	var validationErrors []wscutils.ErrorMessage
 
 	for i, rule := range ruleSet.Flowrules {
@@ -223,12 +223,12 @@ func verifyRulePatterns(ruleSet WorkflowNew, ruleSchema schema.Schema) []wscutil
 	return validationErrors
 }
 
-func getType(ruleSchema schema.Schema, name string) string {
-	for _, as := range ruleSchema.PatternSchema.Attr {
-		if as.Name == name {
-			return as.ValType
-		}
-	}
+func getType(ruleSchema schema.SchemaNewReq, name string) string {
+	// for _, as := range ruleSchema.PatternSchema.Attr {
+	// 	if as.Name == name {
+	// 		return as.ValType
+	// 	}
+	// }
 	return ""
 }
 
@@ -261,7 +261,7 @@ func verifyType(val any, valType string) bool {
 	return ok
 }
 
-func verifyRuleActions(ruleSet WorkflowNew, ruleSchema schema.Schema) []wscutils.ErrorMessage {
+func verifyRuleActions(ruleSet WorkflowNew, ruleSchema schema.SchemaNewReq) []wscutils.ErrorMessage {
 	var validationErrors []wscutils.ErrorMessage
 	for i, rule := range ruleSet.Flowrules {
 		i++

@@ -1,6 +1,6 @@
 /* This file contains tests for collectActions() */
 
-package main
+package crux
 
 import (
 	"reflect"

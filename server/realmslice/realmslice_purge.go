@@ -34,7 +34,7 @@ func RealmSlicePurge(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	tag, err := query.RealmSlicePurge(c)
+	tag, err := query.RealmSlicePurge(c, realmName)
 	if err != nil {
 		l.Info().Error(err).Log("Error while purging realmSlice")
 		errmsg := db.HandleDatabaseError(err)

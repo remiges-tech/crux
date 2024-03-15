@@ -36,16 +36,17 @@ func (q *Queries) CloneRecordInConfigBySliceID(ctx context.Context, arg CloneRec
 const cloneRecordInRealmSliceBySliceID = `-- name: CloneRecordInRealmSliceBySliceID :one
 INSERT INTO
     realmslice (
-        realm, descr, active, activateat, deactivateat
+        realm, descr, active, activateat, deactivateat,createdby
     )
 SELECT
     realm,
     COALESCE(
-        descr, $3::text
+        descr, $4::text
     ),
     true,
     activateat,
-    deactivateat
+    deactivateat,
+    $3
 FROM realmslice
 WHERE
     realmslice.id = $1
@@ -55,13 +56,19 @@ RETURNING
 `
 
 type CloneRecordInRealmSliceBySliceIDParams struct {
-	ID    int32       `json:"id"`
-	Realm string      `json:"realm"`
-	Descr pgtype.Text `json:"descr"`
+	ID        int32       `json:"id"`
+	Realm     string      `json:"realm"`
+	Createdby string      `json:"createdby"`
+	Descr     pgtype.Text `json:"descr"`
 }
 
 func (q *Queries) CloneRecordInRealmSliceBySliceID(ctx context.Context, arg CloneRecordInRealmSliceBySliceIDParams) (int32, error) {
-	row := q.db.QueryRow(ctx, cloneRecordInRealmSliceBySliceID, arg.ID, arg.Realm, arg.Descr)
+	row := q.db.QueryRow(ctx, cloneRecordInRealmSliceBySliceID,
+		arg.ID,
+		arg.Realm,
+		arg.Createdby,
+		arg.Descr,
+	)
 	var id int32
 	err := row.Scan(&id)
 	return id, err
@@ -150,19 +157,20 @@ func (q *Queries) CloneRecordInSchemaBySliceID(ctx context.Context, arg CloneRec
 
 const insertNewRecordInRealmSlice = `-- name: InsertNewRecordInRealmSlice :one
 INSERT INTO
-    realmslice (realm, descr, active)
-VALUES ($1, $2, true)
-RETURNING
-    realmslice.id
+    realmslice (
+        realm, descr, active, createdby
+    )
+VALUES ($1, $2, true, $3) RETURNING realmslice.id
 `
 
 type InsertNewRecordInRealmSliceParams struct {
-	Realm string `json:"realm"`
-	Descr string `json:"descr"`
+	Realm     string `json:"realm"`
+	Descr     string `json:"descr"`
+	Createdby string `json:"createdby"`
 }
 
 func (q *Queries) InsertNewRecordInRealmSlice(ctx context.Context, arg InsertNewRecordInRealmSliceParams) (int32, error) {
-	row := q.db.QueryRow(ctx, insertNewRecordInRealmSlice, arg.Realm, arg.Descr)
+	row := q.db.QueryRow(ctx, insertNewRecordInRealmSlice, arg.Realm, arg.Descr, arg.Createdby)
 	var id int32
 	err := row.Scan(&id)
 	return id, err
@@ -173,14 +181,18 @@ UPDATE realmslice
 SET
     active = $1,
     activateat = CASE
-        WHEN ($2::TIMESTAMP) IS NULL
-            THEN NOW()
-        ELSE ($2::TIMESTAMP)
+        WHEN (
+            $2::TIMESTAMP
+        ) IS NULL THEN NOW()
+        ELSE (
+            $2::TIMESTAMP
+        )
     END,
     deactivateat = NULL
 WHERE
     id = $3
-    RETURNING id, realm, descr, active, activateat, deactivateat
+RETURNING
+    id, realm, descr, active, activateat, deactivateat, createdat, createdby, editedat, editedby
 `
 
 type RealmSliceActivateParams struct {
@@ -199,6 +211,10 @@ func (q *Queries) RealmSliceActivate(ctx context.Context, arg RealmSliceActivate
 		&i.Active,
 		&i.Activateat,
 		&i.Deactivateat,
+		&i.Createdat,
+		&i.Createdby,
+		&i.Editedat,
+		&i.Editedby,
 	)
 	return i, err
 }
@@ -241,14 +257,18 @@ UPDATE realmslice
 SET
     active = $1,
     deactivateat = CASE
-        WHEN ($2::TIMESTAMP) IS NULL
-            THEN NOW()
-        ELSE ($2::TIMESTAMP)
+        WHEN (
+            $2::TIMESTAMP
+        ) IS NULL THEN NOW()
+        ELSE (
+            $2::TIMESTAMP
+        )
     END,
     activateat = NULL
 WHERE
     id = $3
-    RETURNING id, realm, descr, active, activateat, deactivateat
+RETURNING
+    id, realm, descr, active, activateat, deactivateat, createdat, createdby, editedat, editedby
 `
 
 type RealmSliceDeactivateParams struct {
@@ -267,36 +287,36 @@ func (q *Queries) RealmSliceDeactivate(ctx context.Context, arg RealmSliceDeacti
 		&i.Active,
 		&i.Activateat,
 		&i.Deactivateat,
+		&i.Createdat,
+		&i.Createdby,
+		&i.Editedat,
+		&i.Editedby,
 	)
 	return i, err
 }
 
 const realmSlicePurge = `-- name: RealmSlicePurge :execresult
 WITH
-    cte1 AS (
+    del_stepworkflow AS (
         DELETE FROM stepworkflow
     ),
-    cte2 AS (
+    del_wfinstance AS (
         DELETE FROM wfinstance
     ),
-    cte3 AS (
+    del_ruleset AS (
         DELETE FROM ruleset
     ),
-    cte4 AS (
+    del_schema AS (
         DELETE FROM schema
     ),
-    cte5 AS (
+    del_config AS (
         DELETE FROM config
     )
 DELETE FROM realmslice
 WHERE
-    id IN (
-        SELECT id
-        FROM realmslice
-        LIMIT 100
-    )
+    realmslice.realm = $1
 `
 
-func (q *Queries) RealmSlicePurge(ctx context.Context) (pgconn.CommandTag, error) {
-	return q.db.Exec(ctx, realmSlicePurge)
+func (q *Queries) RealmSlicePurge(ctx context.Context, realm string) (pgconn.CommandTag, error) {
+	return q.db.Exec(ctx, realmSlicePurge, realm)
 }

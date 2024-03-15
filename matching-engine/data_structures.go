@@ -2,7 +2,7 @@
 This file contains the data structures used by the matching engine
 */
 
-package main
+package crux
 
 type Entity struct {
 	realm string

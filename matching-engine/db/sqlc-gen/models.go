@@ -64,15 +64,16 @@ type App struct {
 }
 
 type Capgrant struct {
-	ID    int32            `json:"id"`
-	Realm int32            `json:"realm"`
-	User  string           `json:"user"`
-	App   pgtype.Text      `json:"app"`
-	Cap   string           `json:"cap"`
-	From  pgtype.Timestamp `json:"from"`
-	To    pgtype.Timestamp `json:"to"`
-	Setat pgtype.Timestamp `json:"setat"`
-	Setby string           `json:"setby"`
+	ID        int32            `json:"id"`
+	Realm     int32            `json:"realm"`
+	User      string           `json:"user"`
+	App       pgtype.Text      `json:"app"`
+	Cap       string           `json:"cap"`
+	From      pgtype.Timestamp `json:"from"`
+	To        pgtype.Timestamp `json:"to"`
+	Setat     pgtype.Timestamp `json:"setat"`
+	Setby     string           `json:"setby"`
+	Isdeleted pgtype.Bool      `json:"isdeleted"`
 }
 
 type Config struct {
@@ -111,10 +112,6 @@ type Realmslice struct {
 	Active       bool             `json:"active"`
 	Activateat   pgtype.Timestamp `json:"activateat"`
 	Deactivateat pgtype.Timestamp `json:"deactivateat"`
-	Createdat    pgtype.Timestamp `json:"createdat"`
-	Createdby    string           `json:"createdby"`
-	Editedat     pgtype.Timestamp `json:"editedat"`
-	Editedby     pgtype.Text      `json:"editedby"`
 }
 
 type Ruleset struct {

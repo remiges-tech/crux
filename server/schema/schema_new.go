@@ -2,18 +2,25 @@ package schema
 
 import (
 	"encoding/json"
-	"fmt"
-	"reflect"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
+	crux "github.com/remiges-tech/crux/matching-engine"
 	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/types"
 	"github.com/remiges-tech/logharbour/logharbour"
 )
+
+type SchemaNewReq struct {
+	Slice         int32                  `json:"slice" validate:"required,gt=0,lt=15"`
+	App           string                 `json:"App" validate:"required,alpha,lt=15"`
+	Class         string                 `json:"class" validate:"required,lowercase,lt=15"`
+	PatternSchema []crux.PatternSchema_t `json:"patternSchema"`
+	ActionSchema  crux.ActionSchema_t    `json:"actionSchema"`
+}
 
 func SchemaNew(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
@@ -30,17 +37,24 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	var sh Schema
+	var req SchemaNewReq
 
-	err := wscutils.BindJSON(c, &sh)
+	err := wscutils.BindJSON(c, &req)
 	if err != nil {
 		l.Error(err).Log("Error Unmarshalling Query parameters to struct:")
 		return
 	}
 
+	schema := crux.Schema_t{
+		Class:         req.Class,
+		PatternSchema: req.PatternSchema,
+		ActionSchema:  req.ActionSchema,
+		NChecked:      0,
+	}
+
 	// Validate request
-	validationErrors := wscutils.WscValidate(sh, func(err validator.FieldError) []string { return []string{} })
-	customValidationErrors := customValidationErrors(sh)
+	validationErrors := wscutils.WscValidate(req, func(err validator.FieldError) []string { return []string{} })
+	customValidationErrors := customValidationErrors(schema)
 	validationErrors = append(validationErrors, customValidationErrors...)
 	if len(validationErrors) > 0 {
 		l.Debug0().LogDebug("validation errors", validationErrors)
@@ -54,7 +68,7 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
 		return
 	}
-	patternSchema, err := json.Marshal(sh.PatternSchema)
+	patternSchema, err := json.Marshal(req.PatternSchema)
 	if err != nil {
 		patternSchema := "patternSchema"
 		l.Debug1().LogDebug("Error while marshaling patternSchema", err)
@@ -62,7 +76,7 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	actionSchema, err := json.Marshal(sh.ActionSchema)
+	actionSchema, err := json.Marshal(req.ActionSchema)
 	if err != nil {
 		actionSchema := "actionSchema"
 		l.Debug1().LogDebug("Error while marshaling actionSchema", err)
@@ -71,9 +85,9 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 	}
 	id, err := query.SchemaNew(c, sqlc.SchemaNewParams{
 		Realm:         realmID,
-		Slice:         sh.Slice,
-		Class:         sh.Class,
-		App:           sh.App,
+		Slice:         req.Slice,
+		Class:         req.Class,
+		App:           req.App,
 		Brwf:          sqlc.BrwfEnumW,
 		Patternschema: patternSchema,
 		Actionschema:  actionSchema,
@@ -96,15 +110,15 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 			{
 				Field:  "slice",
 				OldVal: nil,
-				NewVal: sh.Slice},
+				NewVal: req.Slice},
 			{
 				Field:  "app",
 				OldVal: nil,
-				NewVal: sh.App},
+				NewVal: req.App},
 			{
 				Field:  "class",
 				OldVal: nil,
-				NewVal: sh.Class},
+				NewVal: req.Class},
 			{
 				Field:  "brwf",
 				OldVal: nil,
@@ -116,128 +130,130 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 			{
 				Field:  "actionSchema",
 				OldVal: nil,
-				NewVal: sh.ActionSchema},
+				NewVal: req.ActionSchema},
 		},
 	})
 	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})
 	l.Debug0().Log("Finished execution of SchemaNew()")
 }
 
-func customValidationErrors(sh Schema) []wscutils.ErrorMessage {
+func customValidationErrors(sh crux.Schema_t) []wscutils.ErrorMessage {
 	var validationErrors []wscutils.ErrorMessage
-	patternSchemaError := verifyPatternSchema(sh.PatternSchema)
-	validationErrors = append(validationErrors, patternSchemaError...)
+	// patternSchemaError := verifyPatternSchema(sh.PatternSchema)
+	crux.VerifyPatternSchema(sh, true)
+	// validationErrors = append(validationErrors, patternSchemaError...)
 
-	actionSchemaError := verifyActionSchema(sh)
-	validationErrors = append(validationErrors, actionSchemaError...)
+	// actionSchemaError := verifyActionSchema(sh)
+	crux.VerifyActionSchema(sh, true)
+	// validationErrors = append(validationErrors, actionSchemaError...)
 	return validationErrors
 }
 
-func verifyPatternSchema(ps types.PatternSchema) []wscutils.ErrorMessage {
-	var validationErrors []wscutils.ErrorMessage
-	stepFound, stepFailedFound := false, false
-	for i, attrSchema := range ps.Attr {
-		i++
-		if !re.MatchString(attrSchema.Name) {
-			fieldName := fmt.Sprintf("attrSchema[%d].Name", i)
-			vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &fieldName, attrSchema.Name)
-			validationErrors = append(validationErrors, vErr)
-		}
-		if !validTypes[attrSchema.ValType] {
-			fieldName := fmt.Sprintf("attrSchema[%d].ValType", i)
-			vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &fieldName, attrSchema.ValType)
-			validationErrors = append(validationErrors, vErr)
-		}
-		if attrSchema.ValType == "enum" && len(attrSchema.Vals) == 0 {
-			fieldName := fmt.Sprintf("attrSchema[%d].Vals", i)
-			vErr := wscutils.BuildErrorMessage(server.MsgId_Empty, server.ErrCode_Empty, &fieldName)
-			validationErrors = append(validationErrors, vErr)
-		}
-		if attrSchema.Name == step && attrSchema.ValType == typeEnum {
-			stepFound = true
-		}
-		val := sliceToMap(attrSchema.Vals)
-		if attrSchema.Name == step && !val[start] {
-			fieldName := fmt.Sprintf("attrSchema[%d].Vals", i)
-			vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_Required, &fieldName)
-			validationErrors = append(validationErrors, vErr)
-		}
-		if attrSchema.Name == stepFailed && attrSchema.ValType == typeBool {
-			stepFailedFound = true
-		}
-	}
-	if !stepFound || !stepFailedFound {
-		fieldName := "attr.Name"
-		vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_RequiredOneOf, &fieldName)
-		validationErrors = append(validationErrors, vErr)
-	}
-	return validationErrors
-}
+// func verifyPatternSchema(ps types.PatternSchema) []wscutils.ErrorMessage {
+// 	var validationErrors []wscutils.ErrorMessage
+// 	stepFound, stepFailedFound := false, false
+// 	for i, attrSchema := range ps.Attr {
+// 		i++
+// 		if !re.MatchString(attrSchema.Name) {
+// 			fieldName := fmt.Sprintf("attrSchema[%d].Name", i)
+// 			vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &fieldName, attrSchema.Name)
+// 			validationErrors = append(validationErrors, vErr)
+// 		}
+// 		if !validTypes[attrSchema.ValType] {
+// 			fieldName := fmt.Sprintf("attrSchema[%d].ValType", i)
+// 			vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &fieldName, attrSchema.ValType)
+// 			validationErrors = append(validationErrors, vErr)
+// 		}
+// 		if attrSchema.ValType == "enum" && len(attrSchema.Vals) == 0 {
+// 			fieldName := fmt.Sprintf("attrSchema[%d].Vals", i)
+// 			vErr := wscutils.BuildErrorMessage(server.MsgId_Empty, server.ErrCode_Empty, &fieldName)
+// 			validationErrors = append(validationErrors, vErr)
+// 		}
+// 		if attrSchema.Name == step && attrSchema.ValType == typeEnum {
+// 			stepFound = true
+// 		}
+// 		val := sliceToMap(attrSchema.Vals)
+// 		if attrSchema.Name == step && !val[start] {
+// 			fieldName := fmt.Sprintf("attrSchema[%d].Vals", i)
+// 			vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_Required, &fieldName)
+// 			validationErrors = append(validationErrors, vErr)
+// 		}
+// 		if attrSchema.Name == stepFailed && attrSchema.ValType == typeBool {
+// 			stepFailedFound = true
+// 		}
+// 	}
+// 	if !stepFound || !stepFailedFound {
+// 		fieldName := "attr.Name"
+// 		vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_RequiredOneOf, &fieldName)
+// 		validationErrors = append(validationErrors, vErr)
+// 	}
+// 	return validationErrors
+// }
 
-func verifyActionSchema(sh Schema) []wscutils.ErrorMessage {
-	var validationErrors []wscutils.ErrorMessage
-	nextStepFound, doneFound := false, false
-	for i, task := range sh.ActionSchema.Tasks {
-		if !re.MatchString(task) {
-			fieldName := fmt.Sprintf("actionSchema.Tasks[%d]", i)
-			vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &fieldName, task)
-			validationErrors = append(validationErrors, vErr)
-		}
-	}
-	if len(sh.ActionSchema.Properties) != 2 {
-		fieldName := "Properties"
-		vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_Required_Exactly_Two_Properties, &fieldName)
-		validationErrors = append(validationErrors, vErr)
-	}
-	for i, propName := range sh.ActionSchema.Properties {
-		if !re.MatchString(propName) {
-			fieldName := fmt.Sprintf("actionSchema.Properties[%d]", i)
-			vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &fieldName, propName)
-			validationErrors = append(validationErrors, vErr)
-		} else if propName == nextStep {
-			nextStepFound = true
-		} else if propName == done {
-			doneFound = true
-		}
-	}
+// func verifyActionSchema(sh SchemaNewReq) []wscutils.ErrorMessage {
+// 	var validationErrors []wscutils.ErrorMessage
+// 	nextStepFound, doneFound := false, false
+// 	for i, task := range sh.ActionSchema.Tasks {
+// 		if !re.MatchString(task) {
+// 			fieldName := fmt.Sprintf("actionSchema.Tasks[%d]", i)
+// 			vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &fieldName, task)
+// 			validationErrors = append(validationErrors, vErr)
+// 		}
+// 	}
+// 	if len(sh.ActionSchema.Properties) != 2 {
+// 		fieldName := "Properties"
+// 		vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_Required_Exactly_Two_Properties, &fieldName)
+// 		validationErrors = append(validationErrors, vErr)
+// 	}
+// 	for i, propName := range sh.ActionSchema.Properties {
+// 		if !re.MatchString(propName) {
+// 			fieldName := fmt.Sprintf("actionSchema.Properties[%d]", i)
+// 			vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &fieldName, propName)
+// 			validationErrors = append(validationErrors, vErr)
+// 		} else if propName == nextStep {
+// 			nextStepFound = true
+// 		} else if propName == done {
+// 			doneFound = true
+// 		}
+// 	}
 
-	if !nextStepFound || !doneFound {
-		fieldName := "actionSchema.Properties"
-		vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Does_Not_Contain_Both_Properties_Nextstep_And_Done, &fieldName)
-		validationErrors = append(validationErrors, vErr)
-	}
-	if !reflect.DeepEqual(getTasksMapForWF(sh.ActionSchema.Tasks), getStepAttrVals(sh)) {
-		fieldName := "actionSchema.Properties"
-		vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_ActionSchema_Task_Not_Same_As_PatternSchema_Step_Attr, &fieldName)
-		validationErrors = append(validationErrors, vErr)
-	}
-	return validationErrors
-}
+// 	if !nextStepFound || !doneFound {
+// 		fieldName := "actionSchema.Properties"
+// 		vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Does_Not_Contain_Both_Properties_Nextstep_And_Done, &fieldName)
+// 		validationErrors = append(validationErrors, vErr)
+// 	}
+// 	if !reflect.DeepEqual(getTasksMapForWF(sh.ActionSchema.Tasks), getStepAttrVals(sh)) {
+// 		fieldName := "actionSchema.Properties"
+// 		vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_ActionSchema_Task_Not_Same_As_PatternSchema_Step_Attr, &fieldName)
+// 		validationErrors = append(validationErrors, vErr)
+// 	}
+// 	return validationErrors
+// }
 
-func getTasksMapForWF(tasks []string) map[string]bool {
-	tm := map[string]bool{}
-	for _, t := range tasks {
-		tm[t] = true
-	}
-	// To allow comparison with the set of valid values for the 'step' attribute, which includes "START"
-	tm[start] = true
-	return tm
-}
+// func getTasksMapForWF(tasks []string) map[string]bool {
+// 	tm := map[string]bool{}
+// 	for _, t := range tasks {
+// 		tm[t] = true
+// 	}
+// 	// To allow comparison with the set of valid values for the 'step' attribute, which includes "START"
+// 	tm[start] = true
+// 	return tm
+// }
 
-func getStepAttrVals(sh Schema) map[string]bool {
-	for _, ps := range sh.PatternSchema.Attr {
-		if ps.Name == step {
-			val := sliceToMap(ps.Vals)
-			return val
-		}
-	}
-	return nil
-}
+// func getStepAttrVals(sh SchemaNewReq) map[string]bool {
+// 	for _, ps := range sh.PatternSchema.Attr {
+// 		if ps.Name == step {
+// 			val := sliceToMap(ps.Vals)
+// 			return val
+// 		}
+// 	}
+// 	return nil
+// }
 
-func sliceToMap(slice []string) map[string]bool {
-	stringMap := make(map[string]bool)
-	for _, s := range slice {
-		stringMap[s] = true
-	}
-	return stringMap
-}
+// func sliceToMap(slice []string) map[string]bool {
+// 	stringMap := make(map[string]bool)
+// 	for _, s := range slice {
+// 		stringMap[s] = true
+// 	}
+// 	return stringMap
+// }

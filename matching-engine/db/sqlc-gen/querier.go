@@ -12,36 +12,16 @@ import (
 )
 
 type Querier interface {
-	AddWFNewInstances(ctx context.Context, arg AddWFNewInstancesParams) ([]Wfinstance, error)
+	AddWFNewInstances(ctx context.Context, arg AddWFNewInstancesParams) ([]AddWFNewInstancesRow, error)
 	AllRuleset(ctx context.Context) ([]Ruleset, error)
 	AllSchemas(ctx context.Context) ([]Schema, error)
-	AppDelete(ctx context.Context, arg AppDeleteParams) error
-	AppExist(ctx context.Context, app string) (int32, error)
-	AppNew(ctx context.Context, arg AppNewParams) ([]App, error)
-	AppUpdate(ctx context.Context, arg AppUpdateParams) error
-	CloneRecordInConfigBySliceID(ctx context.Context, arg CloneRecordInConfigBySliceIDParams) (pgconn.CommandTag, error)
-	CloneRecordInRealmSliceBySliceID(ctx context.Context, arg CloneRecordInRealmSliceBySliceIDParams) (int32, error)
-	CloneRecordInRulesetBySliceID(ctx context.Context, arg CloneRecordInRulesetBySliceIDParams) (pgconn.CommandTag, error)
-	CloneRecordInSchemaBySliceID(ctx context.Context, arg CloneRecordInSchemaBySliceIDParams) (pgconn.CommandTag, error)
-	DeleteCapGranForApp(ctx context.Context, arg DeleteCapGranForAppParams) error
-	DeleteWFInstanceListByParents(ctx context.Context, arg DeleteWFInstanceListByParentsParams) ([]Wfinstance, error)
-	DeleteWfinstanceByID(ctx context.Context, arg DeleteWfinstanceByIDParams) ([]Wfinstance, error)
 	GetApp(ctx context.Context, arg GetAppParams) (string, error)
-	GetAppName(ctx context.Context, arg GetAppNameParams) ([]App, error)
-	GetCapGrantForApp(ctx context.Context, arg GetCapGrantForAppParams) ([]Capgrant, error)
 	GetClass(ctx context.Context, arg GetClassParams) (string, error)
 	GetSchemaWithLock(ctx context.Context, arg GetSchemaWithLockParams) (GetSchemaWithLockRow, error)
 	GetWFActiveStatus(ctx context.Context, arg GetWFActiveStatusParams) (pgtype.Bool, error)
 	GetWFINstance(ctx context.Context, arg GetWFINstanceParams) (int64, error)
-	GetWFInstanceList(ctx context.Context, arg GetWFInstanceListParams) ([]Wfinstance, error)
-	GetWFInstanceListByParents(ctx context.Context, id []int32) ([]Wfinstance, error)
 	GetWFInternalStatus(ctx context.Context, arg GetWFInternalStatusParams) (bool, error)
 	GetWorkflow(ctx context.Context, step string) ([]GetWorkflowRow, error)
-	InsertNewRecordInRealmSlice(ctx context.Context, arg InsertNewRecordInRealmSliceParams) (int32, error)
-	RealmSliceActivate(ctx context.Context, arg RealmSliceActivateParams) (Realmslice, error)
-	RealmSliceAppsList(ctx context.Context, id int32) ([]RealmSliceAppsListRow, error)
-	RealmSliceDeactivate(ctx context.Context, arg RealmSliceDeactivateParams) (Realmslice, error)
-	RealmSlicePurge(ctx context.Context, realm string) (pgconn.CommandTag, error)
 	RulesetRowLock(ctx context.Context, arg RulesetRowLockParams) (Ruleset, error)
 	SchemaDelete(ctx context.Context, id int32) (int32, error)
 	SchemaGet(ctx context.Context, arg SchemaGetParams) ([]SchemaGetRow, error)
@@ -52,11 +32,10 @@ type Querier interface {
 	SchemaListByClass(ctx context.Context, class string) ([]SchemaListByClassRow, error)
 	SchemaListByClassAndSlice(ctx context.Context, arg SchemaListByClassAndSliceParams) ([]SchemaListByClassAndSliceRow, error)
 	SchemaListBySlice(ctx context.Context, slice int32) ([]SchemaListBySliceRow, error)
-	SchemaNew(ctx context.Context, arg SchemaNewParams) (int32, error)
+	SchemaNew(ctx context.Context, arg SchemaNewParams) error
 	SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) error
 	WfPatternSchemaGet(ctx context.Context, arg WfPatternSchemaGetParams) ([]byte, error)
 	WfSchemaGet(ctx context.Context, arg WfSchemaGetParams) (Schema, error)
-	WfSchemaList(ctx context.Context, arg WfSchemaListParams) ([]WfSchemaListRow, error)
 	Wfschemadelete(ctx context.Context, arg WfschemadeleteParams) error
 	Wfschemaget(ctx context.Context, arg WfschemagetParams) (WfschemagetRow, error)
 	WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) error

@@ -1,6 +1,6 @@
 /* This file contains TestMatchPattern() and one helper function */
 
-package main
+package crux
 
 import (
 	"testing"
@@ -187,19 +187,17 @@ func TestMatchPattern(t *testing.T) {
 }
 
 func setupInventoryItemSchema() {
-	rs := &schema_t{
+	rs := &Schema_t{
 		Class: transactionClass,
-		PatternSchema: patternSchema_t{
-			Attr: []attr_t{
-				{Name: "cat", ValType: typeEnum},
-				{Name: "fullname", ValType: typeStr},
-				{Name: "ageinstock", ValType: typeInt},
-				{Name: "mrp", ValType: typeFloat},
-				{Name: "received", ValType: typeTS},
-				{Name: "bulkorder", ValType: typeBool},
-			},
+		PatternSchema: []PatternSchema_t{
+			{Attr: "cat", ValType: typeEnum},
+			{Attr: "fullname", ValType: typeStr},
+			{Attr: "ageinstock", ValType: typeInt},
+			{Attr: "mrp", ValType: typeFloat},
+			{Attr: "received", ValType: typeTS},
+			{Attr: "bulkorder", ValType: typeBool},
 		},
-		ActionSchema: actionSchema_t{},
+		ActionSchema: ActionSchema_t{},
 	}
 	ruleSchemasTest = append(ruleSchemasTest, rs)
 }
