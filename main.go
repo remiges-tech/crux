@@ -16,7 +16,7 @@ import (
 	"github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	"github.com/remiges-tech/crux/server/app"
-	"github.com/remiges-tech/crux/server/realmSliceManagement"
+	"github.com/remiges-tech/crux/server/realmslice"
 	"github.com/remiges-tech/crux/server/schema"
 	"github.com/remiges-tech/crux/server/wfinstance"
 	"github.com/remiges-tech/crux/server/workflow"
@@ -157,11 +157,11 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/appdelete/:name", app.AppDelete)
 
 	// Realm-slice management
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmSliceNew", realmSliceManagement.RealmSliceNew)
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmsliceactivate", realmSliceManagement.RealmSliceActivate)
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmslicedeactivate", realmSliceManagement.RealmSliceDeactivate)
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/realmSliceApps/:id", realmSliceManagement.RealmSliceApps)
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/RealmSlicePurge", realmSliceManagement.RealmSlicePurge)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmSliceNew", realmslice.RealmSliceNew)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmsliceactivate", realmslice.RealmSliceActivate)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmslicedeactivate", realmslice.RealmSliceDeactivate)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/realmSliceApps/:id", realmslice.RealmSliceApps)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/RealmSlicePurge", realmslice.RealmSlicePurge)
 
 	appServerPortStr := strconv.Itoa(appServerPort)
 	r.Run(":" + appServerPortStr)

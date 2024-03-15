@@ -1,4 +1,4 @@
-package realmSliceManagement
+package realmslice
 
 var (
 	userID    = "1234"

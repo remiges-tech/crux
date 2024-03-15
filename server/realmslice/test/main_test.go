@@ -1,4 +1,4 @@
-package realmSliceManagement_test
+package realmslice_test
 
 import (
 	"context"
@@ -22,7 +22,7 @@ import (
 	"github.com/remiges-tech/alya/wscutils"
 	pg "github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
-	"github.com/remiges-tech/crux/server/realmSliceManagement"
+	"github.com/remiges-tech/crux/server/realmslice"
 	"github.com/remiges-tech/logharbour/logharbour"
 )
 
@@ -107,24 +107,24 @@ func registerRoutes(databaseUrl string) (*gin.Engine, error) {
 	fallbackWriter := logharbour.NewFallbackWriter(os.Stdout, os.Stdout)
 	lctx := logharbour.NewLoggerContext(logharbour.Info)
 	l := logharbour.NewLogger(lctx, "crux", fallbackWriter)
-// Define a custom validation tag-to-message ID map
-customValidationMap := map[string]int{
-	"required":  101,
-	"gt":        102,
-	"alpha":     103,
-	"lowercase": 104,
-	"max":       105,
-	"lt":        106,
-}
-// Custom validation tag-to-error code map
-customErrCodeMap := map[string]string{
-	"required":  "required",
-	"gt":        "greater",
-	"alpha":     "alphabet",
-	"lowercase": "lowercase",
-	"max":       "exceed the maximum value allowed",
-	"lt":        "exceed the limit value allowed",
-}
+	// Define a custom validation tag-to-message ID map
+	customValidationMap := map[string]int{
+		"required":  101,
+		"gt":        102,
+		"alpha":     103,
+		"lowercase": 104,
+		"max":       105,
+		"lt":        106,
+	}
+	// Custom validation tag-to-error code map
+	customErrCodeMap := map[string]string{
+		"required":  "required",
+		"gt":        "greater",
+		"alpha":     "alphabet",
+		"lowercase": "lowercase",
+		"max":       "exceed the maximum value allowed",
+		"lt":        "exceed the limit value allowed",
+	}
 	// Register the custom map with wscutils
 	wscutils.SetValidationTagToMsgIDMap(customValidationMap)
 	wscutils.SetValidationTagToErrCodeMap(customErrCodeMap)
@@ -146,9 +146,11 @@ customErrCodeMap := map[string]string{
 		WithDatabase(connPool).
 		WithDependency("queries", queries)
 
-	s.RegisterRoute(http.MethodPost, "/realmSliceNew", realmSliceManagement.RealmSliceNew)
-	s.RegisterRoute(http.MethodGet, "/realmSliceApps/:id", realmSliceManagement.RealmSliceApps)
-	s.RegisterRoute(http.MethodPost, "/RealmSlicePurge", realmSliceManagement.RealmSlicePurge)
+	s.RegisterRoute(http.MethodPost, "/realmSliceNew", realmslice.RealmSliceNew)
+	s.RegisterRoute(http.MethodGet, "/realmSliceApps/:id", realmslice.RealmSliceApps)
+	s.RegisterRoute(http.MethodPost, "/RealmSlicePurge", realmslice.RealmSlicePurge)
+	s.RegisterRoute(http.MethodPost, "/realmsliceactivate", realmslice.RealmSliceActivate)
+	s.RegisterRoute(http.MethodPost, "/realmslicedeactivate", realmslice.RealmSliceDeactivate)
 
 	return r, nil
 

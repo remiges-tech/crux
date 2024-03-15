@@ -1,4 +1,4 @@
-package realmSliceManagement
+package realmslice
 
 import (
 	"strings"

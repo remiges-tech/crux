@@ -1,4 +1,4 @@
-package realmSliceManagement
+package realmslice
 
 import (
 	"time"
@@ -13,13 +13,6 @@ import (
 	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/types"
 )
-
-// var (
-// 	userID    = "1234"
-// 	capForNew = []string{"root"}
-// 	realmName = "NSE"
-// 	// realmID   = int32(11)
-// )
 
 type RealmSliceActivateReq struct {
 	// Id is refer to `realmslice_id` in db
@@ -76,11 +69,6 @@ func RealmSliceActivate(c *gin.Context, s *service.Service) {
 		fromt = *req.From
 	}
 
-	// else {
-	// 	currentTime := time.Now()
-	// 	req.From = &currentTime
-	// }
-
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
 		l.Info().Log("error while getting query instance from service dependencies")
@@ -95,12 +83,10 @@ func RealmSliceActivate(c *gin.Context, s *service.Service) {
 	})
 	if err != nil {
 		l.Info().Error(err).Log("error while changing active status with func RealmSliceActivate")
-
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
-	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: newSliceID, Messages: nil})
-	l.Debug0().Log("exiting from RealmSliceActivate()")
-	return
+	l.Debug0().LogActivity("exiting from RealmSliceActivate()", newSliceID)
+	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})
 }
