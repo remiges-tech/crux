@@ -1,0 +1,16 @@
+{
+    "status": "success",
+    "data": [
+        {
+            "slice": 1,
+            "app": "retailBANK",
+            "longname": "retailbank pvt ltd",
+            "class": "custonboarding",
+            "createdby": "Mireille Slidders",
+            "createdat": "2020-08-25T13:17:49Z",
+            "editedby": "Spencer Jaffra",
+            "editedat": "2021-01-22T15:53:49Z"
+        }
+    ],
+    "messages": null
+}

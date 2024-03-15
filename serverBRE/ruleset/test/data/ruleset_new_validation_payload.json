@@ -1,0 +1,15 @@
+{
+    "slice": -2,
+    "app": "retailBANK 124",
+    "class": "Retailcustomer",
+    "name": "workflow",
+    "is_internal": true,
+    "flowrules": [
+        {
+            "rulepattern": [
+                {},
+                {}
+            ]
+        }
+    ]
+}

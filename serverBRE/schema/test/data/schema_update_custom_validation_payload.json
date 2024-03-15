@@ -1,0 +1,28 @@
+{
+    "slice": 1,
+    "app": "retailBANK",
+    "class": "custonboarding",
+    "patternSchema": {
+        "class": "Custonboardingsqdd",
+        "attr": [
+            {
+                "name": "cat$",
+                "shortdesc": "Category 1of item",
+                "longdesc": "Each item can belong to one of the following categories: textbooks, notebooks, stationery, or reference books.",
+                "valtype": "enum"
+            }
+        ]
+    },
+    "actionSchema": {
+        "class": "Inventoryitems$",
+        "tasks": [
+            "invitefordiwali!",
+            "allowretailsale",
+            "assigntotrash"
+        ],
+        "properties": [
+            "discount!",
+            "shipby"
+        ]
+    }
+}

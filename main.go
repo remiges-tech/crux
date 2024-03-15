@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/remiges-tech/crux/serverBRE/ruleset"
 	"log"
 	"net/http"
 	"os"
@@ -20,6 +21,7 @@ import (
 	"github.com/remiges-tech/crux/server/schema"
 	"github.com/remiges-tech/crux/server/wfinstance"
 	"github.com/remiges-tech/crux/server/workflow"
+	breSchema "github.com/remiges-tech/crux/serverBRE/schema"
 	"github.com/remiges-tech/logharbour/logharbour"
 	"github.com/remiges-tech/rigel"
 	"github.com/remiges-tech/rigel/etcd"
@@ -133,7 +135,13 @@ func main() {
 		WithDatabase(connPool).
 		WithDependency("queries", queries)
 
+	serviceBRE := service.NewService(r).
+		WithLogHarbour(l).
+		WithDatabase(connPool).
+		WithDependency("queries", queries)
+
 	apiV1Group := r.Group("/api/v1/")
+	apiV1GroupBRE := r.Group("/api/v1") // maybe use a different group-name here
 
 	// Schema
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfschemaget", schema.SchemaGet)
@@ -163,11 +171,22 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/realmSliceApps/:id", realmSliceManagement.RealmSliceApps)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/RealmSlicePurge", realmSliceManagement.RealmSlicePurge)
 
+	// -------- schema for BRE ---------------
+	serviceBRE.RegisterRouteWithGroup(apiV1GroupBRE, http.MethodPost, "/BREschemaGet", breSchema.BRESchemaGet)
+	serviceBRE.RegisterRouteWithGroup(apiV1GroupBRE, http.MethodPost, "/BREschemaList", breSchema.BRESchemaList)
+	serviceBRE.RegisterRouteWithGroup(apiV1GroupBRE, http.MethodPost, "/BREschemaNew", breSchema.BRESchemaNew)
+	serviceBRE.RegisterRouteWithGroup(apiV1GroupBRE, http.MethodPut, "/BREschemaUpdate", breSchema.BRESchemaUpdate)
+	serviceBRE.RegisterRouteWithGroup(apiV1GroupBRE, http.MethodDelete, "/BREschemaDelete", breSchema.BRESchemaDelete)
+	// -------- RuleSet for BRE ---------------
+	serviceBRE.RegisterRouteWithGroup(apiV1GroupBRE, http.MethodPost, "/ruleSetNew", ruleset.BRERuleSetNew)
+	serviceBRE.RegisterRouteWithGroup(apiV1GroupBRE, http.MethodPost, "/ruleSetList", ruleset.BRERuleSetList)
+	serviceBRE.RegisterRouteWithGroup(apiV1GroupBRE, http.MethodPost, "/ruleSetGet", ruleset.BRERuleSetGet)
+	serviceBRE.RegisterRouteWithGroup(apiV1Group, http.MethodDelete, "/ruleSetDelete", ruleset.BRERuleSetDelete)
+
 	appServerPortStr := strconv.Itoa(appServerPort)
 	r.Run(":" + appServerPortStr)
 	if err != nil {
 		l.LogActivity("Failed to start server", err)
 		log.Fatalf("Failed to start server: %v", err)
 	}
-
 }
