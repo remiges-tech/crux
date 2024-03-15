@@ -29,24 +29,38 @@ type GetAppNewRequest struct {
 func AppNew(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour.WithClass("app")
 	lh.Log("AppNew request received")
+	
+	userID, err := server.ExtractUserNameFromJwt(c)
+	if err != nil {
+		lh.Info().Log("unable to extract userID from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		return
+	}
+
+	realmName, err := server.ExtractRealmFromJwt(c)
+	if err != nil {
+		lh.Info().Log("unable to extract realm from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		return
+	}
 
 	var (
 		request GetAppNewRequest
 	)
 
 	isCapable, _ := server.Authz_check(types.OpReq{
-		User:      USERID,
+		User:      userID,
 		CapNeeded: rootCapability,
 	}, false)
 
 	if !isCapable {
-		lh.Info().LogActivity("unauthorized user:", USERID)
+		lh.Info().LogActivity("unauthorized user:", userID)
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
 		return
 	}
 
 	// Bind request
-	err := wscutils.BindJSON(c, &request)
+	err = wscutils.BindJSON(c, &request)
 	if err != nil {
 		lh.Error(err).Log("AppNew() || error while binding json request ")
 		return
@@ -76,11 +90,11 @@ func AppNew(c *gin.Context, s *service.Service) {
 	// Insert record
 	applc := strings.ToLower(request.Name)
 	appData, err := query.AppNew(c, sqlc.AppNewParams{
-		Realm:       REALM,
+		Realm:       realmName,
 		Shortname:   request.Name,
 		Shortnamelc: applc,
 		Longname:    request.Description,
-		Setby:       USERID,
+		Setby:       userID,
 	})
 
 	if err != nil {

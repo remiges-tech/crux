@@ -15,6 +15,19 @@ import (
 func SchemaDelete(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour
 	lh.Log("SchemaDelete request received")
+	userID, err := server.ExtractUserNameFromJwt(c)
+	if err != nil {
+		lh.Info().Log("unable to extract userID from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		return
+	}
+
+	realmName, err := server.ExtractRealmFromJwt(c)
+	if err != nil {
+		lh.Info().Log("unable to extract realm from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		return
+	}
 
 	isCapable, _ := server.Authz_check(types.OpReq{
 		User:      userID,
@@ -27,11 +40,8 @@ func SchemaDelete(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	// implement the user realm here
-	var userRealm int32 = 1
-
 	var request SchemaGetReq
-	err := wscutils.BindJSON(c, &request)
+	err = wscutils.BindJSON(c, &request)
 	if err != nil {
 		lh.Debug0().LogActivity("error while binding json request error:", err.Error)
 		return
@@ -53,7 +63,7 @@ func SchemaDelete(c *gin.Context, s *service.Service) {
 		Slice: request.Slice,
 		App:   request.App,
 		Class: request.Class,
-		Realm: userRealm,
+		Realm: realmName,
 	})
 	if err != nil {
 		lh.Debug0().LogActivity("failed while deleting record:", err.Error())

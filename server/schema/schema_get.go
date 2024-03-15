@@ -33,8 +33,19 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour
 	lh.Log("SchemaGet request received")
 
-	// implement the user realm here
-	var userRealm int32 = 1
+	userID, err := server.ExtractUserNameFromJwt(c)
+	if err != nil {
+		lh.Info().Log("unable to extract userID from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		return
+	}
+
+	realmName, err := server.ExtractRealmFromJwt(c)
+	if err != nil {
+		lh.Info().Log("unable to extract realm from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		return
+	}
 
 	var (
 		request  SchemaGetReq
@@ -53,7 +64,7 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 	}
 
 	// step 1: json request binding with a struct
-	err := wscutils.BindJSON(c, &request)
+	err = wscutils.BindJSON(c, &request)
 	if err != nil {
 		lh.Debug0().Error(err).Log("error while binding json request error:")
 		return
@@ -76,7 +87,7 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 		Slice: request.Slice,
 		App:   request.App,
 		Class: request.Class,
-		Realm: userRealm,
+		Realm: realmName,
 	})
 	if err != nil {
 		lh.Debug0().Error(err).Log("failed to get data from db")

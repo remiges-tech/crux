@@ -15,19 +15,32 @@ import (
 func AppList(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour.WithClass("app")
 	lh.Log("AppList request received")
+	userID, err := server.ExtractUserNameFromJwt(c)
+	if err != nil {
+		lh.Info().Log("unable to extract userID from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		return
+	}
+
+	realmName, err := server.ExtractRealmFromJwt(c)
+	if err != nil {
+		lh.Info().Log("unable to extract realm from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		return
+	}
 
 	var (
 		reportCap = []string{"report"}
 	)
 
 	isCapable, _ := server.Authz_check(types.OpReq{
-		User: USERID,
+		User: userID,
 		// The calling user must have `report` capability.
 		CapNeeded: reportCap,
 	}, false)
 
 	if !isCapable {
-		lh.Info().LogActivity("unauthorized user:", USERID)
+		lh.Info().LogActivity("unauthorized user:", userID)
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
 		return
 	}
@@ -39,7 +52,7 @@ func AppList(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	dbResponse, err := query.GetAppList(c, REALM)
+	dbResponse, err := query.GetAppList(c, realmName)
 	if err != nil {
 		lh.Info().Error(err).Log("error while getting app list from db")
 		errmsg := db.HandleDatabaseError(err)

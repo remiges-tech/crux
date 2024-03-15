@@ -20,12 +20,22 @@ func WorkflowGet(c *gin.Context, s *service.Service) {
 	var (
 		request WorkflowGetReq
 	)
+	userID, err := server.ExtractUserNameFromJwt(c)
+	if err != nil {
+		lh.Info().Log("unable to extract userID from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		return
+	}
 
+	realmName, err := server.ExtractRealmFromJwt(c)
+	if err != nil {
+		lh.Info().Log("unable to extract realm from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		return
+	}
 	// implement the user realm and all here
 	var (
-		userID           = "1234"
-		capForList       = []string{"workflow"}
-		userRealm  int32 = 1
+		capForList = []string{"workflow"}
 	)
 	isCapable, _ := server.Authz_check(types.OpReq{
 		User:      userID,
@@ -38,7 +48,7 @@ func WorkflowGet(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	err := wscutils.BindJSON(c, &request)
+	err = wscutils.BindJSON(c, &request)
 	if err != nil {
 		lh.Debug0().Error(err).Log("error while binding json request")
 		return
@@ -63,7 +73,7 @@ func WorkflowGet(c *gin.Context, s *service.Service) {
 		App:     request.App,
 		Class:   request.Class,
 		Setname: request.Name,
-		Realm:   userRealm,
+		Realm:   realmName,
 	})
 	if err != nil {
 		lh.Debug0().Error(err).Log("failed to get data from db")

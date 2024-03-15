@@ -24,10 +24,25 @@ type SchemaStruct struct {
 var CapForList = []string{"ruleset", "schema", "root", "report"}
 var schemaList []sqlc.WfSchemaListRow
 var err error
+var realmName string
 
 func SchemaList(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
 	l.Debug0().Log("starting execution of SchemaList()")
+	
+	userID, err := server.ExtractUserNameFromJwt(c)
+	if err != nil {
+		l.Info().Log("unable to extract userID from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		return
+	}
+
+	realmName, err = server.ExtractRealmFromJwt(c)
+	if err != nil {
+		l.Info().Log("unable to extract realm from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		return
+	}
 
 	isCapable, capList := server.Authz_check(types.OpReq{
 		User:      userID,
@@ -93,7 +108,7 @@ func SchemaList(c *gin.Context, s *service.Service) {
 
 func getSchemaList(c *gin.Context, sh SchemaStruct, query *sqlc.Queries) ([]sqlc.WfSchemaListRow, error) {
 	return query.WfSchemaList(c, sqlc.WfSchemaListParams{
-		Relam: realmID,
+		Relam: realmName,
 		Slice: pgtype.Int4{Int32: sh.Slice, Valid: sh.Slice > 0},
 		App:   pgtype.Text{String: sh.App, Valid: !server.IsStringEmpty(&sh.App)},
 		Class: pgtype.Text{String: sh.Class, Valid: !server.IsStringEmpty(&sh.Class)},

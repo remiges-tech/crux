@@ -25,6 +25,19 @@ type SchemaNewReq struct {
 func SchemaNew(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
 	l.Debug0().Log("Starting execution of SchemaNew()")
+	userID, err := server.ExtractUserNameFromJwt(c)
+	if err != nil {
+		l.Info().Log("unable to extract userID from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		return
+	}
+
+	realmName, err := server.ExtractRealmFromJwt(c)
+	if err != nil {
+		l.Info().Log("unable to extract realm from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		return
+	}
 
 	isCapable, _ := server.Authz_check(types.OpReq{
 		User:      userID,
@@ -39,7 +52,7 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 
 	var req SchemaNewReq
 
-	err := wscutils.BindJSON(c, &req)
+	err = wscutils.BindJSON(c, &req)
 	if err != nil {
 		l.Error(err).Log("Error Unmarshalling Query parameters to struct:")
 		return
@@ -84,7 +97,7 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 		return
 	}
 	id, err := query.SchemaNew(c, sqlc.SchemaNewParams{
-		Realm:         realmID,
+		Realm:         realmName,
 		Slice:         req.Slice,
 		Class:         req.Class,
 		App:           req.App,
@@ -106,7 +119,7 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 			{
 				Field:  "realm",
 				OldVal: nil,
-				NewVal: realmID},
+				NewVal: realmName},
 			{
 				Field:  "slice",
 				OldVal: nil,

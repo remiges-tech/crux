@@ -9,10 +9,12 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/golang-jwt/jwt/v4"
+	"github.com/remiges-tech/alya/router"
 	"github.com/remiges-tech/crux/types"
 )
-
 
 // CommonValidation is a generic function which setup standard validation utilizing
 // validator package and Maps the errorVals based on the map parameter and
@@ -73,4 +75,41 @@ func GetWorkflowsByRulesetRights() []string {
 func Authz_check(op types.OpReq, trace bool) (bool, []string) {
 	caplist := op.CapNeeded
 	return true, caplist
+}
+
+// ExtractClaimFromJwt: this will extract the provided singleClaimName as key from the jwt token and return its value as a string
+func ExtractClaimFromJwt(c *gin.Context, singleClaimName string) (string, error) {
+	tokenString, err := router.ExtractToken(c.GetHeader("Authorization"))
+	if err != nil {
+		return "", fmt.Errorf("invalid token payload")
+	}
+	var name string
+	token, _, err := new(jwt.Parser).ParseUnverified(tokenString, jwt.MapClaims{})
+	if err != nil {
+		return "", fmt.Errorf("invalid token payload")
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok {
+		name = fmt.Sprint(claims[singleClaimName])
+	}
+
+	if name == "" {
+		return "", fmt.Errorf("invalid token payload")
+	}
+
+	return name, nil
+}
+
+func ExtractRealmFromJwt(c *gin.Context) (string, error) {
+	str, err := ExtractClaimFromJwt(c, "iss")
+	if err != nil {
+		return "", err
+	}
+	parts := strings.Split(str, "/realms/")
+	realm := parts[1]
+	return realm, nil
+}
+
+func ExtractUserNameFromJwt(c *gin.Context) (string, error) {
+	return ExtractClaimFromJwt(c, "preferred_username")
 }

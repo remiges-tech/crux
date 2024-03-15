@@ -13,6 +13,7 @@ const (
 	MsgId_Unauthorized    = 1010
 	MsgId_StepNotFound    = 1011
 	MsgId__NonEmpty       = 1012
+	MsgId_Missing         = 1013
 )
 
 const (
@@ -50,4 +51,5 @@ const (
 	ERRCode_Name_Not_Exist                                        = "name_not_exist"
 	ERRCode_Missing                                               = "missing"
 	ERRCode_No_record_For_purge                                   = "no_record_for_purge"
+	ERRCode_Token_Data_Missing                                    = "token_data_missing"
 )
