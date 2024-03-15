@@ -189,15 +189,13 @@ func TestMatchPattern(t *testing.T) {
 func setupInventoryItemSchema() {
 	rs := &schema_t{
 		Class: transactionClass,
-		PatternSchema: patternSchema_t{
-			Attr: []attr_t{
-				{Name: "cat", ValType: typeEnum},
-				{Name: "fullname", ValType: typeStr},
-				{Name: "ageinstock", ValType: typeInt},
-				{Name: "mrp", ValType: typeFloat},
-				{Name: "received", ValType: typeTS},
-				{Name: "bulkorder", ValType: typeBool},
-			},
+		PatternSchema: []patternSchema_t{
+			{Attr: "cat", ValType: typeEnum},
+			{Attr: "fullname", ValType: typeStr},
+			{Attr: "ageinstock", ValType: typeInt},
+			{Attr: "mrp", ValType: typeFloat},
+			{Attr: "received", ValType: typeTS},
+			{Attr: "bulkorder", ValType: typeBool},
 		},
 		ActionSchema: actionSchema_t{},
 	}

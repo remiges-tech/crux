@@ -41,7 +41,7 @@ func matchPattern(entity Entity, rulePattern []rulePatternBlock_t, actionSet Act
 
 			entityAttrVal = val
 			valType = getTypeFromSchema(entity.class, term.Attr, rSchema)
-
+			incrementStatsSchemaCounterNChecked(entity.class, rSchema)
 		}
 
 		// If the attribute value is still empty, check whether it matches any of the tasks in the action-set
@@ -79,9 +79,9 @@ func getTypeFromSchema(class string, attrName string, ruleSchemas []*schema_t) s
 	for _, ruleSchema := range ruleSchemas {
 
 		if ruleSchema.Class == class {
-			for _, attrSchema := range ruleSchema.PatternSchema.Attr {
+			for _, attrSchema := range ruleSchema.PatternSchema {
 
-				if attrSchema.Name == attrName {
+				if attrSchema.Attr == attrName {
 
 					return attrSchema.ValType
 				}
@@ -188,4 +188,15 @@ func compare(a any, b any) (int8, error) {
 	} else {
 		return 1, nil
 	}
+}
+func incrementStatsSchemaCounterNChecked(class string, schema []*schema_t) {
+
+	for _, ruleSchema := range schema {
+
+		if ruleSchema.Class == class {
+
+			ruleSchema.NChecked++
+		}
+	}
+
 }

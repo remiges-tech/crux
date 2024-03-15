@@ -41,7 +41,7 @@ func loadInternalSchema(dbResponseSchema []sqlc.Schema) error {
 				WFSchema: make(map[className_t][]*schema_t),
 			}
 
-			var patterns patternSchema_t
+			var patterns []patternSchema_t
 
 			if err := json.Unmarshal(row.Patternschema, &patterns); err != nil {
 				log.Println("Error unmarshaling Patternschema:", err)
@@ -59,9 +59,7 @@ func loadInternalSchema(dbResponseSchema []sqlc.Schema) error {
 				Class:         row.Class,
 				PatternSchema: patterns,
 				ActionSchema:  actions,
-				NChecked:      nCheckedcounter,
 			}
-			nCheckedcounter++
 
 			classNameKey := className_t(row.Class)
 			if row.Brwf == "B" {
@@ -115,7 +113,7 @@ func loadInternalRuleSet(dbResponseRuleSet []sqlc.Ruleset) error {
 
 			classNameKey := className_t(row.Setname)
 			newRuleset := &Ruleset_t{
-				//Id:     row.ID,
+				Id:      row.ID,
 				Class:   row.Class,
 				SetName: row.Setname,
 				Rules:   rules,
