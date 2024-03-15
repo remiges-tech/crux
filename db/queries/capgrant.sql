@@ -1,3 +1,7 @@
 -- name: DeleteCapGranForApp :exec
 
-DELETE FROM capgrant where app = @app and realm = @realm;
+DELETE FROM capgrant WHERE app = @app AND realm = @realm;
+
+-- name: GetCapGrantForApp :many
+
+SELECT * FROM capgrant WHERE app = @app AND realm = @realm;

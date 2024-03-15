@@ -26,6 +26,7 @@ type Querier interface {
 	DeleteWfinstanceByID(ctx context.Context, arg DeleteWfinstanceByIDParams) ([]Wfinstance, error)
 	GetApp(ctx context.Context, arg GetAppParams) (string, error)
 	GetAppName(ctx context.Context, arg GetAppNameParams) ([]App, error)
+	GetCapGrantForApp(ctx context.Context, arg GetCapGrantForAppParams) ([]Capgrant, error)
 	GetClass(ctx context.Context, arg GetClassParams) (string, error)
 	GetSchemaWithLock(ctx context.Context, arg GetSchemaWithLockParams) (GetSchemaWithLockRow, error)
 	GetWFActiveStatus(ctx context.Context, arg GetWFActiveStatusParams) (pgtype.Bool, error)

@@ -89,17 +89,46 @@ func AppDelete(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, &wscutils.Response{Status: wscutils.ErrorStatus, Data: nil, Messages: []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId__NonEmpty, server.ErrCode_NonEmpty, &APP)}})
 		return
 	}
-	// If the app is to be deleted, and there are cap grants to users for this app in the capgrant
-	// table, then those capability grants are deleted too.
-	error := query.DeleteCapGranForApp(c, sqlc.DeleteCapGranForAppParams{
+	// To get cap grants for app
+	capGrantData, err := query.GetCapGrantForApp(c, sqlc.GetCapGrantForAppParams{
 		App:   pgtype.Text{String: applc, Valid: true},
 		Realm: REALMID,
 	})
-	if error != nil {
-		lh.Info().Error(err).Log("error while deleting app capablity grants from db")
+	if err != nil {
+		lh.Info().Error(err).Log("error while getting app capablity grants from db")
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
+	}
+
+	if len(capGrantData) > 0 {
+		// If the app is to be deleted, and there are cap grants to users for this app in the capgrant
+		// table, then those capability grants are deleted too.
+		error := query.DeleteCapGranForApp(c, sqlc.DeleteCapGranForAppParams{
+			App:   pgtype.Text{String: applc, Valid: true},
+			Realm: REALMID,
+		})
+		if error != nil {
+			lh.Info().Error(err).Log("error while deleting app capablity grants from db")
+			errmsg := db.HandleDatabaseError(err)
+			wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+			return
+		}
+		// data change log
+		for _, val := range capGrantData {
+			dclog := lh.WithClass("cap grants for app").WithInstanceId(strconv.Itoa(int(val.ID)))
+			dclog.LogDataChange("delete cap grants for app", logharbour.ChangeInfo{
+				Entity: "capgrant",
+				Op:     "delete",
+				Changes: []logharbour.ChangeDetail{
+					{
+						Field:  "row",
+						OldVal: val,
+						NewVal: nil},
+				},
+			})
+		}
+
 	}
 
 	// delete app

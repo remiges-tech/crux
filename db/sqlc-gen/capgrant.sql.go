@@ -13,7 +13,7 @@ import (
 
 const deleteCapGranForApp = `-- name: DeleteCapGranForApp :exec
 
-DELETE FROM capgrant where app = $1 and realm = $2
+DELETE FROM capgrant WHERE app = $1 AND realm = $2
 `
 
 type DeleteCapGranForAppParams struct {
@@ -24,4 +24,44 @@ type DeleteCapGranForAppParams struct {
 func (q *Queries) DeleteCapGranForApp(ctx context.Context, arg DeleteCapGranForAppParams) error {
 	_, err := q.db.Exec(ctx, deleteCapGranForApp, arg.App, arg.Realm)
 	return err
+}
+
+const getCapGrantForApp = `-- name: GetCapGrantForApp :many
+
+SELECT id, realm, "user", app, cap, "from", "to", setat, setby FROM capgrant WHERE app = $1 AND realm = $2
+`
+
+type GetCapGrantForAppParams struct {
+	App   pgtype.Text `json:"app"`
+	Realm int32       `json:"realm"`
+}
+
+func (q *Queries) GetCapGrantForApp(ctx context.Context, arg GetCapGrantForAppParams) ([]Capgrant, error) {
+	rows, err := q.db.Query(ctx, getCapGrantForApp, arg.App, arg.Realm)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Capgrant
+	for rows.Next() {
+		var i Capgrant
+		if err := rows.Scan(
+			&i.ID,
+			&i.Realm,
+			&i.User,
+			&i.App,
+			&i.Cap,
+			&i.From,
+			&i.To,
+			&i.Setat,
+			&i.Setby,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
