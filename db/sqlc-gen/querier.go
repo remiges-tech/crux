@@ -31,6 +31,7 @@ type Querier interface {
 	GetAppName(ctx context.Context, arg GetAppNameParams) ([]App, error)
 	GetCapGrantForApp(ctx context.Context, arg GetCapGrantForAppParams) ([]Capgrant, error)
 	GetClass(ctx context.Context, arg GetClassParams) (string, error)
+	GetRealmSliceListByRealm(ctx context.Context, realm string) ([]GetRealmSliceListByRealmRow, error)
 	GetSchemaWithLock(ctx context.Context, arg GetSchemaWithLockParams) (GetSchemaWithLockRow, error)
 	GetWFActiveStatus(ctx context.Context, arg GetWFActiveStatusParams) (pgtype.Bool, error)
 	GetWFINstance(ctx context.Context, arg GetWFINstanceParams) (int64, error)

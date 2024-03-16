@@ -151,7 +151,7 @@ func registerRoutes(databaseUrl string) (*gin.Engine, error) {
 	s.RegisterRoute(http.MethodPost, "/RealmSlicePurge", realmslice.RealmSlicePurge)
 	s.RegisterRoute(http.MethodPost, "/realmsliceactivate", realmslice.RealmSliceActivate)
 	s.RegisterRoute(http.MethodPost, "/realmslicedeactivate", realmslice.RealmSliceDeactivate)
-
+	s.RegisterRoute(http.MethodGet, "/realmslicelist", realmslice.RealmSliceList)
 	return r, nil
 
 }

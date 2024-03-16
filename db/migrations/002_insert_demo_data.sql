@@ -27,25 +27,25 @@ VALUES (
 INSERT INTO
     realmslice
 VALUES (
-        11, 'NSE', 'Stock Market', true, NULL, NULL, now(), 'aniket', NULL, NULL
+        11, 'NSE', 'Stock Market', true, NULL, NULL, '2024-03-01 00:00:00', 'aniket', NULL, NULL
     );
 
 INSERT INTO
     realmslice
 VALUES (
-        12, 'BSE', 'Stock Market', true, NULL, NULL, now(), 'aniket', NULL, NULL
+        12, 'BSE', 'Stock Market', true, NULL, NULL, '2021-12-01 14:30:15', 'aniket', NULL, NULL
     );
 
 INSERT INTO
     realmslice
 VALUES (
-        13, 'MERCE', 'Merce Pvt ltd', true, NULL, NULL, now(), 'aniket', NULL, NULL
+        13, 'MERCE', 'Merce Pvt ltd', true, NULL, NULL, '2024-03-01 00:00:00', 'aniket', NULL, NULL
     );
 
 INSERT INTO
     realmslice
 VALUES (
-        14, 'REMIGES', 'REMIGES Pvt ltd', true, NULL, NULL, now(), 'aniket', NULL, NULL
+        14, 'REMIGES', 'REMIGES Pvt ltd', true, NULL, NULL, '2024-03-01 00:00:00', 'aniket', NULL, NULL
     );
 
 -- app
