@@ -2,6 +2,6 @@ package realmslice
 
 var (
 	// userID    = "1234"
-	capForNew = []string{"root"}
+	rootCaps = []string{"root"}
 	// realmName = "NSE"
 )

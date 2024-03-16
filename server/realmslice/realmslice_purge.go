@@ -32,7 +32,7 @@ func RealmSlicePurge(c *gin.Context, s *service.Service) {
 
 	isCapable, _ := server.Authz_check(types.OpReq{
 		User:      userID,
-		CapNeeded: capForNew,
+		CapNeeded: rootCaps,
 	}, false)
 
 	if !isCapable {

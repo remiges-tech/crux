@@ -16,33 +16,33 @@ func RealmSliceList(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour
 	lh.Log("RealmSliceList request received")
 
-	// userID, err := server.ExtractUserNameFromJwt(c)
-	// if err != nil {
-	// 	lh.Info().Log("unable to extract userID from token")
-	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
-	// 	return
-	// }
+	userID, err := server.ExtractUserNameFromJwt(c)
+	if err != nil {
+		lh.Info().Log("unable to extract userID from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		return
+	}
 
-	// realmName, err := server.ExtractRealmFromJwt(c)
-	// if err != nil {
-	// 	lh.Info().Log("unable to extract realm from token")
-	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
-	// 	return
-	// }
+	realmName, err := server.ExtractRealmFromJwt(c)
+	if err != nil {
+		lh.Info().Log("unable to extract realm from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		return
+	}
 
 	var (
-		userId     = "1234"
-		realm_name = "BSE"
-		reportCap  = []string{"report"}
+		// userId     = "1234"
+		// realm_name = "BSE"
+		reportCap = []string{"report"}
 	)
 	isCapable, _ := server.Authz_check(types.OpReq{
-		User: userId,
+		User: userID,
 		// The calling user must have `report` capability.
 		CapNeeded: reportCap,
 	}, false)
 
 	if !isCapable {
-		lh.Info().LogActivity("unauthorized user:", userId)
+		lh.Info().LogActivity("unauthorized user:", userID)
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
 		return
 	}
@@ -54,7 +54,7 @@ func RealmSliceList(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	dbResponse, err := query.GetRealmSliceListByRealm(c, realm_name)
+	dbResponse, err := query.GetRealmSliceListByRealm(c, realmName)
 	if err != nil {
 		lh.Info().Error(err).Log("error while getting realm slice list from db")
 		errmsg := db.HandleDatabaseError(err)
