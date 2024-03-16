@@ -67,31 +67,35 @@
 				
 				<option value="file5">github.com/remiges-tech/crux/db/sqlc-gen/models.go (0.0%)</option>
 				
-				<option value="file6">github.com/remiges-tech/crux/db/sqlc-gen/realmSlicieManagement.sql.go (54.5%)</option>
+				<option value="file6">github.com/remiges-tech/crux/db/sqlc-gen/realmslice.sql.go (78.3%)</option>
 				
 				<option value="file7">github.com/remiges-tech/crux/db/sqlc-gen/ruleset.sql.go (0.0%)</option>
 				
 				<option value="file8">github.com/remiges-tech/crux/db/sqlc-gen/schema.sql.go (0.0%)</option>
 				
-				<option value="file9">github.com/remiges-tech/crux/db/sqlc-gen/stepworkflow.sql.go (0.0%)</option>
+				<option value="file9">github.com/remiges-tech/crux/db/sqlc-gen/sqlc_tx.go (0.0%)</option>
 				
-				<option value="file10">github.com/remiges-tech/crux/db/sqlc-gen/wfinstance.sql.go (0.0%)</option>
+				<option value="file10">github.com/remiges-tech/crux/db/sqlc-gen/stepworkflow.sql.go (0.0%)</option>
 				
-				<option value="file11">github.com/remiges-tech/crux/server/realmSliceManagement/realm_slice_activate.go (0.0%)</option>
+				<option value="file11">github.com/remiges-tech/crux/db/sqlc-gen/wfinstance.sql.go (0.0%)</option>
 				
-				<option value="file12">github.com/remiges-tech/crux/server/realmSliceManagement/realm_slice_deactivate.go (0.0%)</option>
+				<option value="file12">github.com/remiges-tech/crux/server/realmslice/realmslice_activate.go (52.6%)</option>
 				
-				<option value="file13">github.com/remiges-tech/crux/server/realmSliceManagement/realmslice_apps.go (60.0%)</option>
+				<option value="file13">github.com/remiges-tech/crux/server/realmslice/realmslice_apps.go (60.0%)</option>
 				
-				<option value="file14">github.com/remiges-tech/crux/server/realmSliceManagement/realmslice_new.go (50.0%)</option>
+				<option value="file14">github.com/remiges-tech/crux/server/realmslice/realmslice_deactivate.go (52.6%)</option>
 				
-				<option value="file15">github.com/remiges-tech/crux/server/realmSliceManagement/realmslice_purge.go (58.3%)</option>
+				<option value="file15">github.com/remiges-tech/crux/server/realmslice/realmslice_list.go (52.4%)</option>
 				
-				<option value="file16">github.com/remiges-tech/crux/server/wsc_utils.go (8.0%)</option>
+				<option value="file16">github.com/remiges-tech/crux/server/realmslice/realmslice_new.go (50.0%)</option>
 				
-				<option value="file17">github.com/remiges-tech/crux/testutils/test_utils.go (25.0%)</option>
+				<option value="file17">github.com/remiges-tech/crux/server/realmslice/realmslice_purge.go (58.3%)</option>
 				
-				<option value="file18">github.com/remiges-tech/crux/types/types.go (0.0%)</option>
+				<option value="file18">github.com/remiges-tech/crux/server/wsc_utils.go (4.5%)</option>
+				
+				<option value="file19">github.com/remiges-tech/crux/testutils/test_utils.go (25.0%)</option>
+				
+				<option value="file20">github.com/remiges-tech/crux/types/types.go (0.0%)</option>
 				
 				</select>
 			</div>
@@ -184,6 +188,8 @@ package sqlc
 
 import (
         "context"
+
+        "github.com/jackc/pgx/v5/pgtype"
 )
 
 const appDelete = `-- name: AppDelete :exec
@@ -300,6 +306,68 @@ func (q *Queries) AppUpdate(ctx context.Context, arg AppUpdateParams) error <spa
         return err
 }</span>
 
+const getAppList = `-- name: GetAppList :many
+SELECT
+    a.shortnamelc AS name,
+    a.longname AS descr,
+    a.setat AS createdat,
+    a.setby AS createdby,
+    ( SELECT COUNT(DISTINCT "user")
+        FROM capgrant
+        WHERE app = a.shortnamelc
+    ) AS nusers,
+    ( SELECT COUNT(*)
+        FROM ruleset
+        WHERE app = a.shortnamelc AND brwf = 'B'
+    ) AS nrulesetsbre,
+    ( SELECT COUNT(*)
+        FROM ruleset
+        WHERE app = a.shortnamelc AND brwf = 'W'
+    ) AS nrulesetswfe
+FROM
+    app a
+WHERE
+a.realm= $1
+`
+
+type GetAppListRow struct {
+        Name         string           `json:"name"`
+        Descr        string           `json:"descr"`
+        Createdat    pgtype.Timestamp `json:"createdat"`
+        Createdby    string           `json:"createdby"`
+        Nusers       int64            `json:"nusers"`
+        Nrulesetsbre int64            `json:"nrulesetsbre"`
+        Nrulesetswfe int64            `json:"nrulesetswfe"`
+}
+
+func (q *Queries) GetAppList(ctx context.Context, realm string) ([]GetAppListRow, error) <span class="cov0" title="0">{
+        rows, err := q.db.Query(ctx, getAppList, realm)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">defer rows.Close()
+        var items []GetAppListRow
+        for rows.Next() </span><span class="cov0" title="0">{
+                var i GetAppListRow
+                if err := rows.Scan(
+                        &amp;i.Name,
+                        &amp;i.Descr,
+                        &amp;i.Createdat,
+                        &amp;i.Createdby,
+                        &amp;i.Nusers,
+                        &amp;i.Nrulesetsbre,
+                        &amp;i.Nrulesetswfe,
+                ); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov0" title="0">items = append(items, i)</span>
+        }
+        <span class="cov0" title="0">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return items, nil</span>
+}
+
 const getAppName = `-- name: GetAppName :many
 select id, realm, shortname, shortnamelc, longname, setby, setat FROM app WHERE shortnamelc = $1 AND realm = $2
 `
@@ -353,18 +421,58 @@ import (
 
 const deleteCapGranForApp = `-- name: DeleteCapGranForApp :exec
 
-DELETE FROM capgrant where app = $1 and realm = $2
+DELETE FROM capgrant WHERE app = $1 AND realm = $2
 `
 
 type DeleteCapGranForAppParams struct {
         App   pgtype.Text `json:"app"`
-        Realm int32       `json:"realm"`
+        Realm string      `json:"realm"`
 }
 
 func (q *Queries) DeleteCapGranForApp(ctx context.Context, arg DeleteCapGranForAppParams) error <span class="cov0" title="0">{
         _, err := q.db.Exec(ctx, deleteCapGranForApp, arg.App, arg.Realm)
         return err
 }</span>
+
+const getCapGrantForApp = `-- name: GetCapGrantForApp :many
+
+SELECT id, realm, "user", app, cap, "from", "to", setat, setby FROM capgrant WHERE app = $1 AND realm = $2
+`
+
+type GetCapGrantForAppParams struct {
+        App   pgtype.Text `json:"app"`
+        Realm string      `json:"realm"`
+}
+
+func (q *Queries) GetCapGrantForApp(ctx context.Context, arg GetCapGrantForAppParams) ([]Capgrant, error) <span class="cov0" title="0">{
+        rows, err := q.db.Query(ctx, getCapGrantForApp, arg.App, arg.Realm)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">defer rows.Close()
+        var items []Capgrant
+        for rows.Next() </span><span class="cov0" title="0">{
+                var i Capgrant
+                if err := rows.Scan(
+                        &amp;i.ID,
+                        &amp;i.Realm,
+                        &amp;i.User,
+                        &amp;i.App,
+                        &amp;i.Cap,
+                        &amp;i.From,
+                        &amp;i.To,
+                        &amp;i.Setat,
+                        &amp;i.Setby,
+                ); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov0" title="0">items = append(items, i)</span>
+        }
+        <span class="cov0" title="0">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return items, nil</span>
+}
 </pre>
 		
 		<pre class="file" id="file4" style="display: none">// Code generated by sqlc. DO NOT EDIT.
@@ -468,7 +576,7 @@ type App struct {
 
 type Capgrant struct {
         ID    int32            `json:"id"`
-        Realm int32            `json:"realm"`
+        Realm string           `json:"realm"`
         User  string           `json:"user"`
         App   pgtype.Text      `json:"app"`
         Cap   string           `json:"cap"`
@@ -479,7 +587,7 @@ type Capgrant struct {
 }
 
 type Config struct {
-        Realm int32            `json:"realm"`
+        Realm string           `json:"realm"`
         Slice int32            `json:"slice"`
         Name  string           `json:"name"`
         Descr string           `json:"descr"`
@@ -514,11 +622,15 @@ type Realmslice struct {
         Active       bool             `json:"active"`
         Activateat   pgtype.Timestamp `json:"activateat"`
         Deactivateat pgtype.Timestamp `json:"deactivateat"`
+        Createdat    pgtype.Timestamp `json:"createdat"`
+        Createdby    string           `json:"createdby"`
+        Editedat     pgtype.Timestamp `json:"editedat"`
+        Editedby     pgtype.Text      `json:"editedby"`
 }
 
 type Ruleset struct {
         ID         int32            `json:"id"`
-        Realm      int32            `json:"realm"`
+        Realm      string           `json:"realm"`
         Slice      int32            `json:"slice"`
         App        string           `json:"app"`
         Brwf       BrwfEnum         `json:"brwf"`
@@ -536,7 +648,7 @@ type Ruleset struct {
 
 type Schema struct {
         ID            int32            `json:"id"`
-        Realm         int32            `json:"realm"`
+        Realm         string           `json:"realm"`
         Slice         int32            `json:"slice"`
         App           string           `json:"app"`
         Brwf          BrwfEnum         `json:"brwf"`
@@ -574,7 +686,7 @@ type Wfinstance struct {
 		<pre class="file" id="file6" style="display: none">// Code generated by sqlc. DO NOT EDIT.
 // versions:
 //   sqlc v1.25.0
-// source: realmSlicieManagement.sql
+// source: realmslice.sql
 
 package sqlc
 
@@ -609,16 +721,17 @@ func (q *Queries) CloneRecordInConfigBySliceID(ctx context.Context, arg CloneRec
 const cloneRecordInRealmSliceBySliceID = `-- name: CloneRecordInRealmSliceBySliceID :one
 INSERT INTO
     realmslice (
-        realm, descr, active, activateat, deactivateat
+        realm, descr, active, activateat, deactivateat,createdby
     )
 SELECT
     realm,
     COALESCE(
-        descr, $3::text
+        descr, $4::text
     ),
     true,
     activateat,
-    deactivateat
+    deactivateat,
+    $3
 FROM realmslice
 WHERE
     realmslice.id = $1
@@ -628,13 +741,19 @@ RETURNING
 `
 
 type CloneRecordInRealmSliceBySliceIDParams struct {
-        ID    int32       `json:"id"`
-        Realm string      `json:"realm"`
-        Descr pgtype.Text `json:"descr"`
+        ID        int32       `json:"id"`
+        Realm     string      `json:"realm"`
+        Createdby string      `json:"createdby"`
+        Descr     pgtype.Text `json:"descr"`
 }
 
 func (q *Queries) CloneRecordInRealmSliceBySliceID(ctx context.Context, arg CloneRecordInRealmSliceBySliceIDParams) (int32, error) <span class="cov8" title="1">{
-        row := q.db.QueryRow(ctx, cloneRecordInRealmSliceBySliceID, arg.ID, arg.Realm, arg.Descr)
+        row := q.db.QueryRow(ctx, cloneRecordInRealmSliceBySliceID,
+                arg.ID,
+                arg.Realm,
+                arg.Createdby,
+                arg.Descr,
+        )
         var id int32
         err := row.Scan(&amp;id)
         return id, err
@@ -721,21 +840,71 @@ func (q *Queries) CloneRecordInSchemaBySliceID(ctx context.Context, arg CloneRec
         )
 }</span>
 
+const getRealmSliceListByRealm = `-- name: GetRealmSliceListByRealm :many
+SELECT
+    id,descr,active,deactivateat,createdat,createdby,editedat,editedby
+FROM
+    realmslice
+WHERE
+    realm= $1
+`
+
+type GetRealmSliceListByRealmRow struct {
+        ID           int32            `json:"id"`
+        Descr        string           `json:"descr"`
+        Active       bool             `json:"active"`
+        Deactivateat pgtype.Timestamp `json:"deactivateat"`
+        Createdat    pgtype.Timestamp `json:"createdat"`
+        Createdby    string           `json:"createdby"`
+        Editedat     pgtype.Timestamp `json:"editedat"`
+        Editedby     pgtype.Text      `json:"editedby"`
+}
+
+func (q *Queries) GetRealmSliceListByRealm(ctx context.Context, realm string) ([]GetRealmSliceListByRealmRow, error) <span class="cov8" title="1">{
+        rows, err := q.db.Query(ctx, getRealmSliceListByRealm, realm)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">defer rows.Close()
+        var items []GetRealmSliceListByRealmRow
+        for rows.Next() </span><span class="cov8" title="1">{
+                var i GetRealmSliceListByRealmRow
+                if err := rows.Scan(
+                        &amp;i.ID,
+                        &amp;i.Descr,
+                        &amp;i.Active,
+                        &amp;i.Deactivateat,
+                        &amp;i.Createdat,
+                        &amp;i.Createdby,
+                        &amp;i.Editedat,
+                        &amp;i.Editedby,
+                ); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov8" title="1">items = append(items, i)</span>
+        }
+        <span class="cov8" title="1">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return items, nil</span>
+}
+
 const insertNewRecordInRealmSlice = `-- name: InsertNewRecordInRealmSlice :one
 INSERT INTO
-    realmslice (realm, descr, active)
-VALUES ($1, $2, true)
-RETURNING
-    realmslice.id
+    realmslice (
+        realm, descr, active, createdby
+    )
+VALUES ($1, $2, true, $3) RETURNING realmslice.id
 `
 
 type InsertNewRecordInRealmSliceParams struct {
-        Realm string `json:"realm"`
-        Descr string `json:"descr"`
+        Realm     string `json:"realm"`
+        Descr     string `json:"descr"`
+        Createdby string `json:"createdby"`
 }
 
 func (q *Queries) InsertNewRecordInRealmSlice(ctx context.Context, arg InsertNewRecordInRealmSliceParams) (int32, error) <span class="cov0" title="0">{
-        row := q.db.QueryRow(ctx, insertNewRecordInRealmSlice, arg.Realm, arg.Descr)
+        row := q.db.QueryRow(ctx, insertNewRecordInRealmSlice, arg.Realm, arg.Descr, arg.Createdby)
         var id int32
         err := row.Scan(&amp;id)
         return id, err
@@ -746,14 +915,18 @@ UPDATE realmslice
 SET
     active = $1,
     activateat = CASE
-        WHEN ($2::TIMESTAMP) IS NULL
-            THEN NOW()
-        ELSE ($2::TIMESTAMP)
+        WHEN (
+            $2::TIMESTAMP
+        ) IS NULL THEN NOW()
+        ELSE (
+            $2::TIMESTAMP
+        )
     END,
     deactivateat = NULL
 WHERE
     id = $3
-    RETURNING id, realm, descr, active, activateat, deactivateat
+RETURNING
+    id, realm, descr, active, activateat, deactivateat, createdat, createdby, editedat, editedby
 `
 
 type RealmSliceActivateParams struct {
@@ -762,7 +935,7 @@ type RealmSliceActivateParams struct {
         ID         int32            `json:"id"`
 }
 
-func (q *Queries) RealmSliceActivate(ctx context.Context, arg RealmSliceActivateParams) (Realmslice, error) <span class="cov0" title="0">{
+func (q *Queries) RealmSliceActivate(ctx context.Context, arg RealmSliceActivateParams) (Realmslice, error) <span class="cov8" title="1">{
         row := q.db.QueryRow(ctx, realmSliceActivate, arg.Isactive, arg.Activateat, arg.ID)
         var i Realmslice
         err := row.Scan(
@@ -772,6 +945,10 @@ func (q *Queries) RealmSliceActivate(ctx context.Context, arg RealmSliceActivate
                 &amp;i.Active,
                 &amp;i.Activateat,
                 &amp;i.Deactivateat,
+                &amp;i.Createdat,
+                &amp;i.Createdby,
+                &amp;i.Editedat,
+                &amp;i.Editedby,
         )
         return i, err
 }</span>
@@ -814,14 +991,18 @@ UPDATE realmslice
 SET
     active = $1,
     deactivateat = CASE
-        WHEN ($2::TIMESTAMP) IS NULL
-            THEN NOW()
-        ELSE ($2::TIMESTAMP)
+        WHEN (
+            $2::TIMESTAMP
+        ) IS NULL THEN NOW()
+        ELSE (
+            $2::TIMESTAMP
+        )
     END,
     activateat = NULL
 WHERE
     id = $3
-    RETURNING id, realm, descr, active, activateat, deactivateat
+RETURNING
+    id, realm, descr, active, activateat, deactivateat, createdat, createdby, editedat, editedby
 `
 
 type RealmSliceDeactivateParams struct {
@@ -830,7 +1011,7 @@ type RealmSliceDeactivateParams struct {
         ID           int32            `json:"id"`
 }
 
-func (q *Queries) RealmSliceDeactivate(ctx context.Context, arg RealmSliceDeactivateParams) (Realmslice, error) <span class="cov0" title="0">{
+func (q *Queries) RealmSliceDeactivate(ctx context.Context, arg RealmSliceDeactivateParams) (Realmslice, error) <span class="cov8" title="1">{
         row := q.db.QueryRow(ctx, realmSliceDeactivate, arg.Isactive, arg.Deactivateat, arg.ID)
         var i Realmslice
         err := row.Scan(
@@ -840,38 +1021,38 @@ func (q *Queries) RealmSliceDeactivate(ctx context.Context, arg RealmSliceDeacti
                 &amp;i.Active,
                 &amp;i.Activateat,
                 &amp;i.Deactivateat,
+                &amp;i.Createdat,
+                &amp;i.Createdby,
+                &amp;i.Editedat,
+                &amp;i.Editedby,
         )
         return i, err
 }</span>
 
 const realmSlicePurge = `-- name: RealmSlicePurge :execresult
 WITH
-    cte1 AS (
+    del_stepworkflow AS (
         DELETE FROM stepworkflow
     ),
-    cte2 AS (
+    del_wfinstance AS (
         DELETE FROM wfinstance
     ),
-    cte3 AS (
+    del_ruleset AS (
         DELETE FROM ruleset
     ),
-    cte4 AS (
+    del_schema AS (
         DELETE FROM schema
     ),
-    cte5 AS (
+    del_config AS (
         DELETE FROM config
     )
 DELETE FROM realmslice
 WHERE
-    id IN (
-        SELECT id
-        FROM realmslice
-        LIMIT 100
-    )
+    realmslice.realm = $1
 `
 
-func (q *Queries) RealmSlicePurge(ctx context.Context) (pgconn.CommandTag, error) <span class="cov8" title="1">{
-        return q.db.Exec(ctx, realmSlicePurge)
+func (q *Queries) RealmSlicePurge(ctx context.Context, realm string) (pgconn.CommandTag, error) <span class="cov8" title="1">{
+        return q.db.Exec(ctx, realmSlicePurge, realm)
 }</span>
 </pre>
 		
@@ -889,6 +1070,49 @@ import (
         "github.com/jackc/pgx/v5/pgtype"
 )
 
+const allRuleset = `-- name: AllRuleset :many
+SELECT
+    id, realm, slice, app, brwf, class, setname, schemaid, is_active, is_internal, ruleset, createdat, createdby, editedat, editedby
+FROM
+    public.ruleset
+`
+
+func (q *Queries) AllRuleset(ctx context.Context) ([]Ruleset, error) <span class="cov0" title="0">{
+        rows, err := q.db.Query(ctx, allRuleset)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">defer rows.Close()
+        var items []Ruleset
+        for rows.Next() </span><span class="cov0" title="0">{
+                var i Ruleset
+                if err := rows.Scan(
+                        &amp;i.ID,
+                        &amp;i.Realm,
+                        &amp;i.Slice,
+                        &amp;i.App,
+                        &amp;i.Brwf,
+                        &amp;i.Class,
+                        &amp;i.Setname,
+                        &amp;i.Schemaid,
+                        &amp;i.IsActive,
+                        &amp;i.IsInternal,
+                        &amp;i.Ruleset,
+                        &amp;i.Createdat,
+                        &amp;i.Createdby,
+                        &amp;i.Editedat,
+                        &amp;i.Editedby,
+                ); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov0" title="0">items = append(items, i)</span>
+        }
+        <span class="cov0" title="0">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return items, nil</span>
+}
+
 const getApp = `-- name: GetApp :one
 SELECT app
 FROM ruleset
@@ -904,7 +1128,7 @@ type GetAppParams struct {
         Slice int32  `json:"slice"`
         App   string `json:"app"`
         Class string `json:"class"`
-        Realm int32  `json:"realm"`
+        Realm string `json:"realm"`
 }
 
 func (q *Queries) GetApp(ctx context.Context, arg GetAppParams) (string, error) <span class="cov0" title="0">{
@@ -934,7 +1158,7 @@ type GetClassParams struct {
         Slice int32  `json:"slice"`
         App   string `json:"app"`
         Class string `json:"class"`
-        Realm int32  `json:"realm"`
+        Realm string `json:"realm"`
 }
 
 func (q *Queries) GetClass(ctx context.Context, arg GetClassParams) (string, error) <span class="cov0" title="0">{
@@ -965,7 +1189,7 @@ type GetWFActiveStatusParams struct {
         Slice   int32  `json:"slice"`
         App     string `json:"app"`
         Class   string `json:"class"`
-        Realm   int32  `json:"realm"`
+        Realm   string `json:"realm"`
         Setname string `json:"setname"`
 }
 
@@ -998,7 +1222,7 @@ type GetWFInternalStatusParams struct {
         Slice   int32  `json:"slice"`
         App     string `json:"app"`
         Class   string `json:"class"`
-        Realm   int32  `json:"realm"`
+        Realm   string `json:"realm"`
         Setname string `json:"setname"`
 }
 
@@ -1065,7 +1289,7 @@ VALUES (
 `
 
 type WorkFlowNewParams struct {
-        Realm      int32       `json:"realm"`
+        Realm      string      `json:"realm"`
         Slice      int32       `json:"slice"`
         App        string      `json:"app"`
         Brwf       BrwfEnum    `json:"brwf"`
@@ -1148,7 +1372,7 @@ type WorkflowDeleteParams struct {
         App     string `json:"app"`
         Class   string `json:"class"`
         Setname string `json:"setname"`
-        Realm   int32  `json:"realm"`
+        Realm   string `json:"realm"`
 }
 
 func (q *Queries) WorkflowDelete(ctx context.Context, arg WorkflowDeleteParams) (pgconn.CommandTag, error) <span class="cov0" title="0">{
@@ -1187,7 +1411,7 @@ where
 `
 
 type WorkflowListParams struct {
-        Realm      int32       `json:"realm"`
+        Realm      string      `json:"realm"`
         Slice      pgtype.Int4 `json:"slice"`
         App        []string    `json:"app"`
         Class      pgtype.Text `json:"class"`
@@ -1279,7 +1503,7 @@ type WorkflowgetParams struct {
         App     string `json:"app"`
         Class   string `json:"class"`
         Setname string `json:"setname"`
-        Realm   int32  `json:"realm"`
+        Realm   string `json:"realm"`
 }
 
 type WorkflowgetRow struct {
@@ -1336,6 +1560,43 @@ import (
 
         "github.com/jackc/pgx/v5/pgtype"
 )
+
+const allSchemas = `-- name: AllSchemas :many
+SELECT id, realm, slice, app, brwf, class, patternschema, actionschema, createdat, createdby, editedat, editedby FROM public.schema
+`
+
+func (q *Queries) AllSchemas(ctx context.Context) ([]Schema, error) <span class="cov0" title="0">{
+        rows, err := q.db.Query(ctx, allSchemas)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">defer rows.Close()
+        var items []Schema
+        for rows.Next() </span><span class="cov0" title="0">{
+                var i Schema
+                if err := rows.Scan(
+                        &amp;i.ID,
+                        &amp;i.Realm,
+                        &amp;i.Slice,
+                        &amp;i.App,
+                        &amp;i.Brwf,
+                        &amp;i.Class,
+                        &amp;i.Patternschema,
+                        &amp;i.Actionschema,
+                        &amp;i.Createdat,
+                        &amp;i.Createdby,
+                        &amp;i.Editedat,
+                        &amp;i.Editedby,
+                ); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov0" title="0">items = append(items, i)</span>
+        }
+        <span class="cov0" title="0">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return items, nil</span>
+}
 
 const getSchemaWithLock = `-- name: GetSchemaWithLock :one
 SELECT
@@ -1819,13 +2080,11 @@ INSERT INTO
     )
 VALUES (
         $1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, $8
-    )
-    RETURNING
-    id
+    ) RETURNING id
 `
 
 type SchemaNewParams struct {
-        Realm         int32    `json:"realm"`
+        Realm         string   `json:"realm"`
         Slice         int32    `json:"slice"`
         App           string   `json:"app"`
         Brwf          BrwfEnum `json:"brwf"`
@@ -1903,7 +2162,7 @@ type WfPatternSchemaGetParams struct {
         Slice int32  `json:"slice"`
         Class string `json:"class"`
         App   string `json:"app"`
-        Realm int32  `json:"realm"`
+        Realm string `json:"realm"`
 }
 
 func (q *Queries) WfPatternSchemaGet(ctx context.Context, arg WfPatternSchemaGetParams) ([]byte, error) <span class="cov0" title="0">{
@@ -1966,7 +2225,7 @@ and schema.slice = realmslice.id
 `
 
 type WfSchemaListParams struct {
-        Relam int32       `json:"relam"`
+        Relam string      `json:"relam"`
         Slice pgtype.Int4 `json:"slice"`
         App   pgtype.Text `json:"app"`
         Class pgtype.Text `json:"class"`
@@ -2032,16 +2291,16 @@ where
                     and realmslice.realm = realm.shortname
                     and schema.realm = $4
                     and schema.class = $3
-                    AND schema.app =  $2
+                    AND schema.app = $2
             ) as id
         where
-            id not in (
+            id not in(
                 SELECT schemaid
                 FROM ruleset
                 where
                     realm = $4
                     and slice = $1
-                    and app =  $2
+                    and app = $2
                     and class = $3
             )
     )
@@ -2051,7 +2310,7 @@ type WfschemadeleteParams struct {
         Slice int32  `json:"slice"`
         App   string `json:"app"`
         Class string `json:"class"`
-        Realm int32  `json:"realm"`
+        Realm string `json:"realm"`
 }
 
 func (q *Queries) Wfschemadelete(ctx context.Context, arg WfschemadeleteParams) error <span class="cov0" title="0">{
@@ -2068,11 +2327,11 @@ const wfschemaget = `-- name: Wfschemaget :one
 SELECT s.slice, s.app, s.class, rm.longname, s.patternschema, s.actionschema, s.createdat, s.createdby, s.editedat, s.editedby
 FROM schema as s, realm as rm, realmslice as rs
 WHERE
-    s.realm = rm.id
+    s.realm = rm.shortname
     and rs.realm = rm.shortname
     and s.slice = rs.id
     and s.slice = $1
-    and rm.id = $4
+    and rm.shortname = $4
     and s.class = $3
     AND s.app = $2
 `
@@ -2081,7 +2340,7 @@ type WfschemagetParams struct {
         Slice int32  `json:"slice"`
         App   string `json:"app"`
         Class string `json:"class"`
-        Realm int32  `json:"realm"`
+        Realm string `json:"realm"`
 }
 
 type WfschemagetRow struct {
@@ -2121,7 +2380,70 @@ func (q *Queries) Wfschemaget(ctx context.Context, arg WfschemagetParams) (Wfsch
 }</span>
 </pre>
 		
-		<pre class="file" id="file9" style="display: none">// Code generated by sqlc. DO NOT EDIT.
+		<pre class="file" id="file9" style="display: none">package sqlc
+
+import (
+        "context"
+        "fmt"
+
+        "github.com/jackc/pgx/v5/pgxpool"
+)
+
+// DBQuerier defines all functions to execute db queries and transactions
+type DBQuerier interface {
+        PerformDBOperationWithTX(ctx context.Context, queries func(Querier) (any, error)) (any, error)
+        Querier
+}
+
+// QuerierTX provides all functions to execute SQL queries and transactions
+type QuerierTX struct {
+        connPool *pgxpool.Pool
+        *Queries
+}
+
+/*
+NewQuerierWithTX creates a new QuerierTX object
+and returns QuerierWithTX interface
+*/
+func NewQuerierWithTX(connPool *pgxpool.Pool) DBQuerier <span class="cov0" title="0">{
+        return &amp;QuerierTX{
+                connPool: connPool,
+                Queries:  New(connPool),
+        }
+}</span>
+
+/*
+PerformTX performs transaction operations for the queries callbackFunction
+methods returns a result and error.PerformTx consist execTX methods which deals
+with the transaction commit and rollback logic
+*/
+func (tx *QuerierTX) PerformDBOperationWithTX(ctx context.Context, queries func(Querier) (any, error)) (any, error) <span class="cov0" title="0">{
+        return tx.execTX(ctx, queries)
+}</span>
+
+/*
+execTX performs transaction commit and rollBack for the seeded
+queryCallBack function arguments.execTX will return a result and error Based
+on the transaction behavior
+*/
+func (qtx *QuerierTX) execTX(ctx context.Context, queryCallBack func(Querier) (any, error)) (any, error) <span class="cov0" title="0">{
+        tx, err := qtx.connPool.Begin(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">q := New(tx)
+        result, err := queryCallBack(q)
+        if err != nil </span><span class="cov0" title="0">{
+                if rbErr := tx.Rollback(ctx); rbErr != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("tx err: %v, rb err: %v", err, rbErr)
+                }</span>
+                <span class="cov0" title="0">return result, err</span>
+        }
+        <span class="cov0" title="0">return result, tx.Commit(ctx)</span>
+}
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">// Code generated by sqlc. DO NOT EDIT.
 // versions:
 //   sqlc v1.25.0
 // source: stepworkflow.sql
@@ -2162,7 +2484,7 @@ func (q *Queries) GetWorkflow(ctx context.Context, step string) ([]GetWorkflowRo
 }
 </pre>
 		
-		<pre class="file" id="file10" style="display: none">// Code generated by sqlc. DO NOT EDIT.
+		<pre class="file" id="file11" style="display: none">// Code generated by sqlc. DO NOT EDIT.
 // versions:
 //   sqlc v1.25.0
 // source: wfinstance.sql
@@ -2450,7 +2772,7 @@ func (q *Queries) GetWFInstanceListByParents(ctx context.Context, id []int32) ([
 }
 </pre>
 		
-		<pre class="file" id="file11" style="display: none">package realmSliceManagement
+		<pre class="file" id="file12" style="display: none">package realmslice
 
 import (
         "time"
@@ -2466,13 +2788,6 @@ import (
         "github.com/remiges-tech/crux/types"
 )
 
-// var (
-//         userID    = "1234"
-//         capForNew = []string{"root"}
-//         realmName = "NSE"
-//         // realmID   = int32(11)
-// )
-
 type RealmSliceActivateReq struct {
         // Id is refer to `realmslice_id` in db
         Id int32 `json:"id" validate:"required,gt=0"`
@@ -2482,13 +2797,20 @@ type RealmSliceActivateReq struct {
         From *time.Time `json:"from,omitempty"`
 }
 
-func RealmSliceActivate(c *gin.Context, s *service.Service) <span class="cov0" title="0">{
+func RealmSliceActivate(c *gin.Context, s *service.Service) <span class="cov8" title="1">{
         l := s.LogHarbour
         l.Debug0().Log("starting execution of RealmSliceActivate()")
 
+        // userID, err := server.ExtractUserNameFromJwt(c)
+        // if err != nil {
+        //         l.Info().Log("unable to extract userID from token")
+        //         wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+        //         return
+        // }
+
         isCapable, _ := server.Authz_check(types.OpReq{
                 User:      userID,
-                CapNeeded: capForNew,
+                CapNeeded: rootCaps,
         }, false)
 
         if !isCapable </span><span class="cov0" title="0">{
@@ -2497,7 +2819,7 @@ func RealmSliceActivate(c *gin.Context, s *service.Service) <span class="cov0" t
                 return
         }</span>
 
-        <span class="cov0" title="0">var (
+        <span class="cov8" title="1">var (
                 isActive bool = true
                 req      RealmSliceActivateReq
                 fromt    time.Time
@@ -2510,14 +2832,14 @@ func RealmSliceActivate(c *gin.Context, s *service.Service) <span class="cov0" t
         }</span>
 
         // Validate request
-        <span class="cov0" title="0">validationErrors := wscutils.WscValidate(req, func(err validator.FieldError) []string </span><span class="cov0" title="0">{ return []string{} }</span>)
-        <span class="cov0" title="0">if len(validationErrors) &gt; 0 </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">validationErrors := wscutils.WscValidate(req, func(err validator.FieldError) []string </span><span class="cov8" title="1">{ return []string{} }</span>)
+        <span class="cov8" title="1">if len(validationErrors) &gt; 0 </span><span class="cov8" title="1">{
                 l.Debug0().LogDebug("standard validation errors", validationErrors)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
                 return
         }</span>
 
-        <span class="cov0" title="0">if req.From != nil </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if req.From != nil </span><span class="cov0" title="0">{
                 if req.From.Before(time.Now()) </span><span class="cov0" title="0">{
                         l.Debug0().LogDebug("givenfrom time is too early:", req.From)
                         wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_TooEarly))
@@ -2528,139 +2850,30 @@ func RealmSliceActivate(c *gin.Context, s *service.Service) <span class="cov0" t
                 <span class="cov0" title="0">fromt = *req.From</span>
         }
 
-        // else {
-        //         currentTime := time.Now()
-        //         req.From = &amp;currentTime
-        // }
-
-        <span class="cov0" title="0">query, ok := s.Dependencies["queries"].(*sqlc.Queries)
+        <span class="cov8" title="1">query, ok := s.Dependencies["queries"].(*sqlc.Queries)
         if !ok </span><span class="cov0" title="0">{
                 l.Info().Log("error while getting query instance from service dependencies")
                 wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
                 return
         }</span>
 
-        <span class="cov0" title="0">newSliceID, err := query.RealmSliceActivate(c, sqlc.RealmSliceActivateParams{
+        <span class="cov8" title="1">newSliceID, err := query.RealmSliceActivate(c, sqlc.RealmSliceActivateParams{
                 ID:         req.Id,
                 Isactive:   isActive,
                 Activateat: pgtype.Timestamp{Time: fromt, Valid: req.From != nil},
         })
         if err != nil </span><span class="cov0" title="0">{
                 l.Info().Error(err).Log("error while changing active status with func RealmSliceActivate")
-
                 errmsg := db.HandleDatabaseError(err)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
                 return
         }</span>
-        <span class="cov0" title="0">wscutils.SendSuccessResponse(c, &amp;wscutils.Response{Status: wscutils.SuccessStatus, Data: newSliceID, Messages: nil})
-        l.Debug0().Log("exiting from RealmSliceActivate()")
-        return</span>
+        <span class="cov8" title="1">l.Debug0().LogActivity("exiting from RealmSliceActivate()", newSliceID)
+        wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(nil))</span>
 }
 </pre>
 		
-		<pre class="file" id="file12" style="display: none">package realmSliceManagement
-
-import (
-        "time"
-
-        "github.com/gin-gonic/gin"
-        "github.com/go-playground/validator/v10"
-        "github.com/jackc/pgx/v5/pgtype"
-        "github.com/remiges-tech/alya/service"
-        "github.com/remiges-tech/alya/wscutils"
-        "github.com/remiges-tech/crux/db"
-        "github.com/remiges-tech/crux/db/sqlc-gen"
-        "github.com/remiges-tech/crux/server"
-        "github.com/remiges-tech/crux/types"
-)
-
-// var (
-//         userID    = "1234"
-//         capForNew = []string{"root"}
-//         realmName = "NSE"
-//         // realmID   = int32(11)
-// )
-
-type RealmSliceDeactivateReq struct {
-        // Id is refer to `realmslice_id` in db
-        Id int32 `json:"id" validate:"required,gt=0"`
-        //`from` is an optional timestamp parameter specifying
-        // from when the slice will be activated. This timestamp
-        // must be in the future.
-        From *time.Time `json:"from,omitempty"`
-}
-
-func RealmSliceDeactivate(c *gin.Context, s *service.Service) <span class="cov0" title="0">{
-        l := s.LogHarbour
-        l.Debug0().Log("starting execution of RealmSliceDeactivate()")
-
-        isCapable, _ := server.Authz_check(types.OpReq{
-                User:      userID,
-                CapNeeded: capForNew,
-        }, false)
-
-        if !isCapable </span><span class="cov0" title="0">{
-                l.Info().LogActivity("unauthorized user:", userID)
-                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
-                return
-        }</span>
-
-        <span class="cov0" title="0">var (
-                isActive bool
-                fromt    time.Time
-                req      RealmSliceDeactivateReq
-        )
-
-        err := wscutils.BindJSON(c, &amp;req)
-        if err != nil </span><span class="cov0" title="0">{
-                l.Error(err).Log("error unmarshalling query parameters to struct:")
-                return
-        }</span>
-
-        // Validate request
-        <span class="cov0" title="0">validationErrors := wscutils.WscValidate(req, func(err validator.FieldError) []string </span><span class="cov0" title="0">{ return []string{} }</span>)
-        <span class="cov0" title="0">if len(validationErrors) &gt; 0 </span><span class="cov0" title="0">{
-                l.Debug0().LogDebug("standard validation errors", validationErrors)
-                wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
-                return
-        }</span>
-
-        <span class="cov0" title="0">if req.From != nil </span><span class="cov0" title="0">{
-                if req.From.Before(time.Now()) </span><span class="cov0" title="0">{
-                        l.Debug0().LogDebug("givenfrom time is too early:", req.From)
-                        wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_TooEarly))
-                        return
-                }</span> else<span class="cov0" title="0"> {
-                        isActive = true
-                }</span>
-                <span class="cov0" title="0">fromt = *req.From</span>
-        }
-
-        <span class="cov0" title="0">query, ok := s.Dependencies["queries"].(*sqlc.Queries)
-        if !ok </span><span class="cov0" title="0">{
-                l.Info().Log("error while getting query instance from service dependencies")
-                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
-                return
-        }</span>
-
-        <span class="cov0" title="0">newSliceID, err := query.RealmSliceDeactivate(c, sqlc.RealmSliceDeactivateParams{
-                ID:           req.Id,
-                Isactive:     isActive,
-                Deactivateat: pgtype.Timestamp{Time: fromt, Valid: req.From != nil},
-        })
-        if err != nil </span><span class="cov0" title="0">{
-                l.Info().Error(err).Log("error while changing active status with func RealmSliceDeactivate")
-                errmsg := db.HandleDatabaseError(err)
-                wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
-                return
-        }</span>
-        <span class="cov0" title="0">wscutils.SendSuccessResponse(c, &amp;wscutils.Response{Status: wscutils.SuccessStatus, Data: newSliceID, Messages: nil})
-        l.Debug0().Log("exiting from RealmSliceDeactivate()")
-        return</span>
-}
-</pre>
-		
-		<pre class="file" id="file13" style="display: none">package realmSliceManagement
+		<pre class="file" id="file13" style="display: none">package realmslice
 
 import (
         "fmt"
@@ -2679,9 +2892,16 @@ func RealmSliceApps(c *gin.Context, s *service.Service) <span class="cov8" title
         l := s.LogHarbour
         l.Debug0().Log("Starting execution of RealmSliceApps()")
 
+        // userID, err := server.ExtractUserNameFromJwt(c)
+        // if err != nil {
+        //         l.Info().Log("unable to extract userID from token")
+        //         wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+        //         return
+        // }
+
         isCapable, _ := server.Authz_check(types.OpReq{
                 User:      userID,
-                CapNeeded: capForNew,
+                CapNeeded: rootCaps,
         }, false)
 
         if !isCapable </span><span class="cov0" title="0">{
@@ -2722,7 +2942,177 @@ func RealmSliceApps(c *gin.Context, s *service.Service) <span class="cov8" title
 }
 </pre>
 		
-		<pre class="file" id="file14" style="display: none">package realmSliceManagement
+		<pre class="file" id="file14" style="display: none">package realmslice
+
+import (
+        "time"
+
+        "github.com/gin-gonic/gin"
+        "github.com/go-playground/validator/v10"
+        "github.com/jackc/pgx/v5/pgtype"
+        "github.com/remiges-tech/alya/service"
+        "github.com/remiges-tech/alya/wscutils"
+        "github.com/remiges-tech/crux/db"
+        "github.com/remiges-tech/crux/db/sqlc-gen"
+        "github.com/remiges-tech/crux/server"
+        "github.com/remiges-tech/crux/types"
+)
+
+// type RealmSliceDeactivateReq struct {
+//         // Id is refer to `realmslice_id` in db
+//         Id int32 `json:"id" validate:"required,gt=0"`
+//         //`from` is an optional timestamp parameter specifying
+//         // from when the slice will be activated. This timestamp
+//         // must be in the future.
+//         From *time.Time `json:"from,omitempty"`
+// }
+
+func RealmSliceDeactivate(c *gin.Context, s *service.Service) <span class="cov8" title="1">{
+        l := s.LogHarbour
+        l.Debug0().Log("starting execution of RealmSliceDeactivate()")
+
+        // userID, err := server.ExtractUserNameFromJwt(c)
+        // if err != nil {
+        //         l.Info().Log("unable to extract userID from token")
+        //         wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+        //         return
+        // }
+
+        isCapable, _ := server.Authz_check(types.OpReq{
+                User:      userID,
+                CapNeeded: rootCaps,
+        }, false)
+
+        if !isCapable </span><span class="cov0" title="0">{
+                l.Info().LogActivity("unauthorized user:", userID)
+                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
+                return
+        }</span>
+
+        <span class="cov8" title="1">var (
+                isActive bool
+                fromt    time.Time
+                req      RealmSliceActivateReq
+        )
+
+        err := wscutils.BindJSON(c, &amp;req)
+        if err != nil </span><span class="cov0" title="0">{
+                l.Error(err).Log("error unmarshalling query parameters to struct:")
+                return
+        }</span>
+
+        // Validate request
+        <span class="cov8" title="1">validationErrors := wscutils.WscValidate(req, func(err validator.FieldError) []string </span><span class="cov8" title="1">{ return []string{} }</span>)
+        <span class="cov8" title="1">if len(validationErrors) &gt; 0 </span><span class="cov8" title="1">{
+                l.Debug0().LogDebug("standard validation errors", validationErrors)
+                wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
+                return
+        }</span>
+
+        <span class="cov8" title="1">if req.From != nil </span><span class="cov0" title="0">{
+                if req.From.Before(time.Now()) </span><span class="cov0" title="0">{
+                        l.Debug0().LogDebug("givenfrom time is too early:", req.From)
+                        wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_TooEarly))
+                        return
+                }</span> else<span class="cov0" title="0"> {
+                        isActive = true
+                }</span>
+                <span class="cov0" title="0">fromt = *req.From</span>
+        }
+
+        <span class="cov8" title="1">query, ok := s.Dependencies["queries"].(*sqlc.Queries)
+        if !ok </span><span class="cov0" title="0">{
+                l.Info().Log("error while getting query instance from service dependencies")
+                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
+                return
+        }</span>
+
+        <span class="cov8" title="1">newSliceID, err := query.RealmSliceDeactivate(c, sqlc.RealmSliceDeactivateParams{
+                ID:           req.Id,
+                Isactive:     isActive,
+                Deactivateat: pgtype.Timestamp{Time: fromt, Valid: req.From != nil},
+        })
+        if err != nil </span><span class="cov0" title="0">{
+                l.Info().Error(err).Log("error while changing active status with func RealmSliceDeactivate")
+                errmsg := db.HandleDatabaseError(err)
+                wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+                return
+        }</span>
+        <span class="cov8" title="1">l.Debug0().LogActivity("exiting from RealmSliceDeactivate()", newSliceID)
+        wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(nil))</span>
+}
+</pre>
+		
+		<pre class="file" id="file15" style="display: none">package realmslice
+
+import (
+        "github.com/gin-gonic/gin"
+        "github.com/remiges-tech/alya/service"
+        "github.com/remiges-tech/alya/wscutils"
+        "github.com/remiges-tech/crux/db"
+        "github.com/remiges-tech/crux/db/sqlc-gen"
+        "github.com/remiges-tech/crux/server"
+        "github.com/remiges-tech/crux/types"
+)
+
+// RealmSliceList will be responsible for processing the /realmslicelist request that comes through as a GET
+// The call will return a list of apps in the realm.
+func RealmSliceList(c *gin.Context, s *service.Service) <span class="cov8" title="1">{
+        lh := s.LogHarbour
+        lh.Log("RealmSliceList request received")
+
+        // userID, err := server.ExtractUserNameFromJwt(c)
+        // if err != nil {
+        //         lh.Info().Log("unable to extract userID from token")
+        //         wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+        //         return
+        // }
+
+        // realmName, err := server.ExtractRealmFromJwt(c)
+        // if err != nil {
+        //         lh.Info().Log("unable to extract realm from token")
+        //         wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+        //         return
+        // }
+
+        var (
+                userId     = "1234"
+                realm_name = "BSE"
+                reportCap  = []string{"report"}
+        )
+        isCapable, _ := server.Authz_check(types.OpReq{
+                User: userId,
+                // The calling user must have `report` capability.
+                CapNeeded: reportCap,
+        }, false)
+
+        if !isCapable </span><span class="cov0" title="0">{
+                lh.Info().LogActivity("unauthorized user:", userId)
+                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
+                return
+        }</span>
+
+        <span class="cov8" title="1">query, ok := s.Dependencies["queries"].(*sqlc.Queries)
+        if !ok </span><span class="cov0" title="0">{
+                lh.Debug0().Log("error while getting query instance from service dependencies")
+                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
+                return
+        }</span>
+
+        <span class="cov8" title="1">dbResponse, err := query.GetRealmSliceListByRealm(c, realm_name)
+        if err != nil </span><span class="cov0" title="0">{
+                lh.Info().Error(err).Log("error while getting realm slice list from db")
+                errmsg := db.HandleDatabaseError(err)
+                wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+                return
+        }</span>
+
+        <span class="cov8" title="1">lh.Debug0().Log("finished execution of RealmSliceList()")
+        wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(map[string][]sqlc.GetRealmSliceListByRealmRow{"slices": dbResponse}))</span>
+}
+</pre>
+		
+		<pre class="file" id="file16" style="display: none">package realmslice
 
 import (
         "strings"
@@ -2749,9 +3139,23 @@ func RealmSliceNew(c *gin.Context, s *service.Service) <span class="cov8" title=
         l := s.LogHarbour
         l.Debug0().Log("Starting execution of RealmSliceNew()")
 
+        // userID, err := server.ExtractUserNameFromJwt(c)
+        // if err != nil {
+        //         l.Info().Log("unable to extract userID from token")
+        //         wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+        //         return
+        // }
+
+        // realmName, err := server.ExtractRealmFromJwt(c)
+        // if err != nil {
+        //         l.Info().Log("unable to extract realm from token")
+        //         wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+        //         return
+        // }
+
         isCapable, _ := server.Authz_check(types.OpReq{
                 User:      userID,
-                CapNeeded: capForNew,
+                CapNeeded: rootCaps,
         }, false)
 
         if !isCapable </span><span class="cov0" title="0">{
@@ -2792,8 +3196,9 @@ func RealmSliceNew(c *gin.Context, s *service.Service) <span class="cov8" title=
 
         <span class="cov8" title="1">if req.CopyOf == 0 &amp;&amp; req.App == nil </span><span class="cov0" title="0">{
                 newSliceID, err := query.InsertNewRecordInRealmSlice(c, sqlc.InsertNewRecordInRealmSliceParams{
-                        Realm: realmName,
-                        Descr: req.Descr,
+                        Realm:     realmName,
+                        Descr:     req.Descr,
+                        Createdby: userID,
                 })
                 if err != nil </span><span class="cov0" title="0">{
                         l.Info().Error(err).Log("Error while creating new realmslice")
@@ -2802,7 +3207,7 @@ func RealmSliceNew(c *gin.Context, s *service.Service) <span class="cov8" title=
                         return
                 }</span>
                 <span class="cov0" title="0">wscutils.SendSuccessResponse(c, &amp;wscutils.Response{Status: wscutils.SuccessStatus, Data: newSliceID, Messages: nil})
-                l.Debug0().Log("Starting execution of RealmSliceNew()")
+                l.Debug0().Log("Finished execution of RealmSliceNew()")
                 return</span>
         }
 
@@ -2817,13 +3222,14 @@ func RealmSliceNew(c *gin.Context, s *service.Service) <span class="cov8" title=
         qtx := query.WithTx(tx)
 
         newSliceID, err := qtx.CloneRecordInRealmSliceBySliceID(c, sqlc.CloneRecordInRealmSliceBySliceIDParams{
-                ID:    int32(req.CopyOf),
-                Realm: realmName,
-                Descr: pgtype.Text{String: req.Descr, Valid: true},
+                ID:        int32(req.CopyOf),
+                Realm:     realmName,
+                Createdby: userID,
+                Descr:     pgtype.Text{String: req.Descr, Valid: true},
         })
         if err != nil </span><span class="cov8" title="1">{
                 tx.Rollback(c)
-                l.Info().Error(err).Log("Error while creating copy of realmslice")
+                l.Info().Error(err).Log("Error while creating clone of realmslice")
                 if err.Error() == "no rows in result set" </span><span class="cov8" title="1">{
                         feild := "CopyOf"
                         wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(1006, server.ErrCode_NotExist, &amp;feild)}))
@@ -2841,15 +3247,13 @@ func RealmSliceNew(c *gin.Context, s *service.Service) <span class="cov8" title=
         })
         if err != nil </span><span class="cov0" title="0">{
                 tx.Rollback(c)
-                l.Info().Error(err).Log("Error while creating new record in config")
+                l.Info().Error(err).Log("Error while creating clone of config")
                 errmsg := db.HandleDatabaseError(err)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
                 return
         }</span>
         <span class="cov8" title="1">if strings.Contains(tag.String(), "0") </span><span class="cov8" title="1">{
-                l.Log("no record found in config to create new record")
-                // wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ErrCode_NotFound))
-                // return
+                l.Log("no record found in config to clone in config")
         }</span>
 
         <span class="cov8" title="1">tag, err = qtx.CloneRecordInSchemaBySliceID(c, sqlc.CloneRecordInSchemaBySliceIDParams{
@@ -2860,15 +3264,14 @@ func RealmSliceNew(c *gin.Context, s *service.Service) <span class="cov8" title=
         })
         if err != nil </span><span class="cov0" title="0">{
                 tx.Rollback(c)
-                l.Info().Error(err).Log("Error while creating copy of schema")
+                l.Info().Error(err).Log("Error while creating clone of schema")
                 errmsg := db.HandleDatabaseError(err)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
                 return
         }</span>
         <span class="cov8" title="1">if strings.Contains(tag.String(), "0") </span><span class="cov8" title="1">{
-                l.Log("no record found to create new record in schema")
-                // wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ErrCode_NotFound))
-                // return
+                l.Log("no record found to clone in schema")
+
         }</span>
 
         <span class="cov8" title="1">tag, err = qtx.CloneRecordInRulesetBySliceID(c, sqlc.CloneRecordInRulesetBySliceIDParams{
@@ -2880,15 +3283,13 @@ func RealmSliceNew(c *gin.Context, s *service.Service) <span class="cov8" title=
 
         if err != nil </span><span class="cov0" title="0">{
                 tx.Rollback(c)
-                l.Info().Error(err).Log("Error while creating copy of ruleset")
+                l.Info().Error(err).Log("Error while creating clone of ruleset")
                 errmsg := db.HandleDatabaseError(err)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
                 return
         }</span>
         <span class="cov8" title="1">if strings.Contains(tag.String(), "0") </span><span class="cov8" title="1">{
-                l.Log("no record found to create new record in ")
-                // wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ErrCode_NotFound))
-                // return
+                l.Log("no record found to clone in ruleset")
         }</span>
 
         <span class="cov8" title="1">if err := tx.Commit(c); err != nil </span><span class="cov0" title="0">{
@@ -2902,7 +3303,7 @@ func RealmSliceNew(c *gin.Context, s *service.Service) <span class="cov8" title=
 }
 </pre>
 		
-		<pre class="file" id="file15" style="display: none">package realmSliceManagement
+		<pre class="file" id="file17" style="display: none">package realmslice
 
 import (
         "strings"
@@ -2920,9 +3321,23 @@ func RealmSlicePurge(c *gin.Context, s *service.Service) <span class="cov8" titl
         l := s.LogHarbour
         l.Debug0().Log("Starting execution of RealmSlicePurge()")
 
+        // userID, err := server.ExtractUserNameFromJwt(c)
+        // if err != nil {
+        //         l.Info().Log("unable to extract userID from token")
+        //         wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+        //         return
+        // }
+
+        // realmName, err := server.ExtractRealmFromJwt(c)
+        // if err != nil {
+        //         l.Info().Log("unable to extract realm from token")
+        //         wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+        //         return
+        // }
+
         isCapable, _ := server.Authz_check(types.OpReq{
                 User:      userID,
-                CapNeeded: capForNew,
+                CapNeeded: rootCaps,
         }, false)
 
         if !isCapable </span><span class="cov0" title="0">{
@@ -2938,7 +3353,7 @@ func RealmSlicePurge(c *gin.Context, s *service.Service) <span class="cov8" titl
                 return
         }</span>
 
-        <span class="cov8" title="1">tag, err := query.RealmSlicePurge(c)
+        <span class="cov8" title="1">tag, err := query.RealmSlicePurge(c, realmName)
         if err != nil </span><span class="cov0" title="0">{
                 l.Info().Error(err).Log("Error while purging realmSlice")
                 errmsg := db.HandleDatabaseError(err)
@@ -2956,7 +3371,7 @@ func RealmSlicePurge(c *gin.Context, s *service.Service) <span class="cov8" titl
 }
 </pre>
 		
-		<pre class="file" id="file16" style="display: none">package server
+		<pre class="file" id="file18" style="display: none">package server
 
 import (
         "encoding/json"
@@ -2967,10 +3382,12 @@ import (
         "slices"
         "strings"
 
+        "github.com/gin-gonic/gin"
         "github.com/go-playground/validator/v10"
+        "github.com/golang-jwt/jwt/v4"
+        "github.com/remiges-tech/alya/router"
         "github.com/remiges-tech/crux/types"
 )
-
 
 // CommonValidation is a generic function which setup standard validation utilizing
 // validator package and Maps the errorVals based on the map parameter and
@@ -3032,9 +3449,46 @@ func Authz_check(op types.OpReq, trace bool) (bool, []string) <span class="cov8"
         caplist := op.CapNeeded
         return true, caplist
 }</span>
+
+// ExtractClaimFromJwt: this will extract the provided singleClaimName as key from the jwt token and return its value as a string
+func ExtractClaimFromJwt(c *gin.Context, singleClaimName string) (string, error) <span class="cov0" title="0">{
+        tokenString, err := router.ExtractToken(c.GetHeader("Authorization"))
+        if err != nil </span><span class="cov0" title="0">{
+                return "", fmt.Errorf("invalid token payload")
+        }</span>
+        <span class="cov0" title="0">var name string
+        token, _, err := new(jwt.Parser).ParseUnverified(tokenString, jwt.MapClaims{})
+        if err != nil </span><span class="cov0" title="0">{
+                return "", fmt.Errorf("invalid token payload")
+        }</span>
+
+        <span class="cov0" title="0">if claims, ok := token.Claims.(jwt.MapClaims); ok </span><span class="cov0" title="0">{
+                name = fmt.Sprint(claims[singleClaimName])
+        }</span>
+
+        <span class="cov0" title="0">if name == "" </span><span class="cov0" title="0">{
+                return "", fmt.Errorf("invalid token payload")
+        }</span>
+
+        <span class="cov0" title="0">return name, nil</span>
+}
+
+func ExtractRealmFromJwt(c *gin.Context) (string, error) <span class="cov0" title="0">{
+        str, err := ExtractClaimFromJwt(c, "iss")
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+        <span class="cov0" title="0">parts := strings.Split(str, "/realms/")
+        realm := parts[1]
+        return realm, nil</span>
+}
+
+func ExtractUserNameFromJwt(c *gin.Context) (string, error) <span class="cov0" title="0">{
+        return ExtractClaimFromJwt(c, "preferred_username")
+}</span>
 </pre>
 		
-		<pre class="file" id="file17" style="display: none">package testutils
+		<pre class="file" id="file19" style="display: none">package testutils
 
 import (
         "encoding/json"
@@ -3078,7 +3532,7 @@ type TestCasesStruct struct {
 }
 </pre>
 		
-		<pre class="file" id="file18" style="display: none">package types
+		<pre class="file" id="file20" style="display: none">package types
 
 const (
         DevEnv           Environment = "dev_env"
