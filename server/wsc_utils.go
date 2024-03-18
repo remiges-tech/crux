@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -13,6 +14,8 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/remiges-tech/alya/router"
+	"github.com/remiges-tech/alya/wscutils"
+	crux "github.com/remiges-tech/crux/matching-engine"
 	"github.com/remiges-tech/crux/types"
 )
 
@@ -112,4 +115,40 @@ func ExtractRealmFromJwt(c *gin.Context) (string, error) {
 
 func ExtractUserNameFromJwt(c *gin.Context) (string, error) {
 	return ExtractClaimFromJwt(c, "preferred_username")
+}
+
+func HandleCruxError(errs []error) []wscutils.ErrorMessage {
+	var validationErrors []wscutils.ErrorMessage
+	var cruxErr crux.CruxError
+	for _, err := range errs {
+		fmt.Println("validationErrors", err)
+
+		if errors.As(err, &cruxErr) {
+			switch cruxErr.Keyword {
+			case "Empty":
+				vErr := wscutils.BuildErrorMessage(MsgId_Empty, ErrCode_Empty, &cruxErr.FieldName, cruxErr.Vals)
+				validationErrors = append(validationErrors, vErr)
+			case "Invalid":
+				vErr := wscutils.BuildErrorMessage(MsgId_Invalid, ErrCode_Invalid, &cruxErr.FieldName, cruxErr.Vals)
+				validationErrors = append(validationErrors, vErr)
+			case "NotAllowed":
+				vErr := wscutils.BuildErrorMessage(MsgId_Invalid, ErrCode_Invalid, &cruxErr.FieldName, cruxErr.Vals)
+				validationErrors = append(validationErrors, vErr)
+			case "Required":
+				vErr := wscutils.BuildErrorMessage(MsgId_Invalid_Request, ErrCode_RequiredOneOf, &cruxErr.FieldName, cruxErr.Vals)
+				validationErrors = append(validationErrors, vErr)
+			case "NotExist":
+				vErr := wscutils.BuildErrorMessage(MsgId_Invalid, ErrCode_Does_Not_Contain_Both_Properties_Nextstep_And_Done, &cruxErr.FieldName, cruxErr.Vals)
+				validationErrors = append(validationErrors, vErr)
+			case "NotMatch":
+				vErr := wscutils.BuildErrorMessage(MsgId_Invalid, ErrCode_Does_Not_Contain_Both_Properties_Nextstep_And_Done, &cruxErr.FieldName, cruxErr.Vals)
+				validationErrors = append(validationErrors, vErr)
+			default:
+				vErr := wscutils.BuildErrorMessage(MsgId_Invalid_Request, ErrCode_InvalidRequest, &cruxErr.FieldName, cruxErr.Vals)
+				validationErrors = append(validationErrors, vErr)
+			}
+		}
+
+	}
+	return validationErrors
 }

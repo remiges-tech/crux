@@ -5,10 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"strconv"
 	"time"
 
-	sqlc "github.com/remiges-tech/crux/matching-engine/db/sqlc-gen"
+	"github.com/remiges-tech/crux/db/sqlc-gen"
 )
 
 func loadInternalSchema(dbResponseSchema []sqlc.Schema) error {
@@ -18,7 +17,7 @@ func loadInternalSchema(dbResponseSchema []sqlc.Schema) error {
 	}
 
 	for _, row := range dbResponseSchema {
-		realmKey := realm_t(strconv.Itoa(int(row.Realm)))
+		realmKey := realm_t(row.Realm)
 		perRealm, exists := schemaCache[realmKey]
 		if !exists {
 			perRealm = make(perRealm_t)
@@ -80,7 +79,7 @@ func loadInternalRuleSet(dbResponseRuleSet []sqlc.Ruleset) error {
 	}
 	for _, row := range dbResponseRuleSet {
 
-		realmKey := realm_t(strconv.Itoa(int(row.Realm)))
+		realmKey := realm_t(row.Realm)
 		perRealm, exists := rulesetCache[realmKey]
 		if !exists {
 			perRealm = make(perRealm_t)

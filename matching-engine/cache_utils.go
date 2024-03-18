@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	sqlc "github.com/remiges-tech/crux/matching-engine/db/sqlc-gen"
+	"github.com/remiges-tech/crux/db/sqlc-gen"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )

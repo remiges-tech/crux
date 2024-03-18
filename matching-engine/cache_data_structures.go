@@ -35,14 +35,15 @@ type Schema_t struct {
 	NChecked      int32             `json:"n_checked"`
 }
 type PatternSchema_t struct {
-	Attr     string              `json:"attr"`
-	ValType  string              `json:"valtype"`
-	EnumVals map[string]struct{} `json:"vals,omitempty"`
-
-	ValMin float64 `json:"valmin,omitempty"`
-	ValMax float64 `json:"valmax,omitempty"`
-	LenMin int     `json:"lenmin,omitempty"`
-	LenMax int     `json:"lenmax,omitempty"`
+	Attr      string              `json:"attr" validate:"required"`
+	ShortDesc string              `json:"shortdesc" validate:"required"`
+	LongDesc  string              `json:"longdesc" validate:"required"`
+	ValType   string              `json:"valtype" validate:"required"`
+	EnumVals  map[string]struct{} `json:"vals,omitempty"`
+	ValMin    float64             `json:"valmin,omitempty"`
+	ValMax    float64             `json:"valmax,omitempty"`
+	LenMin    int                 `json:"lenmin,omitempty"`
+	LenMax    int                 `json:"lenmax,omitempty"`
 }
 
 type valType_t int
@@ -57,8 +58,8 @@ const (
 )
 
 type ActionSchema_t struct {
-	Tasks      []string
-	Properties []string
+	Tasks      []string `json:"tasks" validate:"required"`
+	Properties []string `json:"properties" validate:"required"`
 }
 
 type ruleOp_t int

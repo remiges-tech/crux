@@ -30,49 +30,73 @@ var validOps = map[string]bool{
 	opEQ: true, opNE: true, opLT: true, opLE: true, opGT: true, opGE: true,
 }
 
+type CruxError struct {
+	Keyword   string `json:"keyword"`
+	FieldName string `json:"fieldName"`
+	Messages  string `json:"messages"`
+	Vals      string `json:"vals,omitempty"`
+}
+
+// Error returns the error message string
+func (e CruxError) Error() string {
+	return fmt.Sprintf("Error %s: %s: %s: %s", e.Keyword, e.FieldName, e.Vals, e.Messages)
+}
+
 // Parameters
 // rs RuleSchema: the RuleSchema to be verified
 // isWF bool: true if the RuleSchema applies to a workflow, otherwise false
-func VerifyRuleSchema(rschema []*Schema_t, isWF bool) (bool, error) {
+func VerifyRuleSchema(rschema []*Schema_t, isWF bool) []error {
+	var errs []error
 	for _, rs := range rschema {
 
 		if len(rs.Class) == 0 {
-			return false, fmt.Errorf("schema class is an empty string")
+			err := CruxError{Keyword: "Empty", FieldName: "class", Messages: "schema class is an empty string"} //fmt.Errorf("schema class is an empty string")
+			errs = append(errs, err)
 		}
-		if _, err := VerifyPatternSchema(*rs, isWF); err != nil {
-			return false, err
+		if err := VerifyPatternSchema(*rs, isWF); err != nil {
+			errs = append(errs, err...)
 		}
-		if _, err := VerifyActionSchema(*rs, isWF); err != nil {
-			return false, err
+		if err := VerifyActionSchema(*rs, isWF); err != nil {
+			errs = append(errs, err...)
 		}
 	}
-	return true, nil
+	return errs
 }
 
-func VerifyPatternSchema(rs Schema_t, isWF bool) (bool, error) {
+func VerifyPatternSchema(rs Schema_t, isWF bool) []error {
+	var errs []error
 	if len(rs.PatternSchema) == 0 {
-		return false, fmt.Errorf("pattern-schema for %v is empty", rs.Class)
+		err := CruxError{Keyword: "Empty", FieldName: "patternSchema", Messages: "pattern-schema is empty"} //fmt.Errorf("pattern-schema for %v is empty", rs.Class)
+		errs = append(errs, err)
 	}
 	re := regexp.MustCompile(cruxIDRegExp)
 	// Bools needed for workflows only
 	stepFound, stepFailedFound := false, false
 
-	for _, attrSchema := range rs.PatternSchema {
-
+	for i, attrSchema := range rs.PatternSchema {
+		i++
 		if _, exists := validTypes[attrSchema.ValType]; exists {
 
 		} else {
-			return false, fmt.Errorf("%v is not a valid value-type", attrSchema.ValType)
+			fieldName := fmt.Sprintf("patternSchema[%d].ValType", i)
+			err := CruxError{Keyword: "Invalid", FieldName: fieldName, Vals: attrSchema.ValType, Messages: "not a valid value-type"} //fmt.Errorf("%v is not a valid value-type", attrSchema.ValType)
+			errs = append(errs, err)
 		}
 
 		if !re.MatchString(attrSchema.Attr) {
-			return false, fmt.Errorf("attribute name %v is not a valid CruxID", attrSchema.Attr)
+			fieldName := fmt.Sprintf("patternSchema[%d].attr", i)
+			err := CruxError{Keyword: "Invalid", FieldName: fieldName, Vals: attrSchema.Attr, Messages: "attribute name is not a valid CruxID"} //fmt.Errorf("attribute name %v is not a valid CruxID", attrSchema.Attr)
+			errs = append(errs, err)
 		} else if attrSchema.ValType == typeEnum && len(attrSchema.EnumVals) == 0 {
-			return false, fmt.Errorf("no valid values for enum %v", attrSchema.Attr)
+			fieldName := fmt.Sprintf("patternSchema[%d].Vals", i)
+			err := CruxError{Keyword: "Empty", FieldName: fieldName, Messages: "no valid values for enum"} //fmt.Errorf("no valid values for enum %v", attrSchema.Attr)
+			errs = append(errs, err)
 		}
 		for val := range attrSchema.EnumVals {
 			if !re.MatchString(val) && val != start {
-				return false, fmt.Errorf("enum value %v is not a valid CruxID", val)
+				fieldName := fmt.Sprintf("patternSchema[%d].Vals", i)
+				err := CruxError{Keyword: "Invalid", FieldName: fieldName, Vals: val, Messages: "enum value is not a valid CruxID"} //fmt.Errorf("enum value %v is not a valid CruxID", val)
+				errs = append(errs, err)
 			}
 		}
 
@@ -82,7 +106,9 @@ func VerifyPatternSchema(rs Schema_t, isWF bool) (bool, error) {
 		}
 
 		if isWF && attrSchema.Attr == step && attrSchema.EnumVals[start] != struct{}{} {
-			return false, fmt.Errorf("workflow schema for %v doesn't allow step=START", rs.Class)
+			fieldName := fmt.Sprintf("patternSchema[%d].Vals", i)
+			err := CruxError{Keyword: "NotAllowed", FieldName: fieldName, Vals: "Start", Messages: "workflow schema doesn't allow step=START"} //fmt.Errorf("workflow schema for %v doesn't allow step=START", rs.Class)
+			errs = append(errs, err)
 		}
 		if attrSchema.Attr == stepFailed && attrSchema.ValType == typeBool {
 			stepFailedFound = true
@@ -91,35 +117,44 @@ func VerifyPatternSchema(rs Schema_t, isWF bool) (bool, error) {
 
 	// Workflows only
 	if isWF && (!stepFound || !stepFailedFound) {
-		return false, fmt.Errorf("necessary workflow attributes absent in schema for class %v", rs.Class)
+		err := CruxError{Keyword: "Required", FieldName: "attr", Vals: "step/stepfailed", Messages: "necessary attributes absent in schema"} //fmt.Errorf("necessary workflow attributes absent in schema for class %v", rs.Class)
+		errs = append(errs, err)
 	}
 
-	return true, nil
+	return errs
 
 }
 
-func VerifyActionSchema(rs Schema_t, isWF bool) (bool, error) {
+func VerifyActionSchema(rs Schema_t, isWF bool) []error {
+	var errs []error
 	re := regexp.MustCompile(cruxIDRegExp)
 	if len(rs.ActionSchema.Tasks) == 0 && len(rs.ActionSchema.Properties) == 0 {
-		return false, fmt.Errorf("both tasks and properties are empty in schema for class %v", rs.Class)
+		err := CruxError{Keyword: "Empty", FieldName: "Tasks/Properties", Messages: "both tasks and properties are empty in schema"} //fmt.Errorf("both tasks and properties are empty in schema for class %v", rs.Class)
+		errs = append(errs, err)
 	}
-	for _, task := range rs.ActionSchema.Tasks {
+	for i, task := range rs.ActionSchema.Tasks {
+		i++
 		if !re.MatchString(task) {
-			return false, fmt.Errorf("task %v is not a valid CruxID", task)
+			fieldName := fmt.Sprintf("actionSchema.Tasks[%d]", i)
+			err := CruxError{Keyword: "Invalid", FieldName: fieldName, Vals: task, Messages: "task is not a valid CruxID"} // fmt.Errorf("task %v is not a valid CruxID", task)
+			errs = append(errs, err)
 		}
 	}
 
 	// Workflows only
 
 	if isWF && len(rs.ActionSchema.Properties) != 2 {
-		return false, fmt.Errorf("action-schema for %v does not contain exactly two properties", rs.Class)
+		err := CruxError{Keyword: "NotAllowed", FieldName: "properties", Messages: "contain exactly two properties"} // //fmt.Errorf("action-schema for %v does not contain exactly two properties", rs.Class)
+		errs = append(errs, err)
 	}
 	nextStepFound, doneFound := false, false
 
-	for _, propName := range rs.ActionSchema.Properties {
-
+	for i, propName := range rs.ActionSchema.Properties {
+		i++
 		if !re.MatchString(propName) {
-			return false, fmt.Errorf("property name %v is not a valid CruxID", propName)
+			fieldName := fmt.Sprintf("actionSchema.Properties[%d]", i)
+			err := CruxError{Keyword: "Invalid", FieldName: fieldName, Vals: propName, Messages: "property name is not a valid CruxID"} //fmt.Errorf("property name %v is not a valid CruxID", propName)
+			errs = append(errs, err)
 		} else if propName == nextStep {
 			nextStepFound = true
 		} else if propName == done {
@@ -129,13 +164,15 @@ func VerifyActionSchema(rs Schema_t, isWF bool) (bool, error) {
 
 	// Workflows only
 	if isWF && (!nextStepFound || !doneFound) {
-		return false, fmt.Errorf("action-schema for %v does not contain both the properties 'nextstep' and 'done'", rs.Class)
+		err := CruxError{Keyword: "NotAllowed", FieldName: "properties", Messages: "does not contain both the properties 'nextstep' and 'done'"} // fmt.Errorf("action-schema for %v does not contain both the properties 'nextstep' and 'done'", rs.Class)
+		errs = append(errs, err)
 	}
 
 	if isWF && !reflect.DeepEqual(getTasksMapForWF(rs.ActionSchema.Tasks), getStepAttrVals(rs)) {
-		return false, fmt.Errorf("action-schema tasks for %v are not the same as valid values for 'step' in pattern-schema", rs.Class)
+		err := CruxError{Keyword: "NotAllowed", FieldName: "properties", Messages: "action-schema tasks are not the same as valid values for 'step' in pattern-schema"} // fmt.Errorf("action-schema tasks for %v are not the same as valid values for 'step' in pattern-schema", rs.Class)
+		errs = append(errs, err)
 	}
-	return true, nil
+	return errs
 }
 
 func getTasksMapForWF(tasks []string) map[string]struct{} {
@@ -164,25 +201,25 @@ func getStepAttrVals(rs Schema_t) map[string]struct{} {
 // Parameters
 // rs RuleSet: the RuleSet to be verified
 // isWF bool: true if the RuleSet is a workflow, otherwise false
-func verifyRuleSet(entiry Entity, rs *Ruleset_t, isWF bool) (bool, error) {
+func verifyRuleSet(entiry Entity, rs *Ruleset_t, isWF bool) []error {
+	var errs []error
 	schema, err := getSchema(entiry, entiry.class)
 
 	if err != nil {
-		return false, err
+		errs = append(errs, err)
 	}
-	if _, err = verifyRulePatterns(rs, schema, isWF); err != nil {
-
-		return false, err
+	if err := verifyRulePatterns(rs, schema, isWF); err != nil {
+		errs = append(errs, err...)
 	}
-	if _, err = verifyRuleActions(rs, schema, isWF); err != nil {
-
-		return false, err
+	if err := verifyRuleActions(rs, schema, isWF); err != nil {
+		errs = append(errs, err...)
 	}
 
-	return true, nil
+	return errs
 }
 
-func verifyRulePatterns(ruleset *Ruleset_t, schema *Schema_t, isWF bool) (bool, error) {
+func verifyRulePatterns(ruleset *Ruleset_t, schema *Schema_t, isWF bool) []error {
+	var errs []error
 	//for _, ruleset := range ruleSets {
 	for _, rule := range ruleset.Rules {
 
@@ -195,18 +232,21 @@ func verifyRulePatterns(ruleset *Ruleset_t, schema *Schema_t, isWF bool) (bool, 
 				// by checking for its presence in the action-schema
 
 				if !isStringInArray(term.Attr, schema.ActionSchema.Tasks) {
-					return false, fmt.Errorf("attribute does not exist in schema: %v", term.Attr)
+					err := CruxError{Keyword: "NotExist", FieldName: "attr", Vals: term.Attr, Messages: "attribute does not exist in schema"} // fmt.Errorf("attribute does not exist in schema: %v", term.Attr)
+					errs = append(errs, err)
 				}
 				// If it is a tag, the value type is set to bool
 				valType = typeStr
 			}
 			if !verifyType(term.Val, valType) {
 
-				return false, fmt.Errorf("value of this attribute does not match schema type: %v", term.Attr)
+				err := CruxError{Keyword: "NotMatch", FieldName: "val", Messages: "value of this attribute does not match schema"} // fmt.Errorf("value of this attribute does not match schema type: %v", term.Attr)
+				errs = append(errs, err)
 			}
 			if !validOps[term.Op] {
 
-				return false, fmt.Errorf("invalid operation in rule: %v", term.Op)
+				err := CruxError{Keyword: "Invalid", FieldName: "op", Vals: term.Op, Messages: "invalid operation in rule"} // fmt.Errorf("invalid operation in rule: %v", term.Op)
+				errs = append(errs, err)
 			}
 		}
 		// Workflows only
@@ -221,12 +261,12 @@ func verifyRulePatterns(ruleset *Ruleset_t, schema *Schema_t, isWF bool) (bool, 
 			}
 			if !stepFound {
 
-				return false, fmt.Errorf("no 'step' attribute found in a rule in workflow %v", ruleset.SetName)
+				err := CruxError{Keyword: "Required", FieldName: "attr", Messages: "required one 'step' attribute in a rule in workflow"} // fmt.Errorf("no 'step' attribute found in a rule in workflow %v", ruleset.SetName)
+				errs = append(errs, err)
 			}
 		}
 	}
-	//}
-	return true, nil
+	return errs
 }
 
 func getSchema(entity Entity, class string) (*Schema_t, error) {
@@ -290,7 +330,8 @@ func verifyType(val any, valType string) bool {
 	return ok
 }
 
-func verifyRuleActions(ruleset *Ruleset_t, schema *Schema_t, isWF bool) (bool, error) {
+func verifyRuleActions(ruleset *Ruleset_t, schema *Schema_t, isWF bool) []error {
+	var errs []error
 	//for _, ruleset := range ruleSets {
 	for _, rule := range ruleset.Rules {
 		for _, t := range rule.RuleActions.Task {
@@ -301,7 +342,8 @@ func verifyRuleActions(ruleset *Ruleset_t, schema *Schema_t, isWF bool) (bool, e
 			found := false
 
 			if doRet && doExit {
-				return false, fmt.Errorf("there is a rule with both the RETURN and EXIT instructions in ruleset %v", ruleset.SetName)
+				err := CruxError{Keyword: "Required", FieldName: "rule", Messages: "required one of RETURN or EXIT"} // fmt.Errorf("there is a rule with both the RETURN and EXIT instructions in ruleset %v", ruleset.SetName)
+				errs = append(errs, err)
 			}
 			if isStringInArray(t, schema.ActionSchema.Tasks) {
 				found = true
@@ -309,7 +351,8 @@ func verifyRuleActions(ruleset *Ruleset_t, schema *Schema_t, isWF bool) (bool, e
 			}
 
 			if !found {
-				return false, fmt.Errorf("task %v not found in any action-schema", t)
+				err := CruxError{Keyword: "NotExist", FieldName: "task", Messages: "task not found in any action-schema"} // fmt.Errorf("task %v not found in any action-schema", t)
+				errs = append(errs, err)
 			}
 		}
 
@@ -322,7 +365,9 @@ func verifyRuleActions(ruleset *Ruleset_t, schema *Schema_t, isWF bool) (bool, e
 			}
 
 			if !found {
-				return false, fmt.Errorf("property name %v not found in any action-schema", propName)
+				err := CruxError{Keyword: "	", FieldName: "properties", Messages: "property name not found in any action-schema"} // fmt.Errorf("property name %v not found in any action-schema", propName)
+				errs = append(errs, err)
+
 			}
 		}
 
@@ -331,20 +376,22 @@ func verifyRuleActions(ruleset *Ruleset_t, schema *Schema_t, isWF bool) (bool, e
 
 			nsFound, doneFound := areNextStepAndDoneInProps(rule.RuleActions.Properties)
 			if !nsFound && !doneFound {
-				return false, fmt.Errorf("rule found with neither 'nextstep' nor 'done' in ruleset %v", ruleset.SetName)
+				err := CruxError{Keyword: "NotAllowed", FieldName: "rule", Messages: "rule found with neither 'nextstep' nor 'done' in ruleset"} // fmt.Errorf("rule found with neither 'nextstep' nor 'done' in ruleset %v", ruleset.SetName)
+				errs = append(errs, err)
 			}
 			if !doneFound && len(rule.RuleActions.Task) == 0 {
-				return false, fmt.Errorf("no tasks and no 'done=true' in a rule in ruleset %v", ruleset.SetName)
+				err := CruxError{Keyword: "NotExist", FieldName: "rule", Messages: "no tasks and no 'done=true' in a rule"} // fmt.Errorf("no tasks and no 'done=true' in a rule in ruleset %v", ruleset.SetName)
+				errs = append(errs, err)
 			}
 			currNS := getNextStep(rule.RuleActions.Properties)
 			if len(currNS) > 0 && !isStringInArray(currNS, rule.RuleActions.Task) {
-				return false, fmt.Errorf("`nextstep` value not found in `tasks` in a rule in ruleset %v", ruleset.SetName)
+				err := CruxError{Keyword: "NotExist", FieldName: "tasks", Messages: "`nextstep` value not found in `tasks` in a rule "} // fmt.Errorf("`nextstep` value not found in `tasks` in a rule in ruleset %v", ruleset.SetName)
+				errs = append(errs, err)
 			}
 		}
 	}
-	//}
 
-	return true, nil
+	return errs
 }
 
 func areNextStepAndDoneInProps(props map[string]string) (bool, bool) {

@@ -10,7 +10,6 @@ import (
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	crux "github.com/remiges-tech/crux/matching-engine"
 	"github.com/remiges-tech/crux/server"
-	"github.com/remiges-tech/crux/types"
 	"github.com/remiges-tech/logharbour/logharbour"
 )
 
@@ -18,37 +17,37 @@ type SchemaNewReq struct {
 	Slice         int32                  `json:"slice" validate:"required,gt=0,lt=15"`
 	App           string                 `json:"App" validate:"required,alpha,lt=15"`
 	Class         string                 `json:"class" validate:"required,lowercase,lt=15"`
-	PatternSchema []crux.PatternSchema_t `json:"patternSchema"`
+	PatternSchema []crux.PatternSchema_t `json:"patternSchema" validate:"required,dive"`
 	ActionSchema  crux.ActionSchema_t    `json:"actionSchema"`
 }
 
 func SchemaNew(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
 	l.Debug0().Log("Starting execution of SchemaNew()")
-	userID, err := server.ExtractUserNameFromJwt(c)
-	if err != nil {
-		l.Info().Log("unable to extract userID from token")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
-		return
-	}
+	// userID, err := server.ExtractUserNameFromJwt(c)
+	// if err != nil {
+	// 	l.Info().Log("unable to extract userID from token")
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+	// 	return
+	// }
 
-	realmName, err := server.ExtractRealmFromJwt(c)
-	if err != nil {
-		l.Info().Log("unable to extract realm from token")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
-		return
-	}
+	// realmName, err := server.ExtractRealmFromJwt(c)
+	// if err != nil {
+	// 	l.Info().Log("unable to extract realm from token")
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+	// 	return
+	// }
 
-	isCapable, _ := server.Authz_check(types.OpReq{
-		User:      userID,
-		CapNeeded: capForNew,
-	}, false)
+	// isCapable, _ := server.Authz_check(types.OpReq{
+	// 	User:      userID,
+	// 	CapNeeded: reqCaps,
+	// }, false)
 
-	if !isCapable {
-		l.Info().LogActivity("Unauthorized user:", userID)
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
-		return
-	}
+	// if !isCapable {
+	// 	l.Info().LogActivity("Unauthorized user:", userID)
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
+	// 	return
+	// }
 
 	var req SchemaNewReq
 
@@ -153,12 +152,17 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 func customValidationErrors(sh crux.Schema_t) []wscutils.ErrorMessage {
 	var validationErrors []wscutils.ErrorMessage
 	// patternSchemaError := verifyPatternSchema(sh.PatternSchema)
-	crux.VerifyPatternSchema(sh, true)
-	// validationErrors = append(validationErrors, patternSchemaError...)
+	err := crux.VerifyPatternSchema(sh, true)
+	if err != nil {
+		patternSchemaError := server.HandleCruxError(err)
+		validationErrors = append(validationErrors, patternSchemaError...)
+	}
 
-	// actionSchemaError := verifyActionSchema(sh)
 	crux.VerifyActionSchema(sh, true)
-	// validationErrors = append(validationErrors, actionSchemaError...)
+	if err != nil {
+		actionSchemaError := server.HandleCruxError(err)
+		validationErrors = append(validationErrors, actionSchemaError...)
+	}
 	return validationErrors
 }
 
