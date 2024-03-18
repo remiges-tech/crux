@@ -52,4 +52,5 @@ const (
 	ERRCode_Missing                                               = "missing"
 	ERRCode_No_record_For_purge                                   = "no_record_for_purge"
 	ERRCode_Token_Data_Missing                                    = "token_data_missing"
+	ERRCode_User_Id_Not_Exist                                     = "user_id_not_exist"
 )

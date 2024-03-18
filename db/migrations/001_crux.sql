@@ -125,6 +125,43 @@ CREATE TABLE stepworkflow (
     workflow varchar(255) NOT NULL
 );
 
+-- Trigger to delete rows from deactivated table when there is an entry in capgrant.from field
+CREATE OR REPLACE FUNCTION delete_from_deactivated()
+RETURNS TRIGGER AS $$
+BEGIN
+    DELETE FROM deactivated
+    WHERE realm = NEW.realm AND "user" = NEW."user";
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER capgrant_from_trigger
+AFTER INSERT OR UPDATE OF "from" ON capgrant
+FOR EACH ROW
+WHEN (NEW."from" IS NOT NULL)
+EXECUTE FUNCTION delete_from_deactivated();
+
+-- Trigger to insert rows into deactivated table when there is an entry or update in capgrant.to field
+CREATE OR REPLACE FUNCTION insert_into_deactivated()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO deactivated (realm, "user", deactby, deactat)
+    SELECT NEW.realm, NEW."user", NEW.setby, NEW.setat
+    WHERE NOT EXISTS (
+        SELECT 1 FROM deactivated
+        WHERE realm = NEW.realm AND "user" = NEW."user"
+    );
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER capgrant_to_trigger
+AFTER INSERT OR UPDATE OF "to" ON capgrant
+FOR EACH ROW
+WHEN (NEW."to" IS NOT NULL)
+EXECUTE FUNCTION insert_into_deactivated();
+
+
 ---- create above / drop below ----
 drop table stepworkflow;
 drop table wfinstance;
@@ -145,3 +182,6 @@ drop table app;
 drop table realmslice;
 
 drop table realm;
+drop TRIGGER IF EXISTS capgrant_to_trigger on crux;
+drop TRIGGER IF EXISTS capgrant_from_trigger on crux;
+drop FUNCTION if EXISTS delete_from_deactivated CASCADE;
