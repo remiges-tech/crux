@@ -242,6 +242,3 @@ DELETE FROM "app";
 
 -- realmslice
 DELETE FROM realmslice;
-
--- realm
-DELETE FROM realm;

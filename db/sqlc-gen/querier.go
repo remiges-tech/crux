@@ -56,6 +56,8 @@ type Querier interface {
 	SchemaListBySlice(ctx context.Context, slice int32) ([]SchemaListBySliceRow, error)
 	SchemaNew(ctx context.Context, arg SchemaNewParams) (int32, error)
 	SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) error
+	UserActivate(ctx context.Context, arg UserActivateParams) (Capgrant, error)
+	UserDeactivate(ctx context.Context, arg UserDeactivateParams) (Capgrant, error)
 	WfPatternSchemaGet(ctx context.Context, arg WfPatternSchemaGetParams) ([]byte, error)
 	WfSchemaGet(ctx context.Context, arg WfSchemaGetParams) (Schema, error)
 	WfSchemaList(ctx context.Context, arg WfSchemaListParams) ([]WfSchemaListRow, error)

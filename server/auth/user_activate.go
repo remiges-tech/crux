@@ -1,0 +1,70 @@
+package auth
+
+import (
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/remiges-tech/alya/service"
+	"github.com/remiges-tech/alya/wscutils"
+	"github.com/remiges-tech/crux/db"
+	"github.com/remiges-tech/crux/db/sqlc-gen"
+	"github.com/remiges-tech/crux/server"
+	"github.com/remiges-tech/crux/types"
+)
+
+func UserActivate(c *gin.Context, s *service.Service) {
+	// from_t := time.Now()
+	// uncomment below time while running test case
+	from_t, _ := time.Parse("2006-01-02T15:04:05Z", "2021-12-01T14:30:15Z")
+	l := s.LogHarbour
+	l.Debug0().Log("starting execution of UserActivate()")
+
+	// userID, err := server.ExtractUserNameFromJwt(c)
+	// if err != nil {
+	// 	l.Info().Log("unable to extract userID from token")
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+	// 	return
+	// }
+
+	isCapable, _ := server.Authz_check(types.OpReq{
+		User:      userID,
+		CapNeeded: authCaps,
+	}, false)
+
+	if !isCapable {
+		l.Info().LogActivity("unauthorized user:", userID)
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
+		return
+	}
+
+	// opUserId: on which to be activate
+	opUserId := c.Param("userid")
+	if opUserId == "" {
+		l.Log("no operational user id found")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ERRCode_User_Id_Not_Exist))
+		return
+	}
+
+	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
+	if !ok {
+		l.Info().Log("error while getting query instance from service dependencies")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
+		return
+	}
+
+	newSliceID, err := query.UserActivate(c, sqlc.UserActivateParams{
+		Userid:     opUserId,
+		Activateat: pgtype.Timestamp{Time: from_t, Valid: true},
+	})
+	if err != nil {
+		l.Info().Error(err).Log("error while changing active status in db with func UserActivate")
+		errmsg := db.HandleDatabaseError(err)
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+		return
+	}
+	l.Debug0().LogActivity("exiting from UserActivate()", newSliceID)
+	// wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(nil))
+	// uncomment below while running test cases
+	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(newSliceID))
+}

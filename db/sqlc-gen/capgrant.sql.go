@@ -65,3 +65,82 @@ func (q *Queries) GetCapGrantForApp(ctx context.Context, arg GetCapGrantForAppPa
 	}
 	return items, nil
 }
+
+const userActivate = `-- name: UserActivate :one
+UPDATE capgrant
+SET
+    "from" = CASE
+        WHEN (
+            $1::TIMESTAMP
+        ) IS NULL THEN NOW()
+        ELSE (
+            $1::TIMESTAMP
+        )
+    END,
+    "to" = NULL
+WHERE
+    "user" = $2
+RETURNING id, realm, "user", app, cap, "from", "to", setat, setby
+`
+
+type UserActivateParams struct {
+	Activateat pgtype.Timestamp `json:"activateat"`
+	Userid     string           `json:"userid"`
+}
+
+func (q *Queries) UserActivate(ctx context.Context, arg UserActivateParams) (Capgrant, error) {
+	row := q.db.QueryRow(ctx, userActivate, arg.Activateat, arg.Userid)
+	var i Capgrant
+	err := row.Scan(
+		&i.ID,
+		&i.Realm,
+		&i.User,
+		&i.App,
+		&i.Cap,
+		&i.From,
+		&i.To,
+		&i.Setat,
+		&i.Setby,
+	)
+	return i, err
+}
+
+const userDeactivate = `-- name: UserDeactivate :one
+UPDATE capgrant
+SET
+    "to" = CASE
+        WHEN (
+            $1::TIMESTAMP
+        ) IS NULL THEN NOW()
+        ELSE (
+            $1::TIMESTAMP
+        )
+    END,
+    "from" = NULL
+WHERE
+    "user" = $2
+RETURNING
+    id, realm, "user", app, cap, "from", "to", setat, setby
+`
+
+type UserDeactivateParams struct {
+	Deactivateat pgtype.Timestamp `json:"deactivateat"`
+	Userid       string           `json:"userid"`
+}
+
+func (q *Queries) UserDeactivate(ctx context.Context, arg UserDeactivateParams) (Capgrant, error) {
+	row := q.db.QueryRow(ctx, userDeactivate, arg.Deactivateat, arg.Userid)
+	var i Capgrant
+	err := row.Scan(
+		&i.ID,
+		&i.Realm,
+		&i.User,
+		&i.App,
+		&i.Cap,
+		&i.From,
+		&i.To,
+		&i.Setat,
+		&i.Setby,
+	)
+	return i, err
+}

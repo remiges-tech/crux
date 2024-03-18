@@ -1,0 +1,15 @@
+{
+  "status": "success",
+  "data": {
+    "id": 1,
+    "realm": "BSE",
+    "user": "john",
+    "app": "hdfcbank",
+    "cap": "root",
+    "from": "2021-12-01T14:30:15Z",
+    "to": null,
+    "setat": "2023-12-29T00:00:00Z",
+    "setby": "admin"
+  },
+  "messages": null
+}
