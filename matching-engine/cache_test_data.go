@@ -3,7 +3,7 @@ package crux
 import (
 	"time"
 
-	sqlc "github.com/remiges-tech/crux/matching-engine/db/sqlc-gen"
+	"github.com/remiges-tech/crux/db/sqlc-gen"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -11,7 +11,7 @@ import (
 var mockSchemasets = []sqlc.Schema{
 
 	{
-		Realm: 1,
+		Realm: "1",
 		App:   "Test1",
 		Slice: 1,
 		Class: "inventoryitem2",
@@ -51,7 +51,7 @@ var mockSchemasets = []sqlc.Schema{
 		Editedby:  pgtype.Text{String: "user4"},
 	},
 	{
-		Realm: 1,
+		Realm: "1",
 		App:   "Test6",
 		Slice: 6,
 		Class: "inventoryitem",
@@ -96,7 +96,7 @@ var mockSchemasets = []sqlc.Schema{
 	},
 
 	{
-		Realm: 1,
+		Realm: "1",
 		App:   "Test7",
 		Slice: 7,
 		Class: "transaction",
@@ -139,7 +139,7 @@ var mockSchemasets = []sqlc.Schema{
 		Editedby:  pgtype.Text{String: "user4"},
 	},
 	{
-		Realm: 1,
+		Realm: "1",
 		App:   "Test8",
 		Slice: 8,
 		Class: "purchase",
@@ -173,7 +173,7 @@ var mockSchemasets = []sqlc.Schema{
 	},
 	{
 
-		Realm: 1,
+		Realm: "1",
 		App:   "Test9",
 		Slice: 9,
 		Class: "order",
@@ -213,7 +213,7 @@ var mockSchemasets = []sqlc.Schema{
 	},
 
 	{
-		Realm: 1,
+		Realm: "1",
 		App:   "Test10",
 		Slice: 10,
 		Class: "ucccreation",
@@ -248,7 +248,7 @@ var mockSchemasets = []sqlc.Schema{
 	},
 
 	{
-		Realm: 1,
+		Realm: "1",
 		App:   "Test11",
 		Slice: 11,
 		Class: "prepareaof",
@@ -258,7 +258,7 @@ var mockSchemasets = []sqlc.Schema{
 				{
 					"attr": "step",
 					"valtype": "enum"
-					
+					Realm:   "1"
 				},
 				{
 					"attr": "stepfailed",
@@ -278,7 +278,7 @@ var mockSchemasets = []sqlc.Schema{
 		Editedby:  pgtype.Text{String: "user4"},
 	},
 	{
-		Realm: 1,
+		Realm: "1",
 		App:   "Test12",
 		Slice: 12,
 		Class: "validateaof",
@@ -316,7 +316,7 @@ var mockSchemasets = []sqlc.Schema{
 var mockRulesets = []sqlc.Ruleset{
 
 	{
-		Realm:   1,
+		Realm:   "1",
 		App:     "Test1",
 		Slice:   1,
 		Class:   "inventoryitem2",
@@ -338,7 +338,7 @@ var mockRulesets = []sqlc.Ruleset{
 	},
 
 	{
-		Realm:   1,
+		Realm:   "1",
 		App:     "Test1",
 		Slice:   2,
 		Class:   "inventoryitem2",
@@ -359,7 +359,7 @@ var mockRulesets = []sqlc.Ruleset{
 		  ]`),
 	},
 	{
-		Realm:   1,
+		Realm:   "1",
 		App:     "Test1",
 		Slice:   3,
 		Class:   "inventoryitem2",
@@ -379,7 +379,7 @@ var mockRulesets = []sqlc.Ruleset{
 		}]`),
 	},
 	{
-		Realm:   1,
+		Realm:   "1",
 		App:     "Test3",
 		Slice:   3,
 		Class:   "inventoryNewyear",
@@ -399,7 +399,7 @@ var mockRulesets = []sqlc.Ruleset{
 	},
 
 	{
-		Realm:   1,
+		Realm:   "1",
 		App:     "Test4",
 		Slice:   4,
 		Class:   "inventoryNewyear",
@@ -419,7 +419,7 @@ var mockRulesets = []sqlc.Ruleset{
 	},
 	{
 
-		Realm:   1,
+		Realm:   "1",
 		App:     "Test5",
 		Slice:   5,
 		Class:   "inventoryClearance",
@@ -438,7 +438,7 @@ var mockRulesets = []sqlc.Ruleset{
 		}]`),
 	},
 	{
-		Realm:   1,
+		Realm:   "1",
 		App:     "Test6",
 		Slice:   6,
 		Class:   "inventoryitem",
@@ -467,7 +467,7 @@ var mockRulesets = []sqlc.Ruleset{
 			}]`),
 	},
 	{
-		Realm:   1,
+		Realm:   "1",
 		App:     "Test7",
 		Slice:   7,
 		Class:   "transaction",
@@ -518,7 +518,7 @@ var mockRulesets = []sqlc.Ruleset{
 		}]`),
 	},
 	{
-		Realm:   1,
+		Realm:   "1",
 		App:     "Test8",
 		Slice:   8,
 		Class:   "transaction",
@@ -558,7 +558,7 @@ var mockRulesets = []sqlc.Ruleset{
 	},
 
 	{
-		Realm:   1,
+		Realm:   "1",
 		App:     "Test7",
 		Slice:   9,
 		Class:   "transaction",
