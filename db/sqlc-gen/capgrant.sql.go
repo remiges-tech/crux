@@ -80,16 +80,18 @@ SET
     "to" = NULL
 WHERE
     "user" = $2
+    and realm = $3
 RETURNING id, realm, "user", app, cap, "from", "to", setat, setby
 `
 
 type UserActivateParams struct {
 	Activateat pgtype.Timestamp `json:"activateat"`
 	Userid     string           `json:"userid"`
+	Realm      string           `json:"realm"`
 }
 
 func (q *Queries) UserActivate(ctx context.Context, arg UserActivateParams) (Capgrant, error) {
-	row := q.db.QueryRow(ctx, userActivate, arg.Activateat, arg.Userid)
+	row := q.db.QueryRow(ctx, userActivate, arg.Activateat, arg.Userid, arg.Realm)
 	var i Capgrant
 	err := row.Scan(
 		&i.ID,
@@ -119,16 +121,18 @@ SET
     "from" = NULL
 WHERE
     "user" = $2
+    and realm = $3
 RETURNING id, realm, "user", app, cap, "from", "to", setat, setby
 `
 
 type UserDeactivateParams struct {
 	Deactivateat pgtype.Timestamp `json:"deactivateat"`
 	Userid       string           `json:"userid"`
+	Realm        string           `json:"realm"`
 }
 
 func (q *Queries) UserDeactivate(ctx context.Context, arg UserDeactivateParams) (Capgrant, error) {
-	row := q.db.QueryRow(ctx, userDeactivate, arg.Deactivateat, arg.Userid)
+	row := q.db.QueryRow(ctx, userDeactivate, arg.Deactivateat, arg.Userid, arg.Realm)
 	var i Capgrant
 	err := row.Scan(
 		&i.ID,

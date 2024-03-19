@@ -13,20 +13,29 @@ import (
 	"github.com/remiges-tech/crux/types"
 )
 
+// UserActivate: will handle "/useractivate/:userid" POST
 func UserActivate(c *gin.Context, s *service.Service) {
-	// from_t := time.Now()
+	from_t := time.Now()
 	// uncomment below time while running test case
-	from_t, _ := time.Parse("2006-01-02T15:04:05Z", "2021-12-01T14:30:15Z")
+	// from_t, _ := time.Parse("2006-01-02T15:04:05Z", "2021-12-01T14:30:15Z")
 	l := s.LogHarbour
 	l.Debug0().Log("starting execution of UserActivate()")
 
-	// userID, err := server.ExtractUserNameFromJwt(c)
-	// if err != nil {
-	// 	l.Info().Log("unable to extract userID from token")
-	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
-	// 	return
-	// }
+	userID, err := server.ExtractUserNameFromJwt(c)
+	if err != nil {
+		l.Info().Log("unable to extract userID from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		return
+	}
 
+	realmName, err := server.ExtractRealmFromJwt(c)
+	if err != nil {
+		l.Info().Log("unable to extract realm from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		return
+	}
+
+	// Step:0 - check user caps
 	isCapable, _ := server.Authz_check(types.OpReq{
 		User:      userID,
 		CapNeeded: authCaps,
@@ -38,7 +47,7 @@ func UserActivate(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	// opUserId: on which to be activate
+	// Step:1 - get params / json binding
 	opUserId := c.Param("userid")
 	if opUserId == "" {
 		l.Log("no operational user id found")
@@ -46,6 +55,7 @@ func UserActivate(c *gin.Context, s *service.Service) {
 		return
 	}
 
+	// Step:2 - get required dependency
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
 		l.Info().Log("error while getting query instance from service dependencies")
@@ -53,9 +63,11 @@ func UserActivate(c *gin.Context, s *service.Service) {
 		return
 	}
 
+	// Step:3 - do the db transaction
 	newSliceID, err := query.UserActivate(c, sqlc.UserActivateParams{
 		Userid:     opUserId,
 		Activateat: pgtype.Timestamp{Time: from_t, Valid: true},
+		Realm:      realmName,
 	})
 	if err != nil {
 		l.Info().Error(err).Log("error while changing active status in db with func UserActivate")
@@ -63,8 +75,21 @@ func UserActivate(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
+
+	err = query.ActivateRecord(c, sqlc.ActivateRecordParams{
+		Realm:  newSliceID.Realm,
+		Userid: pgtype.Text{String: newSliceID.User, Valid: true},
+	})
+	if err != nil {
+		l.Info().Error(err).Log("error while deleting record from deactivated table")
+		errmsg := db.HandleDatabaseError(err)
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+		return
+	}
+
+	// Step:4 - send response
 	l.Debug0().LogActivity("exiting from UserActivate()", newSliceID)
-	// wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(nil))
+	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(nil))
 	// uncomment below while running test cases
-	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(newSliceID))
+	// wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(newSliceID))
 }

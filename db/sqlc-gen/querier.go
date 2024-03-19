@@ -12,6 +12,7 @@ import (
 )
 
 type Querier interface {
+	ActivateRecord(ctx context.Context, arg ActivateRecordParams) error
 	AddWFNewInstances(ctx context.Context, arg AddWFNewInstancesParams) ([]Wfinstance, error)
 	AllRuleset(ctx context.Context) ([]Ruleset, error)
 	AllSchemas(ctx context.Context) ([]Schema, error)
@@ -23,6 +24,7 @@ type Querier interface {
 	CloneRecordInRealmSliceBySliceID(ctx context.Context, arg CloneRecordInRealmSliceBySliceIDParams) (int32, error)
 	CloneRecordInRulesetBySliceID(ctx context.Context, arg CloneRecordInRulesetBySliceIDParams) (pgconn.CommandTag, error)
 	CloneRecordInSchemaBySliceID(ctx context.Context, arg CloneRecordInSchemaBySliceIDParams) (pgconn.CommandTag, error)
+	DeactivateRecord(ctx context.Context, arg DeactivateRecordParams) error
 	DeleteCapGranForApp(ctx context.Context, arg DeleteCapGranForAppParams) error
 	DeleteWFInstanceListByParents(ctx context.Context, arg DeleteWFInstanceListByParentsParams) ([]Wfinstance, error)
 	DeleteWfinstanceByID(ctx context.Context, arg DeleteWfinstanceByIDParams) ([]Wfinstance, error)

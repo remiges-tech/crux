@@ -167,6 +167,7 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/realmslicelist", realmslice.RealmSliceList)
 	// user management
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/useractivate/:userid", auth.UserActivate)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/userdeactivate/:userid", auth.UserDeactivate)
 
 	appServerPortStr := strconv.Itoa(appServerPort)
 	r.Run(":" + appServerPortStr)

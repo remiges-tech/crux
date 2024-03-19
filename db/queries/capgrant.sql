@@ -20,6 +20,7 @@ SET
     "to" = NULL
 WHERE
     "user" = @userid
+    and realm = @realm
 RETURNING *;
 
 -- name: UserDeactivate :one
@@ -36,4 +37,5 @@ SET
     "from" = NULL
 WHERE
     "user" = @userid
+    and realm = @realm
 RETURNING *;
