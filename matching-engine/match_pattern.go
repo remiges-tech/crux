@@ -30,7 +30,7 @@ const (
 	falseStr = "false"
 )
 
-func matchPattern(entity Entity, rulePattern []RulePatternBlock_t, actionSet ActionSet, rSchema []*Schema_t) (bool, error) {
+func matchPattern(entity Entity, rulePattern []RulePatternBlock_t, actionSet ActionSet, rSchema *Schema_t) (bool, error) {
 
 	for _, term := range rulePattern {
 		valType := ""
@@ -75,16 +75,17 @@ func matchPattern(entity Entity, rulePattern []RulePatternBlock_t, actionSet Act
 	return true, nil
 }
 
-func getTypeFromSchema(class string, attrName string, ruleSchemas []*Schema_t) string {
-	for _, ruleSchema := range ruleSchemas {
+func getTypeFromSchema(class string, attrName string, ruleSchema *Schema_t) string {
 
-		if ruleSchema.Class == class {
-			for _, attrSchema := range ruleSchema.PatternSchema {
+	if ruleSchema == nil {
+		return ""
+	}
+	if ruleSchema.Class == class {
+		for _, attrSchema := range ruleSchema.PatternSchema {
 
-				if attrSchema.Attr == attrName {
+			if attrSchema.Attr == attrName {
 
-					return attrSchema.ValType
-				}
+				return attrSchema.ValType
 			}
 		}
 	}
@@ -189,13 +190,13 @@ func compare(a any, b any) (int8, error) {
 		return 1, nil
 	}
 }
-func incrementStatsSchemaCounterNChecked(class string, schema []*Schema_t) {
+func incrementStatsSchemaCounterNChecked(class string, schema *Schema_t) {
 
-	for _, ruleSchema := range schema {
+	if schema != nil {
 
-		if ruleSchema.Class == class {
+		if schema.Class == class {
 
-			ruleSchema.NChecked++
+			schema.NChecked++
 		}
 	}
 

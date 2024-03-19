@@ -22,9 +22,9 @@ const (
 
 type perSlice_t struct {
 	LoadedAt   time.Time
-	BRSchema   map[className_t][]*Schema_t
+	BRSchema   map[className_t]Schema_t
 	BRRulesets map[className_t][]*Ruleset_t
-	WFSchema   map[className_t][]*Schema_t
+	WFSchema   map[className_t]Schema_t
 	Workflows  map[className_t][]*Ruleset_t
 }
 

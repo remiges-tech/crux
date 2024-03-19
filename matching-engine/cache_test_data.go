@@ -258,16 +258,13 @@ var mockSchemasets = []sqlc.Schema{
 				{
 					"attr": "step",
 					"valtype": "enum"
-					Realm:   "1"
+					
 				},
 				{
 					"attr": "stepfailed",
 					"valtype": "bool"
 					
 				}
-	
-				
-			
 		]`),
 		Actionschema: []byte(`{
 			

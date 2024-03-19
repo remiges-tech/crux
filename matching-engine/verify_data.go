@@ -272,15 +272,13 @@ func VerifyRulePatterns(ruleset *Ruleset_t, schema *Schema_t, isWF bool) []error
 func getSchema(entity Entity, class string) (*Schema_t, error) {
 	ruleSchemas, _ := retriveRuleSchemasAndRuleSetsFromCache(entity.realm, entity.app, entity.class, entity.slice)
 
-	if len(ruleSchemas) > 0 {
-
-		for _, s := range ruleSchemas {
-
-			if class == s.Class {
-				return s, nil
-			}
-		}
+	if ruleSchemas == nil {
+		return nil, fmt.Errorf("no schema found for class %v", class)
 	}
+	if class == ruleSchemas.Class {
+		return ruleSchemas, nil
+	}
+
 	return nil, fmt.Errorf("no schema found for class %v", class)
 }
 

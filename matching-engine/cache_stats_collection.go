@@ -62,16 +62,13 @@ func getStats(realm realm_t, app app_t, slice slice_t) (rulesetStats_t, time.Tim
 
 	if schemaData, exists := schemaCache[realm][app][slice]; exists {
 		for className, schemas := range schemaData.BRSchema {
-			for _, schema := range schemas {
-				statsPerSlice.BRSchema[className] = statsSchema_t{nChecked: schema.NChecked}
+			statsPerSlice.BRSchema[className] = statsSchema_t{nChecked: schemas.NChecked}
 
-			}
 		}
 		for className, schemas := range schemaData.WFSchema {
-			for _, schema := range schemas {
-				statsPerSlice.WFSchema[className] = statsSchema_t{nChecked: schema.NChecked}
 
-			}
+			statsPerSlice.WFSchema[className] = statsSchema_t{nChecked: schemas.NChecked}
+
 		}
 	}
 	if rulesetData, exists := rulesetCache[realm][app][slice]; exists {
