@@ -119,8 +119,7 @@ SET
     "from" = NULL
 WHERE
     "user" = $2
-RETURNING
-    id, realm, "user", app, cap, "from", "to", setat, setby
+RETURNING id, realm, "user", app, cap, "from", "to", setat, setby
 `
 
 type UserDeactivateParams struct {

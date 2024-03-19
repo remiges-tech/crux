@@ -49,71 +49,71 @@ func setupUCCCreationSchema() {
 }
 
 func setupUCCCreationRuleSet() *Ruleset_t {
-	rule1 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule1 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{step, opEQ, start},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Task:       []string{"getcustdetails"},
 			Properties: map[string]string{nextStep: "getcustdetails"},
 		},
 	}
-	rule2 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule2 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{step, opEQ, "getcustdetails"},
 			{stepFailed, opEQ, false},
 			{"mode", opEQ, "physical"},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Task:       []string{"aof", "kycvalid", "nomauth", "bankaccvalid"},
 			Properties: map[string]string{nextStep: "aof"},
 		},
 	}
-	rule3 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule3 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{step, opEQ, "getcustdetails"},
 			{stepFailed, opEQ, false},
 			{"mode", opEQ, "demat"},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Task:       []string{"aof", "kycvalid", "nomauth", "dpandbankaccvalid"},
 			Properties: map[string]string{nextStep: "aof"},
 		},
 	}
-	rule4 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule4 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{step, opEQ, "getcustdetails"},
 			{stepFailed, opEQ, true},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Task:       []string{},
 			Properties: map[string]string{done: trueStr},
 		},
 	}
-	rule5 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule5 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{step, opEQ, "aof"},
 			{stepFailed, opEQ, false},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Task:       []string{"sendauthlinktoclient"},
 			Properties: map[string]string{nextStep: "sendauthlinktoclient"},
 		},
 	}
-	rule6 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule6 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{step, opEQ, "aof"},
 			{stepFailed, opEQ, true},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{done: trueStr},
 		},
 	}
-	rule7 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule7 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{step, opEQ, "sendauthlinktoclient"},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{done: trueStr},
 		},
 	}
@@ -122,7 +122,7 @@ func setupUCCCreationRuleSet() *Ruleset_t {
 		Id:      1,
 		Class:   uccCreationClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule1, rule2, rule3, rule4, rule5, rule6, rule7, rule7},
+		Rules:   []Rule_t{rule1, rule2, rule3, rule4, rule5, rule6, rule7, rule7},
 		NCalled: 0,
 	}
 
@@ -531,96 +531,96 @@ func testPrepareAOFEnd(tests *[]doMatchTest) {
 }
 
 func setupRuleSetForPrepareAOF() *Ruleset_t {
-	rule1 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule1 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{step, opEQ, start},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Task:       []string{"downloadform"},
 			Properties: map[string]string{nextStep: "downloadform"},
 		},
 	}
-	rule2 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule2 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{step, opEQ, "downloadform"},
 			{stepFailed, opEQ, false},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Task:       []string{"printprefilledform"},
 			Properties: map[string]string{nextStep: "printprefilledform"},
 		},
 	}
-	rule2F := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule2F := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{step, opEQ, "downloadform"},
 			{stepFailed, opEQ, true},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{done: trueStr},
 		},
 	}
-	rule3 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule3 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{step, opEQ, "printprefilledform"},
 			{stepFailed, opEQ, false},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Task:       []string{"signform"},
 			Properties: map[string]string{nextStep: "signform"},
 		},
 	}
-	rule3F := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule3F := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{step, opEQ, "printprefilledform"},
 			{stepFailed, opEQ, true},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{done: trueStr},
 		},
 	}
-	rule4 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule4 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{step, opEQ, "signform"},
 			{stepFailed, opEQ, false},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Task:       []string{"receivesignedform"},
 			Properties: map[string]string{nextStep: "receivesignedform"},
 		},
 	}
-	rule4F := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule4F := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{step, opEQ, "signform"},
 			{stepFailed, opEQ, true},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{done: trueStr},
 		},
 	}
-	rule5 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule5 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{step, opEQ, "receivesignedform"},
 			{stepFailed, opEQ, false},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Task:       []string{"uploadsignedform"},
 			Properties: map[string]string{nextStep: "uploadsignedform"},
 		},
 	}
-	rule5F := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule5F := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{step, opEQ, "receivesignedform"},
 			{stepFailed, opEQ, true},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{done: trueStr},
 		},
 	}
-	rule6 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule6 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{step, opEQ, "uploadsignedform"},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Task:       []string{},
 			Properties: map[string]string{done: trueStr},
 		},
@@ -630,7 +630,7 @@ func setupRuleSetForPrepareAOF() *Ruleset_t {
 		Id:      1,
 		Class:   prepareAOFClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule1, rule2, rule2F, rule3, rule3F, rule4, rule4F, rule5, rule5F, rule6},
+		Rules:   []Rule_t{rule1, rule2, rule2F, rule3, rule3F, rule4, rule4F, rule5, rule5F, rule6},
 		NCalled: 0,
 	}
 
@@ -771,53 +771,53 @@ func testValidateAOFEnd(tests *[]doMatchTest) {
 }
 
 func setupRuleSetForValidateAOF() *Ruleset_t {
-	rule1 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule1 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{step, opEQ, start},
 			{"aofexists", opEQ, true},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{done: trueStr},
 		},
 	}
-	rule2 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule2 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{step, opEQ, start},
 			{"aofexists", opEQ, false},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Task:       []string{"sendaoftorta"},
 			Properties: map[string]string{nextStep: "sendaoftorta"},
 		},
 	}
-	rule3 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule3 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{step, opEQ, "sendaoftorta"},
 			{stepFailed, opEQ, false},
 			{"aofexists", opEQ, false},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Task:       []string{"getresponsefromrta"},
 			Properties: map[string]string{nextStep: "getresponsefromrta"},
 		},
 	}
-	rule4 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule4 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{step, opEQ, "sendaoftorta"},
 			{stepFailed, opEQ, true},
 			{"aofexists", opEQ, false},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Task:       []string{},
 			Properties: map[string]string{done: trueStr},
 		},
 	}
-	rule5 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule5 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{step, opEQ, "getresponsefromrta"},
 			{"aofexists", opEQ, false},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{done: trueStr},
 		},
 	}
@@ -826,7 +826,7 @@ func setupRuleSetForValidateAOF() *Ruleset_t {
 		Id:      1,
 		Class:   validateAOFClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule1, rule2, rule3, rule4, rule5},
+		Rules:   []Rule_t{rule1, rule2, rule3, rule4, rule5},
 		NCalled: 0,
 	}
 	return &rs

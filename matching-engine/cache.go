@@ -102,7 +102,7 @@ func loadInternalRuleSet(dbResponseRuleSet []sqlc.Ruleset) error {
 				Workflows:  make(map[className_t][]*Ruleset_t),
 			}
 
-			var rules []rule_t
+			var rules []Rule_t
 
 			err := json.Unmarshal(row.Ruleset, &rules)
 			if err != nil {

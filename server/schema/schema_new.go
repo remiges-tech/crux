@@ -10,6 +10,7 @@ import (
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	crux "github.com/remiges-tech/crux/matching-engine"
 	"github.com/remiges-tech/crux/server"
+	"github.com/remiges-tech/crux/types"
 	"github.com/remiges-tech/logharbour/logharbour"
 )
 
@@ -37,17 +38,17 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
 	// 	return
 	// }
+	reqCaps := []string{"root"}
+	isCapable, _ := server.Authz_check(types.OpReq{
+		User:      userID,
+		CapNeeded: reqCaps,
+	}, false)
 
-	// isCapable, _ := server.Authz_check(types.OpReq{
-	// 	User:      userID,
-	// 	CapNeeded: reqCaps,
-	// }, false)
-
-	// if !isCapable {
-	// 	l.Info().LogActivity("Unauthorized user:", userID)
-	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
-	// 	return
-	// }
+	if !isCapable {
+		l.Info().LogActivity("Unauthorized user:", userID)
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
+		return
+	}
 
 	var req SchemaNewReq
 

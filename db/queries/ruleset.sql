@@ -75,15 +75,16 @@ VALUES (
 -- name: WorkFlowUpdate :execresult
 UPDATE ruleset
 SET
-    brwf = $4,
-    setname = $5,
-    ruleset = $6,
+    brwf = $5,
+    setname = $6,
+    ruleset = $7,
     editedat = CURRENT_TIMESTAMP,
-    editedby = $7
+    editedby = $8
 WHERE
-    slice = $1
-    AND class = $2
-    AND app = $3;
+    realm = $1
+    AND slice = $2
+    AND class = $3
+    AND app = $4;
 
 -- name: WorkflowList :many
 select
@@ -124,9 +125,10 @@ where
 SELECT * 
 FROM ruleset 
 WHERE
-    slice = $1
-    AND class = $2
-    AND app = $3
+    realm = $1
+    AND slice = $2
+    AND class = $3
+    AND app = $4
 FOR UPDATE; 
 
 -- name: AllRuleset :many

@@ -39,7 +39,7 @@ type CruxError struct {
 
 // Error returns the error message string
 func (e CruxError) Error() string {
-	return fmt.Sprintf("Error %s: %s: %s: %s", e.Keyword, e.FieldName, e.Vals, e.Messages)
+	return fmt.Sprintf("%s: %s: %s: %s", e.Keyword, e.FieldName, e.Vals, e.Messages)
 }
 
 // Parameters
@@ -208,17 +208,17 @@ func verifyRuleSet(entiry Entity, rs *Ruleset_t, isWF bool) []error {
 	if err != nil {
 		errs = append(errs, err)
 	}
-	if err := verifyRulePatterns(rs, schema, isWF); err != nil {
+	if err := VerifyRulePatterns(rs, schema, isWF); err != nil {
 		errs = append(errs, err...)
 	}
-	if err := verifyRuleActions(rs, schema, isWF); err != nil {
+	if err := VerifyRuleActions(rs, schema, isWF); err != nil {
 		errs = append(errs, err...)
 	}
 
 	return errs
 }
 
-func verifyRulePatterns(ruleset *Ruleset_t, schema *Schema_t, isWF bool) []error {
+func VerifyRulePatterns(ruleset *Ruleset_t, schema *Schema_t, isWF bool) []error {
 	var errs []error
 	//for _, ruleset := range ruleSets {
 	for _, rule := range ruleset.Rules {
@@ -330,7 +330,7 @@ func verifyType(val any, valType string) bool {
 	return ok
 }
 
-func verifyRuleActions(ruleset *Ruleset_t, schema *Schema_t, isWF bool) []error {
+func VerifyRuleActions(ruleset *Ruleset_t, schema *Schema_t, isWF bool) []error {
 	var errs []error
 	//for _, ruleset := range ruleSets {
 	for _, rule := range ruleset.Rules {

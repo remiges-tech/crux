@@ -4,6 +4,7 @@ import "github.com/jackc/pgx/v5/pgtype"
 
 const (
 	editedBy = "admin"
+	// userID = "123"
 
 	brwf      = "W"
 	isActive  = false

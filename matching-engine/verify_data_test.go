@@ -562,8 +562,8 @@ func testCorrectRS(t *testing.T) {
 
 		NCalled: 0,
 	}
-	rc.Rules = []rule_t{{
-		RulePatterns: []rulePatternBlock_t{},
+	rc.Rules = []Rule_t{{
+		RulePatterns: []RulePatternBlock_t{},
 	}}
 	// ok, err := verifyRuleSet(sampleEntityVerify, &rc, false)
 
@@ -576,7 +576,7 @@ func testCorrectRS(t *testing.T) {
 // In each of the rule-pattern tests below, a rule-pattern is modified temporarily.
 // After each test, we must reset the rule-pattern to the correct one below before
 // moving on to the next test.
-var correctRP = []rulePatternBlock_t{
+var correctRP = []RulePatternBlock_t{
 	{"product", opEQ, "jacket"},
 	{"price", opGT, 50.0},
 }
@@ -589,8 +589,8 @@ func testInvalidAttrName(t *testing.T) {
 
 		NCalled: 0,
 	}
-	rc.Rules = []rule_t{{
-		RulePatterns: []rulePatternBlock_t{{"product", opEQ, "jacket"},
+	rc.Rules = []Rule_t{{
+		RulePatterns: []RulePatternBlock_t{{"product", opEQ, "jacket"},
 			// priceabc is not in the schema
 			{"priceabc", opGT, "50.0"}},
 	}}
@@ -610,8 +610,8 @@ func testTaskAsAttrName(t *testing.T) {
 
 		NCalled: 0,
 	}
-	rc.Rules = []rule_t{{
-		RulePatterns: []rulePatternBlock_t{{"product", opEQ, "jacket"},
+	rc.Rules = []Rule_t{{
+		RulePatterns: []RulePatternBlock_t{{"product", opEQ, "jacket"},
 			// freejar is not in the pattern-schema, but it is a task in the action-schema
 			{"freejar", opEQ, ""}},
 	}}
@@ -633,8 +633,8 @@ func testWrongAttrValType(t *testing.T) {
 
 		NCalled: 0,
 	}
-	rc.Rules = []rule_t{{
-		RulePatterns: []rulePatternBlock_t{{"product", opEQ, "jacket"},
+	rc.Rules = []Rule_t{{
+		RulePatterns: []RulePatternBlock_t{{"product", opEQ, "jacket"},
 			// price should be a float, not a string
 			{"price", opGT, "abc"}},
 	}}
@@ -654,8 +654,8 @@ func testInvalidOp(t *testing.T) {
 
 		NCalled: 0,
 	}
-	rc.Rules = []rule_t{{
-		RulePatterns: []rulePatternBlock_t{{"product", opEQ, "jacket"},
+	rc.Rules = []Rule_t{{
+		RulePatterns: []RulePatternBlock_t{{"product", opEQ, "jacket"},
 			// it should be "gt" (opGT), not "greater than"
 			{"price", "greater than", "50.0"}},
 	}}
@@ -675,10 +675,10 @@ func testTaskNotInSchema(t *testing.T) {
 
 		NCalled: 0,
 	}
-	rc.Rules = []rule_t{{
-		RulePatterns: []rulePatternBlock_t{},
+	rc.Rules = []Rule_t{{
+		RulePatterns: []RulePatternBlock_t{},
 		// freeeraser is not in the schema
-		RuleActions: ruleActionBlock_t{Task: []string{"freemug", "freeeraser"},
+		RuleActions: RuleActionBlock_t{Task: []string{"freemug", "freeeraser"},
 			Properties: map[string]string{"discount": "20"}},
 	}}
 
@@ -699,9 +699,9 @@ func testPropNameNotInSchema(t *testing.T) {
 
 		NCalled: 0,
 	}
-	rc.Rules = []rule_t{{
-		RulePatterns: []rulePatternBlock_t{},
-		RuleActions: ruleActionBlock_t{Task: []string{"freemug", "freejar", "freeplant"},
+	rc.Rules = []Rule_t{{
+		RulePatterns: []RulePatternBlock_t{},
+		RuleActions: RuleActionBlock_t{Task: []string{"freemug", "freejar", "freeplant"},
 			Properties: map[string]string{"cashback": "5"}},
 	}}
 
@@ -720,9 +720,9 @@ func testBothReturnAndExit(t *testing.T) {
 
 		NCalled: 0,
 	}
-	rc.Rules = []rule_t{{
-		RulePatterns: []rulePatternBlock_t{},
-		RuleActions: ruleActionBlock_t{Task: []string{"freemug", "freejar", "freeplant"},
+	rc.Rules = []Rule_t{{
+		RulePatterns: []RulePatternBlock_t{},
+		RuleActions: RuleActionBlock_t{Task: []string{"freemug", "freejar", "freeplant"},
 			Properties: map[string]string{"discount": "20"},
 			DoReturn:   true,
 			DoExit:     true},
@@ -777,10 +777,10 @@ func testWFRuleMissingStep(t *testing.T) {
 
 		NCalled: 0,
 	}
-	rc.Rules = []rule_t{{
-		RulePatterns: []rulePatternBlock_t{{stepFailed, opEQ, true},
+	rc.Rules = []Rule_t{{
+		RulePatterns: []RulePatternBlock_t{{stepFailed, opEQ, true},
 			{"mode", opEQ, "physical"}},
-		RuleActions: ruleActionBlock_t{},
+		RuleActions: RuleActionBlock_t{},
 	}}
 
 	// ok, err := verifyRuleSet(sampleEntityUCC, &rc, true)
@@ -800,9 +800,9 @@ func testWFRuleMissingBothNSAndDone(t *testing.T) {
 
 		NCalled: 0,
 	}
-	rc.Rules = []rule_t{{
-		RulePatterns: []rulePatternBlock_t{},
-		RuleActions: ruleActionBlock_t{
+	rc.Rules = []Rule_t{{
+		RulePatterns: []RulePatternBlock_t{},
+		RuleActions: RuleActionBlock_t{
 			Task:       []string{"aof", "kycvalid", "nomauth", "bankaccvalid"},
 			Properties: map[string]string{}, // Properties below should contain at least one of "nextstep" and "done"
 		},
@@ -828,9 +828,9 @@ func testWFNoTasksAndNotDone(t *testing.T) {
 
 		NCalled: 0,
 	}
-	rc.Rules = []rule_t{{
-		RulePatterns: []rulePatternBlock_t{},
-		RuleActions: ruleActionBlock_t{
+	rc.Rules = []Rule_t{{
+		RulePatterns: []RulePatternBlock_t{},
+		RuleActions: RuleActionBlock_t{
 			Task:       []string{},
 			Properties: map[string]string{nextStep: "abc"},
 		},
@@ -856,9 +856,9 @@ func testWFNextStepValNotInTasks(t *testing.T) {
 
 		NCalled: 0,
 	}
-	rc.Rules = []rule_t{{
-		RulePatterns: []rulePatternBlock_t{},
-		RuleActions: ruleActionBlock_t{
+	rc.Rules = []Rule_t{{
+		RulePatterns: []RulePatternBlock_t{},
+		RuleActions: RuleActionBlock_t{
 			Task:       []string{"aof", "kycvalid", "nomauth", "bankaccvalid"},
 			Properties: map[string]string{nextStep: "abcd"},
 		},
@@ -888,9 +888,9 @@ func testNoReferentialIssues(t *testing.T) {
 func testWrongThenCall(t *testing.T) {
 
 	ruleSetsTests[0].Class = mainRS
-	ruleSetsTests[0].Rules = []rule_t{{
-		RulePatterns: []rulePatternBlock_t{},
-		RuleActions: ruleActionBlock_t{
+	ruleSetsTests[0].Rules = []Rule_t{{
+		RulePatterns: []RulePatternBlock_t{},
+		RuleActions: RuleActionBlock_t{
 			ThenCall: "summerdisc",
 		},
 	}}
@@ -922,9 +922,9 @@ func testWrongElseCall(t *testing.T) {
 	// there is no ruleset "normaldisc"
 
 	ruleSetsTests[0].Class = "inventoryitem1"
-	ruleSetsTests[0].Rules = []rule_t{{
-		RulePatterns: []rulePatternBlock_t{},
-		RuleActions: ruleActionBlock_t{
+	ruleSetsTests[0].Rules = []Rule_t{{
+		RulePatterns: []RulePatternBlock_t{},
+		RuleActions: RuleActionBlock_t{
 			ElseCall: "normaldisc",
 		},
 	}}

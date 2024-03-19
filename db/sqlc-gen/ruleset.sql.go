@@ -185,20 +185,27 @@ const rulesetRowLock = `-- name: RulesetRowLock :one
 SELECT id, realm, slice, app, brwf, class, setname, schemaid, is_active, is_internal, ruleset, createdat, createdby, editedat, editedby 
 FROM ruleset 
 WHERE
-    slice = $1
-    AND class = $2
-    AND app = $3
+    realm = $1
+    AND slice = $2
+    AND class = $3
+    AND app = $4
 FOR UPDATE
 `
 
 type RulesetRowLockParams struct {
+	Realm string `json:"realm"`
 	Slice int32  `json:"slice"`
 	Class string `json:"class"`
 	App   string `json:"app"`
 }
 
 func (q *Queries) RulesetRowLock(ctx context.Context, arg RulesetRowLockParams) (Ruleset, error) {
-	row := q.db.QueryRow(ctx, rulesetRowLock, arg.Slice, arg.Class, arg.App)
+	row := q.db.QueryRow(ctx, rulesetRowLock,
+		arg.Realm,
+		arg.Slice,
+		arg.Class,
+		arg.App,
+	)
 	var i Ruleset
 	err := row.Scan(
 		&i.ID,
@@ -264,18 +271,20 @@ func (q *Queries) WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) error 
 const workFlowUpdate = `-- name: WorkFlowUpdate :execresult
 UPDATE ruleset
 SET
-    brwf = $4,
-    setname = $5,
-    ruleset = $6,
+    brwf = $5,
+    setname = $6,
+    ruleset = $7,
     editedat = CURRENT_TIMESTAMP,
-    editedby = $7
+    editedby = $8
 WHERE
-    slice = $1
-    AND class = $2
-    AND app = $3
+    realm = $1
+    AND slice = $2
+    AND class = $3
+    AND app = $4
 `
 
 type WorkFlowUpdateParams struct {
+	Realm    string      `json:"realm"`
 	Slice    int32       `json:"slice"`
 	Class    string      `json:"class"`
 	App      string      `json:"app"`
@@ -287,6 +296,7 @@ type WorkFlowUpdateParams struct {
 
 func (q *Queries) WorkFlowUpdate(ctx context.Context, arg WorkFlowUpdateParams) (pgconn.CommandTag, error) {
 	return q.db.Exec(ctx, workFlowUpdate,
+		arg.Realm,
 		arg.Slice,
 		arg.Class,
 		arg.App,

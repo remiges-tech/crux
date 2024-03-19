@@ -13,7 +13,7 @@ func TestCollectActionsBasic(t *testing.T) {
 		properties: map[string]string{"discount": "7", "shipby": "fedex"},
 	}
 
-	ruleActions := ruleActionBlock_t{
+	ruleActions := RuleActionBlock_t{
 		Task:       []string{"yearendsale", "summersale"},
 		Properties: map[string]string{"cashback": "10", "discount": "9"},
 		ThenCall:   "domesticpo",
@@ -38,7 +38,7 @@ func TestCollectActionsWithEmptyRuleActions(t *testing.T) {
 		properties: map[string]string{"discount": "7", "shipby": "fedex"},
 	}
 
-	ruleActions := ruleActionBlock_t{}
+	ruleActions := RuleActionBlock_t{}
 
 	want := ActionSet{
 		tasks:      []string{"dodiscount", "yearendsale"},
@@ -57,7 +57,7 @@ func TestCollectActionsWithEmptyActionSet(t *testing.T) {
 		properties: make(map[string]string),
 	}
 
-	ruleActions := ruleActionBlock_t{
+	ruleActions := RuleActionBlock_t{
 		Task:       []string{"dodiscount", "yearendsale"},
 		Properties: map[string]string{"discount": "7", "shipby": "fedex"},
 		ThenCall:   "overseaspo",

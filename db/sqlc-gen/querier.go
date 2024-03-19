@@ -47,13 +47,6 @@ type Querier interface {
 	RulesetRowLock(ctx context.Context, arg RulesetRowLockParams) (Ruleset, error)
 	SchemaDelete(ctx context.Context, id int32) (int32, error)
 	SchemaGet(ctx context.Context, arg SchemaGetParams) ([]SchemaGetRow, error)
-	SchemaList(ctx context.Context) ([]SchemaListRow, error)
-	SchemaListByApp(ctx context.Context, app string) ([]SchemaListByAppRow, error)
-	SchemaListByAppAndClass(ctx context.Context, arg SchemaListByAppAndClassParams) ([]SchemaListByAppAndClassRow, error)
-	SchemaListByAppAndSlice(ctx context.Context, arg SchemaListByAppAndSliceParams) ([]SchemaListByAppAndSliceRow, error)
-	SchemaListByClass(ctx context.Context, class string) ([]SchemaListByClassRow, error)
-	SchemaListByClassAndSlice(ctx context.Context, arg SchemaListByClassAndSliceParams) ([]SchemaListByClassAndSliceRow, error)
-	SchemaListBySlice(ctx context.Context, slice int32) ([]SchemaListBySliceRow, error)
 	SchemaNew(ctx context.Context, arg SchemaNewParams) (int32, error)
 	SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) error
 	UserActivate(ctx context.Context, arg UserActivateParams) (Capgrant, error)

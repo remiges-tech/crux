@@ -123,39 +123,39 @@ func testCycleError(t *testing.T) {
 func setupRuleSetsForCycleError() *Ruleset_t {
 
 	// main ruleset that contains a ThenCall to ruleset "second"
-	rule1 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule1 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"cat", opEQ, "textbook"},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			ThenCall: "second",
 		},
 	}
 
 	// "second" ruleset that contains a ThenCall to ruleset "third"
-	rule2 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule2 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"cat", opEQ, "textbook"},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			ThenCall: "third",
 		},
 	}
 
 	// "third" ruleset that contains a ThenCall back to ruleset "second"
-	rule3 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule3 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"cat", opEQ, "textbook"},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Task: []string{"testtask"},
 		},
 	}
-	rule4 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule4 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"cat", opEQ, "textbook"},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			ThenCall: "main",
 		},
 	}
@@ -164,7 +164,7 @@ func setupRuleSetsForCycleError() *Ruleset_t {
 		Id:      1,
 		Class:   "inventoryitem2",
 		SetName: "main",
-		Rules:   []rule_t{rule1, rule2, rule3, rule4},
+		Rules:   []Rule_t{rule1, rule2, rule3, rule4},
 		NCalled: 0,
 	}
 	return &rs
@@ -173,11 +173,11 @@ func setupRuleSetsForCycleError() *Ruleset_t {
 
 func testThenCallWrongClass(t *testing.T) {
 
-	rule2 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule2 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"cat", opEQ, "textbook"},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			ThenCall: "winterdisc",
 		},
 	}
@@ -185,7 +185,7 @@ func testThenCallWrongClass(t *testing.T) {
 		Id:      1,
 		Class:   inventoryItemClass,
 		SetName: "wrongclassrs",
-		Rules:   []rule_t{rule2},
+		Rules:   []Rule_t{rule2},
 		NCalled: 0,
 	}
 

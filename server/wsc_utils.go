@@ -119,8 +119,8 @@ func ExtractUserNameFromJwt(c *gin.Context) (string, error) {
 
 func HandleCruxError(errs []error) []wscutils.ErrorMessage {
 	var validationErrors []wscutils.ErrorMessage
-	var cruxErr crux.CruxError
 	for _, err := range errs {
+		var cruxErr crux.CruxError
 		fmt.Println("validationErrors", err)
 
 		if errors.As(err, &cruxErr) {

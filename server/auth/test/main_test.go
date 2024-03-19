@@ -147,7 +147,7 @@ func registerRoutes(databaseUrl string) (*gin.Engine, error) {
 		WithDependency("queries", queries)
 
 	s.RegisterRoute(http.MethodPost, "/useractivate/:userid", auth.UserActivate)
-	s.RegisterRoute(http.MethodPost, "/userdeactivate/:userid", auth.UserDeactivate)
+	// s.RegisterRoute(http.MethodPost, "/userdeactivate/:userid", auth.UserDeactivate)
 
 	return r, nil
 

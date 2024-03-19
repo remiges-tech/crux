@@ -30,7 +30,7 @@ const (
 	falseStr = "false"
 )
 
-func matchPattern(entity Entity, rulePattern []rulePatternBlock_t, actionSet ActionSet, rSchema []*Schema_t) (bool, error) {
+func matchPattern(entity Entity, rulePattern []RulePatternBlock_t, actionSet ActionSet, rSchema []*Schema_t) (bool, error) {
 
 	for _, term := range rulePattern {
 		valType := ""
