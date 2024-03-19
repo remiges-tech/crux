@@ -13,13 +13,13 @@ import (
 	"github.com/remiges-tech/crux/types"
 )
 
-// UserActivate: will handle "/useractivate/:userid" POST
-func UserActivate(c *gin.Context, s *service.Service) {
+// UserActivate: will handle "/userdeactivate/:userid" POST
+func UserDeactivate(c *gin.Context, s *service.Service) {
 	from_t := time.Now()
 	// uncomment below time while running test case
 	// from_t, _ := time.Parse("2006-01-02T15:04:05Z", "2021-12-01T14:30:15Z")
 	l := s.LogHarbour
-	l.Debug0().Log("starting execution of UserActivate()")
+	l.Debug0().Log("starting execution of UserDeactivate()")
 
 	userID, err := server.ExtractUserNameFromJwt(c)
 	if err != nil {
@@ -64,31 +64,33 @@ func UserActivate(c *gin.Context, s *service.Service) {
 	}
 
 	// Step:3 - do the db transaction
-	newSliceID, err := query.UserActivate(c, sqlc.UserActivateParams{
-		Userid:     opUserId,
-		Activateat: pgtype.Timestamp{Time: from_t, Valid: true},
-		Realm:      realmName,
+	newSliceID, err := query.UserDeactivate(c, sqlc.UserDeactivateParams{
+		Userid:       opUserId,
+		Deactivateat: pgtype.Timestamp{Time: from_t, Valid: true},
+		Realm:        realmName,
 	})
 	if err != nil {
-		l.Info().Error(err).Log("error while changing active status in db with func UserActivate")
+		l.Info().Error(err).Log("error while changing active status in db with func UserDeactivate")
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
 
-	err = query.ActivateRecord(c, sqlc.ActivateRecordParams{
-		Realm:  newSliceID.Realm,
-		Userid: pgtype.Text{String: newSliceID.User, Valid: true},
+	err = query.DeactivateRecord(c, sqlc.DeactivateRecordParams{
+		Realm:   newSliceID.Realm,
+		Userid:  pgtype.Text{String: newSliceID.User, Valid: true},
+		Deactby: newSliceID.Setby,
+		Deactat: newSliceID.To,
 	})
 	if err != nil {
-		l.Info().Error(err).Log("error while deleting record from deactivated table")
+		l.Info().Error(err).Log("error while adding record in deactivated table")
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
 
 	// Step:4 - send response
-	l.Debug0().LogActivity("exiting from UserActivate()", newSliceID)
+	l.Debug0().LogActivity("exiting from UserDeactivate()", newSliceID)
 	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(nil))
 	// uncomment below while running test cases
 	// wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(newSliceID))

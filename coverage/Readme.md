@@ -32,7 +32,12 @@ go test -coverprofile=./coverage/coverage_app.out -coverpkg=./... server/app/tes
 
 go tool cover -html=./coverage/coverage_app.out -o ./coverage/coverage_app.html 
 
-4. coverage_realmslice:
+5. coverage_realmslice:
 go test -coverprofile=./coverage/coverage_realmslice.out -coverpkg=./... server/realmslice/test/realmSlice_apps_test.go server/realmslice/test/realmslice_activate_test.go server/realmslice/test/realmslice_deactivate_test.go server/realmslice/test/realmslice_list_test.go server/realmslice/test/realmSlice_new_test.go server/realmslice/test/realmslice_purge_test.go server/realmslice/test/main_test.go
 
-go tool cover -html=./coverage/coverage_realmslice.out -o ./coverage/coverage_realmslice.html 
+go tool cover -html=./coverage/coverage_realmslice.out -o ./coverage/coverage_realmslice.html
+
+6. coverage_auth:
+go test -coverprofile=./coverage/coverage_auth.out -coverpkg=./... server/auth/test/user_activate_test.go server/auth/test/user_deactivate_test.go server/auth/test/main_test.go
+
+go tool cover -html=./coverage/coverage_auth.out -o ./coverage/coverage_auth.html
