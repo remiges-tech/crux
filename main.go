@@ -17,6 +17,7 @@ import (
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	"github.com/remiges-tech/crux/server/app"
 	"github.com/remiges-tech/crux/server/auth"
+	"github.com/remiges-tech/crux/server/config"
 	"github.com/remiges-tech/crux/server/realmslice"
 	"github.com/remiges-tech/crux/server/schema"
 	"github.com/remiges-tech/crux/server/wfinstance"
@@ -168,6 +169,8 @@ func main() {
 	// user management
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/useractivate/:userid", auth.UserActivate)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/userdeactivate/:userid", auth.UserDeactivate)
+	// config management
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/configset", config.ConfigSet)
 
 	appServerPortStr := strconv.Itoa(appServerPort)
 	r.Run(":" + appServerPortStr)

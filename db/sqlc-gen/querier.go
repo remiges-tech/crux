@@ -24,6 +24,7 @@ type Querier interface {
 	CloneRecordInRealmSliceBySliceID(ctx context.Context, arg CloneRecordInRealmSliceBySliceIDParams) (int32, error)
 	CloneRecordInRulesetBySliceID(ctx context.Context, arg CloneRecordInRulesetBySliceIDParams) (pgconn.CommandTag, error)
 	CloneRecordInSchemaBySliceID(ctx context.Context, arg CloneRecordInSchemaBySliceIDParams) (pgconn.CommandTag, error)
+	ConfigSet(ctx context.Context, arg ConfigSetParams) error
 	DeactivateRecord(ctx context.Context, arg DeactivateRecordParams) error
 	DeleteCapGranForApp(ctx context.Context, arg DeleteCapGranForAppParams) error
 	DeleteWFInstanceListByParents(ctx context.Context, arg DeleteWFInstanceListByParentsParams) ([]Wfinstance, error)
