@@ -1,0 +1,21 @@
+{
+    "status": "error",
+    "data": null,
+    "messages": [
+        {
+            "msgid": 103,
+            "errcode": "alphabet",
+            "field": "Attr"
+        },
+        {
+            "msgid": 101,
+            "errcode": "required",
+            "field": "Val"
+        },
+        {
+            "msgid": 101,
+            "errcode": "required",
+            "field": "Slice"
+        }
+    ]
+}
