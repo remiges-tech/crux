@@ -73,15 +73,15 @@ const (
 	ruleOpLE                 // Less than or equal to
 )
 
-type rulePatternBlock_t struct {
-	Attr string `json:"attr"`
-	Op   string `json:"op"`
-	Val  any    `json:"val"`
+type RulePatternBlock_t struct {
+	Attr string `json:"attr" validate:"required"`
+	Op   string `json:"op" validate:"required"`
+	Val  any    `json:"val" validate:"required"`
 }
 
-type ruleActionBlock_t struct {
-	Task          []string          `json:"tasks"`
-	Properties    map[string]string `json:"properties"`
+type RuleActionBlock_t struct {
+	Task          []string          `json:"tasks" validate:"required"`
+	Properties    map[string]string `json:"properties" validate:"required"`
 	ThenCall      string            `json:"thencall,omitempty"`
 	ElseCall      string            `json:"elsecall,omitempty"`
 	DoReturn      bool              `json:"doreturn,omitempty"`
@@ -90,9 +90,9 @@ type ruleActionBlock_t struct {
 	ReferenceType string            `json:"referencetype,omitempty"`
 }
 
-type rule_t struct {
-	RulePatterns []rulePatternBlock_t `json:"rulepattern"`
-	RuleActions  ruleActionBlock_t    `json:"ruleactions"`
+type Rule_t struct {
+	RulePatterns []RulePatternBlock_t `json:"rulepattern" validate:"required,dive"`
+	RuleActions  RuleActionBlock_t    `json:"ruleactions" validate:"required"`
 	NMatched     int32
 	NFailed      int32
 }
@@ -101,7 +101,7 @@ type Ruleset_t struct {
 	Id            int32    `json:"id"`
 	Class         string   `json:"class"`
 	SetName       string   `json:"setname"`
-	Rules         []rule_t `json:"rule"`
+	Rules         []Rule_t `json:"rule"`
 	NCalled       int32
 	ReferenceType string
 }

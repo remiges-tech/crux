@@ -24,26 +24,24 @@ type WorkflowListParams struct {
 	IsInternal bool
 }
 
-var realmName string
-
 // WorkflowList will be responsible for processing the /WorkflowList request that comes through as a POST
 func WorkflowList(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour
 	lh.Log("WorkflowList request received")
 
-	userID, err := server.ExtractUserNameFromJwt(c)
-	if err != nil {
-		lh.Info().Log("unable to extract userID from token")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
-		return
-	}
+	// userID, err := server.ExtractUserNameFromJwt(c)
+	// if err != nil {
+	// 	lh.Info().Log("unable to extract userID from token")
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+	// 	return
+	// }
 
-	realmName, err = server.ExtractRealmFromJwt(c)
-	if err != nil {
-		lh.Info().Log("unable to extract realm from token")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
-		return
-	}
+	// realmName, err := server.ExtractRealmFromJwt(c)
+	// if err != nil {
+	// 	lh.Info().Log("unable to extract realm from token")
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+	// 	return
+	// }
 
 	// implement the user realm and all here
 	var (
@@ -65,7 +63,7 @@ func WorkflowList(c *gin.Context, s *service.Service) {
 		dbResponse []sqlc.WorkflowListRow
 	)
 
-	err = wscutils.BindJSON(c, &request)
+	err := wscutils.BindJSON(c, &request)
 	if err != nil {
 		lh.Debug0().Error(err).Log("error while binding json request")
 		return

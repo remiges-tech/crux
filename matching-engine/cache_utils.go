@@ -60,7 +60,7 @@ func AddReferencesToRuleSetCache() {
 }
 
 func searchAndAddReferences(targetSetName string, cache map[realm_t]perRealm_t, realmKey realm_t,
-	sliceKey slice_t, sourceRule *Ruleset_t, calltype string, subRule rule_t) {
+	sliceKey slice_t, sourceRule *Ruleset_t, calltype string, subRule Rule_t) {
 	for _, perApp := range cache[realmKey] {
 		for otherSliceKey, perSlice := range perApp {
 			if otherSliceKey == sliceKey {

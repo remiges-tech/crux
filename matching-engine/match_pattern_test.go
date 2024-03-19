@@ -10,7 +10,7 @@ import (
 func TestMatchPattern(t *testing.T) {
 	var testNames []string
 	var entities []Entity
-	var rulePatterns []([]rulePatternBlock_t)
+	var rulePatterns []([]RulePatternBlock_t)
 	var resultsExpected []any
 
 	setupInventoryItemSchema()
@@ -20,7 +20,7 @@ func TestMatchPattern(t *testing.T) {
 	testNames = append(testNames, "everything matches")
 	entities = append(entities, sampleEntity)
 	//receivedTime, _ := time.Parse(timeLayout, "2018-05-15T12:00:00Z")
-	rulePatterns = append(rulePatterns, []rulePatternBlock_t{
+	rulePatterns = append(rulePatterns, []RulePatternBlock_t{
 		{"cat", opEQ, "textbook"},
 		{"fullname", opEQ, "Advanced Physics"},
 		{"ageinstock", opLE, 7},
@@ -35,7 +35,7 @@ func TestMatchPattern(t *testing.T) {
 	testNames = append(testNames, "mrp doesn't match")
 	entities = append(entities, sampleEntity)
 	receivedTime, _ := time.Parse(timeLayout, "2018-05-15T12:00:00Z")
-	rulePatterns = append(rulePatterns, []rulePatternBlock_t{
+	rulePatterns = append(rulePatterns, []RulePatternBlock_t{
 		{"cat", opEQ, "textbook"},
 		{"fullname", opEQ, "Advanced Physics"},
 		{"ageinstock", opLE, 7},
@@ -49,7 +49,7 @@ func TestMatchPattern(t *testing.T) {
 	// Test: bool "ne"
 	testNames = append(testNames, "bool ne")
 	entities = append(entities, sampleEntity)
-	rulePatterns = append(rulePatterns, []rulePatternBlock_t{
+	rulePatterns = append(rulePatterns, []RulePatternBlock_t{
 		{"bulkorder", opNE, true},
 	})
 	resultsExpected = append(resultsExpected, true)
@@ -57,7 +57,7 @@ func TestMatchPattern(t *testing.T) {
 	// Test: enum "ne"
 	testNames = append(testNames, "enum ne")
 	entities = append(entities, sampleEntity)
-	rulePatterns = append(rulePatterns, []rulePatternBlock_t{
+	rulePatterns = append(rulePatterns, []RulePatternBlock_t{
 		{"cat", opNE, "refbook"},
 	})
 	resultsExpected = append(resultsExpected, true)
@@ -65,7 +65,7 @@ func TestMatchPattern(t *testing.T) {
 	// Test: float "eq"
 	testNames = append(testNames, "float eq")
 	entities = append(entities, sampleEntity)
-	rulePatterns = append(rulePatterns, []rulePatternBlock_t{
+	rulePatterns = append(rulePatterns, []RulePatternBlock_t{
 		{"mrp", opEQ, 50.8},
 	})
 	resultsExpected = append(resultsExpected, true)
@@ -73,7 +73,7 @@ func TestMatchPattern(t *testing.T) {
 	// Test: float "ge"
 	testNames = append(testNames, "float ge")
 	entities = append(entities, sampleEntity)
-	rulePatterns = append(rulePatterns, []rulePatternBlock_t{
+	rulePatterns = append(rulePatterns, []RulePatternBlock_t{
 		{"mrp", opGE, 50.8},
 	})
 	resultsExpected = append(resultsExpected, true)
@@ -82,7 +82,7 @@ func TestMatchPattern(t *testing.T) {
 	testNames = append(testNames, "timestamp lt")
 	entities = append(entities, sampleEntity)
 	receivedTime, _ = time.Parse(timeLayout, "2018-06-10T15:04:05Z")
-	rulePatterns = append(rulePatterns, []rulePatternBlock_t{
+	rulePatterns = append(rulePatterns, []RulePatternBlock_t{
 		{"received", opLT, receivedTime},
 	})
 	resultsExpected = append(resultsExpected, true)
@@ -91,7 +91,7 @@ func TestMatchPattern(t *testing.T) {
 	testNames = append(testNames, "timestamp le")
 	entities = append(entities, sampleEntity)
 	receivedTime, _ = time.Parse(timeLayout, "2018-05-01T15:04:05Z")
-	rulePatterns = append(rulePatterns, []rulePatternBlock_t{
+	rulePatterns = append(rulePatterns, []RulePatternBlock_t{
 		{"received", opLE, receivedTime},
 	})
 	resultsExpected = append(resultsExpected, false)
@@ -99,7 +99,7 @@ func TestMatchPattern(t *testing.T) {
 	// Test: string "lt"
 	testNames = append(testNames, "string lt")
 	entities = append(entities, sampleEntity)
-	rulePatterns = append(rulePatterns, []rulePatternBlock_t{
+	rulePatterns = append(rulePatterns, []RulePatternBlock_t{
 		{"fullname", opLT, "Advanced Science"},
 	})
 	resultsExpected = append(resultsExpected, true)
@@ -107,7 +107,7 @@ func TestMatchPattern(t *testing.T) {
 	// Test: string "gt"
 	testNames = append(testNames, "string gt")
 	entities = append(entities, sampleEntity)
-	rulePatterns = append(rulePatterns, []rulePatternBlock_t{
+	rulePatterns = append(rulePatterns, []RulePatternBlock_t{
 		{"fullname", opGT, "Accelerated Physics"},
 	})
 	resultsExpected = append(resultsExpected, true)
@@ -115,7 +115,7 @@ func TestMatchPattern(t *testing.T) {
 	// Test: task wanted in pattern, found in action set
 	testNames = append(testNames, "tasks found in action set")
 	entities = append(entities, sampleEntity)
-	rulePatterns = append(rulePatterns, []rulePatternBlock_t{
+	rulePatterns = append(rulePatterns, []RulePatternBlock_t{
 		{"dodiscount", opEQ, true},
 		{"yearendsale", opNE, false},
 	})
@@ -124,7 +124,7 @@ func TestMatchPattern(t *testing.T) {
 	// Test: task wanted in pattern, but not found in action set
 	testNames = append(testNames, "task not in action set")
 	entities = append(entities, sampleEntity)
-	rulePatterns = append(rulePatterns, []rulePatternBlock_t{
+	rulePatterns = append(rulePatterns, []RulePatternBlock_t{
 		{"dodiscount", opEQ, true},
 		{"summersale", opEQ, true},
 	})
@@ -133,7 +133,7 @@ func TestMatchPattern(t *testing.T) {
 	// Test: task not wanted in pattern, and not found in action set
 	testNames = append(testNames, "task 'eq false' in pattern, and not in action set")
 	entities = append(entities, sampleEntity)
-	rulePatterns = append(rulePatterns, []rulePatternBlock_t{
+	rulePatterns = append(rulePatterns, []RulePatternBlock_t{
 		{"summersale", opEQ, false},
 	})
 	resultsExpected = append(resultsExpected, true)
@@ -141,7 +141,7 @@ func TestMatchPattern(t *testing.T) {
 	// Test: edge case - no rule pattern
 	testNames = append(testNames, "no rule pattern")
 	entities = append(entities, sampleEntity)
-	rulePatterns = append(rulePatterns, []rulePatternBlock_t{})
+	rulePatterns = append(rulePatterns, []RulePatternBlock_t{})
 	resultsExpected = append(resultsExpected, true)
 
 	// Test: error converting value
@@ -153,7 +153,7 @@ func TestMatchPattern(t *testing.T) {
 		},
 	})
 
-	rulePatterns = append(rulePatterns, []rulePatternBlock_t{
+	rulePatterns = append(rulePatterns, []RulePatternBlock_t{
 		{"ageinstock", opGT, 5},
 	})
 	resultsExpected = append(resultsExpected, nil)
@@ -161,7 +161,7 @@ func TestMatchPattern(t *testing.T) {
 	// Test: error - not an ordered type
 	testNames = append(testNames, "deliberate error: not an ordered type")
 	entities = append(entities, sampleEntity)
-	rulePatterns = append(rulePatterns, []rulePatternBlock_t{
+	rulePatterns = append(rulePatterns, []RulePatternBlock_t{
 		{"bulkorder", opGT, true},
 	})
 	resultsExpected = append(resultsExpected, nil)

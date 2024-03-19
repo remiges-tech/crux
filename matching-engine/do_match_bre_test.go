@@ -42,19 +42,19 @@ var sampleEntity = Entity{
 
 func testBasic(tests *[]doMatchTest) {
 
-	rule1 := rule_t{
+	rule1 := Rule_t{
 
-		RulePatterns: []rulePatternBlock_t{{"cat", opEQ, "textbook"}},
-		RuleActions: ruleActionBlock_t{
+		RulePatterns: []RulePatternBlock_t{{"cat", opEQ, "textbook"}},
+		RuleActions: RuleActionBlock_t{
 			Task:       []string{"yearendsale", "summersale"},
 			Properties: map[string]string{"cashback": "10", "discount": "9"},
 		},
 	}
 
-	rule2 := rule_t{
+	rule2 := Rule_t{
 
-		RulePatterns: []rulePatternBlock_t{{"cat", opEQ, "textbook"}},
-		RuleActions: ruleActionBlock_t{
+		RulePatterns: []RulePatternBlock_t{{"cat", opEQ, "textbook"}},
+		RuleActions: RuleActionBlock_t{
 			Task:       []string{"yearendsale", "summersale"},
 			Properties: map[string]string{"cashback": "10", "discount": "9"},
 		}}
@@ -63,7 +63,7 @@ func testBasic(tests *[]doMatchTest) {
 		Id:      1,
 		Class:   inventoryItemClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule1, rule2},
+		Rules:   []Rule_t{rule1, rule2},
 		NCalled: 0,
 	}
 
@@ -91,32 +91,32 @@ func testExit(tests *[]doMatchTest) {
 		NCalled: 0,
 	}
 
-	rs.Rules = []rule_t{
+	rs.Rules = []Rule_t{
 		{
-			RulePatterns: []rulePatternBlock_t{{"cat", opEQ, "refbook"}},
-			RuleActions: ruleActionBlock_t{
+			RulePatterns: []RulePatternBlock_t{{"cat", opEQ, "refbook"}},
+			RuleActions: RuleActionBlock_t{
 				Task:       []string{"springsale"},
 				Properties: map[string]string{"cashback": "15"},
 			}, // no match
 		},
 		{
-			RulePatterns: []rulePatternBlock_t{{"ageinstock", opLT, 7}, {"cat", opEQ, "textbook"}},
-			RuleActions: ruleActionBlock_t{
+			RulePatterns: []RulePatternBlock_t{{"ageinstock", opLT, 7}, {"cat", opEQ, "textbook"}},
+			RuleActions: RuleActionBlock_t{
 				Task:       []string{"yearendsale", "summersale"},
 				Properties: map[string]string{"discount": "10", "freegift": "mug"},
 			}, // match
 		},
 		{
-			RulePatterns: []rulePatternBlock_t{{"summersale", opEQ, true}},
-			RuleActions: ruleActionBlock_t{
+			RulePatterns: []RulePatternBlock_t{{"summersale", opEQ, true}},
+			RuleActions: RuleActionBlock_t{
 				Task:       []string{"wintersale"},
 				Properties: map[string]string{"discount": "15"},
 				DoExit:     true,
 			}, // match then exit
 		},
 		{
-			RulePatterns: []rulePatternBlock_t{{"ageinstock", opLT, 7}},
-			RuleActions: ruleActionBlock_t{
+			RulePatterns: []RulePatternBlock_t{{"ageinstock", opLT, 7}},
+			RuleActions: RuleActionBlock_t{
 				Task: []string{"autumnsale"},
 			}, // ignored
 		},
@@ -143,22 +143,22 @@ func testReturn(tests *[]doMatchTest) {
 		NCalled: 0,
 	}
 
-	rs.Rules = []rule_t{
+	rs.Rules = []Rule_t{
 		{
-			RulePatterns: []rulePatternBlock_t{{"ageinstock", opLT, 7}, {"cat", opEQ, "textbook"}},
-			RuleActions: ruleActionBlock_t{
+			RulePatterns: []RulePatternBlock_t{{"ageinstock", opLT, 7}, {"cat", opEQ, "textbook"}},
+			RuleActions: RuleActionBlock_t{
 				Task:       []string{"yearendsale", "summersale"},
 				Properties: map[string]string{"discount": "10", "freegift": "mug"},
 			}, // match then exit
 
 		},
 		{
-			RulePatterns: []rulePatternBlock_t{{"summersale", opEQ, true}},
-			RuleActions:  ruleActionBlock_t{Task: []string{"springsale"}, Properties: map[string]string{"discount": "15"}, DoReturn: true}, // match then return
+			RulePatterns: []RulePatternBlock_t{{"summersale", opEQ, true}},
+			RuleActions:  RuleActionBlock_t{Task: []string{"springsale"}, Properties: map[string]string{"discount": "15"}, DoReturn: true}, // match then return
 		},
 		{
-			RulePatterns: []rulePatternBlock_t{{"ageinstock", opLT, 7}},
-			RuleActions:  ruleActionBlock_t{Task: []string{"autumnsale"}}, // ignored
+			RulePatterns: []RulePatternBlock_t{{"ageinstock", opLT, 7}},
+			RuleActions:  RuleActionBlock_t{Task: []string{"autumnsale"}}, // ignored
 		},
 	}
 
@@ -218,41 +218,41 @@ func setupRuleSetsForTransaction() {
 }
 
 func setupRuleSetMainForTransaction() *Ruleset_t {
-	rule1 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule1 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"inwintersale", opEQ, true},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			ThenCall: "winterdisc",
 			ElseCall: "regulardisc",
 		},
 	}
-	rule2 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule2 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"paymenttype", opEQ, "cash"},
 			{"price", opGT, 10},
 		},
-		RuleActions: ruleActionBlock_t{Task: []string{"freepen"}},
+		RuleActions: RuleActionBlock_t{Task: []string{"freepen"}},
 	}
-	rule3 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule3 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"paymenttype", opEQ, "card"},
 			{"price", opGT, 10},
 		},
-		RuleActions: ruleActionBlock_t{Task: []string{"freemug"}},
+		RuleActions: RuleActionBlock_t{Task: []string{"freemug"}},
 	}
-	rule4 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule4 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"freehat", opEQ, true},
 		},
-		RuleActions: ruleActionBlock_t{Task: []string{"freebag"}},
+		RuleActions: RuleActionBlock_t{Task: []string{"freebag"}},
 	}
 
 	rs := Ruleset_t{
 		Id:      1,
 		Class:   inventoryItemClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule1, rule2, rule3, rule4},
+		Rules:   []Rule_t{rule1, rule2, rule3, rule4},
 		NCalled: 0,
 	}
 	return &rs
@@ -261,31 +261,31 @@ func setupRuleSetMainForTransaction() *Ruleset_t {
 
 func setupRuleSetWinterDisc() {
 
-	rule1 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule1 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"productname", opEQ, "jacket"},
 			{"price", opGT, 50},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 
 			Task:       []string{"freehat", "freemug", "freebag"},
 			Properties: map[string]string{"discount": "50"},
 			DoReturn:   true,
 		},
 	}
-	rule2 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule2 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"price", opLT, 100},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{"discount": "40", "pointsmult": "2"},
 		},
 	}
-	rule3 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule3 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"price", opGE, 100},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{"discount": "45", "pointsmult": "3"},
 		},
 	}
@@ -294,7 +294,7 @@ func setupRuleSetWinterDisc() {
 		Id:      1,
 		Class:   inventoryItemClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule1, rule2, rule3},
+		Rules:   []Rule_t{rule1, rule2, rule3},
 		NCalled: 0,
 	}
 
@@ -304,11 +304,11 @@ func setupRuleSetWinterDisc() {
 
 func setupRuleSetRegularDisc() {
 
-	rule1 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule1 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"ismember", opEQ, true},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			ThenCall: "memberdisc",
 			ElseCall: "nonmemberdisc",
 		},
@@ -318,7 +318,7 @@ func setupRuleSetRegularDisc() {
 		Id:      1,
 		Class:   inventoryItemClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule1},
+		Rules:   []Rule_t{rule1},
 		NCalled: 0,
 	}
 
@@ -328,29 +328,29 @@ func setupRuleSetRegularDisc() {
 
 func setupRuleSetMemberDisc() {
 
-	rule1 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule1 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"productname", opEQ, "lamp"},
 			{"price", opGT, 50},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{"discount": "35", "pointsmult": "2"},
 			DoExit:     true,
 		},
 	}
-	rule2 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule2 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"price", opLT, 100},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{"discount": "20"},
 		},
 	}
-	rule3 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule3 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"price", opGE, 100},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{"discount": "25"},
 		},
 	}
@@ -359,7 +359,7 @@ func setupRuleSetMemberDisc() {
 		Id:      1,
 		Class:   transactionClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule1, rule2, rule3},
+		Rules:   []Rule_t{rule1, rule2, rule3},
 		NCalled: 0,
 	}
 
@@ -369,27 +369,27 @@ func setupRuleSetMemberDisc() {
 
 func setupRuleSetNonMemberDisc() {
 
-	rule1 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule1 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"price", opLT, 50},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{"discount": "5"},
 		},
 	}
-	rule2 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule2 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"price", opGE, 50},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{"discount": "10"},
 		},
 	}
-	rule3 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule3 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"price", opGE, 100},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{"discount": "15"},
 		},
 	}
@@ -398,7 +398,7 @@ func setupRuleSetNonMemberDisc() {
 		Id:      1,
 		Class:   transactionClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule1, rule2, rule3},
+		Rules:   []Rule_t{rule1, rule2, rule3},
 		NCalled: 0,
 	}
 
@@ -410,12 +410,12 @@ func testWinterDiscJacket60(tests *[]doMatchTest) {
 
 	ruleSetsTests = []*Ruleset_t{}
 
-	rule1 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule1 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"productname", opEQ, "jacket"},
 			{"price", opGT, 50},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 
 			Task:       []string{"freehat", "freemug", "freebag"},
 			Properties: map[string]string{"discount": "50"},
@@ -426,7 +426,7 @@ func testWinterDiscJacket60(tests *[]doMatchTest) {
 		Id:      1,
 		Class:   inventoryItemClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule1},
+		Rules:   []Rule_t{rule1},
 		NCalled: 0,
 	}
 
@@ -478,12 +478,12 @@ func testWinterDiscJacket40(tests *[]doMatchTest) {
 		},
 	}
 
-	rule1 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule1 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"productname", opEQ, "jacket"},
 			{"price", opGT, 50},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 
 			Task:       []string{"freemug"},
 			Properties: map[string]string{"discount": "40", "pointsmult": "2"},
@@ -494,7 +494,7 @@ func testWinterDiscJacket40(tests *[]doMatchTest) {
 		Id:      1,
 		Class:   inventoryItemClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule1},
+		Rules:   []Rule_t{rule1},
 		NCalled: 0,
 	}
 
@@ -531,12 +531,12 @@ func testWinterDiscKettle110Cash(tests *[]doMatchTest) {
 		},
 	}
 
-	rule1 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule1 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"productname", opEQ, "kettle"},
 			{"price", opGT, 50},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 
 			Task:       []string{"freepen"},
 			Properties: map[string]string{"discount": "45", "pointsmult": "3"},
@@ -547,7 +547,7 @@ func testWinterDiscKettle110Cash(tests *[]doMatchTest) {
 		Id:      1,
 		Class:   transactionClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule1},
+		Rules:   []Rule_t{rule1},
 		NCalled: 0,
 	}
 
@@ -584,12 +584,12 @@ func testWinterDiscKettle110Card(tests *[]doMatchTest) {
 		},
 	}
 
-	rule1 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule1 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"productname", opEQ, "kettle"},
 			{"price", opGT, 50},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 
 			Task:       []string{"freemug"},
 			Properties: map[string]string{"discount": "45", "pointsmult": "3"},
@@ -600,7 +600,7 @@ func testWinterDiscKettle110Card(tests *[]doMatchTest) {
 		Id:      1,
 		Class:   inventoryItemClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule1},
+		Rules:   []Rule_t{rule1},
 		NCalled: 0,
 	}
 
@@ -636,12 +636,12 @@ func testMemberDiscLamp60(tests *[]doMatchTest) {
 			"ismember":     trueStr,
 		},
 	}
-	rule1 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule1 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"productname", opEQ, "lamp"},
 			{"price", opGT, 50},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 
 			Task:       []string{},
 			Properties: map[string]string{"discount": "35", "pointsmult": "2"},
@@ -652,7 +652,7 @@ func testMemberDiscLamp60(tests *[]doMatchTest) {
 		Id:      1,
 		Class:   inventoryItemClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule1},
+		Rules:   []Rule_t{rule1},
 		NCalled: 0,
 	}
 
@@ -688,12 +688,12 @@ func testMemberDiscKettle60Card(tests *[]doMatchTest) {
 		},
 	}
 
-	rule1 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule1 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"productname", opEQ, "kettle"},
 			{"price", opGT, 50},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 
 			Task:       []string{"freemug"},
 			Properties: map[string]string{"discount": "35"},
@@ -704,7 +704,7 @@ func testMemberDiscKettle60Card(tests *[]doMatchTest) {
 		Id:      1,
 		Class:   inventoryItemClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule1},
+		Rules:   []Rule_t{rule1},
 		NCalled: 0,
 	}
 	ruleSetsTests = append(ruleSetsTests, &rs)
@@ -742,12 +742,12 @@ func testMemberDiscKettle60Cash(tests *[]doMatchTest) {
 		},
 	}
 
-	rule1 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule1 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"productname", opEQ, "kettle"},
 			{"price", opGT, 50},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 
 			Task:       []string{"freepen"},
 			Properties: map[string]string{"discount": "20"},
@@ -758,7 +758,7 @@ func testMemberDiscKettle60Cash(tests *[]doMatchTest) {
 		Id:      1,
 		Class:   inventoryItemClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule1},
+		Rules:   []Rule_t{rule1},
 		NCalled: 0,
 	}
 
@@ -794,12 +794,12 @@ func testMemberDiscKettle110Card(tests *[]doMatchTest) {
 			"ismember":     trueStr,
 		},
 	}
-	rule1 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule1 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"productname", opEQ, "kettle"},
 			{"price", opGT, 50},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 
 			Task:       []string{"freemug"},
 			Properties: map[string]string{"discount": "25"},
@@ -810,7 +810,7 @@ func testMemberDiscKettle110Card(tests *[]doMatchTest) {
 		Id:      1,
 		Class:   transactionClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule1},
+		Rules:   []Rule_t{rule1},
 		NCalled: 0,
 	}
 
@@ -846,12 +846,12 @@ func testMemberDiscKettle110Cash(tests *[]doMatchTest) {
 			"ismember":     trueStr,
 		},
 	}
-	rule1 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule1 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"productname", opEQ, "kettle"},
 			{"price", opGT, 50},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 
 			Task:       []string{"freepen"},
 			Properties: map[string]string{"discount": "25"},
@@ -862,7 +862,7 @@ func testMemberDiscKettle110Cash(tests *[]doMatchTest) {
 		Id:      1,
 		Class:   transactionClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule1},
+		Rules:   []Rule_t{rule1},
 		NCalled: 0,
 	}
 
@@ -897,12 +897,12 @@ func testNonMemberDiscLamp30(tests *[]doMatchTest) {
 			"ismember":     falseStr,
 		},
 	}
-	rule1 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule1 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"productname", opEQ, "lamp"},
 			{"price", opGT, 25},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 
 			Task:       []string{"freepen"},
 			Properties: map[string]string{"discount": "5"},
@@ -913,7 +913,7 @@ func testNonMemberDiscLamp30(tests *[]doMatchTest) {
 		Id:      1,
 		Class:   transactionClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule1},
+		Rules:   []Rule_t{rule1},
 		NCalled: 0,
 	}
 	ruleSetsTests = append(ruleSetsTests, &rs)
@@ -949,12 +949,12 @@ func testNonMemberDiscKettle70(tests *[]doMatchTest) {
 			"ismember":     falseStr,
 		},
 	}
-	rule1 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule1 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"productname", opEQ, "kettle"},
 			{"price", opGT, 25},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 
 			Task:       []string{"freepen"},
 			Properties: map[string]string{"discount": "10"},
@@ -965,7 +965,7 @@ func testNonMemberDiscKettle70(tests *[]doMatchTest) {
 		Id:      1,
 		Class:   transactionClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule1},
+		Rules:   []Rule_t{rule1},
 		NCalled: 0,
 	}
 	ruleSetsTests = append(ruleSetsTests, &rs)
@@ -1002,12 +1002,12 @@ func testNonMemberDiscKettle110Cash(tests *[]doMatchTest) {
 			"ismember":     falseStr,
 		},
 	}
-	rule1 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule1 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"productname", opEQ, "kettle"},
 			{"price", opGT, 25},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 
 			Task:       []string{"freepen"},
 			Properties: map[string]string{"discount": "15"},
@@ -1018,7 +1018,7 @@ func testNonMemberDiscKettle110Cash(tests *[]doMatchTest) {
 		Id:      1,
 		Class:   transactionClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule1},
+		Rules:   []Rule_t{rule1},
 		NCalled: 0,
 	}
 	ruleSetsTests = append(ruleSetsTests, &rs)
@@ -1054,12 +1054,12 @@ func testNonMemberDiscKettle110Card(tests *[]doMatchTest) {
 			"ismember":     falseStr,
 		},
 	}
-	rule1 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule1 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"productname", opEQ, "kettle"},
 			{"price", opGT, 25},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 
 			Task:       []string{"freemug"},
 			Properties: map[string]string{"discount": "15"},
@@ -1070,7 +1070,7 @@ func testNonMemberDiscKettle110Card(tests *[]doMatchTest) {
 		Id:      1,
 		Class:   transactionClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule1},
+		Rules:   []Rule_t{rule1},
 		NCalled: 0,
 	}
 	ruleSetsTests = append(ruleSetsTests, &rs)
@@ -1608,107 +1608,107 @@ func testOven55(tests *[]doMatchTest) {
 }
 
 func setupRuleSetForPurchases() *Ruleset_t {
-	rule1 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule1 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"product", opEQ, "jacket"},
 			{"price", opGT, 30.0},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Task:       []string{"freepen", "freebottle", "freepencil"},
 			Properties: map[string]string{"discount": "5"},
 		},
 	}
-	rule2 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule2 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"product", opEQ, "jacket"},
 			{"price", opGT, 50.0},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{"discount": "10"},
 		},
 	}
-	rule3 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule3 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"product", opEQ, "jacket"},
 			{"price", opGT, 70.0},
 			{"ismember", opEQ, true},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{"discount": "15", "pointsmult": "2"},
 		},
 	}
-	rule4 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule4 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"product", opEQ, "lamp"},
 			{"price", opGT, 30.0},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Task:       []string{"freemug", "freejar", "freeplant"},
 			Properties: map[string]string{"discount": "20"},
 		},
 	}
-	rule5 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule5 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"product", opEQ, "lamp"},
 			{"price", opGT, 50.0},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{"discount": "25"},
 		},
 	}
-	rule6 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule6 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"product", opEQ, "lamp"},
 			{"price", opGT, 70.0},
 			{"ismember", opEQ, true},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{"discount": "30", "pointsmult": "3"},
 			DoExit:     true,
 		},
 	}
-	rule7 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule7 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"product", opEQ, "kettle"},
 			{"price", opGT, 30.0},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{"discount": "35"},
 		},
 	}
-	rule8 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule8 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"product", opEQ, "kettle"},
 			{"price", opGT, 50.0},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{"discount": "40"},
 		},
 	}
-	rule9 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule9 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"product", opEQ, "kettle"},
 			{"price", opGT, 70.0},
 			{"ismember", opEQ, true},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{"discount": "45", "pointsmult": "4"},
 			DoReturn:   true,
 		},
 	}
-	rule10 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule10 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"freemug", opEQ, true},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Task: []string{"freebag"},
 		},
 	}
-	rule11 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule11 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"price", opGT, 50.0},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Task: []string{"freenotebook"},
 		},
 	}
@@ -1717,7 +1717,7 @@ func setupRuleSetForPurchases() *Ruleset_t {
 		Id:      1,
 		Class:   purchaseClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule1, rule2, rule3, rule4, rule5, rule6, rule7, rule8, rule9, rule10, rule11},
+		Rules:   []Rule_t{rule1, rule2, rule3, rule4, rule5, rule6, rule7, rule8, rule9, rule10, rule11},
 		NCalled: 0,
 	}
 
@@ -1742,28 +1742,28 @@ func testOrders(tests *[]doMatchTest) {
 }
 
 func setupRuleSetMainForOrder() *Ruleset_t {
-	rule1 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule1 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"ordertype", opEQ, "purchase"},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			ThenCall: "purchaseorsip",
 		},
 	}
-	rule2 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule2 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"ordertype", opEQ, "sip"},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			ThenCall: "purchaseorsip",
 		},
 	}
-	rule3 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule3 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"ordertype", opNE, "purchase"},
 			{"ordertype", opNE, "sip"},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{"amfiordercutoff": "1500", "bseordercutoff": "1500"},
 			ThenCall:   "otherordertypes",
 		},
@@ -1773,27 +1773,27 @@ func setupRuleSetMainForOrder() *Ruleset_t {
 		Id:      1,
 		Class:   orderClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule1, rule2, rule3},
+		Rules:   []Rule_t{rule1, rule2, rule3},
 		NCalled: 0,
 	}
 	return &rs
 }
 
 func setupRuleSetPurchaseOrSIPForOrder() *Ruleset_t {
-	rule1 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule1 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"liquidscheme", opEQ, false},
 			{"overnightscheme", opEQ, false},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{"amfiordercutoff": "1500", "bseordercutoff": "1430",
 				"fundscutoff": "1430"},
 			DoReturn: true,
 		},
 	}
-	rule2 := rule_t{
-		RulePatterns: []rulePatternBlock_t{},
-		RuleActions: ruleActionBlock_t{
+	rule2 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{},
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{"amfiordercutoff": "1330", "bseordercutoff": "1300",
 				"fundscutoff": "1230"},
 		},
@@ -1803,7 +1803,7 @@ func setupRuleSetPurchaseOrSIPForOrder() *Ruleset_t {
 		Id:      1,
 		Class:   orderClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule1, rule2},
+		Rules:   []Rule_t{rule1, rule2},
 		NCalled: 0,
 	}
 
@@ -1812,29 +1812,29 @@ func setupRuleSetPurchaseOrSIPForOrder() *Ruleset_t {
 
 func setupRuleSetOtherOrderTypesForOrder() {
 
-	rule1 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule1 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"mode", opEQ, "physical"},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Task: []string{"unitstoamc", "unitstorta"},
 		},
 	}
-	rule2 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule2 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"mode", opEQ, "demat"},
 			{"extendedhours", opEQ, false},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{"unitscutoff": "1630"},
 		},
 	}
-	rule3 := rule_t{
-		RulePatterns: []rulePatternBlock_t{
+	rule3 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{
 			{"mode", opEQ, "demat"},
 			{"extendedhours", opEQ, true},
 		},
-		RuleActions: ruleActionBlock_t{
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{"unitscutoff": "1730"},
 		},
 	}
@@ -1843,7 +1843,7 @@ func setupRuleSetOtherOrderTypesForOrder() {
 		Id:      1,
 		Class:   orderClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule1, rule2, rule3},
+		Rules:   []Rule_t{rule1, rule2, rule3},
 		NCalled: 0,
 	}
 
@@ -1866,9 +1866,9 @@ func testSIPOrder(tests *[]doMatchTest) {
 		},
 	}
 
-	rule2 := rule_t{
-		RulePatterns: []rulePatternBlock_t{},
-		RuleActions: ruleActionBlock_t{
+	rule2 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{},
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{"amfiordercutoff": "1500", "bseordercutoff": "1430",
 				"fundscutoff": "1430"},
 		},
@@ -1878,7 +1878,7 @@ func testSIPOrder(tests *[]doMatchTest) {
 		Id:      1,
 		Class:   orderClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule2},
+		Rules:   []Rule_t{rule2},
 		NCalled: 0,
 	}
 
@@ -1915,9 +1915,9 @@ func testSwitchDematOrder(tests *[]doMatchTest) {
 		},
 	}
 
-	rule2 := rule_t{
-		RulePatterns: []rulePatternBlock_t{},
-		RuleActions: ruleActionBlock_t{
+	rule2 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{},
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{"amfiordercutoff": "1500", "bseordercutoff": "1500",
 				"unitscutoff": "1630"},
 		},
@@ -1927,7 +1927,7 @@ func testSwitchDematOrder(tests *[]doMatchTest) {
 		Id:      1,
 		Class:   orderClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule2},
+		Rules:   []Rule_t{rule2},
 		NCalled: 0,
 	}
 
@@ -1962,9 +1962,9 @@ func testSwitchDematExtHours(tests *[]doMatchTest) {
 			"extendedhours":   trueStr,
 		},
 	}
-	rule2 := rule_t{
-		RulePatterns: []rulePatternBlock_t{},
-		RuleActions: ruleActionBlock_t{
+	rule2 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{},
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{"amfiordercutoff": "1500", "bseordercutoff": "1500",
 				"unitscutoff": "1730"},
 		},
@@ -1974,7 +1974,7 @@ func testSwitchDematExtHours(tests *[]doMatchTest) {
 		Id:      1,
 		Class:   orderClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule2},
+		Rules:   []Rule_t{rule2},
 		NCalled: 0,
 	}
 
@@ -2010,9 +2010,9 @@ func testRedemptionDematExtHours(tests *[]doMatchTest) {
 			"extendedhours":   trueStr,
 		},
 	}
-	rule2 := rule_t{
-		RulePatterns: []rulePatternBlock_t{},
-		RuleActions: ruleActionBlock_t{
+	rule2 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{},
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{"amfiordercutoff": "1500", "bseordercutoff": "1500",
 				"unitscutoff": "1730"},
 		},
@@ -2022,7 +2022,7 @@ func testRedemptionDematExtHours(tests *[]doMatchTest) {
 		Id:      1,
 		Class:   orderClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule2},
+		Rules:   []Rule_t{rule2},
 		NCalled: 0,
 	}
 
@@ -2057,9 +2057,9 @@ func testPurchaseOvernightOrder(tests *[]doMatchTest) {
 			"extendedhours":   falseStr,
 		},
 	}
-	rule2 := rule_t{
-		RulePatterns: []rulePatternBlock_t{},
-		RuleActions: ruleActionBlock_t{
+	rule2 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{},
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{"amfiordercutoff": "1330", "bseordercutoff": "1300",
 				"fundscutoff": "1230"},
 		},
@@ -2069,7 +2069,7 @@ func testPurchaseOvernightOrder(tests *[]doMatchTest) {
 		Id:      1,
 		Class:   orderClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule2},
+		Rules:   []Rule_t{rule2},
 		NCalled: 0,
 	}
 
@@ -2104,9 +2104,9 @@ func testSIPLiquidOrder(tests *[]doMatchTest) {
 			"extendedhours":   falseStr,
 		},
 	}
-	rule2 := rule_t{
-		RulePatterns: []rulePatternBlock_t{},
-		RuleActions: ruleActionBlock_t{
+	rule2 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{},
+		RuleActions: RuleActionBlock_t{
 			Properties: map[string]string{"amfiordercutoff": "1330", "bseordercutoff": "1300",
 				"fundscutoff": "1230"},
 		},
@@ -2116,7 +2116,7 @@ func testSIPLiquidOrder(tests *[]doMatchTest) {
 		Id:      1,
 		Class:   orderClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule2},
+		Rules:   []Rule_t{rule2},
 		NCalled: 0,
 	}
 	ruleSetsTests = append(ruleSetsTests, &rs)
@@ -2154,9 +2154,9 @@ func testSwitchPhysicalOrder(tests *[]doMatchTest) {
 		},
 	}
 
-	rule2 := rule_t{
-		RulePatterns: []rulePatternBlock_t{},
-		RuleActions: ruleActionBlock_t{
+	rule2 := Rule_t{
+		RulePatterns: []RulePatternBlock_t{},
+		RuleActions: RuleActionBlock_t{
 			Task:       []string{},
 			Properties: map[string]string{},
 		},
@@ -2166,7 +2166,7 @@ func testSwitchPhysicalOrder(tests *[]doMatchTest) {
 		Id:      1,
 		Class:   orderClass,
 		SetName: mainRS,
-		Rules:   []rule_t{rule2},
+		Rules:   []Rule_t{rule2},
 		NCalled: 0,
 	}
 	ruleSetsTests = append(ruleSetsTests, &rs)

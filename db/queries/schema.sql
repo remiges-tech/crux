@@ -10,15 +10,16 @@ VALUES (
 -- name: SchemaUpdate :exec
 UPDATE schema
 SET
-    brwf = $4,
-    patternschema = $5,
-    actionschema = $6,
+    brwf = $5,
+    patternschema = $6,
+    actionschema = $7,
     editedat = CURRENT_TIMESTAMP,
-    editedby = $7
+    editedby = $8
 WHERE
-    slice = $1
-    AND class = $2
-    AND app = $3;
+    realm = $1
+    AND slice = $2
+    AND class = $3
+    AND app = $4;
 
 -- name: GetSchemaWithLock :one
 SELECT
@@ -30,70 +31,16 @@ SELECT
     editedby
 FROM schema
 WHERE
-    slice = $1
-    AND class = $2
-    AND app = $3 FOR
+    realm = $1
+    AND slice = $2
+    AND class = $3
+    AND app = $4 FOR
 UPDATE;
 
 -- name: SchemaDelete :one
 DELETE FROM schema WHERE id = $1 RETURNING id;
 
--- name: SchemaList :many
-SELECT schema.slice, realmslice.descr, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
-FROM schema
-    JOIN app ON schema.app = app.shortname
-    JOIN realmslice on schema.slice = realmslice.id;
 
--- name: SchemaListByApp :many
-SELECT schema.slice, realmslice.descr, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
-FROM schema
-    JOIN app ON schema.app = app.shortname
-    JOIN realmslice on schema.slice = realmslice.id
-WHERE
-    app = $1;
-
--- name: SchemaListByClass :many
-SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
-FROM schema
-    JOIN app ON schema.app = app.shortname
-    JOIN realmslice on schema.slice = realmslice.id
-WHERE
-    class = $1;
-
--- name: SchemaListBySlice :many
-SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
-FROM schema
-    JOIN app ON schema.app = app.shortname
-    JOIN realmslice on schema.slice = realmslice.id
-WHERE
-    slice = $1;
-
--- name: SchemaListByAppAndClass :many
-SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
-FROM schema
-    JOIN app ON schema.app = app.shortname
-    JOIN realmslice on schema.slice = realmslice.id
-WHERE
-    app = $1
-    AND class = $2;
-
--- name: SchemaListByAppAndSlice :many
-SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
-FROM schema
-    JOIN app ON schema.app = app.shortname
-    JOIN realmslice on schema.slice = realmslice.id
-WHERE
-    app = $1
-    AND slice = $2;
-
--- name: SchemaListByClassAndSlice :many
-SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
-FROM schema
-    JOIN app ON schema.app = app.shortname
-    JOIN realmslice on schema.slice = realmslice.id
-WHERE
-    class = $1
-    AND slice = $2;
 
 -- name: SchemaGet :many
 SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
@@ -101,9 +48,10 @@ FROM schema
     JOIN app ON schema.app = app.shortname
     JOIN realmslice on schema.slice = realmslice.id
 WHERE
-    slice = $1
-    AND class = $2
-    AND app = $3;
+    schema.realm = $1
+    AND schema.slice = $2
+    AND schema.class = $3
+    AND schema.app = $4;
 
 -- name: Wfschemaget :one
 SELECT s.slice, s.app, s.class, rm.longname, s.patternschema, s.actionschema, s.createdat, s.createdby, s.editedat, s.editedby
@@ -150,18 +98,21 @@ where
 SELECT patternschema
 FROM public.schema
 WHERE
-    slice = $1
-    AND class = $2
-    AND app = $3
-    AND realm = $4
+    realm = $1
+    AND slice = $2
+    AND class = $3
+    AND app = $4
+    AND realm = $5
     AND brwf = 'W';
+
 -- name: WfSchemaGet :one
 SELECT *
 FROM public.schema
 WHERE
-    slice = $1
-    AND class = $2
-    AND app = $3;
+    realm = $1
+    AND slice = $2
+    AND class = $3
+    AND app = $4;
 
 -- name: WfSchemaList :many
 SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat

@@ -2,7 +2,7 @@
 
 package crux
 
-func collectActions(actionSet ActionSet, ruleActions ruleActionBlock_t) ActionSet {
+func collectActions(actionSet ActionSet, ruleActions RuleActionBlock_t) ActionSet {
 
 	newActionSet := ActionSet{
 		tasks:      []string{},
