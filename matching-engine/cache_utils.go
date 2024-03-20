@@ -11,10 +11,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/remiges-tech/crux/db/sqlc-gen"
+	"github.com/jackc/pgx/v5/pgtype"
+
+	sqlc "github.com/remiges-tech/crux/matching-engine/db/sqlc-gen"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+var queryDbq sqlc.DBQuerier
 
 func lockCache() {
 	cacheLock.Lock()
@@ -373,6 +377,11 @@ func retriveRuleSchemasAndRuleSetsFromCache(realm string, app string, class stri
 	return ruleSchemas, ruleSets
 
 }
+func retriveRuleSetsFromCache(realm string, app string, class string, slice string) *Ruleset_t {
+	s, _ := strconv.Atoi(slice)
+	ruleSets, _ := retrieveRuleSetsFromCache(realm, app, class, s)
+	return ruleSets[0]
+}
 func printStats(statsData rulesetStats_t) {
 	for realm, perRealm := range statsData {
 		for app, perApp := range perRealm {
@@ -412,4 +421,139 @@ func printStats(statsData rulesetStats_t) {
 			}
 		}
 	}
+}
+
+func deleteWFInstance(entity markdone_t) error {
+	sliceInt, err := strconv.Atoi(entity.Entity.slice)
+	if err != nil {
+		log.Fatal("Failed to convert string to int32:", err)
+	}
+	id := strconv.Itoa(int(entity.Id))
+	params := sqlc.DeleteWFInstancesParams{
+		Slice:    int32(sliceInt),
+		App:      entity.Entity.app,
+		Entityid: id,
+	}
+	return queryDbq.DeleteWFInstances(context.Background(), params)
+}
+
+func createFreshRecord(entity markdone_t, setname, task string, properties map[string]string) ([]sqlc.AddWFNewInstancesRow, error) {
+	sliceInt, err := strconv.Atoi(entity.Entity.slice)
+	if err != nil {
+		log.Fatal("Failed to convert string to int32:", err)
+		return nil, err
+	}
+	id := strconv.Itoa(int(entity.Id))
+
+	steps := make([]string, len(entity.Step))
+	for i, step := range entity.Step {
+		steps[i] = string(step)
+	}
+
+	parent := &pgtype.Int4{} // Ensure parent is of type pgx/v5/pgtype.Int4
+	parent.Int32 = entity.Id
+
+	params := sqlc.AddWFNewInstancesParams{
+		Entityid: id,
+		Slice:    int32(sliceInt),
+		App:      entity.Entity.app,
+		Class:    entity.Entity.class,
+		Workflow: setname, // read from the cache ruleset
+		Step:     steps,
+		Nextstep: properties[nextStep],
+		Parent:   *parent, // Dereference parent when assigning
+	}
+
+	return queryDbq.AddWFNewInstances(context.Background(), params)
+}
+
+func GetWorkFlowInstance(entity markdone_t, workflowname string) (int64, error) {
+	sliceInt, err := strconv.Atoi(entity.Entity.slice)
+	if err != nil {
+		log.Fatal("Failed to convert string to int32:", err)
+		return -1, err
+	}
+	id := strconv.Itoa(int(entity.Id))
+	params := sqlc.GetWFInstanceCountsParams{
+		Slice:    int32(sliceInt),
+		App:      entity.Entity.app,
+		Workflow: workflowname,
+		Entityid: id,
+	}
+	return queryDbq.GetWFInstanceCounts(context.Background(), params)
+
+}
+func UpdateWFInstanceStep(entity markdone_t, step string) error {
+
+	sliceInt, err := strconv.Atoi(entity.Entity.slice)
+	if err != nil {
+		log.Fatal("Failed to convert string to int32:", err)
+		return err
+	}
+	id := strconv.Itoa(int(entity.Id))
+	params := sqlc.UpdateWFInstanceStepParams{
+		Slice:    int32(sliceInt),
+		App:      entity.Entity.app,
+		Entityid: id,
+		Step:     step,
+	}
+
+	return queryDbq.UpdateWFInstanceStep(context.Background(), params)
+
+}
+func UpdateWFInstanceDoneAt(entity markdone_t, t time.Time, wf string) error {
+
+	sliceInt, err := strconv.Atoi(entity.Entity.slice)
+	if err != nil {
+		log.Fatal("Failed to convert string to int32:", err)
+		return err
+	}
+	id := strconv.Itoa(int(entity.Id))
+	params := sqlc.UpdateWFInstanceDoneatParams{
+		Doneat:   pgtype.Timestamp{Time: t},
+		Entityid: id,
+		Slice:    int32(sliceInt),
+		App:      entity.Entity.app,
+		Workflow: wf,
+	}
+
+	return queryDbq.UpdateWFInstanceDoneat(context.Background(), params)
+
+}
+
+func getWFInstanceList(entity markdone_t, wf string) ([]sqlc.Wfinstance, error) {
+
+	sliceInt, err := strconv.Atoi(entity.Entity.slice)
+	if err != nil {
+		log.Fatal("Failed to convert string to int32:", err)
+		return nil, err
+	}
+	id := strconv.Itoa(int(entity.Id))
+	parent := &pgtype.Int4{} // Ensure parent is of type pgx/v5/pgtype.Int4
+	parent.Int32 = entity.Id
+	params := sqlc.GetWFInstanceListParams{
+		Entityid: id,
+		Slice:    int32(sliceInt),
+		App:      entity.Entity.app,
+		Workflow: wf,
+		Parent:   *parent,
+	}
+	return queryDbq.GetWFInstanceList(context.Background(), params)
+}
+func getCurrentWFINstance(entity markdone_t, wf string) (sqlc.Wfinstance, error) {
+	sliceInt, err := strconv.Atoi(entity.Entity.slice)
+	if err != nil {
+		log.Fatal("Failed to convert string to int32:", err)
+		return sqlc.Wfinstance{}, err
+	}
+	id := strconv.Itoa(int(entity.Id))
+
+	params := sqlc.GetWFInstanceCurrentParams{
+
+		Entityid: id,
+		Slice:    int32(sliceInt),
+		App:      entity.Entity.app,
+		Workflow: wf,
+	}
+	return queryDbq.GetWFInstanceCurrent(context.Background(), params)
 }

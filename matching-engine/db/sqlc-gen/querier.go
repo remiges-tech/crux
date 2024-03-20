@@ -15,11 +15,15 @@ type Querier interface {
 	AddWFNewInstances(ctx context.Context, arg AddWFNewInstancesParams) ([]AddWFNewInstancesRow, error)
 	AllRuleset(ctx context.Context) ([]Ruleset, error)
 	AllSchemas(ctx context.Context) ([]Schema, error)
+	DeleteWFInstances(ctx context.Context, arg DeleteWFInstancesParams) error
 	GetApp(ctx context.Context, arg GetAppParams) (string, error)
 	GetClass(ctx context.Context, arg GetClassParams) (string, error)
 	GetSchemaWithLock(ctx context.Context, arg GetSchemaWithLockParams) (GetSchemaWithLockRow, error)
 	GetWFActiveStatus(ctx context.Context, arg GetWFActiveStatusParams) (pgtype.Bool, error)
 	GetWFINstance(ctx context.Context, arg GetWFINstanceParams) (int64, error)
+	GetWFInstanceCounts(ctx context.Context, arg GetWFInstanceCountsParams) (int64, error)
+	GetWFInstanceCurrent(ctx context.Context, arg GetWFInstanceCurrentParams) (Wfinstance, error)
+	GetWFInstanceList(ctx context.Context, arg GetWFInstanceListParams) ([]Wfinstance, error)
 	GetWFInternalStatus(ctx context.Context, arg GetWFInternalStatusParams) (bool, error)
 	GetWorkflow(ctx context.Context, step string) ([]GetWorkflowRow, error)
 	RulesetRowLock(ctx context.Context, arg RulesetRowLockParams) (Ruleset, error)
@@ -34,6 +38,8 @@ type Querier interface {
 	SchemaListBySlice(ctx context.Context, slice int32) ([]SchemaListBySliceRow, error)
 	SchemaNew(ctx context.Context, arg SchemaNewParams) error
 	SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) error
+	UpdateWFInstanceDoneat(ctx context.Context, arg UpdateWFInstanceDoneatParams) error
+	UpdateWFInstanceStep(ctx context.Context, arg UpdateWFInstanceStepParams) error
 	WfPatternSchemaGet(ctx context.Context, arg WfPatternSchemaGetParams) ([]byte, error)
 	WfSchemaGet(ctx context.Context, arg WfSchemaGetParams) (Schema, error)
 	Wfschemadelete(ctx context.Context, arg WfschemadeleteParams) error

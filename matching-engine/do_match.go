@@ -44,7 +44,7 @@ func doMatch(entity Entity, ruleset *Ruleset_t, actionSet ActionSet, seenRuleSet
 
 			if len(rule.RuleActions.ThenCall) > 0 {
 
-				setToCall, exists := findRuleSetByName(ruleSetsCache, rule.RuleActions.ThenCall)
+				setToCall, exists := findRefRuleSetByName(ruleSetsCache, rule.RuleActions.ThenCall)
 
 				if !exists {
 					return ActionSet{}, false, errors.New("set not found")
@@ -76,7 +76,7 @@ func doMatch(entity Entity, ruleset *Ruleset_t, actionSet ActionSet, seenRuleSet
 			}
 		} else if len(rule.RuleActions.ElseCall) > 0 {
 
-			setToCall, exists := findRuleSetByName(ruleSetsCache, rule.RuleActions.ElseCall)
+			setToCall, exists := findRefRuleSetByName(ruleSetsCache, rule.RuleActions.ElseCall)
 			if !exists {
 				return ActionSet{}, false, errors.New("set not found")
 			}
@@ -103,23 +103,18 @@ func doMatch(entity Entity, ruleset *Ruleset_t, actionSet ActionSet, seenRuleSet
 	return actionSet, false, nil
 }
 
-func findRuleSetByName(ruleSets []*Ruleset_t, setName string) (*Ruleset_t, bool) {
+func findRefRuleSetByName(ruleSets []*Ruleset_t, setName string) (*Ruleset_t, bool) {
 	for _, ruleset := range ruleSets {
-		if ruleset.SetName == setName {
-
-			ruleset.NCalled++
-			for _, rule := range ruleset.Rules {
-
-				rule.NMatched++
-
+		for _, rule := range ruleset.Rules {
+			found := false
+			for _, referRuleset := range rule.RuleActions.References {
+				if referRuleset.SetName == setName {
+					rule.NMatched++
+					return referRuleset, true
+				}
 			}
-			return ruleset, true
-		} else {
-
-			for _, rule := range ruleset.Rules {
-
+			if !found {
 				rule.NFailed++
-
 			}
 		}
 	}

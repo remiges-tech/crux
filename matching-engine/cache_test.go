@@ -13,47 +13,48 @@ import (
 	"log"
 	"testing"
 
-	"github.com/remiges-tech/crux/db/sqlc-gen"
+	sqlc "github.com/remiges-tech/crux/matching-engine/db/sqlc-gen"
 
 	"github.com/jackc/pgx/v5"
 )
 
-func testinit() (sqlc.DBQuerier, context.Context, error) {
+func testinit() (context.Context, error) {
 	var ConnectionString = "host=localhost port=5432 user=postgres password=postgres dbname=crux sslmode=disable"
 	ctx := context.Background()
 	conn, err := pgx.Connect(ctx, ConnectionString)
 	if err != nil {
 		log.Fatal("Failed to load data into cache:", err)
-		return nil, nil, err
+		return nil, err
 	}
 	defer conn.Close(ctx)
-	query := NewProvider(ConnectionString)
-	return query, ctx, err
+	queryDbq = NewProvider(ConnectionString)
+	return ctx, err
 
 }
 
 func testCache(tests *[]doMatchTest, t *testing.T) {
 
-	//query, ctx,err := testinit()
+	// ctx,err := testinit()
 	//if err != nil {
 	//testLoadDB(tests, t,query,ctx)
 	//}
 	// Call the initializeRuleData function to populate ruleSchemas and ruleSets
-
-	testLoad(tests, t)
+	testinit()
+	//testLoad(tests, t)
 	setSchemaRulesetCacheBuffer(t)
 
 	//testPurge(tests, t)
 	//testReload(tests, t, query, ctx)
 }
 
+/*
 func testLoadDB(tests *[]doMatchTest, t *testing.T, q sqlc.DBQuerier, c context.Context) {
 
 	err := Load(q, c)
 	if err != nil {
 		t.Errorf("Error:%+v", err)
 	}
-}
+}*/
 
 func setSchemaRulesetCacheBuffer(t *testing.T) {
 
@@ -69,8 +70,8 @@ func testLoad(tests *[]doMatchTest, t *testing.T) {
 
 	setSchemaRulesetCacheBuffer(t)
 
-	//PrintAllSchemaCache()
-	//PrintAllRuleSetCache()
+	PrintAllSchemaCache()
+	PrintAllRuleSetCache()
 
 }
 

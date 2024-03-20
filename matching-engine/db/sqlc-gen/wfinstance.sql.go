@@ -71,6 +71,26 @@ func (q *Queries) AddWFNewInstances(ctx context.Context, arg AddWFNewInstancesPa
 	return items, nil
 }
 
+const deleteWFInstances = `-- name: DeleteWFInstances :exec
+DELETE FROM
+    public.wfinstance
+WHERE
+    entityid = $1
+    AND slice = $2
+    AND app = $3
+`
+
+type DeleteWFInstancesParams struct {
+	Entityid string `json:"entityid"`
+	Slice    int32  `json:"slice"`
+	App      string `json:"app"`
+}
+
+func (q *Queries) DeleteWFInstances(ctx context.Context, arg DeleteWFInstancesParams) error {
+	_, err := q.db.Exec(ctx, deleteWFInstances, arg.Entityid, arg.Slice, arg.App)
+	return err
+}
+
 const getWFINstance = `-- name: GetWFINstance :one
 SELECT count(1)
 FROM public.wfinstance
@@ -98,4 +118,189 @@ func (q *Queries) GetWFINstance(ctx context.Context, arg GetWFINstanceParams) (i
 	var count int64
 	err := row.Scan(&count)
 	return count, err
+}
+
+const getWFInstanceCounts = `-- name: GetWFInstanceCounts :one
+SELECT COUNT(*) AS instance_count
+FROM public.wfinstance
+WHERE
+    slice = $1
+    AND app = $2
+    AND workflow = $3
+    AND entityid = $4
+`
+
+type GetWFInstanceCountsParams struct {
+	Slice    int32  `json:"slice"`
+	App      string `json:"app"`
+	Workflow string `json:"workflow"`
+	Entityid string `json:"entityid"`
+}
+
+func (q *Queries) GetWFInstanceCounts(ctx context.Context, arg GetWFInstanceCountsParams) (int64, error) {
+	row := q.db.QueryRow(ctx, getWFInstanceCounts,
+		arg.Slice,
+		arg.App,
+		arg.Workflow,
+		arg.Entityid,
+	)
+	var instance_count int64
+	err := row.Scan(&instance_count)
+	return instance_count, err
+}
+
+const getWFInstanceCurrent = `-- name: GetWFInstanceCurrent :one
+ SELECT id, entityid, slice, app, class, workflow, step, loggedat, doneat, nextstep, parent FROM wfinstance
+WHERE 
+    slice = $1
+    AND app = $2
+    AND workflow = $3
+    AND entityid = $4
+`
+
+type GetWFInstanceCurrentParams struct {
+	Slice    int32  `json:"slice"`
+	App      string `json:"app"`
+	Workflow string `json:"workflow"`
+	Entityid string `json:"entityid"`
+}
+
+func (q *Queries) GetWFInstanceCurrent(ctx context.Context, arg GetWFInstanceCurrentParams) (Wfinstance, error) {
+	row := q.db.QueryRow(ctx, getWFInstanceCurrent,
+		arg.Slice,
+		arg.App,
+		arg.Workflow,
+		arg.Entityid,
+	)
+	var i Wfinstance
+	err := row.Scan(
+		&i.ID,
+		&i.Entityid,
+		&i.Slice,
+		&i.App,
+		&i.Class,
+		&i.Workflow,
+		&i.Step,
+		&i.Loggedat,
+		&i.Doneat,
+		&i.Nextstep,
+		&i.Parent,
+	)
+	return i, err
+}
+
+const getWFInstanceList = `-- name: GetWFInstanceList :many
+SELECT id, entityid, slice, app, class, workflow, step, loggedat, doneat, nextstep, parent FROM wfinstance
+WHERE 
+    slice = $1
+    AND app = $2
+    AND workflow = $3
+    AND entityid = $4
+    AND parent = $5
+`
+
+type GetWFInstanceListParams struct {
+	Slice    int32       `json:"slice"`
+	App      string      `json:"app"`
+	Workflow string      `json:"workflow"`
+	Entityid string      `json:"entityid"`
+	Parent   pgtype.Int4 `json:"parent"`
+}
+
+func (q *Queries) GetWFInstanceList(ctx context.Context, arg GetWFInstanceListParams) ([]Wfinstance, error) {
+	rows, err := q.db.Query(ctx, getWFInstanceList,
+		arg.Slice,
+		arg.App,
+		arg.Workflow,
+		arg.Entityid,
+		arg.Parent,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Wfinstance
+	for rows.Next() {
+		var i Wfinstance
+		if err := rows.Scan(
+			&i.ID,
+			&i.Entityid,
+			&i.Slice,
+			&i.App,
+			&i.Class,
+			&i.Workflow,
+			&i.Step,
+			&i.Loggedat,
+			&i.Doneat,
+			&i.Nextstep,
+			&i.Parent,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updateWFInstanceDoneat = `-- name: UpdateWFInstanceDoneat :exec
+
+UPDATE public.wfinstance
+SET 
+    doneat = $1 -- Set doneat to the provided timestamp
+WHERE
+    entityid = $2
+    AND slice = $3
+    AND app = $4
+    AND workflow = $5
+`
+
+type UpdateWFInstanceDoneatParams struct {
+	Doneat   pgtype.Timestamp `json:"doneat"`
+	Entityid string           `json:"entityid"`
+	Slice    int32            `json:"slice"`
+	App      string           `json:"app"`
+	Workflow string           `json:"workflow"`
+}
+
+func (q *Queries) UpdateWFInstanceDoneat(ctx context.Context, arg UpdateWFInstanceDoneatParams) error {
+	_, err := q.db.Exec(ctx, updateWFInstanceDoneat,
+		arg.Doneat,
+		arg.Entityid,
+		arg.Slice,
+		arg.App,
+		arg.Workflow,
+	)
+	return err
+}
+
+const updateWFInstanceStep = `-- name: UpdateWFInstanceStep :exec
+UPDATE public.wfinstance
+SET step = $1
+WHERE
+    entityid = $2
+    AND slice = $3
+    AND app = $4
+    AND workflow = $5
+`
+
+type UpdateWFInstanceStepParams struct {
+	Step     string `json:"step"`
+	Entityid string `json:"entityid"`
+	Slice    int32  `json:"slice"`
+	App      string `json:"app"`
+	Workflow string `json:"workflow"`
+}
+
+func (q *Queries) UpdateWFInstanceStep(ctx context.Context, arg UpdateWFInstanceStepParams) error {
+	_, err := q.db.Exec(ctx, updateWFInstanceStep,
+		arg.Step,
+		arg.Entityid,
+		arg.Slice,
+		arg.App,
+		arg.Workflow,
+	)
+	return err
 }
