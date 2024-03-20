@@ -5,43 +5,43 @@ package crux
 func collectActions(actionSet ActionSet, ruleActions RuleActionBlock_t) ActionSet {
 
 	newActionSet := ActionSet{
-		tasks:      []string{},
-		properties: make(map[string]string),
+		Tasks:      []string{},
+		Properties: make(map[string]string),
 	}
 
-	// Union-set of tasks
-	newActionSet.tasks = append(newActionSet.tasks, actionSet.tasks...)
+	// Union-set of Tasks
+	newActionSet.Tasks = append(newActionSet.Tasks, actionSet.Tasks...)
 	for _, newTask := range ruleActions.Task {
 		found := false
-		for _, task := range newActionSet.tasks {
+		for _, task := range newActionSet.Tasks {
 			if newTask == task {
 				found = true
 				break
 			}
 		}
 		if !found {
-			newActionSet.tasks = append(newActionSet.tasks, newTask)
+			newActionSet.Tasks = append(newActionSet.Tasks, newTask)
 		}
 	}
 
-	// Perform "union-set" of properties, overwriting previous property values if needed
+	// Perform "union-set" of Properties, overwriting previous property values if needed
 
-	for name, val := range actionSet.properties {
-		newActionSet.properties[name] = val
+	for name, val := range actionSet.Properties {
+		newActionSet.Properties[name] = val
 	}
 
-	// Update properties from ruleActions
+	// Update Properties from ruleActions
 	for propName, propertyVal := range ruleActions.Properties {
 		found := false
-		for existingPropName := range newActionSet.properties {
+		for existingPropName := range newActionSet.Properties {
 			if existingPropName == propName {
-				newActionSet.properties[existingPropName] = propertyVal
+				newActionSet.Properties[existingPropName] = propertyVal
 				found = true
 				break
 			}
 		}
 		if !found {
-			newActionSet.properties[propName] = propertyVal
+			newActionSet.Properties[propName] = propertyVal
 		}
 	}
 

@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
+	crux "github.com/remiges-tech/crux/matching-engine"
 	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/types"
 )
@@ -15,12 +16,12 @@ import (
 // Incoming request format
 type WFInstanceNewRequest struct {
 	Slice    int32             `json:"slice" validate:"required,gt=0,lt=85"`
-	App      string            `json:"app" validate:"required,alpha,lt=15"`
+	App      string            `json:"app" validate:"required,lt=15"`
 	EntityID string            `json:"entityid" validate:"required,gt=0,lt=40"`
 	Entity   map[string]string `json:"entity" validate:"required"`
 	Workflow string            `json:"workflow" validate:"required,gt=0,lt=20"`
-	Trace    *int              `json:"trace" validate:"omitempty,lte=2"`
-	Parent   *int32            `json:"parent" validate:"omitempty,gt=0"`
+	Trace    *int              `json:"trace" validate:"omitempty"`
+	Parent   *int32            `json:"parent" validate:"omitempty"`
 }
 
 // WFInstanceNew response format
@@ -36,15 +37,17 @@ type WFInstanceNewResponse struct {
 func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour.WithClass("wfinstance")
 	lh.Log("GetWFinstanceNew request received")
-	var wfinstanceNewreq WFInstanceNewRequest
-	var actionSet ActionSet
-	var ruleSet RuleSet
-	var entity = getEntity(wfinstanceNewreq.Entity)
-	var seenRuleSets map[string]bool
-	var response WFInstanceNewResponse
-	var attribute map[string]string
-	var done, nextStep string
-	var steps []string
+
+	var (
+		wfinstanceNewreq WFInstanceNewRequest
+		actionSet        crux.ActionSet
+		seenRuleSets     = make(map[string]struct{})
+		response         WFInstanceNewResponse
+		attribute        map[string]string
+		done, nextStep   string
+		steps            []string
+		myRuleSet        *crux.Ruleset_t
+	)
 
 	isCapable, _ := server.Authz_check(types.OpReq{
 		User: USERID,
@@ -84,15 +87,35 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	}
 	lh.Debug0().LogActivity("wfinstanceNewRequest after adding additional attributes :", wfinstanceNewreq)
 
-	// call doMatch()
-	actionSet, _, err = doMatch(entity, ruleSet, actionSet, seenRuleSets)
+	//  doMatch() Processing
+
+	// To get Entity
+	entity := getEntityForDoMatch(wfinstanceNewreq)
+
+	// To get workflow rulesets from RuleSetCache
+	ruleSets, err := crux.RetrieveWorkflowRulesetFromCache(REALM, wfinstanceNewreq.App, wfinstanceNewreq.Entity[CLASS], int(wfinstanceNewreq.Slice))
 	if err != nil {
-		lh.Error(err).Log("GetWFinstanceNew||error while calling doMatch Method")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid))
+		lh.Error(err).Log("GetWFinstanceNew||error while getting workflow rulesets from RuleSetCache ")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, err.Error()))
 		return
 	}
 
-	// To verify actionSet Properties and get their values
+	for _, ruleSet := range ruleSets {
+		if ruleSet.SetName == wfinstanceNewreq.Workflow {
+			myRuleSet = ruleSet
+		}
+
+	}
+
+	// call DoMatch()
+	actionSet, _, err = crux.DoMatch(entity, myRuleSet, actionSet, seenRuleSets)
+	if err != nil {
+		lh.Error(err).Log("GetWFinstanceNew||error while calling doMatch Method")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, err.Error()))
+		return
+	}
+
+	//To verify actionSet Properties and get their values
 	attribute, error := getValidPropertyAttr(actionSet)
 	if error != nil {
 		lh.Debug0().LogActivity("GetWFinstanceNew||error while verifying actionset properties :", error.Error())
@@ -108,7 +131,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	if done == TRUE {
 		response := make(map[string]bool)
 		response[DONE] = true
-		lh.Log(fmt.Sprintf("response : %v", map[string]any{"response": response}))
+		lh.Log("Finished execution of GetWFinstanceNew")
 		wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(response))
 	}
 
@@ -128,8 +151,9 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 			return
 		}
+		lh.Log("Finished execution of GetWFinstanceNew")
 		wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(response))
-       return
+		return
 	}
 	// if tasks of actionset contains multiple tasks
 	if len(actionSet.Tasks) > 1 && done == "" {
@@ -144,24 +168,31 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 			return
 		}
+		lh.Log("Finished execution of GetWFinstanceNew")
 		wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(response))
 	}
 
 }
 
 // To verify whether actionset.properties attributes valid and get their values
-func getValidPropertyAttr(a ActionSet) (map[string]string, error) {
+func getValidPropertyAttr(a crux.ActionSet) (map[string]string, error) {
 	attribute := make(map[string]string)
 	attributes := a.Properties
+
+	isDoneOrNextStepPresent := false
 	for attr, val := range attributes {
 		if attr == DONE {
 			attribute[attr] = val
+			isDoneOrNextStepPresent = true
 		} else if attr == NEXTSTEP {
 			attribute[attr] = val
-		} else {
-			return nil, fmt.Errorf("GetWFinstanceNew||getValidPropertyAttr||property attributes does not contain either done or nextstep")
+			isDoneOrNextStepPresent = true
 		}
-
 	}
+
+	if !isDoneOrNextStepPresent {
+		return nil, fmt.Errorf("property attributes does not contain either done or nextstep %v", attribute)
+	}
+
 	return attribute, nil
 }

@@ -136,3 +136,4 @@ SELECT
     *
 FROM
     public.ruleset;
+

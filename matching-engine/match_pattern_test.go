@@ -14,7 +14,7 @@ func TestMatchPattern(t *testing.T) {
 	var resultsExpected []any
 
 	setupInventoryItemSchema()
-	actionSet := ActionSet{tasks: []string{"dodiscount", "yearendsale"}}
+	actionSet := ActionSet{Tasks: []string{"dodiscount", "yearendsale"}}
 
 	// Test: many terms, everything matches
 	testNames = append(testNames, "everything matches")
@@ -113,7 +113,7 @@ func TestMatchPattern(t *testing.T) {
 	resultsExpected = append(resultsExpected, true)
 
 	// Test: task wanted in pattern, found in action set
-	testNames = append(testNames, "tasks found in action set")
+	testNames = append(testNames, "Tasks found in action set")
 	entities = append(entities, sampleEntity)
 	rulePatterns = append(rulePatterns, []RulePatternBlock_t{
 		{"dodiscount", opEQ, true},
@@ -147,8 +147,8 @@ func TestMatchPattern(t *testing.T) {
 	// Test: error converting value
 	testNames = append(testNames, "deliberate error converting value")
 	entities = append(entities, Entity{
-		class: inventoryItemClass,
-		attrs: map[string]string{
+		Class: inventoryItemClass,
+		Attrs: map[string]string{
 			"ageinstock": "abc",
 		},
 	})
@@ -171,7 +171,7 @@ func TestMatchPattern(t *testing.T) {
 
 	for i, rulePattern := range rulePatterns {
 
-		ruleSchemas, _ := retriveRuleSchemasAndRuleSetsFromCache(entities[i].realm, entities[i].app, entities[i].class, entities[i].slice)
+		ruleSchemas, _ := retriveRuleSchemasAndRuleSetsFromCache(entities[i].Realm, entities[i].App, entities[i].Class, entities[i].Slice)
 		res, err := matchPattern(entities[i], rulePattern, actionSet, ruleSchemas)
 
 		if resultsExpected[i] == nil && err == nil {

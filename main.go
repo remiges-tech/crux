@@ -15,6 +15,7 @@ import (
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
+	crux "github.com/remiges-tech/crux/matching-engine"
 	"github.com/remiges-tech/crux/server/app"
 	"github.com/remiges-tech/crux/server/auth"
 	"github.com/remiges-tech/crux/server/config"
@@ -97,6 +98,13 @@ func main() {
 		log.Fatalln("Failed to establishes a connection with database", err)
 	}
 	queries := sqlc.New(connPool)
+
+	// load all rulesets and schema's in cache
+	err = crux.Load(queries, ctx)
+	if err != nil {
+		fmt.Println("error at loading cache")
+		return
+	}
 
 	// Define a custom validation tag-to-message ID map
 	customValidationMap := map[string]int{

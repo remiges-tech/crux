@@ -26,11 +26,11 @@ Realm:   1,
 	Class:   "inventoryitem",
 */
 var sampleEntity = Entity{
-	realm: "1",
-	app:   "Test6",
-	slice: "6",
-	class: inventoryItemClass,
-	attrs: map[string]string{
+	Realm: "1",
+	App:   "Test6",
+	Slice: "6",
+	Class: inventoryItemClass,
+	Attrs: map[string]string{
 		"cat":        "textbook",
 		"fullname":   "Advanced Physics",
 		"ageinstock": "5",
@@ -68,14 +68,14 @@ func testBasic(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		tasks:      []string{"yearendsale", "summersale"},
-		properties: map[string]string{"cashback": "10", "discount": "9"},
+		Tasks:      []string{"yearendsale", "summersale"},
+		Properties: map[string]string{"cashback": "10", "discount": "9"},
 	}
 
 	*tests = append(*tests, doMatchTest{
 		"basic test", sampleEntity, &rs, ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -123,13 +123,13 @@ func testExit(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		tasks:      []string{"yearendsale", "summersale", "wintersale"},
-		properties: map[string]string{"discount": "15", "freegift": "mug"},
+		Tasks:      []string{"yearendsale", "summersale", "wintersale"},
+		Properties: map[string]string{"discount": "15", "freegift": "mug"},
 	}
 
 	*tests = append(*tests, doMatchTest{"exit", sampleEntity, &rs, ActionSet{
-		tasks:      []string{},
-		properties: make(map[string]string),
+		Tasks:      []string{},
+		Properties: make(map[string]string),
 	}, want})
 }
 
@@ -163,13 +163,13 @@ func testReturn(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		tasks:      []string{"yearendsale", "summersale", "springsale"},
-		properties: map[string]string{"discount": "15", "freegift": "mug"},
+		Tasks:      []string{"yearendsale", "summersale", "springsale"},
+		Properties: map[string]string{"discount": "15", "freegift": "mug"},
 	}
 
 	*tests = append(*tests, doMatchTest{"return", sampleEntity, &rs, ActionSet{
-		tasks:      []string{},
-		properties: make(map[string]string),
+		Tasks:      []string{},
+		Properties: make(map[string]string),
 	}, want})
 }
 
@@ -433,11 +433,11 @@ func testWinterDiscJacket60(tests *[]doMatchTest) {
 	//ruleSetsTests = append(ruleSetsTests, &rs)
 
 	entity := Entity{
-		realm: "1",
-		app:   "Test7",
-		slice: "7",
-		class: transactionClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test7",
+		Slice: "7",
+		Class: transactionClass,
+		Attrs: map[string]string{
 			"productname":  "jacket",
 			"price":        "60",
 			"inwintersale": trueStr,
@@ -446,16 +446,16 @@ func testWinterDiscJacket60(tests *[]doMatchTest) {
 		},
 	}
 	want := ActionSet{
-		tasks:      []string{"freehat", "freemug", "freebag"},
-		properties: map[string]string{"discount": "50"},
+		Tasks:      []string{"freehat", "freemug", "freebag"},
+		Properties: map[string]string{"discount": "50"},
 	}
 	*tests = append(*tests, doMatchTest{
 		"winterdisc jacket 60",
 		entity,
 		&rs,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -465,11 +465,11 @@ func testWinterDiscJacket60(tests *[]doMatchTest) {
 func testWinterDiscJacket40(tests *[]doMatchTest) {
 
 	entity := Entity{
-		realm: "1",
-		app:   "Test7",
-		slice: "7",
-		class: transactionClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test7",
+		Slice: "7",
+		Class: transactionClass,
+		Attrs: map[string]string{
 			"productname":  "jacket",
 			"price":        "60",
 			"inwintersale": trueStr,
@@ -499,16 +499,16 @@ func testWinterDiscJacket40(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		tasks:      []string{"freemug"},
-		properties: map[string]string{"discount": "40", "pointsmult": "2"},
+		Tasks:      []string{"freemug"},
+		Properties: map[string]string{"discount": "40", "pointsmult": "2"},
 	}
 	*tests = append(*tests, doMatchTest{
 		"winterdisc jacket 40",
 		entity,
 		&rs,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -518,11 +518,11 @@ func testWinterDiscJacket40(tests *[]doMatchTest) {
 func testWinterDiscKettle110Cash(tests *[]doMatchTest) {
 
 	entity := Entity{
-		realm: "1",
-		app:   "Test7",
-		slice: "7",
-		class: transactionClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test7",
+		Slice: "7",
+		Class: transactionClass,
+		Attrs: map[string]string{
 			"productname":  "kettle",
 			"price":        "110",
 			"inwintersale": trueStr,
@@ -552,16 +552,16 @@ func testWinterDiscKettle110Cash(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		tasks:      []string{"freepen"},
-		properties: map[string]string{"discount": "45", "pointsmult": "3"},
+		Tasks:      []string{"freepen"},
+		Properties: map[string]string{"discount": "45", "pointsmult": "3"},
 	}
 	*tests = append(*tests, doMatchTest{
 		"winterdisc kettle 110 cash",
 		entity,
 		&rs,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -571,11 +571,11 @@ func testWinterDiscKettle110Cash(tests *[]doMatchTest) {
 func testWinterDiscKettle110Card(tests *[]doMatchTest) {
 
 	entity := Entity{
-		realm: "1",
-		app:   "Test7",
-		slice: "7",
-		class: transactionClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test7",
+		Slice: "7",
+		Class: transactionClass,
+		Attrs: map[string]string{
 			"productname":  "kettle",
 			"price":        "110",
 			"inwintersale": trueStr,
@@ -605,16 +605,16 @@ func testWinterDiscKettle110Card(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		tasks:      []string{"freemug"},
-		properties: map[string]string{"discount": "45", "pointsmult": "3"},
+		Tasks:      []string{"freemug"},
+		Properties: map[string]string{"discount": "45", "pointsmult": "3"},
 	}
 	*tests = append(*tests, doMatchTest{
 		"winterdisc kettle 110 card",
 		entity,
 		&rs,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -624,11 +624,11 @@ func testWinterDiscKettle110Card(tests *[]doMatchTest) {
 func testMemberDiscLamp60(tests *[]doMatchTest) {
 
 	entity := Entity{
-		realm: "1",
-		app:   "Test7",
-		slice: "7",
-		class: transactionClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test7",
+		Slice: "7",
+		Class: transactionClass,
+		Attrs: map[string]string{
 			"productname":  "lamp",
 			"price":        "60",
 			"inwintersale": falseStr,
@@ -657,15 +657,15 @@ func testMemberDiscLamp60(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		properties: map[string]string{"discount": "35", "pointsmult": "2"},
+		Properties: map[string]string{"discount": "35", "pointsmult": "2"},
 	}
 	*tests = append(*tests, doMatchTest{
 		"memberdisc lamp 60",
 		entity,
 		&rs,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -675,11 +675,11 @@ func testMemberDiscLamp60(tests *[]doMatchTest) {
 func testMemberDiscKettle60Card(tests *[]doMatchTest) {
 	ruleSetsTests = []*Ruleset_t{}
 	entity := Entity{
-		realm: "1",
-		app:   "Test7",
-		slice: "7",
-		class: transactionClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test7",
+		Slice: "7",
+		Class: transactionClass,
+		Attrs: map[string]string{
 			"productname":  "kettle",
 			"price":        "60",
 			"inwintersale": falseStr,
@@ -710,16 +710,16 @@ func testMemberDiscKettle60Card(tests *[]doMatchTest) {
 	ruleSetsTests = append(ruleSetsTests, &rs)
 
 	want := ActionSet{
-		tasks:      []string{"freemug"},
-		properties: map[string]string{"discount": "35"},
+		Tasks:      []string{"freemug"},
+		Properties: map[string]string{"discount": "35"},
 	}
 	*tests = append(*tests, doMatchTest{
 		"memberdisc kettle 60 card",
 		entity,
 		&rs,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -729,11 +729,11 @@ func testMemberDiscKettle60Card(tests *[]doMatchTest) {
 func testMemberDiscKettle60Cash(tests *[]doMatchTest) {
 	ruleSetsTests = []*Ruleset_t{}
 	entity := Entity{
-		realm: "1",
-		app:   "Test7",
-		slice: "7",
-		class: transactionClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test7",
+		Slice: "7",
+		Class: transactionClass,
+		Attrs: map[string]string{
 			"productname":  "kettle",
 			"price":        "60",
 			"inwintersale": falseStr,
@@ -763,16 +763,16 @@ func testMemberDiscKettle60Cash(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		tasks:      []string{"freepen"},
-		properties: map[string]string{"discount": "20"},
+		Tasks:      []string{"freepen"},
+		Properties: map[string]string{"discount": "20"},
 	}
 	*tests = append(*tests, doMatchTest{
 		"memberdisc kettle 60 cash",
 		entity,
 		&rs,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -782,11 +782,11 @@ func testMemberDiscKettle60Cash(tests *[]doMatchTest) {
 func testMemberDiscKettle110Card(tests *[]doMatchTest) {
 	ruleSetsTests = []*Ruleset_t{}
 	entity := Entity{
-		realm: "1",
-		app:   "Test7",
-		slice: "7",
-		class: transactionClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test7",
+		Slice: "7",
+		Class: transactionClass,
+		Attrs: map[string]string{
 			"productname":  "kettle",
 			"price":        "110",
 			"inwintersale": falseStr,
@@ -815,16 +815,16 @@ func testMemberDiscKettle110Card(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		tasks:      []string{"freemug"},
-		properties: map[string]string{"discount": "25"},
+		Tasks:      []string{"freemug"},
+		Properties: map[string]string{"discount": "25"},
 	}
 	*tests = append(*tests, doMatchTest{
 		"memberdisc kettle 110 card",
 		entity,
 		&rs,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -834,11 +834,11 @@ func testMemberDiscKettle110Card(tests *[]doMatchTest) {
 func testMemberDiscKettle110Cash(tests *[]doMatchTest) {
 
 	entity := Entity{
-		realm: "1",
-		app:   "Test7",
-		slice: "7",
-		class: transactionClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test7",
+		Slice: "7",
+		Class: transactionClass,
+		Attrs: map[string]string{
 			"productname":  "kettle",
 			"price":        "110",
 			"inwintersale": falseStr,
@@ -867,16 +867,16 @@ func testMemberDiscKettle110Cash(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		tasks:      []string{"freepen"},
-		properties: map[string]string{"discount": "25"},
+		Tasks:      []string{"freepen"},
+		Properties: map[string]string{"discount": "25"},
 	}
 	*tests = append(*tests, doMatchTest{
 		"memberdisc kettle 110 cash",
 		entity,
 		&rs,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -885,11 +885,11 @@ func testMemberDiscKettle110Cash(tests *[]doMatchTest) {
 func testNonMemberDiscLamp30(tests *[]doMatchTest) {
 	ruleSetsTests = []*Ruleset_t{}
 	entity := Entity{
-		realm: "1",
-		app:   "Test7",
-		slice: "7",
-		class: transactionClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test7",
+		Slice: "7",
+		Class: transactionClass,
+		Attrs: map[string]string{
 			"productname":  "lamp",
 			"price":        "30",
 			"inwintersale": falseStr,
@@ -918,16 +918,16 @@ func testNonMemberDiscLamp30(tests *[]doMatchTest) {
 	}
 	ruleSetsTests = append(ruleSetsTests, &rs)
 	want := ActionSet{
-		tasks:      []string{"freepen"},
-		properties: map[string]string{"discount": "5"},
+		Tasks:      []string{"freepen"},
+		Properties: map[string]string{"discount": "5"},
 	}
 	*tests = append(*tests, doMatchTest{
 		"nonmemberdisc lamp 30",
 		entity,
 		&rs,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -937,11 +937,11 @@ func testNonMemberDiscLamp30(tests *[]doMatchTest) {
 func testNonMemberDiscKettle70(tests *[]doMatchTest) {
 	ruleSetsTests = []*Ruleset_t{}
 	entity := Entity{
-		realm: "1",
-		app:   "Test7",
-		slice: "7",
-		class: transactionClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test7",
+		Slice: "7",
+		Class: transactionClass,
+		Attrs: map[string]string{
 			"productname":  "kettle",
 			"price":        "70",
 			"inwintersale": falseStr,
@@ -971,16 +971,16 @@ func testNonMemberDiscKettle70(tests *[]doMatchTest) {
 	ruleSetsTests = append(ruleSetsTests, &rs)
 
 	want := ActionSet{
-		tasks:      []string{"freepen"},
-		properties: map[string]string{"discount": "10"},
+		Tasks:      []string{"freepen"},
+		Properties: map[string]string{"discount": "10"},
 	}
 	*tests = append(*tests, doMatchTest{
 		"nonmemberdisc kettle 70",
 		entity,
 		&rs,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -990,11 +990,11 @@ func testNonMemberDiscKettle70(tests *[]doMatchTest) {
 func testNonMemberDiscKettle110Cash(tests *[]doMatchTest) {
 	ruleSetsTests = []*Ruleset_t{}
 	entity := Entity{
-		realm: "1",
-		app:   "Test7",
-		slice: "7",
-		class: transactionClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test7",
+		Slice: "7",
+		Class: transactionClass,
+		Attrs: map[string]string{
 			"productname":  "kettle",
 			"price":        "110",
 			"inwintersale": falseStr,
@@ -1023,16 +1023,16 @@ func testNonMemberDiscKettle110Cash(tests *[]doMatchTest) {
 	}
 	ruleSetsTests = append(ruleSetsTests, &rs)
 	want := ActionSet{
-		tasks:      []string{"freepen"},
-		properties: map[string]string{"discount": "15"},
+		Tasks:      []string{"freepen"},
+		Properties: map[string]string{"discount": "15"},
 	}
 	*tests = append(*tests, doMatchTest{
 		"nonmemberdisc kettle 110 cash",
 		entity,
 		&rs,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -1042,11 +1042,11 @@ func testNonMemberDiscKettle110Cash(tests *[]doMatchTest) {
 func testNonMemberDiscKettle110Card(tests *[]doMatchTest) {
 	ruleSetsTests = []*Ruleset_t{}
 	entity := Entity{
-		realm: "1",
-		app:   "Test7",
-		slice: "7",
-		class: transactionClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test7",
+		Slice: "7",
+		Class: transactionClass,
+		Attrs: map[string]string{
 			"productname":  "kettle",
 			"price":        "110",
 			"inwintersale": falseStr,
@@ -1075,16 +1075,16 @@ func testNonMemberDiscKettle110Card(tests *[]doMatchTest) {
 	}
 	ruleSetsTests = append(ruleSetsTests, &rs)
 	want := ActionSet{
-		tasks:      []string{"freemug"},
-		properties: map[string]string{"discount": "15"},
+		Tasks:      []string{"freemug"},
+		Properties: map[string]string{"discount": "15"},
 	}
 	*tests = append(*tests, doMatchTest{
 		"nonmemberdisc kettle 110 card",
 		entity,
 		&rs,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -1136,11 +1136,11 @@ func testJacket35(tests *[]doMatchTest) {
 
 	rc := setupRuleSetForPurchases()
 	entity := Entity{
-		realm: "1",
-		app:   "Test8",
-		slice: "8",
-		class: purchaseClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test8",
+		Slice: "8",
+		Class: purchaseClass,
+		Attrs: map[string]string{
 			"product":  "jacket",
 			"price":    "35",
 			"ismember": trueStr,
@@ -1148,16 +1148,16 @@ func testJacket35(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		tasks:      []string{"freepen", "freebottle", "freepencil"},
-		properties: map[string]string{"discount": "5"},
+		Tasks:      []string{"freepen", "freebottle", "freepencil"},
+		Properties: map[string]string{"discount": "5"},
 	}
 	*tests = append(*tests, doMatchTest{
 		"jacket price 35",
 		entity,
 		rc,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -1168,11 +1168,11 @@ func testJacket55ForMember(tests *[]doMatchTest) {
 
 	rc := setupRuleSetForPurchases()
 	entity := Entity{
-		realm: "1",
-		app:   "Test8",
-		slice: "8",
-		class: purchaseClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test8",
+		Slice: "8",
+		Class: purchaseClass,
+		Attrs: map[string]string{
 			"product":  "jacket",
 			"price":    "55",
 			"ismember": trueStr,
@@ -1180,16 +1180,16 @@ func testJacket55ForMember(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		tasks:      []string{"freepen", "freebottle", "freepencil", "freenotebook"},
-		properties: map[string]string{"discount": "10"},
+		Tasks:      []string{"freepen", "freebottle", "freepencil", "freenotebook"},
+		Properties: map[string]string{"discount": "10"},
 	}
 	*tests = append(*tests, doMatchTest{
 		"jacket price 55 for member",
 		entity,
 		rc,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -1200,11 +1200,11 @@ func testJacket55ForNonMember(tests *[]doMatchTest) {
 
 	rc := setupRuleSetForPurchases()
 	entity := Entity{
-		realm: "1",
-		app:   "Test8",
-		slice: "8",
-		class: purchaseClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test8",
+		Slice: "8",
+		Class: purchaseClass,
+		Attrs: map[string]string{
 			"product":  "jacket",
 			"price":    "55",
 			"ismember": falseStr,
@@ -1212,16 +1212,16 @@ func testJacket55ForNonMember(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		tasks:      []string{"freepen", "freebottle", "freepencil", "freenotebook"},
-		properties: map[string]string{"discount": "10"},
+		Tasks:      []string{"freepen", "freebottle", "freepencil", "freenotebook"},
+		Properties: map[string]string{"discount": "10"},
 	}
 	*tests = append(*tests, doMatchTest{
 		"jacket price 55 for non-member",
 		entity,
 		rc,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -1233,11 +1233,11 @@ func testJacket75ForMember(tests *[]doMatchTest) {
 	rc := setupRuleSetForPurchases()
 
 	entity := Entity{
-		realm: "1",
-		app:   "Test8",
-		slice: "8",
-		class: purchaseClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test8",
+		Slice: "8",
+		Class: purchaseClass,
+		Attrs: map[string]string{
 			"product":  "jacket",
 			"price":    "75",
 			"ismember": trueStr,
@@ -1245,16 +1245,16 @@ func testJacket75ForMember(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		tasks:      []string{"freepen", "freebottle", "freepencil", "freenotebook"},
-		properties: map[string]string{"discount": "15", "pointsmult": "2"},
+		Tasks:      []string{"freepen", "freebottle", "freepencil", "freenotebook"},
+		Properties: map[string]string{"discount": "15", "pointsmult": "2"},
 	}
 	*tests = append(*tests, doMatchTest{
 		"jacket price 75 for member",
 		entity,
 		rc,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -1264,11 +1264,11 @@ func testJacket75ForMember(tests *[]doMatchTest) {
 func testJacket75ForNonMember(tests *[]doMatchTest) {
 	rc := setupRuleSetForPurchases()
 	entity := Entity{
-		realm: "1",
-		app:   "Test8",
-		slice: "8",
-		class: purchaseClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test8",
+		Slice: "8",
+		Class: purchaseClass,
+		Attrs: map[string]string{
 			"product":  "jacket",
 			"price":    "75",
 			"ismember": falseStr,
@@ -1276,16 +1276,16 @@ func testJacket75ForNonMember(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		tasks:      []string{"freepen", "freebottle", "freepencil", "freenotebook"},
-		properties: map[string]string{"discount": "10"},
+		Tasks:      []string{"freepen", "freebottle", "freepencil", "freenotebook"},
+		Properties: map[string]string{"discount": "10"},
 	}
 	*tests = append(*tests, doMatchTest{
 		"jacket price 75 for non-member",
 		entity,
 		rc,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -1296,11 +1296,11 @@ func testLamp35(tests *[]doMatchTest) {
 
 	rc := setupRuleSetForPurchases()
 	entity := Entity{
-		realm: "1",
-		app:   "Test8",
-		slice: "8",
-		class: purchaseClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test8",
+		Slice: "8",
+		Class: purchaseClass,
+		Attrs: map[string]string{
 			"product":  "lamp",
 			"price":    "35",
 			"ismember": falseStr,
@@ -1308,16 +1308,16 @@ func testLamp35(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		tasks:      []string{"freemug", "freejar", "freeplant", "freebag"},
-		properties: map[string]string{"discount": "20"},
+		Tasks:      []string{"freemug", "freejar", "freeplant", "freebag"},
+		Properties: map[string]string{"discount": "20"},
 	}
 	*tests = append(*tests, doMatchTest{
 		"lamp price 35",
 		entity,
 		rc,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -1328,11 +1328,11 @@ func testLamp55(tests *[]doMatchTest) {
 
 	rc := setupRuleSetForPurchases()
 	entity := Entity{
-		realm: "1",
-		app:   "Test8",
-		slice: "8",
-		class: purchaseClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test8",
+		Slice: "8",
+		Class: purchaseClass,
+		Attrs: map[string]string{
 			"product":  "lamp",
 			"price":    "55",
 			"ismember": falseStr,
@@ -1340,16 +1340,16 @@ func testLamp55(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		tasks:      []string{"freemug", "freejar", "freeplant", "freebag", "freenotebook"},
-		properties: map[string]string{"discount": "25"},
+		Tasks:      []string{"freemug", "freejar", "freeplant", "freebag", "freenotebook"},
+		Properties: map[string]string{"discount": "25"},
 	}
 	*tests = append(*tests, doMatchTest{
 		"lamp price 55",
 		entity,
 		rc,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -1359,11 +1359,11 @@ func testLamp75ForMember(tests *[]doMatchTest) {
 
 	rc := setupRuleSetForPurchases()
 	entity := Entity{
-		realm: "1",
-		app:   "Test8",
-		slice: "8",
-		class: purchaseClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test8",
+		Slice: "8",
+		Class: purchaseClass,
+		Attrs: map[string]string{
 			"product":  "lamp",
 			"price":    "75",
 			"ismember": trueStr,
@@ -1371,16 +1371,16 @@ func testLamp75ForMember(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		tasks:      []string{"freemug", "freejar", "freeplant"},
-		properties: map[string]string{"discount": "30", "pointsmult": "3"},
+		Tasks:      []string{"freemug", "freejar", "freeplant"},
+		Properties: map[string]string{"discount": "30", "pointsmult": "3"},
 	}
 	*tests = append(*tests, doMatchTest{
 		"lamp price 75 for member",
 		entity,
 		rc,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -1391,11 +1391,11 @@ func testLamp75ForNonMember(tests *[]doMatchTest) {
 
 	rc := setupRuleSetForPurchases()
 	entity := Entity{
-		realm: "1",
-		app:   "Test8",
-		slice: "8",
-		class: purchaseClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test8",
+		Slice: "8",
+		Class: purchaseClass,
+		Attrs: map[string]string{
 			"product":  "lamp",
 			"price":    "75",
 			"ismember": falseStr,
@@ -1403,16 +1403,16 @@ func testLamp75ForNonMember(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		tasks:      []string{"freemug", "freejar", "freeplant", "freebag", "freenotebook"},
-		properties: map[string]string{"discount": "25"},
+		Tasks:      []string{"freemug", "freejar", "freeplant", "freebag", "freenotebook"},
+		Properties: map[string]string{"discount": "25"},
 	}
 	*tests = append(*tests, doMatchTest{
 		"lamp price 75 for non-member",
 		entity,
 		rc,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -1423,11 +1423,11 @@ func testKettle35(tests *[]doMatchTest) {
 
 	rc := setupRuleSetForPurchases()
 	entity := Entity{
-		realm: "1",
-		app:   "Test8",
-		slice: "8",
-		class: purchaseClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test8",
+		Slice: "8",
+		Class: purchaseClass,
+		Attrs: map[string]string{
 			"product":  "kettle",
 			"price":    "35",
 			"ismember": trueStr,
@@ -1435,15 +1435,15 @@ func testKettle35(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		properties: map[string]string{"discount": "35"},
+		Properties: map[string]string{"discount": "35"},
 	}
 	*tests = append(*tests, doMatchTest{
 		"kettle price 35",
 		entity,
 		rc,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -1454,11 +1454,11 @@ func testKettle55(tests *[]doMatchTest) {
 
 	rc := setupRuleSetForPurchases()
 	entity := Entity{
-		realm: "1",
-		app:   "Test8",
-		slice: "8",
-		class: purchaseClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test8",
+		Slice: "8",
+		Class: purchaseClass,
+		Attrs: map[string]string{
 			"product":  "kettle",
 			"price":    "55",
 			"ismember": falseStr,
@@ -1466,16 +1466,16 @@ func testKettle55(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		tasks:      []string{"freenotebook"},
-		properties: map[string]string{"discount": "40"},
+		Tasks:      []string{"freenotebook"},
+		Properties: map[string]string{"discount": "40"},
 	}
 	*tests = append(*tests, doMatchTest{
 		"kettle price 55",
 		entity,
 		rc,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -1486,11 +1486,11 @@ func testKettle75ForMember(tests *[]doMatchTest) {
 
 	rc := setupRuleSetForPurchases()
 	entity := Entity{
-		realm: "1",
-		app:   "Test8",
-		slice: "8",
-		class: purchaseClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test8",
+		Slice: "8",
+		Class: purchaseClass,
+		Attrs: map[string]string{
 			"product":  "kettle",
 			"price":    "75",
 			"ismember": trueStr,
@@ -1498,15 +1498,15 @@ func testKettle75ForMember(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		properties: map[string]string{"discount": "45", "pointsmult": "4"},
+		Properties: map[string]string{"discount": "45", "pointsmult": "4"},
 	}
 	*tests = append(*tests, doMatchTest{
 		"kettle price 75 for member",
 		entity,
 		rc,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -1516,11 +1516,11 @@ func testKettle75ForMember(tests *[]doMatchTest) {
 func testKettle75ForNonMember(tests *[]doMatchTest) {
 	rc := setupRuleSetForPurchases()
 	entity := Entity{
-		realm: "1",
-		app:   "Test8",
-		slice: "8",
-		class: purchaseClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test8",
+		Slice: "8",
+		Class: purchaseClass,
+		Attrs: map[string]string{
 			"product":  "kettle",
 			"price":    "75",
 			"ismember": falseStr,
@@ -1528,16 +1528,16 @@ func testKettle75ForNonMember(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		tasks:      []string{"freenotebook"},
-		properties: map[string]string{"discount": "40"},
+		Tasks:      []string{"freenotebook"},
+		Properties: map[string]string{"discount": "40"},
 	}
 	*tests = append(*tests, doMatchTest{
 		"kettle price 75 for non-member",
 		entity,
 		rc,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -1548,11 +1548,11 @@ func testOven35(tests *[]doMatchTest) {
 
 	rc := setupRuleSetForPurchases()
 	entity := Entity{
-		realm: "1",
-		app:   "Test8",
-		slice: "8",
-		class: purchaseClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test8",
+		Slice: "8",
+		Class: purchaseClass,
+		Attrs: map[string]string{
 			"product":  "oven",
 			"price":    "35",
 			"ismember": falseStr,
@@ -1560,16 +1560,16 @@ func testOven35(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		tasks:      []string{},
-		properties: make(map[string]string),
+		Tasks:      []string{},
+		Properties: make(map[string]string),
 	}
 	*tests = append(*tests, doMatchTest{
 		"oven price 35",
 		entity,
 		rc,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -1580,11 +1580,11 @@ func testOven55(tests *[]doMatchTest) {
 
 	rc := setupRuleSetForPurchases()
 	entity := Entity{
-		realm: "1",
-		app:   "Test8",
-		slice: "8",
-		class: purchaseClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test8",
+		Slice: "8",
+		Class: purchaseClass,
+		Attrs: map[string]string{
 			"product":  "oven",
 			"price":    "55",
 			"ismember": trueStr,
@@ -1592,15 +1592,15 @@ func testOven55(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		tasks: []string{"freenotebook"},
+		Tasks: []string{"freenotebook"},
 	}
 	*tests = append(*tests, doMatchTest{
 		"oven price 55",
 		entity,
 		rc,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -1853,11 +1853,11 @@ func setupRuleSetOtherOrderTypesForOrder() {
 func testSIPOrder(tests *[]doMatchTest) {
 
 	entity := Entity{
-		realm: "1",
-		app:   "Test9",
-		slice: "9",
-		class: orderClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test9",
+		Slice: "9",
+		Class: orderClass,
+		Attrs: map[string]string{
 			"ordertype":       "sip",
 			"mode":            "demat",
 			"liquidscheme":    falseStr,
@@ -1883,7 +1883,7 @@ func testSIPOrder(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		properties: map[string]string{"amfiordercutoff": "1500", "bseordercutoff": "1430",
+		Properties: map[string]string{"amfiordercutoff": "1500", "bseordercutoff": "1430",
 			"fundscutoff": "1430"},
 	}
 	*tests = append(*tests, doMatchTest{
@@ -1891,8 +1891,8 @@ func testSIPOrder(tests *[]doMatchTest) {
 		entity,
 		&rs,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -1902,11 +1902,11 @@ func testSIPOrder(tests *[]doMatchTest) {
 func testSwitchDematOrder(tests *[]doMatchTest) {
 
 	entity := Entity{
-		realm: "1",
-		app:   "Test9",
-		slice: "9",
-		class: orderClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test9",
+		Slice: "9",
+		Class: orderClass,
+		Attrs: map[string]string{
 			"ordertype":       "switch",
 			"mode":            "demat",
 			"liquidscheme":    falseStr,
@@ -1932,7 +1932,7 @@ func testSwitchDematOrder(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		properties: map[string]string{"amfiordercutoff": "1500", "bseordercutoff": "1500",
+		Properties: map[string]string{"amfiordercutoff": "1500", "bseordercutoff": "1500",
 			"unitscutoff": "1630"},
 	}
 	*tests = append(*tests, doMatchTest{
@@ -1940,8 +1940,8 @@ func testSwitchDematOrder(tests *[]doMatchTest) {
 		entity,
 		&rs,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -1950,11 +1950,11 @@ func testSwitchDematOrder(tests *[]doMatchTest) {
 func testSwitchDematExtHours(tests *[]doMatchTest) {
 
 	entity := Entity{
-		realm: "1",
-		app:   "Test9",
-		slice: "9",
-		class: orderClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test9",
+		Slice: "9",
+		Class: orderClass,
+		Attrs: map[string]string{
 			"ordertype":       "switch",
 			"mode":            "demat",
 			"liquidscheme":    falseStr,
@@ -1979,7 +1979,7 @@ func testSwitchDematExtHours(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		properties: map[string]string{"amfiordercutoff": "1500", "bseordercutoff": "1500",
+		Properties: map[string]string{"amfiordercutoff": "1500", "bseordercutoff": "1500",
 			"unitscutoff": "1730"},
 	}
 	*tests = append(*tests, doMatchTest{
@@ -1987,8 +1987,8 @@ func testSwitchDematExtHours(tests *[]doMatchTest) {
 		entity,
 		&rs,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -1998,11 +1998,11 @@ func testSwitchDematExtHours(tests *[]doMatchTest) {
 func testRedemptionDematExtHours(tests *[]doMatchTest) {
 
 	entity := Entity{
-		realm: "1",
-		app:   "Test9",
-		slice: "9",
-		class: orderClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test9",
+		Slice: "9",
+		Class: orderClass,
+		Attrs: map[string]string{
 			"ordertype":       "redemption",
 			"mode":            "demat",
 			"liquidscheme":    falseStr,
@@ -2027,7 +2027,7 @@ func testRedemptionDematExtHours(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		properties: map[string]string{"amfiordercutoff": "1500", "bseordercutoff": "1500",
+		Properties: map[string]string{"amfiordercutoff": "1500", "bseordercutoff": "1500",
 			"unitscutoff": "1730"},
 	}
 	*tests = append(*tests, doMatchTest{
@@ -2035,8 +2035,8 @@ func testRedemptionDematExtHours(tests *[]doMatchTest) {
 		entity,
 		&rs,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -2045,11 +2045,11 @@ func testRedemptionDematExtHours(tests *[]doMatchTest) {
 func testPurchaseOvernightOrder(tests *[]doMatchTest) {
 
 	entity := Entity{
-		realm: "1",
-		app:   "Test9",
-		slice: "9",
-		class: orderClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test9",
+		Slice: "9",
+		Class: orderClass,
+		Attrs: map[string]string{
 			"ordertype":       "purchase",
 			"mode":            "physical",
 			"liquidscheme":    falseStr,
@@ -2074,7 +2074,7 @@ func testPurchaseOvernightOrder(tests *[]doMatchTest) {
 	}
 
 	want := ActionSet{
-		properties: map[string]string{"amfiordercutoff": "1330", "bseordercutoff": "1300",
+		Properties: map[string]string{"amfiordercutoff": "1330", "bseordercutoff": "1300",
 			"fundscutoff": "1230"},
 	}
 	*tests = append(*tests, doMatchTest{
@@ -2082,8 +2082,8 @@ func testPurchaseOvernightOrder(tests *[]doMatchTest) {
 		entity,
 		&rs,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -2092,11 +2092,11 @@ func testPurchaseOvernightOrder(tests *[]doMatchTest) {
 func testSIPLiquidOrder(tests *[]doMatchTest) {
 
 	entity := Entity{
-		realm: "1",
-		app:   "Test9",
-		slice: "9",
-		class: orderClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test9",
+		Slice: "9",
+		Class: orderClass,
+		Attrs: map[string]string{
 			"ordertype":       "sip",
 			"mode":            "physical",
 			"liquidscheme":    trueStr,
@@ -2121,7 +2121,7 @@ func testSIPLiquidOrder(tests *[]doMatchTest) {
 	}
 	ruleSetsTests = append(ruleSetsTests, &rs)
 	want := ActionSet{
-		properties: map[string]string{"amfiordercutoff": "1330", "bseordercutoff": "1300",
+		Properties: map[string]string{"amfiordercutoff": "1330", "bseordercutoff": "1300",
 			"fundscutoff": "1230"},
 	}
 	*tests = append(*tests, doMatchTest{
@@ -2129,8 +2129,8 @@ func testSIPLiquidOrder(tests *[]doMatchTest) {
 		entity,
 		&rs,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})
@@ -2140,12 +2140,12 @@ func testSIPLiquidOrder(tests *[]doMatchTest) {
 func testSwitchPhysicalOrder(tests *[]doMatchTest) {
 
 	entity := Entity{
-		realm: "1",
-		app:   "Test9",
-		slice: "9",
-		class: orderClass,
+		Realm: "1",
+		App:   "Test9",
+		Slice: "9",
+		Class: orderClass,
 
-		attrs: map[string]string{
+		Attrs: map[string]string{
 			"ordertype":       "switch",
 			"mode":            "physical",
 			"liquidscheme":    falseStr,
@@ -2172,16 +2172,16 @@ func testSwitchPhysicalOrder(tests *[]doMatchTest) {
 	ruleSetsTests = append(ruleSetsTests, &rs)
 
 	want := ActionSet{
-		tasks:      []string{},
-		properties: map[string]string{},
+		Tasks:      []string{},
+		Properties: map[string]string{},
 	}
 	*tests = append(*tests, doMatchTest{
 		"switch physical order",
 		entity,
 		&rs,
 		ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		},
 		want,
 	})

@@ -11,6 +11,7 @@ import (
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
+	crux "github.com/remiges-tech/crux/matching-engine"
 	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/types"
 )
@@ -37,19 +38,18 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
 	// 	return false, errRes
 	// }
 
-	realmName, err := server.ExtractRealmFromJwt(c)
-	if err != nil {
-		lh.Info().Log("unable to extract realm from token")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
-		errRes := append(errRes, wscutils.BuildErrorMessage(server.MsgId_Missing, server.ERRCode_Token_Data_Missing, nil))
-		return false, errRes
-	}
+	// REALM, err := server.ExtractRealmFromJwt(c)
+	// if err != nil {
+	// 	lh.Info().Log("unable to extract realm from token")
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+	// 	errRes := append(errRes, wscutils.BuildErrorMessage(server.MsgId_Missing, server.ERRCode_Token_Data_Missing, nil))
+	// 	return false, errRes
+	// }
 
 	lh.Debug0().Log("Inside ValidateWFInstaceNewReq()")
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
 		lh.Log("GetWFinstanceNew||validateWFInstanceNewReq()||error while getting query instance from service Dependencies")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		errRes := append(errRes, wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_DatabaseError, nil))
 		return false, errRes
 	}
@@ -76,7 +76,7 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
 		Slice: r.Slice,
 		Class: class,
 		App:   r.App,
-		Realm: realmName,
+		Realm: REALM,
 	})
 	if err != nil {
 		lh.Error(err).Log("GetWFinstanceNew||validateWFInstanceNewReq()||failed to get schema pattern from DB")
@@ -113,7 +113,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 	lh := s.LogHarbour.WithClass("wfinstance")
 	entityClass := r.Entity[CLASS]
 
-	realmName, err := server.ExtractRealmFromJwt(c)
+	REALM, err := server.ExtractRealmFromJwt(c)
 	if err != nil {
 		lh.Info().Log("unable to extract realm from token")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
@@ -136,7 +136,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 		Slice: r.Slice,
 		App:   r.App,
 		Class: entityClass,
-		Realm: realmName,
+		Realm: REALM,
 	})
 
 	if err != nil {
@@ -150,7 +150,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 		Slice: r.Slice,
 		App:   app,
 		Class: entityClass,
-		Realm: realmName,
+		Realm: REALM,
 	})
 
 	if err != nil {
@@ -166,7 +166,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 		Slice:   r.Slice,
 		App:     app,
 		Class:   class,
-		Realm:   realmName,
+		Realm:   REALM,
 		Setname: r.Workflow,
 	})
 
@@ -181,7 +181,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 		Slice:   r.Slice,
 		App:     app,
 		Class:   class,
-		Realm:   realmName,
+		Realm:   REALM,
 		Setname: r.Workflow,
 	})
 
@@ -217,6 +217,7 @@ func ValidateEntity(e Entity, ps *types.PatternSchema, s *service.Service) (bool
 
 	lh := s.LogHarbour
 	lh.Debug0().Log("Inside validateEntity()")
+
 	// Check if the entity class matches the expected class from the schema
 	if e.Class != ps.Class {
 		lh.Debug0().Log("GetWFinstanceNew||validateEntity()||entity class does not match the expected class in the schema")
@@ -302,4 +303,22 @@ func getEntity(en map[string]string) Entity {
 	}
 
 	return EntityStruct
+}
+
+func getEntityForDoMatch(req WFInstanceNewRequest) crux.Entity {
+
+	var attributes = make(map[string]string)
+	for key, val := range req.Entity {
+		if key != CLASS {
+			attributes[key] = val
+		}
+	}
+	entityStruct := crux.Entity{
+		Realm: REALM,
+		App:   req.App,
+		Slice: strconv.Itoa(int(req.Slice)),
+		Class: req.Entity[CLASS],
+		Attrs: attributes,
+	}
+	return entityStruct
 }

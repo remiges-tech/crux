@@ -38,10 +38,13 @@ const (
 	START     = "START"
 	FALSE     = "false"
 	TRUE      = "true"
-	REALM     = 1
+	REALM     = "BSE"
 	USERID    = "1234"
 )
+
+var ENTITYREALM = "BSE"
 
 // feilds for error messages
 var APP, CLASS, SLICE, ENTITY, WORKFLOW, ENTITYID string = "app", "class", "slice", "entity", "workflow", "entityid"
 var ACTIONSET_PROPERTIES, TASK = "actionset_properties", "task"
+
