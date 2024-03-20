@@ -36,17 +36,17 @@ func matchPattern(entity Entity, rulePattern []RulePatternBlock_t, actionSet Act
 		valType := ""
 		entityAttrVal := ""
 
-		// Check whether the attribute name in the pattern term exists in the entity attrs map
-		if val, ok := entity.attrs[term.Attr]; ok {
+		// Check whether the attribute name in the pattern term exists in the entity Attrs map
+		if val, ok := entity.Attrs[term.Attr]; ok {
 
 			entityAttrVal = val
-			valType = getTypeFromSchema(entity.class, term.Attr, rSchema)
-			incrementStatsSchemaCounterNChecked(entity.class, rSchema)
+			valType = getTypeFromSchema(entity.Class, term.Attr, rSchema)
+			incrementStatsSchemaCounterNChecked(entity.Class, rSchema)
 		}
 
-		// If the attribute value is still empty, check whether it matches any of the tasks in the action-set
+		// If the attribute value is still empty, check whether it matches any of the Tasks in the action-set
 		if entityAttrVal == "" {
-			for _, task := range actionSet.tasks {
+			for _, task := range actionSet.Tasks {
 				if task == term.Attr {
 					entityAttrVal = trueStr
 					valType = typeBool
@@ -75,10 +75,11 @@ func matchPattern(entity Entity, rulePattern []RulePatternBlock_t, actionSet Act
 	return true, nil
 }
 
-func getTypeFromSchema(class string, attrName string, ruleSchemas []*Schema_t) string {
+func getTypeFromSchema(Class string, attrName string, ruleSchemas []*Schema_t) string {
+
 	for _, ruleSchema := range ruleSchemas {
 
-		if ruleSchema.Class == class {
+		if ruleSchema.Class == Class {
 			for _, attrSchema := range ruleSchema.PatternSchema {
 
 				if attrSchema.Attr == attrName {
@@ -99,12 +100,12 @@ func makeComparison(entityAttrVal string, termAttrVal any, valType string, op st
 	if err != nil {
 		return false, fmt.Errorf("error converting value: %w", err)
 	}
-	switch op {
-	case opEQ:
-		return entityAttrValConv == termAttrVal, nil
-	case opNE:
-		return entityAttrValConv != termAttrVal, nil
-	}
+	// switch op {
+	// case opEQ:
+	// 	return entityAttrValConv == termAttrVal, nil
+	// case opNE:
+	// 	return entityAttrValConv != termAttrVal, nil
+	// }
 	orderedTypes := map[string]bool{typeInt: true, typeFloat: true, typeTS: true, typeStr: true}
 	if !orderedTypes[valType] {
 		return false, errors.New("not an ordered type")
@@ -112,6 +113,12 @@ func makeComparison(entityAttrVal string, termAttrVal any, valType string, op st
 	var result int8
 	var match bool
 	switch op {
+	case opEQ:
+		result, err = compare(entityAttrValConv, termAttrVal)
+		match = (result == 0)
+	case opNE:
+		result, err = compare(entityAttrValConv, termAttrVal)
+		match = (result == -1)
 	case opLT:
 		result, err = compare(entityAttrValConv, termAttrVal)
 		match = (result == -1)
@@ -159,18 +166,21 @@ func convertEntityAttrVal(entityAttrVal string, valType string) (any, error) {
 // -1 if a < b, or
 // 1 if a > b
 func compare(a any, b any) (int8, error) {
-	if a == b {
-		return 0, nil
-	}
 	var lessThan bool
 	switch a.(type) {
 	case int:
-		if a.(int) < b.(int) {
+		bInt, _ := strconv.Atoi(b.(string))
+		if a.(int) < bInt {
 			lessThan = true
+		} else if a.(int) == bInt {
+			return 0, nil
 		}
 	case float64:
-		if a.(float64) < b.(float64) {
+		bFloat, _ := strconv.ParseFloat(b.(string), 64)
+		if a.(float64) < bFloat {
 			lessThan = true
+		} else if a.(float64) == bFloat {
+			return 0, nil
 		}
 	case string:
 		if a.(string) < b.(string) {
@@ -189,11 +199,11 @@ func compare(a any, b any) (int8, error) {
 		return 1, nil
 	}
 }
-func incrementStatsSchemaCounterNChecked(class string, schema []*Schema_t) {
+func incrementStatsSchemaCounterNChecked(Class string, schema []*Schema_t) {
 
 	for _, ruleSchema := range schema {
 
-		if ruleSchema.Class == class {
+		if ruleSchema.Class == Class {
 
 			ruleSchema.NChecked++
 		}

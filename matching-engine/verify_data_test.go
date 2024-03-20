@@ -87,7 +87,7 @@ func testCorrectBRSchema(tests *[]verifySchemaTest) {
 		},
 	}
 
-	// Append the newly created instance to the ruleSchemasTest slice
+	// Append the newly created instance to the ruleSchemasTest Slice
 	ruleSchemasTest = append(ruleSchemasTest, rs)
 	*tests = append(*tests, verifySchemaTest{
 		name:    "correct business-rules schema",
@@ -116,10 +116,10 @@ func testSchemaEmptyClass(tests *[]verifySchemaTest) {
 		},
 	}
 
-	// Append the newly created instance to the ruleSchemasTest slice
+	// Append the newly created instance to the ruleSchemasTest Slice
 	ruleSchemasTest = append(ruleSchemasTest, rs)
 	*tests = append(*tests, verifySchemaTest{
-		name:    "schema with empty class",
+		name:    "schema with empty Class",
 		rs:      ruleSchemasTest,
 		isWF:    false,
 		want:    false,
@@ -539,11 +539,11 @@ func TestVerifyRuleSet(t *testing.T) {
 }
 
 var sampleEntityVerify = Entity{
-	realm: "1",
-	app:   "Test8",
-	slice: "8",
-	class: "purchase",
-	attrs: map[string]string{
+	Realm: "1",
+	App:   "Test8",
+	Slice: "8",
+	Class: "purchase",
+	Attrs: map[string]string{
 		"cat":        "textbook",
 		"fullname":   "Advanced Physics",
 		"ageinstock": "5",
@@ -739,12 +739,12 @@ func testBothReturnAndExit(t *testing.T) {
 }
 
 var sampleEntityUCC = Entity{
-	realm: "1",
-	app:   "Test10",
-	slice: "10",
-	class: "ucccreation",
+	Realm: "1",
+	App:   "Test10",
+	Slice: "10",
+	Class: "ucccreation",
 
-	attrs: map[string]string{
+	Attrs: map[string]string{
 		"cat":        "textbook",
 		"fullname":   "Advanced Physics",
 		"ageinstock": "5",
@@ -793,7 +793,7 @@ func testWFRuleMissingStep(t *testing.T) {
 }
 
 func testWFRuleMissingBothNSAndDone(t *testing.T) {
-	// Assuming uccCreation is an index in the rs slice
+	// Assuming uccCreation is an index in the rs Slice
 	rc := Ruleset_t{
 		Id:    1,
 		Class: uccCreation,
@@ -906,11 +906,11 @@ func testWrongThenCall(t *testing.T) {
 func testWrongElseCall(t *testing.T) {
 
 	var sampleEntityVerify1 = Entity{
-		realm: "1",
-		app:   "Test1",
-		slice: "1",
-		class: "inventoryitem1",
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test1",
+		Slice: "1",
+		Class: "inventoryitem1",
+		Attrs: map[string]string{
 			"cat":        "textbook",
 			"fullname":   "Advanced Physics",
 			"ageinstock": "5",
@@ -950,11 +950,11 @@ func TestVerifyEntity(t *testing.T) {
 
 func testCorrectEntity(t *testing.T) {
 	e := Entity{
-		realm: "1",
-		app:   "Test8",
-		slice: "8",
-		class: purchaseClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test8",
+		Slice: "8",
+		Class: purchaseClass,
+		Attrs: map[string]string{
 			"product":  "jacket",
 			"price":    "50",
 			"ismember": trueStr,
@@ -969,8 +969,8 @@ func testCorrectEntity(t *testing.T) {
 
 func testEntityWithoutSchema(t *testing.T) {
 	e := Entity{
-		class: "wrongclass",
-		attrs: map[string]string{
+		Class: "wrongclass",
+		Attrs: map[string]string{
 			"product": "jacket",
 		},
 	}
@@ -983,11 +983,11 @@ func testEntityWithoutSchema(t *testing.T) {
 
 func testEntityWrongAttr(t *testing.T) {
 	e := Entity{
-		realm: "1",
-		app:   "Test8",
-		slice: "8",
-		class: purchaseClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test8",
+		Slice: "8",
+		Class: purchaseClass,
+		Attrs: map[string]string{
 			"product": "jacket",
 			// discount is not in the schema
 			"discount": "5",
@@ -1003,11 +1003,11 @@ func testEntityWrongAttr(t *testing.T) {
 
 func testEntityWrongType(t *testing.T) {
 	e := Entity{
-		realm: "1",
-		app:   "Test8",
-		slice: "8",
-		class: purchaseClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test8",
+		Slice: "8",
+		Class: purchaseClass,
+		Attrs: map[string]string{
 			"product": "jacket",
 			// price should be a float, not the string "fifty"
 			"price":    "fifty",
@@ -1023,11 +1023,11 @@ func testEntityWrongType(t *testing.T) {
 
 func testEntityMissingAttr(t *testing.T) {
 	e := Entity{
-		realm: "1",
-		app:   "Test8",
-		slice: "8",
-		class: purchaseClass,
-		attrs: map[string]string{
+		Realm: "1",
+		App:   "Test8",
+		Slice: "8",
+		Class: purchaseClass,
+		Attrs: map[string]string{
 			"product": "jacket",
 			// price is missing
 			"ismember": trueStr,

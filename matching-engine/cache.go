@@ -17,27 +17,27 @@ func loadInternalSchema(dbResponseSchema []sqlc.Schema) error {
 	}
 
 	for _, row := range dbResponseSchema {
-		realmKey := realm_t(row.Realm)
-		perRealm, exists := schemaCache[realmKey]
+		realmKey := Realm_t(string(row.Realm))
+		perRealm, exists := SchemaCache[realmKey]
 		if !exists {
-			perRealm = make(perRealm_t)
-			schemaCache[realmKey] = perRealm
+			perRealm = make(PerRealm_t)
+			SchemaCache[realmKey] = perRealm
 		}
 
-		appKey := app_t(row.App)
+		appKey := App_t(row.App)
 		perApp, exists := perRealm[appKey]
 		if !exists {
-			perApp = make(perApp_t)
+			perApp = make(PerApp_t)
 			perRealm[appKey] = perApp
 		}
 
-		sliceKey := slice_t(row.Slice)
+		sliceKey := Slice_t(row.Slice)
 		_, exists = perApp[sliceKey]
 		if !exists {
-			perApp[sliceKey] = perSlice_t{
+			perApp[sliceKey] = PerSlice_t{
 				LoadedAt: time.Now(),
-				BRSchema: make(map[className_t][]*Schema_t),
-				WFSchema: make(map[className_t][]*Schema_t),
+				BRSchema: make(map[ClassName_t][]*Schema_t),
+				WFSchema: make(map[ClassName_t][]*Schema_t),
 			}
 
 			var patterns []PatternSchema_t
@@ -60,7 +60,7 @@ func loadInternalSchema(dbResponseSchema []sqlc.Schema) error {
 				ActionSchema:  actions,
 			}
 
-			classNameKey := className_t(row.Class)
+			classNameKey := ClassName_t(row.Class)
 			if row.Brwf == "B" {
 				perApp[sliceKey].BRSchema[classNameKey] = append(perApp[sliceKey].BRSchema[classNameKey], schemaData)
 			} else if row.Brwf == "W" {
@@ -79,27 +79,27 @@ func loadInternalRuleSet(dbResponseRuleSet []sqlc.Ruleset) error {
 	}
 	for _, row := range dbResponseRuleSet {
 
-		realmKey := realm_t(row.Realm)
-		perRealm, exists := rulesetCache[realmKey]
+		realmKey := Realm_t(string(row.Realm))
+		perRealm, exists := RulesetCache[realmKey]
 		if !exists {
-			perRealm = make(perRealm_t)
-			rulesetCache[realmKey] = perRealm
+			perRealm = make(PerRealm_t)
+			RulesetCache[realmKey] = perRealm
 		}
 
-		appKey := app_t(row.App)
+		appKey := App_t(row.App)
 		perApp, exists := perRealm[appKey]
 		if !exists {
-			perApp = make(perApp_t)
+			perApp = make(PerApp_t)
 			perRealm[appKey] = perApp
 		}
 
-		sliceKey := slice_t(row.Slice)
+		sliceKey := Slice_t(row.Slice)
 		_, exists = perApp[sliceKey]
 		if !exists {
-			perApp[sliceKey] = perSlice_t{
+			perApp[sliceKey] = PerSlice_t{
 				LoadedAt:   time.Now(),
-				BRRulesets: make(map[className_t][]*Ruleset_t),
-				Workflows:  make(map[className_t][]*Ruleset_t),
+				BRRulesets: make(map[ClassName_t][]*Ruleset_t),
+				Workflows:  make(map[ClassName_t][]*Ruleset_t),
 			}
 
 			var rules []Rule_t
@@ -110,7 +110,7 @@ func loadInternalRuleSet(dbResponseRuleSet []sqlc.Ruleset) error {
 				return nil
 			}
 
-			classNameKey := className_t(row.Setname)
+			classNameKey := ClassName_t(row.Class)
 			newRuleset := &Ruleset_t{
 				Id:      row.ID,
 				Class:   row.Class,
@@ -121,6 +121,8 @@ func loadInternalRuleSet(dbResponseRuleSet []sqlc.Ruleset) error {
 				perApp[sliceKey].BRRulesets[classNameKey] = append(perApp[sliceKey].BRRulesets[classNameKey], newRuleset)
 
 			} else if row.Brwf == "W" {
+				fmt.Printf("className: %v", classNameKey)
+				fmt.Printf("workflow name: %v", newRuleset.SetName)
 				perApp[sliceKey].Workflows[classNameKey] = append(perApp[sliceKey].Workflows[classNameKey], newRuleset)
 			}
 
@@ -130,8 +132,8 @@ func loadInternalRuleSet(dbResponseRuleSet []sqlc.Ruleset) error {
 	return nil
 }
 func loadInternal(dbResponseSchema []sqlc.Schema, dbResponseRuleSet []sqlc.Ruleset) error {
-	rulesetCache = make(rulesetCache_t)
-	schemaCache = make(schemaCache_t)
+	RulesetCache = make(RulesetCache_t)
+	SchemaCache = make(SchemaCache_t)
 
 	err := loadInternalSchema(dbResponseSchema)
 	if err != nil {
@@ -146,13 +148,13 @@ func loadInternal(dbResponseSchema []sqlc.Schema, dbResponseRuleSet []sqlc.Rules
 }
 
 func purgeInternal() error {
-	rulesetCache = make(rulesetCache_t)
-	schemaCache = make(schemaCache_t)
+	RulesetCache = make(RulesetCache_t)
+	SchemaCache = make(SchemaCache_t)
 	return nil
 
 }
 
-func Load(query sqlc.DBQuerier, ctx context.Context) error {
+func Load(query sqlc.Querier, ctx context.Context) error {
 
 	lockCache()
 	defer unlockCache()

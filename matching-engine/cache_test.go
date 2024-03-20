@@ -18,7 +18,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func testinit() (sqlc.DBQuerier, context.Context, error) {
+func testinit() (sqlc.Querier, context.Context, error) {
 	var ConnectionString = "host=localhost port=5432 user=postgres password=postgres dbname=crux sslmode=disable"
 	ctx := context.Background()
 	conn, err := pgx.Connect(ctx, ConnectionString)
@@ -47,7 +47,7 @@ func testCache(tests *[]doMatchTest, t *testing.T) {
 	//testReload(tests, t, query, ctx)
 }
 
-func testLoadDB(tests *[]doMatchTest, t *testing.T, q sqlc.DBQuerier, c context.Context) {
+func testLoadDB(tests *[]doMatchTest, t *testing.T, q sqlc.Querier, c context.Context) {
 
 	err := Load(q, c)
 	if err != nil {
@@ -82,7 +82,7 @@ func testPurge(tests *[]doMatchTest, t *testing.T) {
 	}
 }
 
-func testReload(tests *[]doMatchTest, t *testing.T, q sqlc.DBQuerier, c context.Context) {
+func testReload(tests *[]doMatchTest, t *testing.T, q sqlc.Querier, c context.Context) {
 
 	/*err := Reload(q,c)
 	if err != nil {

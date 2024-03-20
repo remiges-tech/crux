@@ -203,7 +203,7 @@ func getStepAttrVals(rs Schema_t) map[string]struct{} {
 // isWF bool: true if the RuleSet is a workflow, otherwise false
 func verifyRuleSet(entiry Entity, rs *Ruleset_t, isWF bool) []error {
 	var errs []error
-	schema, err := getSchema(entiry, entiry.class)
+	schema, err := getSchema(entiry, entiry.Class)
 
 	if err != nil {
 		errs = append(errs, err)
@@ -269,19 +269,19 @@ func VerifyRulePatterns(ruleset *Ruleset_t, schema *Schema_t, isWF bool) []error
 	return errs
 }
 
-func getSchema(entity Entity, class string) (*Schema_t, error) {
-	ruleSchemas, _ := retriveRuleSchemasAndRuleSetsFromCache(entity.realm, entity.app, entity.class, entity.slice)
+func getSchema(entity Entity, Class string) (*Schema_t, error) {
+	ruleSchemas, _ := retriveRuleSchemasAndRuleSetsFromCache(entity.Realm, entity.App, entity.Class, entity.Slice)
 
 	if len(ruleSchemas) > 0 {
 
 		for _, s := range ruleSchemas {
 
-			if class == s.Class {
+			if Class == s.Class {
 				return s, nil
 			}
 		}
 	}
-	return nil, fmt.Errorf("no schema found for class %v", class)
+	return nil, fmt.Errorf("no schema found for Class %v", Class)
 }
 
 func getType(rs *Schema_t, name string) string {
@@ -418,7 +418,7 @@ func getNextStep(props map[string]string) string {
 }
 
 func doReferentialChecks(e Entity) (bool, error) {
-	_, ruleSets := retriveRuleSchemasAndRuleSetsFromCache(e.realm, e.app, e.class, e.slice)
+	_, ruleSets := retriveRuleSchemasAndRuleSetsFromCache(e.Realm, e.App, e.Class, e.Slice)
 
 	for _, ruleset := range ruleSets {
 		for _, rule := range ruleset.Rules {
@@ -434,11 +434,11 @@ func doReferentialChecks(e Entity) (bool, error) {
 }
 
 func verifyEntity(e Entity) (bool, error) {
-	rs, err := getSchema(e, e.class)
+	rs, err := getSchema(e, e.Class)
 	if err != nil {
 		return false, err
 	}
-	for attrName, attrVal := range e.attrs {
+	for attrName, attrVal := range e.Attrs {
 
 		t := getType(rs, attrName)
 		if t == "" {
@@ -449,7 +449,7 @@ func verifyEntity(e Entity) (bool, error) {
 			return false, fmt.Errorf("attribute %v in entity has value of wrong type", attrName)
 		}
 	}
-	if len(e.attrs) != len(rs.PatternSchema) {
+	if len(e.Attrs) != len(rs.PatternSchema) {
 		return false, fmt.Errorf("entity does not contain all the attributes in its pattern-schema")
 	}
 	return true, nil

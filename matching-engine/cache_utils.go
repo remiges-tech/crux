@@ -24,7 +24,7 @@ func unlockCache() {
 	cacheLock.Unlock()
 }
 
-func NewProvider(cfg string) sqlc.DBQuerier {
+func NewProvider(cfg string) sqlc.Querier {
 	ctx := context.Background()
 	db, err := pgxpool.New(ctx, cfg)
 	if err != nil {
@@ -39,17 +39,17 @@ func NewProvider(cfg string) sqlc.DBQuerier {
 }
 
 func AddReferencesToRuleSetCache() {
-	for realmKey, perRealm := range rulesetCache {
+	for realmKey, perRealm := range RulesetCache {
 		for _, perApp := range perRealm {
 			for sliceKey, perSlice := range perApp {
 				for _, rulesets := range perSlice.BRRulesets {
 					for _, rule := range rulesets {
 						for _, subRule := range rule.Rules {
 							if subRule.RuleActions.ThenCall != "" {
-								searchAndAddReferences(subRule.RuleActions.ThenCall, rulesetCache, realmKey, sliceKey, rule, "thencall", subRule)
+								searchAndAddReferences(subRule.RuleActions.ThenCall, RulesetCache, realmKey, sliceKey, rule, "thencall", subRule)
 							}
 							if subRule.RuleActions.ElseCall != "" {
-								searchAndAddReferences(subRule.RuleActions.ElseCall, rulesetCache, realmKey, sliceKey, rule, "elsecall", subRule)
+								searchAndAddReferences(subRule.RuleActions.ElseCall, RulesetCache, realmKey, sliceKey, rule, "elsecall", subRule)
 							}
 						}
 					}
@@ -59,8 +59,8 @@ func AddReferencesToRuleSetCache() {
 	}
 }
 
-func searchAndAddReferences(targetSetName string, cache map[realm_t]perRealm_t, realmKey realm_t,
-	sliceKey slice_t, sourceRule *Ruleset_t, calltype string, subRule Rule_t) {
+func searchAndAddReferences(targetSetName string, cache map[Realm_t]PerRealm_t, realmKey Realm_t,
+	sliceKey Slice_t, sourceRule *Ruleset_t, calltype string, subRule Rule_t) {
 	for _, perApp := range cache[realmKey] {
 		for otherSliceKey, perSlice := range perApp {
 			if otherSliceKey == sliceKey {
@@ -89,7 +89,8 @@ func searchAndAddReferences(targetSetName string, cache map[realm_t]perRealm_t, 
 }
 
 func PrintAllRuleSetCache() {
-	for realmKey, perRealm := range rulesetCache {
+
+	for realmKey, perRealm := range RulesetCache {
 		fmt.Println("Realm:", realmKey)
 		for appKey, perApp := range perRealm {
 			fmt.Println("\tApp:", appKey)
@@ -145,7 +146,7 @@ func PrintAllRuleSetCache() {
 }
 func PrintAllSchemaCache() {
 
-	for realmKey, perRealm := range schemaCache {
+	for realmKey, perRealm := range SchemaCache {
 		fmt.Println("Realm:", realmKey)
 		for appKey, perApp := range perRealm {
 			fmt.Println("\tApp:", appKey)
@@ -252,25 +253,25 @@ func containsFieldName(value interface{}, fieldName string) bool {
 	return false
 }
 func retrieveSchemasFromCacheByte(realm string, app string, class string, slice int, brwf string) ([]byte, []byte, string) {
-	realmKey := realm_t(realm)
-	perRealm, realmExists := schemaCache[realmKey]
+	realmKey := Realm_t(realm)
+	perRealm, realmExists := SchemaCache[realmKey]
 	if !realmExists {
 		return nil, nil, "Realmkey not match"
 	}
 
-	appKey := app_t(app)
+	appKey := App_t(app)
 	perApp, appExists := perRealm[appKey]
 	if !appExists {
 		return nil, nil, "AppKey not match"
 	}
 
-	sliceKey := slice_t(slice)
+	sliceKey := Slice_t(slice)
 	perSlice, sliceExists := perApp[sliceKey]
 	if !sliceExists {
 		return nil, nil, "Slice key not match"
 	}
 
-	classNameKey := className_t(class)
+	classNameKey := ClassName_t(class)
 	var schemas []*Schema_t
 
 	if brwf == "B" {
@@ -300,28 +301,30 @@ func retrieveSchemasFromCacheByte(realm string, app string, class string, slice 
 	return patternSchemaJSON, actionSchemaJSON, "success"
 }
 
-func retrieveRulesetFromCacheByte(realm string, app string, class string, slice int,
+func RetrieveRulesetsFromCacheByte(realm string, app string, class string, slice int,
 	brwf string) ([]byte, []byte, string, []*Ruleset_t) {
-	realmKey := realm_t(realm)
-	perRealm, exists := rulesetCache[realmKey]
+	realmKey := Realm_t(realm)
+	perRealm, exists := RulesetCache[realmKey]
 	if !exists {
 		return nil, nil, "Realmkey not match", nil
 	}
 
-	appKey := app_t(app)
+	appKey := App_t(app)
 	perApp, exists := perRealm[appKey]
 	if !exists {
 		return nil, nil, "AppKey not match", nil
 	}
 
-	sliceKey := slice_t(slice)
+	sliceKey := Slice_t(slice)
 	perSlice, exists := perApp[sliceKey]
 	if !exists {
 		return nil, nil, "Slice key not match", nil
 	}
 
-	classNameKey := className_t(class)
+	classNameKey := ClassName_t(class)
+	fmt.Println("classname key :", classNameKey)
 	brwfKey := BrwfEnum(brwf)
+	fmt.Println("brwf key :", brwfKey)
 	var rulesets []*Ruleset_t
 
 	if brwfKey == "B" {
@@ -353,22 +356,22 @@ func retrieveRulesetFromCacheByte(realm string, app string, class string, slice 
 }
 
 func retrieveRuleSchemasFromCache(realm string, app string, class string, slice int) ([]*Schema_t, error) {
-	realmKey := realm_t(realm)
+	realmKey := Realm_t(realm)
 
-	perRealm, realmExists := schemaCache[realmKey]
+	perRealm, realmExists := SchemaCache[realmKey]
 	if !realmExists {
 
 		return nil, errors.New("schema Realmkey not match")
 	}
 
-	appKey := app_t(app)
+	appKey := App_t(app)
 	perApp, appExists := perRealm[appKey]
 	if !appExists {
 
 		return nil, errors.New("schema AppKey not match")
 	}
 
-	sliceKey := slice_t(slice)
+	sliceKey := Slice_t(slice)
 
 	perSlice, sliceExists := perApp[sliceKey]
 	if !sliceExists {
@@ -378,7 +381,7 @@ func retrieveRuleSchemasFromCache(realm string, app string, class string, slice 
 
 	var ruleSchemas []*Schema_t
 
-	brSchemas, brExists := perSlice.BRSchema[className_t(class)]
+	brSchemas, brExists := perSlice.BRSchema[ClassName_t(class)]
 	if brExists {
 		for _, schemas := range brSchemas {
 
@@ -386,7 +389,7 @@ func retrieveRuleSchemasFromCache(realm string, app string, class string, slice 
 		}
 	}
 
-	wfSchemas, wfExists := perSlice.WFSchema[className_t(class)]
+	wfSchemas, wfExists := perSlice.WFSchema[ClassName_t(class)]
 	if wfExists {
 		for _, schemas := range wfSchemas {
 			ruleSchemas = append(ruleSchemas, schemas)
@@ -395,20 +398,20 @@ func retrieveRuleSchemasFromCache(realm string, app string, class string, slice 
 
 	return ruleSchemas, nil
 }
-func convertAttrValue(entityAttrVal string, valType valType_t) any {
+func convertAttrValue(entityAttrVal string, valType ValType_t) any {
 
 	var entityAttrValConv any
 	var err error
 	switch valType {
-	case valBool_t:
+	case ValBool_t:
 		entityAttrValConv, err = strconv.ParseBool(entityAttrVal)
-	case valInt_t:
+	case ValInt_t:
 		entityAttrValConv, err = strconv.Atoi(entityAttrVal)
-	case valFloat_t:
+	case ValFloat_t:
 		entityAttrValConv, err = strconv.ParseFloat(entityAttrVal, 64)
-	case valString_t, valEnum_t:
+	case ValString_t, ValEnum_t:
 		entityAttrValConv = entityAttrVal
-	case valTimestamp_t:
+	case ValTimestamp_t:
 		entityAttrValConv, err = time.Parse(timeLayout, entityAttrVal)
 	}
 	if err != nil {
@@ -417,21 +420,21 @@ func convertAttrValue(entityAttrVal string, valType valType_t) any {
 	return entityAttrValConv
 }
 
-func retrieveRuleSetsFromCache(realm string, app string, class string, slice int) ([]*Ruleset_t, error) {
-	realmKey := realm_t(realm)
+func RetrieveRuleSetsFromCache(realm string, app string, class string, slice int) ([]*Ruleset_t, error) {
+	realmKey := Realm_t(realm)
 
-	perRealm, realmExists := rulesetCache[realmKey]
+	perRealm, realmExists := RulesetCache[realmKey]
 	if !realmExists {
 		return nil, errors.New("ruleset realmkey not match")
 	}
 
-	appKey := app_t(app)
+	appKey := App_t(app)
 	perApp, appExists := perRealm[appKey]
 	if !appExists {
 		return nil, errors.New("ruleset appKey not match")
 	}
 
-	sliceKey := slice_t(slice)
+	sliceKey := Slice_t(slice)
 	perSlice, sliceExists := perApp[sliceKey]
 	if !sliceExists {
 		return nil, errors.New("ruleset slice key not match")
@@ -442,6 +445,7 @@ func retrieveRuleSetsFromCache(realm string, app string, class string, slice int
 	for _, brRulesets := range perSlice.BRRulesets {
 		ruleSets = append(ruleSets, brRulesets...)
 	}
+
 	for _, wfRulesets := range perSlice.Workflows {
 		ruleSets = append(ruleSets, wfRulesets...)
 	}
@@ -452,11 +456,14 @@ func retrieveRuleSetsFromCache(realm string, app string, class string, slice int
 func retriveRuleSchemasAndRuleSetsFromCache(realm string, app string, class string, slice string) ([]*Schema_t, []*Ruleset_t) {
 	s, _ := strconv.Atoi(slice)
 
-	ruleSchemas, _ := retrieveRuleSchemasFromCache(realm, app, class, s)
+	ruleSchemas, err := retrieveRuleSchemasFromCache(realm, app, class, s)
+	if err != nil {
+		log.Printf("Failed to retrieveRuleSchemasFromCache: %v", err)
+	}
 
-	ruleSets, _ := retrieveRuleSetsFromCache(realm, app, class, s)
+	ruleSets, _ := RetrieveRuleSetsFromCache(realm, app, class, s)
+
 	return ruleSchemas, ruleSets
-
 }
 func printStats(statsData rulesetStats_t) {
 	for realm, perRealm := range statsData {
@@ -497,4 +504,35 @@ func printStats(statsData rulesetStats_t) {
 			}
 		}
 	}
+}
+
+
+func RetrieveWorkflowRulesetFromCache(realm string, app string, class string, slice int) ([]*Ruleset_t, error) {
+	realmKey := Realm_t(realm)
+
+	perRealm, realmExists := RulesetCache[realmKey]
+	if !realmExists {
+		return nil, errors.New("ruleset realmkey not match")
+	}
+
+	appKey := App_t(app)
+	perApp, appExists := perRealm[appKey]
+	if !appExists {
+		return nil, errors.New("ruleset appKey not match")
+	}
+
+	sliceKey := Slice_t(slice)
+	perSlice, sliceExists := perApp[sliceKey]
+	if !sliceExists {
+		return nil, errors.New("ruleset slice key not match")
+	}
+
+	var ruleSets []*Ruleset_t
+
+	fmt.Println("perslice.workflows", perSlice.Workflows)
+	for _, wfRulesets := range perSlice.Workflows {
+		ruleSets = append(ruleSets, wfRulesets...)
+	}
+
+	return ruleSets, nil
 }

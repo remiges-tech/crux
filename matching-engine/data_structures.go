@@ -5,13 +5,13 @@ This file contains the data structures used by the matching engine
 package crux
 
 type Entity struct {
-	realm string
-	app   string
-	slice string
-	class string
-	attrs map[string]string
+	Realm string
+	App   string
+	Slice string
+	Class string
+	Attrs map[string]string
 }
 type ActionSet struct {
-	tasks      []string
-	properties map[string]string
+	Tasks      []string
+	Properties map[string]string
 }
