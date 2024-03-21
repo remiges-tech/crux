@@ -174,9 +174,9 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/realmSliceApps/:id", realmslice.RealmSliceApps)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/RealmSlicePurge", realmslice.RealmSlicePurge)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/realmslicelist", realmslice.RealmSliceList)
-	// user management
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/useractivate/:userid", auth.UserActivate)
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/userdeactivate/:userid", auth.UserDeactivate)
+	// auth
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/useractivate/:userid", auth.UserActivate)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/userdeactivate/:userid", auth.UserDeactivate)
 	// config management
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/configset", config.ConfigSet)
 

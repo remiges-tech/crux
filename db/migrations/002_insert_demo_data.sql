@@ -91,6 +91,12 @@ VALUES (
         2, 'BSE', 'Raj', 'hdfcbank', 'user', '2024-01-29 00:00:00', '2024-02-29 00:00:00', '2023-12-29 00:00:00', 'user'
     );
 
+    INSERT INTO
+    "capgrant"
+VALUES (
+        3, 'BSE', 'Raj', 'nedbank', 'user', '2024-01-29 00:00:00', NULL, '2023-12-29 00:00:00', 'user'
+    );
+
 -- config TABLE
 INSERT INTO
     config (

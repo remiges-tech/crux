@@ -39,3 +39,6 @@ WHERE
     "user" = @userid
     and realm = @realm
 RETURNING *;
+
+-- name: CapGet :many
+SELECT app,cap,setby,setat,"from","to" from capgrant WHERE realm = @realm and "user" = @userId;

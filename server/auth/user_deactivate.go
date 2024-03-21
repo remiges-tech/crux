@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"slices"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -13,7 +14,7 @@ import (
 	"github.com/remiges-tech/crux/types"
 )
 
-// UserActivate: will handle "/userdeactivate/:userid" POST
+// UserActivate: will handle "/userdeactivate/:userid" GET
 func UserDeactivate(c *gin.Context, s *service.Service) {
 	from_t := time.Now()
 	// uncomment below time while running test case
@@ -36,7 +37,7 @@ func UserDeactivate(c *gin.Context, s *service.Service) {
 	}
 
 	// Step:0 - check user caps
-	isCapable, _ := server.Authz_check(types.OpReq{
+	isCapable, primaryUserCaps := server.Authz_check(types.OpReq{
 		User:      userID,
 		CapNeeded: authCaps,
 	}, false)
@@ -64,6 +65,27 @@ func UserDeactivate(c *gin.Context, s *service.Service) {
 	}
 
 	// Step:3 - do the db transaction
+	// check if operating user is root
+	userCaps, err := query.CapGet(c, sqlc.CapGetParams{
+		Userid: opUserId,
+		Realm:  realmName,
+	})
+	if err != nil {
+		l.Info().Error(err).Log("error while getting caps from db")
+	}
+
+	if true {
+		for _, v := range userCaps {
+			if v.Cap == "root" {
+				if !slices.Contains(primaryUserCaps, "root") {
+					l.Info().Log("primaryUserCaps don't have root auth")
+					wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
+					return
+				}
+			}
+		}
+	}
+
 	newSliceID, err := query.UserDeactivate(c, sqlc.UserDeactivateParams{
 		Userid:       opUserId,
 		Deactivateat: pgtype.Timestamp{Time: from_t, Valid: true},
