@@ -18,7 +18,7 @@ func TestUserDeactivate(t *testing.T) {
 			payload := bytes.NewBuffer(testutils.MarshalJson(tc.RequestPayload))
 
 			res := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodPost, tc.Url, payload)
+			req, err := http.NewRequest(http.MethodGet, tc.Url, payload)
 			require.NoError(t, err)
 
 			r.ServeHTTP(res, req)
