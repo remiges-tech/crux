@@ -506,7 +506,6 @@ func printStats(statsData rulesetStats_t) {
 	}
 }
 
-
 func RetrieveWorkflowRulesetFromCache(realm string, app string, class string, slice int) ([]*Ruleset_t, error) {
 	realmKey := Realm_t(realm)
 
@@ -529,7 +528,6 @@ func RetrieveWorkflowRulesetFromCache(realm string, app string, class string, sl
 
 	var ruleSets []*Ruleset_t
 
-	fmt.Println("perslice.workflows", perSlice.Workflows)
 	for _, wfRulesets := range perSlice.Workflows {
 		ruleSets = append(ruleSets, wfRulesets...)
 	}

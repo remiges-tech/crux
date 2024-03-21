@@ -95,7 +95,7 @@ func getTypeFromSchema(Class string, attrName string, ruleSchemas []*Schema_t) s
 // Returns whether or not the comparison represented by {entityAttrVal, op, termAttrVal} is true
 // For example, {7, gt (greater than), 5} is true but {3, gt, 5} is false
 func makeComparison(entityAttrVal string, termAttrVal any, valType string, op string) (bool, error) {
-	entityAttrValConv, err := convertEntityAttrVal(entityAttrVal, valType)
+	entityAttrValConv, err := ConvertEntityAttrVal(entityAttrVal, valType)
 
 	if err != nil {
 		return false, fmt.Errorf("error converting value: %w", err)
@@ -139,7 +139,7 @@ func makeComparison(entityAttrVal string, termAttrVal any, valType string, op st
 }
 
 // Converts the string entityAttrVal to its schema-provided type
-func convertEntityAttrVal(entityAttrVal string, valType string) (any, error) {
+func ConvertEntityAttrVal(entityAttrVal string, valType string) (any, error) {
 
 	var entityAttrValConv any
 	var err error

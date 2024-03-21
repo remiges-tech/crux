@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/remiges-tech/alya/service"
@@ -13,18 +12,7 @@ import (
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	crux "github.com/remiges-tech/crux/matching-engine"
 	"github.com/remiges-tech/crux/server"
-	"github.com/remiges-tech/crux/types"
 )
-
-type Entity struct {
-	Class      string             `json:"class"`
-	Attributes []EntityAttributes `json:"attr"`
-}
-
-type EntityAttributes struct {
-	Name string `json:"name"`
-	Val  string `json:"val"`
-}
 
 func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin.Context) (bool, []wscutils.ErrorMessage) {
 	lh := s.LogHarbour.WithClass("wfinstance")
@@ -54,7 +42,7 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
 		return false, errRes
 	}
 	// Validate request
-	isValidReq, errAry := validateWorkflow(r, s, c)
+	isValidReq, errAry := validateWorkflow(r, s, c, REALM)
 	if len(errAry) > 0 || !isValidReq {
 		lh.Debug0().LogActivity("GetWFinstanceNew||validateWFInstanceNewReq()||invalid request:", errAry)
 		errRes = errAry
@@ -85,19 +73,24 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
 	}
 
 	// Unmarshalling byte data to schemapatten struct
-	schmapattern, err := byteToPatternSchema(pattern)
-	lh.Debug0().LogActivity("GetWFinstanceNew||validateWFInstanceNewReq()||patternschema :", schmapattern)
+	schemaPattern, err := byteToPatternSchema(pattern)
+	lh.Debug0().LogActivity("GetWFinstanceNew||validateWFInstanceNewReq()||patternschema :", schemaPattern)
 	if err != nil {
 		lh.Debug0().LogActivity("GetWFinstanceNew||validateWFInstanceNewReq()|| error while converting byte patternschema to struct:", err)
 		errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_NoSchemaFound, server.ErrCode_Invalid_pattern_schema, nil))
+		return false, errRes
+	}
+	schema := crux.Schema_t{
+		Class:         class,
+		PatternSchema: *schemaPattern,
 	}
 
 	// Forming  requested entity  into proper Entity struct
-	EntityStruct := getEntity(r.Entity)
+	EntityStruct := getEntityStructure(r)
 	lh.Debug1().LogActivity("GetWFinstanceNew||validateWFInstanceNewReq()||entity stucture:", EntityStruct)
 
 	//  To match entity against patternschema
-	isValidEntity, err := ValidateEntity(EntityStruct, schmapattern, s)
+	isValidEntity, err := ValidateEntity(EntityStruct, &schema, s)
 	if !isValidEntity || err != nil {
 		lh.Debug0().LogActivity(" GetWFinstanceNew||validateWFInstanceNewReq()||error while validating entity against patternschema:", err)
 		errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid_Entity, &ENTITY))
@@ -108,18 +101,10 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
 }
 
 // validate workflow
-func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context) (bool, []wscutils.ErrorMessage) {
+func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context, realm string) (bool, []wscutils.ErrorMessage) {
 	var errors []wscutils.ErrorMessage
 	lh := s.LogHarbour.WithClass("wfinstance")
 	entityClass := r.Entity[CLASS]
-
-	REALM, err := server.ExtractRealmFromJwt(c)
-	if err != nil {
-		lh.Info().Log("unable to extract realm from token")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
-		errRes := append(errors, wscutils.BuildErrorMessage(server.MsgId_Missing, server.ERRCode_Token_Data_Missing, nil))
-		return false, errRes
-	}
 
 	lh.Debug0().Log("Inside validateWorkflow()")
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
@@ -213,7 +198,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 }
 
 // validate entity
-func ValidateEntity(e Entity, ps *types.PatternSchema, s *service.Service) (bool, error) {
+func ValidateEntity(e crux.Entity, ps *crux.Schema_t, s *service.Service) (bool, error) {
 
 	lh := s.LogHarbour
 	lh.Debug0().Log("Inside validateEntity()")
@@ -223,20 +208,20 @@ func ValidateEntity(e Entity, ps *types.PatternSchema, s *service.Service) (bool
 		lh.Debug0().Log("GetWFinstanceNew||validateEntity()||entity class does not match the expected class in the schema")
 		return false, errors.New("Entity class does not match the expected class in the schema")
 	}
-	// Validate attributes
 
+	// Validate attributes
 	lh.Log("validating entity attributes")
-	for _, a := range e.Attributes {
-		t := getType(*ps, a.Name)
+	for name, val := range e.Attrs {
+		t := getType(*ps, name)
 		if t == "" {
-			lh.Debug0().LogActivity("GetWFinstanceNew||validateEntity()||schema does not contain attribute %v", a.Name)
-			return false, fmt.Errorf("schema does not contain attribute %v", a.Name)
+			lh.Debug0().LogActivity("GetWFinstanceNew||validateEntity()||schema does not contain attribute %v", name)
+			return false, fmt.Errorf("schema does not contain attribute %v", name)
 
 		}
-		_, err := convertEntityAttrVal(a.Val, t)
+		_, err := crux.ConvertEntityAttrVal(val, t)
 		if err != nil {
-			lh.Debug0().LogActivity("GetWFinstanceNew||validateEntity()||attribute %v in entity has value of wrong type", a.Name)
-			return false, fmt.Errorf("attribute %v in entity has value of wrong type", a.Name)
+			lh.Debug0().LogActivity("GetWFinstanceNew||validateEntity()||attribute %v in entity has value of wrong type", name)
+			return false, fmt.Errorf("attribute %v in entity has value of wrong type", name)
 		}
 	}
 
@@ -244,68 +229,27 @@ func ValidateEntity(e Entity, ps *types.PatternSchema, s *service.Service) (bool
 }
 
 // To get type of request entity attributes
-func getType(ps types.PatternSchema, name string) string {
-	for _, as := range ps.Attr {
-		if as.Name == name {
+func getType(rs crux.Schema_t, name string) string {
+	for _, as := range rs.PatternSchema {
+		if as.Attr == name {
 			return as.ValType
 		}
 	}
 	return ""
 }
 
-// Converts the string entityAttrVal to its schema-provided type
-func convertEntityAttrVal(entityAttrVal string, valType string) (any, error) {
-	var entityAttrValConv any
-	var err error
-	switch valType {
-	case typeBool:
-		entityAttrValConv, err = strconv.ParseBool(entityAttrVal)
-	case typeInt:
-		entityAttrValConv, err = strconv.Atoi(entityAttrVal)
-	case typeFloat:
-		entityAttrValConv, err = strconv.ParseFloat(entityAttrVal, 64)
-	case typeStr, typeEnum:
-		entityAttrValConv = entityAttrVal
-	case typeTS:
-		entityAttrValConv, err = time.Parse(timeLayout, entityAttrVal)
-	}
-
-	if err != nil {
-		return nil, err
-	}
-	return entityAttrValConv, nil
-}
-
 // To convert byte data to patternschema struct
-func byteToPatternSchema(byteData []byte) (*types.PatternSchema, error) {
-	var response *types.PatternSchema
-	err := json.Unmarshal(byteData, &response)
+func byteToPatternSchema(byteData []byte) (*[]crux.PatternSchema_t, error) {
+	var ptternSchema *[]crux.PatternSchema_t
+	err := json.Unmarshal(byteData, &ptternSchema)
 	if err != nil {
 		return nil, fmt.Errorf("error decoding JSON: %v", err)
 	}
-	return response, nil
+	return ptternSchema, nil
 }
 
 // To convert request entity into proper Entity structure
-func getEntity(en map[string]string) Entity {
-	entity := en
-
-	EntityStruct := Entity{
-		Class: entity[CLASS],
-	}
-
-	for key, val := range entity {
-		if key != CLASS {
-			attribute := EntityAttributes{Name: key, Val: val}
-			EntityStruct.Attributes = append(EntityStruct.Attributes, attribute)
-
-		}
-	}
-
-	return EntityStruct
-}
-
-func getEntityForDoMatch(req WFInstanceNewRequest) crux.Entity {
+func getEntityStructure(req WFInstanceNewRequest) crux.Entity {
 
 	var attributes = make(map[string]string)
 	for key, val := range req.Entity {
@@ -320,5 +264,6 @@ func getEntityForDoMatch(req WFInstanceNewRequest) crux.Entity {
 		Class: req.Entity[CLASS],
 		Attrs: attributes,
 	}
+	fmt.Println("entity", entityStruct)
 	return entityStruct
 }

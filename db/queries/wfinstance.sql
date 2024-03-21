@@ -14,7 +14,7 @@ INSERT INTO
     )
 VALUES (
         @entityid, @slice, @app, @class, @workflow, unnest(@step::text []), (NOW()::timestamp), @nextstep, @parent
-    )
+    ) 
 RETURNING *;
 
 -- name: GetWFInstanceList :many

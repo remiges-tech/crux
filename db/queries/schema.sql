@@ -105,7 +105,6 @@ WHERE
     AND slice = $2
     AND class = $3
     AND app = $4
-    AND realm = $5
     AND brwf = 'W';
 
 -- name: WfSchemaGet :one
@@ -121,8 +120,8 @@ WHERE
 SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
 FROM schema, app, realmslice
 where
-schema.app = app.shortname
-and schema.slice = realmslice.id
+    schema.app = app.shortname
+    and schema.slice = realmslice.id
     AND schema.realm =  @relam
     AND ((sqlc.narg('slice')::INTEGER is null) OR (schema.slice = @slice::INTEGER))
     AND ((sqlc.narg('app')::text is null) OR (schema.app = @app::text))
