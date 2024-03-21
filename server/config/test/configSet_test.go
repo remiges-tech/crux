@@ -20,7 +20,7 @@ func TestConfigSet(t *testing.T) {
 			payload := bytes.NewBuffer(testutils.MarshalJson(tc.RequestPayload))
 
 			res := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodPost, "/configset", payload)
+			req, err := http.NewRequest(http.MethodPost, "/configSet", payload)
 			require.NoError(t, err)
 
 			r.ServeHTTP(res, req)
@@ -40,6 +40,7 @@ func TestConfigSet(t *testing.T) {
 }
 
 func ConfigSetTestcase() []testutils.TestCasesStruct {
+	feild := "config_slice_fkey"
 	realmSliceNeTestcase := []testutils.TestCasesStruct{
 		{
 			Name: "err- binding_json_error",
@@ -73,6 +74,26 @@ func ConfigSetTestcase() []testutils.TestCasesStruct {
 
 			ExpectedHttpCode: http.StatusBadRequest,
 			TestJsonFile:     "./data/validationError.json",
+		},
+		{
+			Name: "err- slice not present",
+			RequestPayload: wscutils.Request{
+				Data: config.ConfigSetReq{
+					Attr:  "config",
+					Val:   "23",
+					Slice: 1,
+					// Descr: "",
+				},
+			},
+
+			ExpectedHttpCode: http.StatusBadRequest,
+			ExpectedResult: &wscutils.Response{
+				Status: "error",
+				Data:   nil,
+				Messages: []wscutils.ErrorMessage{{
+					MsgID: 1006, ErrCode: "not_found", Field: &feild,
+				}},
+			},
 		},
 		{
 			Name: "Success- create new config",

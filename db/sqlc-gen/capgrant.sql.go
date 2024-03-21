@@ -11,6 +11,51 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const capGet = `-- name: CapGet :many
+SELECT app,cap,setby,setat,"from","to" from capgrant WHERE realm = $1 and "user" = $2
+`
+
+type CapGetParams struct {
+	Realm  string `json:"realm"`
+	Userid string `json:"userid"`
+}
+
+type CapGetRow struct {
+	App   pgtype.Text      `json:"app"`
+	Cap   string           `json:"cap"`
+	Setby string           `json:"setby"`
+	Setat pgtype.Timestamp `json:"setat"`
+	From  pgtype.Timestamp `json:"from"`
+	To    pgtype.Timestamp `json:"to"`
+}
+
+func (q *Queries) CapGet(ctx context.Context, arg CapGetParams) ([]CapGetRow, error) {
+	rows, err := q.db.Query(ctx, capGet, arg.Realm, arg.Userid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []CapGetRow
+	for rows.Next() {
+		var i CapGetRow
+		if err := rows.Scan(
+			&i.App,
+			&i.Cap,
+			&i.Setby,
+			&i.Setat,
+			&i.From,
+			&i.To,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const deleteCapGranForApp = `-- name: DeleteCapGranForApp :exec
 
 DELETE FROM capgrant WHERE app = $1 AND realm = $2

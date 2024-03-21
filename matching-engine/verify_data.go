@@ -169,7 +169,7 @@ func VerifyActionSchema(rs Schema_t, isWF bool) []error {
 	}
 
 	if isWF && !reflect.DeepEqual(getTasksMapForWF(rs.ActionSchema.Tasks), getStepAttrVals(rs)) {
-		err := CruxError{Keyword: "NotAllowed", FieldName: "properties", Messages: "action-schema tasks are not the same as valid values for 'step' in pattern-schema"} // fmt.Errorf("action-schema tasks for %v are not the same as valid values for 'step' in pattern-schema", rs.Class)
+		err := CruxError{Keyword: "NotAllowed", FieldName: "task", Messages: "action-schema tasks are not the same as valid values for 'step' in pattern-schema"} // fmt.Errorf("action-schema tasks for %v are not the same as valid values for 'step' in pattern-schema", rs.Class)
 		errs = append(errs, err)
 	}
 	return errs
@@ -181,7 +181,7 @@ func getTasksMapForWF(tasks []string) map[string]struct{} {
 		tm[t] = struct{}{}
 	}
 	// To allow comparison with the set of valid values for the 'step' attribute, which includes "START"
-	tm[start] = struct{}{}
+	// tm[start] = struct{}{}
 
 	return tm
 }

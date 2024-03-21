@@ -50,7 +50,8 @@ const (
 	ErrCode_Name_Already_Exist                                    = "name_already exist"
 	ERRCode_Name_Not_Exist                                        = "name_not_exist"
 	ERRCode_Missing                                               = "missing"
-	ERRCode_No_record_For_purge                                   = "no_record_for_purge"
+	ERRCode_No_record_For_Purge                                   = "no_record_for_purge"
 	ERRCode_Token_Data_Missing                                    = "token_data_missing"
 	ERRCode_User_Id_Not_Exist                                     = "user_id_not_exist"
+	ERRCode_No_record_Found                                       = "no_record_found"
 )

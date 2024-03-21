@@ -233,14 +233,14 @@ INSERT INTO
         realm, slice, app, brwf, class, setname, schemaid, is_active, is_internal, ruleset, createdat, createdby
     )
 VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP, $11
+        $9::varchar,
+        (SELECT realmslice.id FROM realmslice WHERE realmslice.id= $10 AND realmslice.realm = $9 ),
+        (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= $11 AND app.realm = $9), 
+        $1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, $8
     )
 `
 
 type WorkFlowNewParams struct {
-	Realm      string      `json:"realm"`
-	Slice      int32       `json:"slice"`
-	App        string      `json:"app"`
 	Brwf       BrwfEnum    `json:"brwf"`
 	Class      string      `json:"class"`
 	Setname    string      `json:"setname"`
@@ -249,13 +249,13 @@ type WorkFlowNewParams struct {
 	IsInternal bool        `json:"is_internal"`
 	Ruleset    []byte      `json:"ruleset"`
 	Createdby  string      `json:"createdby"`
+	RealmName  string      `json:"realm_name"`
+	Slice      int32       `json:"slice"`
+	App        string      `json:"app"`
 }
 
 func (q *Queries) WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) error {
 	_, err := q.db.Exec(ctx, workFlowNew,
-		arg.Realm,
-		arg.Slice,
-		arg.App,
 		arg.Brwf,
 		arg.Class,
 		arg.Setname,
@@ -264,6 +264,9 @@ func (q *Queries) WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) error 
 		arg.IsInternal,
 		arg.Ruleset,
 		arg.Createdby,
+		arg.RealmName,
+		arg.Slice,
+		arg.App,
 	)
 	return err
 }
@@ -271,39 +274,39 @@ func (q *Queries) WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) error 
 const workFlowUpdate = `-- name: WorkFlowUpdate :execresult
 UPDATE ruleset
 SET
-    brwf = $5,
-    setname = $6,
-    ruleset = $7,
+    brwf = $2,
+    setname = $3,
+    ruleset = $4,
     editedat = CURRENT_TIMESTAMP,
-    editedby = $8
+    editedby = $5
 WHERE
-    realm = $1
-    AND slice = $2
-    AND class = $3
-    AND app = $4
+    realm = $6::varchar
+    AND (SELECT realmslice.id FROM realmslice WHERE realmslice.id= $7 AND realmslice.realm = $6 )
+    AND class = $1
+    AND (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= $8 AND app.realm = $6)
 `
 
 type WorkFlowUpdateParams struct {
-	Realm    string      `json:"realm"`
-	Slice    int32       `json:"slice"`
-	Class    string      `json:"class"`
-	App      string      `json:"app"`
-	Brwf     BrwfEnum    `json:"brwf"`
-	Setname  string      `json:"setname"`
-	Ruleset  []byte      `json:"ruleset"`
-	Editedby pgtype.Text `json:"editedby"`
+	Class     string      `json:"class"`
+	Brwf      BrwfEnum    `json:"brwf"`
+	Setname   string      `json:"setname"`
+	Ruleset   []byte      `json:"ruleset"`
+	Editedby  pgtype.Text `json:"editedby"`
+	RealmName string      `json:"realm_name"`
+	Slice     int32       `json:"slice"`
+	App       string      `json:"app"`
 }
 
 func (q *Queries) WorkFlowUpdate(ctx context.Context, arg WorkFlowUpdateParams) (pgconn.CommandTag, error) {
 	return q.db.Exec(ctx, workFlowUpdate,
-		arg.Realm,
-		arg.Slice,
 		arg.Class,
-		arg.App,
 		arg.Brwf,
 		arg.Setname,
 		arg.Ruleset,
 		arg.Editedby,
+		arg.RealmName,
+		arg.Slice,
+		arg.App,
 	)
 }
 

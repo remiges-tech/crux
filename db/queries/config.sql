@@ -6,3 +6,11 @@ INSERT INTO
 VALUES (
         $1, $2, $3, $4, $5, $6
     );
+
+-- name: ConfigGet :many
+SELECT 
+name AS attr,
+val,ver,
+setby AS by
+FROM config 
+where realm = $1;

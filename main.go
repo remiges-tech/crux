@@ -178,8 +178,8 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/useractivate/:userid", auth.UserActivate)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/userdeactivate/:userid", auth.UserDeactivate)
 	// config management
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/configset", config.ConfigSet)
-
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/configSet", config.ConfigSet)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/configGet", config.ConfigGet)
 	appServerPortStr := strconv.Itoa(appServerPort)
 	r.Run(":" + appServerPortStr)
 	if err != nil {

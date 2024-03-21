@@ -20,10 +20,12 @@ type Querier interface {
 	AppExist(ctx context.Context, app string) (int32, error)
 	AppNew(ctx context.Context, arg AppNewParams) ([]App, error)
 	AppUpdate(ctx context.Context, arg AppUpdateParams) error
+	CapGet(ctx context.Context, arg CapGetParams) ([]CapGetRow, error)
 	CloneRecordInConfigBySliceID(ctx context.Context, arg CloneRecordInConfigBySliceIDParams) (pgconn.CommandTag, error)
 	CloneRecordInRealmSliceBySliceID(ctx context.Context, arg CloneRecordInRealmSliceBySliceIDParams) (int32, error)
 	CloneRecordInRulesetBySliceID(ctx context.Context, arg CloneRecordInRulesetBySliceIDParams) (pgconn.CommandTag, error)
 	CloneRecordInSchemaBySliceID(ctx context.Context, arg CloneRecordInSchemaBySliceIDParams) (pgconn.CommandTag, error)
+	ConfigGet(ctx context.Context, realm string) ([]ConfigGetRow, error)
 	ConfigSet(ctx context.Context, arg ConfigSetParams) error
 	DeactivateRecord(ctx context.Context, arg DeactivateRecordParams) error
 	DeleteCapGranForApp(ctx context.Context, arg DeleteCapGranForAppParams) error

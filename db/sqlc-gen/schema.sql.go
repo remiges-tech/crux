@@ -54,39 +54,39 @@ SELECT
     brwf,
     patternschema,
     actionschema,
-    editedat = CURRENT_TIMESTAMP,
+    editedat,
     editedby
 FROM schema
 WHERE
-    realm = $1
-    AND slice = $2
-    AND class = $3
-    AND app = $4 FOR
+    realm = $4::varchar
+    AND slice = (SELECT realmslice.id FROM realmslice WHERE realmslice.id=$1 AND realmslice.realm = $4)
+    AND class = $2
+    AND app = (SELECT app.shortnamelc FROM app WHERE app.shortnamelc=$3 AND app.realm = $4) FOR
 UPDATE
 `
 
 type GetSchemaWithLockParams struct {
-	Realm string `json:"realm"`
-	Slice int32  `json:"slice"`
-	Class string `json:"class"`
-	App   string `json:"app"`
+	ID          int32  `json:"id"`
+	Class       string `json:"class"`
+	Shortnamelc string `json:"shortnamelc"`
+	RealmName   string `json:"realm_name"`
 }
 
 type GetSchemaWithLockRow struct {
-	ID            int32       `json:"id"`
-	Brwf          BrwfEnum    `json:"brwf"`
-	Patternschema []byte      `json:"patternschema"`
-	Actionschema  []byte      `json:"actionschema"`
-	Column5       bool        `json:"column_5"`
-	Editedby      pgtype.Text `json:"editedby"`
+	ID            int32            `json:"id"`
+	Brwf          BrwfEnum         `json:"brwf"`
+	Patternschema []byte           `json:"patternschema"`
+	Actionschema  []byte           `json:"actionschema"`
+	Editedat      pgtype.Timestamp `json:"editedat"`
+	Editedby      pgtype.Text      `json:"editedby"`
 }
 
 func (q *Queries) GetSchemaWithLock(ctx context.Context, arg GetSchemaWithLockParams) (GetSchemaWithLockRow, error) {
 	row := q.db.QueryRow(ctx, getSchemaWithLock,
-		arg.Realm,
-		arg.Slice,
+		arg.ID,
 		arg.Class,
-		arg.App,
+		arg.Shortnamelc,
+		arg.RealmName,
 	)
 	var i GetSchemaWithLockRow
 	err := row.Scan(
@@ -94,7 +94,7 @@ func (q *Queries) GetSchemaWithLock(ctx context.Context, arg GetSchemaWithLockPa
 		&i.Brwf,
 		&i.Patternschema,
 		&i.Actionschema,
-		&i.Column5,
+		&i.Editedat,
 		&i.Editedby,
 	)
 	return i, err
@@ -180,31 +180,34 @@ INSERT INTO
         realm, slice, app, brwf, class, patternschema, actionschema, createdat, createdby
     )
 VALUES (
-        $1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, $8
+        $6::varchar, 
+        (SELECT realmslice.id FROM realmslice WHERE realmslice.id= $7 AND realmslice.realm = $6 ), 
+        (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= $8 AND app.realm = $6), 
+        $1, $2, $3, $4, CURRENT_TIMESTAMP, $5
     ) RETURNING id
 `
 
 type SchemaNewParams struct {
-	Realm         string   `json:"realm"`
-	Slice         int32    `json:"slice"`
-	App           string   `json:"app"`
 	Brwf          BrwfEnum `json:"brwf"`
 	Class         string   `json:"class"`
 	Patternschema []byte   `json:"patternschema"`
 	Actionschema  []byte   `json:"actionschema"`
 	Createdby     string   `json:"createdby"`
+	RealmName     string   `json:"realm_name"`
+	Slice         int32    `json:"slice"`
+	App           string   `json:"app"`
 }
 
 func (q *Queries) SchemaNew(ctx context.Context, arg SchemaNewParams) (int32, error) {
 	row := q.db.QueryRow(ctx, schemaNew,
-		arg.Realm,
-		arg.Slice,
-		arg.App,
 		arg.Brwf,
 		arg.Class,
 		arg.Patternschema,
 		arg.Actionschema,
 		arg.Createdby,
+		arg.RealmName,
+		arg.Slice,
+		arg.App,
 	)
 	var id int32
 	err := row.Scan(&id)
@@ -214,39 +217,39 @@ func (q *Queries) SchemaNew(ctx context.Context, arg SchemaNewParams) (int32, er
 const schemaUpdate = `-- name: SchemaUpdate :exec
 UPDATE schema
 SET
-    brwf = $5,
-    patternschema = $6,
-    actionschema = $7,
+    brwf = $2,
+    patternschema = COALESCE($3,patternschema),
+    actionschema = COALESCE($4,actionschema),
     editedat = CURRENT_TIMESTAMP,
-    editedby = $8
+    editedby = $5
 WHERE
-    realm = $1
-    AND slice = $2
-    AND class = $3
-    AND app = $4
+    realm = $6::varchar
+    AND slice = (SELECT realmslice.id FROM realmslice WHERE realmslice.id= $7 AND realmslice.realm = $6)
+    AND class = $1
+    AND app = (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= $8 AND app.realm = $6)
 `
 
 type SchemaUpdateParams struct {
-	Realm         string      `json:"realm"`
-	Slice         int32       `json:"slice"`
 	Class         string      `json:"class"`
-	App           string      `json:"app"`
 	Brwf          BrwfEnum    `json:"brwf"`
 	Patternschema []byte      `json:"patternschema"`
 	Actionschema  []byte      `json:"actionschema"`
 	Editedby      pgtype.Text `json:"editedby"`
+	RealmName     string      `json:"realm_name"`
+	Slice         int32       `json:"slice"`
+	App           string      `json:"app"`
 }
 
 func (q *Queries) SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) error {
 	_, err := q.db.Exec(ctx, schemaUpdate,
-		arg.Realm,
-		arg.Slice,
 		arg.Class,
-		arg.App,
 		arg.Brwf,
 		arg.Patternschema,
 		arg.Actionschema,
 		arg.Editedby,
+		arg.RealmName,
+		arg.Slice,
+		arg.App,
 	)
 	return err
 }

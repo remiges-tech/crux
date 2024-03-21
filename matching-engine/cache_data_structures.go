@@ -1,6 +1,7 @@
 package crux
 
 import (
+	"reflect"
 	"sync"
 	"time"
 )
@@ -121,4 +122,14 @@ var cacheLock sync.RWMutex
 func init() {
 	RulesetCache = make(RulesetCache_t)
 	SchemaCache = make(SchemaCache_t)
+}
+
+// var (
+// 	rulesetCache rulesetCache_t
+// 	schemaCache  schemaCache_t
+// 	cacheLock    sync.RWMutex
+// )
+
+func (a ActionSchema_t) IsEmpty() bool {
+	return reflect.DeepEqual(a, ActionSchema_t{})
 }

@@ -27,7 +27,7 @@ CREATE TABLE realmslice (
     deactivateat TIMESTAMP,
     createdat TIMESTAMP DEFAULT (NOW() :: timestamp) NOT NULL,
     createdby VARCHAR(255) NOT NULL,
-    editedat TIMESTAMP DEFAULT (NOW() :: timestamp),
+    editedat TIMESTAMP,
     editedby VARCHAR(255)
 );
 
@@ -52,7 +52,7 @@ CREATE TABLE capgrant (
     cap VARCHAR(255) NOT NULL,
     "from" TIMESTAMP,
     "to" TIMESTAMP,
-    setat TIMESTAMP NOT NULL,
+    setat TIMESTAMP NOT NULL DEFAULT NOW() :: timestamp,
     setby VARCHAR(255) NOT NULL,
     UNIQUE (realm, "user", app, cap)
 );
@@ -79,7 +79,7 @@ CREATE TABLE schema (
     actionschema JSONB NOT NULL,
     createdat TIMESTAMP DEFAULT NOW() :: timestamp NOT NULL,
     createdby VARCHAR(255) NOT NULL,
-    editedat TIMESTAMP DEFAULT NOW() :: timestamp,
+    editedat TIMESTAMP,
     editedby VARCHAR(255),
     UNIQUE (realm, slice, app, class)
 );
@@ -98,7 +98,7 @@ CREATE TABLE ruleset (
     ruleset JSONB NOT NULL,
     createdat TIMESTAMP DEFAULT (NOW() :: timestamp) NOT NULL,
     createdby VARCHAR(255) NOT NULL,
-    editedat TIMESTAMP DEFAULT (NOW() :: timestamp),
+    editedat TIMESTAMP,
     editedby VARCHAR(255),
     UNIQUE (realm, slice, app, class)
 );

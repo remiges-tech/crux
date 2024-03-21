@@ -1,26 +1,24 @@
-package realmslice_test
+package config_test
 
 import (
-	"bytes"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/remiges-tech/alya/wscutils"
-	"github.com/remiges-tech/crux/server"
+	"github.com/remiges-tech/crux/db/sqlc-gen"
 	"github.com/remiges-tech/crux/testutils"
 	"github.com/stretchr/testify/require"
 )
 
-func TestRealmSlicePurge(t *testing.T) {
-	testCases := RealmSlicePurgeTestcase()
+func TestConfigGet(t *testing.T) {
+	testCases := ConfigGetTestcase()
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 
-			payload := bytes.NewBuffer(testutils.MarshalJson(tc.RequestPayload))
-
 			res := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodPost, "/RealmSlicePurge", payload)
+			req, err := http.NewRequest(http.MethodGet, "/configGet", nil)
 			require.NoError(t, err)
 
 			r.ServeHTTP(res, req)
@@ -39,21 +37,23 @@ func TestRealmSlicePurge(t *testing.T) {
 
 }
 
-func RealmSlicePurgeTestcase() []testutils.TestCasesStruct {
+func ConfigGetTestcase() []testutils.TestCasesStruct {
 	realmSliceNeTestcase := []testutils.TestCasesStruct{
 		{
-			Name:             "success all realmSlice purged",
+			Name:             "Success- create get config list",
 			ExpectedHttpCode: http.StatusOK,
 			ExpectedResult: &wscutils.Response{
-				Status:   wscutils.SuccessStatus,
-				Data:     nil,
+				Status: wscutils.SuccessStatus,
+				Data: []sqlc.ConfigGetRow{
+					{
+						Attr: "CONFIG_A",
+						Val:  pgtype.Text{String: "Value for CONFIG_A", Valid: true},
+						Ver:  pgtype.Int4{Int32: 1, Valid: true},
+						By:   "User1",
+					},
+				},
 				Messages: nil,
 			},
-		},
-		{
-			Name:             "error no realmSlice for  purged",
-			ExpectedHttpCode: http.StatusBadRequest,
-			ExpectedResult:   wscutils.NewErrorResponse(server.MsgId_NotFound, server.ERRCode_No_record_For_Purge),
 		},
 	}
 	return realmSliceNeTestcase
