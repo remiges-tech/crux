@@ -18,6 +18,7 @@ import (
 	crux "github.com/remiges-tech/crux/matching-engine"
 	"github.com/remiges-tech/crux/server/app"
 	"github.com/remiges-tech/crux/server/auth"
+	"github.com/remiges-tech/crux/server/capability"
 	"github.com/remiges-tech/crux/server/config"
 	"github.com/remiges-tech/crux/server/realmslice"
 	"github.com/remiges-tech/crux/server/schema"
@@ -180,6 +181,9 @@ func main() {
 	// config management
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/configSet", config.ConfigSet)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/configGet", config.ConfigGet)
+	// capability
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/capget/:userid", capability.CapGet)
+
 	appServerPortStr := strconv.Itoa(appServerPort)
 	r.Run(":" + appServerPortStr)
 	if err != nil {
