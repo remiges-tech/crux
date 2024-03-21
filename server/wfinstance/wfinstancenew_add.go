@@ -31,7 +31,7 @@ type ResponseRequest struct {
 // To add multiple records in wfinstance table
 func addTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanceNewResponse, error) {
 	var response WFInstanceNewResponse
-	var parent pgtype.Int4
+	var parent pgtype.Int4 
 	subflow := make(map[string]string)
 
 	lh := s.LogHarbour.WithClass("wfinstance")
@@ -44,8 +44,10 @@ func addTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanc
 		return WFInstanceNewResponse{}, errors.New(INVALID_DATABASE_DEPENDENCY)
 	}
 
+	if req.Request.Parent != nil{
 	// convert int32 tp pgtype.Int4
 	parent = ConvertToPGType(*req.Request.Parent)
+	}
 
 	// Add record in wfinstance table
 	responseData, error := query.AddWFNewInstances(c, sqlc.AddWFNewInstancesParams{

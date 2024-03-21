@@ -29,6 +29,7 @@ const (
 	ErrCode_RequiredOne                                           = "required_one_field"
 	ErrCode_AlreadyExist                                          = "already_exist"
 	ErrCode_NotFound                                              = "not_found"
+	ErrCode_Schema_Not_Found                                      = "schema_not_found"
 	ErrCode_Unauthorized                                          = "Unauthorized"
 	ErrCode_TooEarly                                              = "tooearly"
 	ErrCode_Invalid_APP                                           = "invalid_app"

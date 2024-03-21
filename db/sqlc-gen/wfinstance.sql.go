@@ -18,7 +18,7 @@ INSERT INTO
     )
 VALUES (
         $1, $2, $3, $4, $5, unnest($6::text []), (NOW()::timestamp), $7, $8
-    )
+    ) 
 RETURNING id, entityid, slice, app, class, workflow, step, loggedat, doneat, nextstep, parent
 `
 

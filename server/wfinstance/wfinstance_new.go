@@ -20,8 +20,8 @@ type WFInstanceNewRequest struct {
 	EntityID string            `json:"entityid" validate:"required,gt=0,lt=40"`
 	Entity   map[string]string `json:"entity" validate:"required"`
 	Workflow string            `json:"workflow" validate:"required,gt=0,lt=20"`
-	Trace    *int              `json:"trace" validate:"omitempty"`
-	Parent   *int32            `json:"parent" validate:"omitempty"`
+	Trace    *int              `json:"trace,omitempty"`
+	Parent   *int32            `json:"parent,omitempty"`
 }
 
 // WFInstanceNew response format
@@ -48,6 +48,21 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 		steps            []string
 		myRuleSet        *crux.Ruleset_t
 	)
+	// USERID, err := server.ExtractUserNameFromJwt(c)
+	// if err != nil {
+	// 	lh.Info().Log("unable to extract userID from token")
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+	// 	errRes := append(errRes, wscutils.BuildErrorMessage(server.MsgId_Missing, server.ERRCode_Token_Data_Missing, nil))
+	// 	return false, errRes
+	// }
+
+	// REALM, err := server.ExtractRealmFromJwt(c)
+	// if err != nil {
+	// 	lh.Info().Log("unable to extract realm from token")
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+	// 	errRes := append(errRes, wscutils.BuildErrorMessage(server.MsgId_Missing, server.ERRCode_Token_Data_Missing, nil))
+	// 	return false, errRes
+	// }
 
 	isCapable, _ := server.Authz_check(types.OpReq{
 		User: USERID,
@@ -90,7 +105,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	//  doMatch() Processing
 
 	// To get Entity
-	entity := getEntityForDoMatch(wfinstanceNewreq)
+	entity := getEntityStructure(wfinstanceNewreq)
 
 	// To get workflow rulesets from RuleSetCache
 	ruleSets, err := crux.RetrieveWorkflowRulesetFromCache(REALM, wfinstanceNewreq.App, wfinstanceNewreq.Entity[CLASS], int(wfinstanceNewreq.Slice))

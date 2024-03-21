@@ -225,7 +225,7 @@ func VerifyRulePatterns(ruleset *Ruleset_t, schema *Schema_t, isWF bool) []error
 
 		for _, term := range rule.RulePatterns {
 
-			valType := getType(schema, term.Attr)
+			valType := GetType(schema, term.Attr)
 
 			if valType == "" {
 				// If the attribute name is not in the pattern-schema, we check if it's a task "tag"
@@ -284,7 +284,7 @@ func getSchema(entity Entity, Class string) (*Schema_t, error) {
 	return nil, fmt.Errorf("no schema found for Class %v", Class)
 }
 
-func getType(rs *Schema_t, name string) string {
+func GetType(rs *Schema_t, name string) string {
 	for _, as := range rs.PatternSchema {
 		if as.Attr == name {
 			return as.ValType
@@ -440,11 +440,11 @@ func verifyEntity(e Entity) (bool, error) {
 	}
 	for attrName, attrVal := range e.Attrs {
 
-		t := getType(rs, attrName)
+		t := GetType(rs, attrName)
 		if t == "" {
 			return false, fmt.Errorf("schema does not contain attribute %v", attrName)
 		}
-		_, err := convertEntityAttrVal(attrVal, t)
+		_, err := ConvertEntityAttrVal(attrVal, t)
 		if err != nil {
 			return false, fmt.Errorf("attribute %v in entity has value of wrong type", attrName)
 		}

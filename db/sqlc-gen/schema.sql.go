@@ -262,16 +262,14 @@ WHERE
     AND slice = $2
     AND class = $3
     AND app = $4
-    AND realm = $5
     AND brwf = 'W'
 `
 
 type WfPatternSchemaGetParams struct {
-	Realm   string `json:"realm"`
-	Slice   int32  `json:"slice"`
-	Class   string `json:"class"`
-	App     string `json:"app"`
-	Realm_2 string `json:"realm_2"`
+	Realm string `json:"realm"`
+	Slice int32  `json:"slice"`
+	Class string `json:"class"`
+	App   string `json:"app"`
 }
 
 func (q *Queries) WfPatternSchemaGet(ctx context.Context, arg WfPatternSchemaGetParams) ([]byte, error) {
@@ -280,7 +278,6 @@ func (q *Queries) WfPatternSchemaGet(ctx context.Context, arg WfPatternSchemaGet
 		arg.Slice,
 		arg.Class,
 		arg.App,
-		arg.Realm_2,
 	)
 	var patternschema []byte
 	err := row.Scan(&patternschema)
@@ -333,8 +330,8 @@ const wfSchemaList = `-- name: WfSchemaList :many
 SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
 FROM schema, app, realmslice
 where
-schema.app = app.shortname
-and schema.slice = realmslice.id
+    schema.app = app.shortname
+    and schema.slice = realmslice.id
     AND schema.realm =  $1
     AND (($2::INTEGER is null) OR (schema.slice = $2::INTEGER))
     AND (($3::text is null) OR (schema.app = $3::text))
