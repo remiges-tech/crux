@@ -2,6 +2,8 @@ package schema
 
 import (
 	"encoding/json"
+	"reflect"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -15,12 +17,28 @@ import (
 	"github.com/remiges-tech/logharbour/logharbour"
 )
 
+type PatternSchema struct {
+	Attr      string   `json:"attr" validate:"required"`
+	ShortDesc string   `json:"shortdesc" validate:"required"`
+	LongDesc  string   `json:"longdesc" validate:"required"`
+	ValType   string   `json:"valtype" validate:"required"`
+	EnumVals  []string `json:"vals,omitempty"`
+	ValMin    float64  `json:"valmin,omitempty"`
+	ValMax    float64  `json:"valmax,omitempty"`
+	LenMin    int      `json:"lenmin,omitempty"`
+	LenMax    int      `json:"lenmax,omitempty"`
+}
+
+func (p PatternSchema) IsEmpty() bool {
+	return reflect.DeepEqual(p, patternSchema{})
+}
+
 type SchemaNewReq struct {
-	Slice         int32                  `json:"slice" validate:"required,gt=0,lt=15"`
-	App           string                 `json:"App" validate:"required,alpha,lt=15"`
-	Class         string                 `json:"class" validate:"required,lowercase,lt=15"`
-	PatternSchema []crux.PatternSchema_t `json:"patternSchema" validate:"required,dive"`
-	ActionSchema  crux.ActionSchema_t    `json:"actionSchema"`
+	Slice         int32               `json:"slice" validate:"required,gt=0,lt=15"`
+	App           string              `json:"App" validate:"required,alpha,lt=15"`
+	Class         string              `json:"class" validate:"required,lowercase,lt=15"`
+	PatternSchema []PatternSchema     `json:"patternSchema" validate:"required,dive"`
+	ActionSchema  crux.ActionSchema_t `json:"actionSchema"`
 }
 
 func SchemaNew(c *gin.Context, s *service.Service) {
@@ -58,10 +76,10 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 		l.Error(err).Log("Error Unmarshalling Query parameters to struct:")
 		return
 	}
-
+	newPatternSchema := convertPatternSchema(req.PatternSchema)
 	schema := crux.Schema_t{
 		Class:         req.Class,
-		PatternSchema: req.PatternSchema,
+		PatternSchema: newPatternSchema,
 		ActionSchema:  req.ActionSchema,
 		NChecked:      0,
 	}
@@ -82,7 +100,7 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
 		return
 	}
-	patternSchema, err := json.Marshal(req.PatternSchema)
+	patternSchema, err := json.Marshal(newPatternSchema)
 	if err != nil {
 		patternSchema := "patternSchema"
 		l.Debug1().LogDebug("Error while marshaling patternSchema", err)
@@ -98,10 +116,10 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 		return
 	}
 	id, err := query.SchemaNew(c, sqlc.SchemaNewParams{
-		Realm:         realmName,
+		RealmName:     realmName,
 		Slice:         req.Slice,
 		Class:         req.Class,
-		App:           req.App,
+		App:           strings.ToLower(req.App),
 		Brwf:          sqlc.BrwfEnumW,
 		Patternschema: patternSchema,
 		Actionschema:  actionSchema,
@@ -141,7 +159,7 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 			{
 				Field:  "patternSchema",
 				OldVal: nil,
-				NewVal: patternSchema},
+				NewVal: newPatternSchema},
 			{
 				Field:  "actionSchema",
 				OldVal: nil,
@@ -154,126 +172,47 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 
 func customValidationErrors(sh crux.Schema_t) []wscutils.ErrorMessage {
 	var validationErrors []wscutils.ErrorMessage
-	// patternSchemaError := verifyPatternSchema(sh.PatternSchema)
-	err := crux.VerifyPatternSchema(sh, true)
-	if err != nil {
-		patternSchemaError := server.HandleCruxError(err)
-		validationErrors = append(validationErrors, patternSchemaError...)
+	if len(sh.PatternSchema) > 0 {
+		err := crux.VerifyPatternSchema(sh, true)
+		if err != nil {
+			patternSchemaError := server.HandleCruxError(err)
+			validationErrors = append(validationErrors, patternSchemaError...)
+		}
 	}
 
-	crux.VerifyActionSchema(sh, true)
-	if err != nil {
-		actionSchemaError := server.HandleCruxError(err)
-		validationErrors = append(validationErrors, actionSchemaError...)
+	if !sh.ActionSchema.IsEmpty() {
+		err := crux.VerifyActionSchema(sh, true)
+		if err != nil {
+			actionSchemaError := server.HandleCruxError(err)
+			validationErrors = append(validationErrors, actionSchemaError...)
+		}
 	}
 	return validationErrors
 }
 
-// func verifyPatternSchema(ps types.PatternSchema) []wscutils.ErrorMessage {
-// 	var validationErrors []wscutils.ErrorMessage
-// 	stepFound, stepFailedFound := false, false
-// 	for i, attrSchema := range ps.Attr {
-// 		i++
-// 		if !re.MatchString(attrSchema.Name) {
-// 			fieldName := fmt.Sprintf("attrSchema[%d].Name", i)
-// 			vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &fieldName, attrSchema.Name)
-// 			validationErrors = append(validationErrors, vErr)
-// 		}
-// 		if !validTypes[attrSchema.ValType] {
-// 			fieldName := fmt.Sprintf("attrSchema[%d].ValType", i)
-// 			vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &fieldName, attrSchema.ValType)
-// 			validationErrors = append(validationErrors, vErr)
-// 		}
-// 		if attrSchema.ValType == "enum" && len(attrSchema.Vals) == 0 {
-// 			fieldName := fmt.Sprintf("attrSchema[%d].Vals", i)
-// 			vErr := wscutils.BuildErrorMessage(server.MsgId_Empty, server.ErrCode_Empty, &fieldName)
-// 			validationErrors = append(validationErrors, vErr)
-// 		}
-// 		if attrSchema.Name == step && attrSchema.ValType == typeEnum {
-// 			stepFound = true
-// 		}
-// 		val := sliceToMap(attrSchema.Vals)
-// 		if attrSchema.Name == step && !val[start] {
-// 			fieldName := fmt.Sprintf("attrSchema[%d].Vals", i)
-// 			vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_Required, &fieldName)
-// 			validationErrors = append(validationErrors, vErr)
-// 		}
-// 		if attrSchema.Name == stepFailed && attrSchema.ValType == typeBool {
-// 			stepFailedFound = true
-// 		}
-// 	}
-// 	if !stepFound || !stepFailedFound {
-// 		fieldName := "attr.Name"
-// 		vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_RequiredOneOf, &fieldName)
-// 		validationErrors = append(validationErrors, vErr)
-// 	}
-// 	return validationErrors
-// }
+func convertPatternSchema(oldPatternSchema []PatternSchema) []crux.PatternSchema_t {
+	var newPatternSchema []crux.PatternSchema_t
+	for _, patternSchema := range oldPatternSchema {
+		if patternSchema.IsEmpty() {
+			return newPatternSchema
+		}
+		newEnumVals := make(map[string]struct{})
+		for _, val := range patternSchema.EnumVals {
+			newEnumVals[val] = struct{}{}
+		}
 
-// func verifyActionSchema(sh SchemaNewReq) []wscutils.ErrorMessage {
-// 	var validationErrors []wscutils.ErrorMessage
-// 	nextStepFound, doneFound := false, false
-// 	for i, task := range sh.ActionSchema.Tasks {
-// 		if !re.MatchString(task) {
-// 			fieldName := fmt.Sprintf("actionSchema.Tasks[%d]", i)
-// 			vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &fieldName, task)
-// 			validationErrors = append(validationErrors, vErr)
-// 		}
-// 	}
-// 	if len(sh.ActionSchema.Properties) != 2 {
-// 		fieldName := "Properties"
-// 		vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_Required_Exactly_Two_Properties, &fieldName)
-// 		validationErrors = append(validationErrors, vErr)
-// 	}
-// 	for i, propName := range sh.ActionSchema.Properties {
-// 		if !re.MatchString(propName) {
-// 			fieldName := fmt.Sprintf("actionSchema.Properties[%d]", i)
-// 			vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid, &fieldName, propName)
-// 			validationErrors = append(validationErrors, vErr)
-// 		} else if propName == nextStep {
-// 			nextStepFound = true
-// 		} else if propName == done {
-// 			doneFound = true
-// 		}
-// 	}
-
-// 	if !nextStepFound || !doneFound {
-// 		fieldName := "actionSchema.Properties"
-// 		vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Does_Not_Contain_Both_Properties_Nextstep_And_Done, &fieldName)
-// 		validationErrors = append(validationErrors, vErr)
-// 	}
-// 	if !reflect.DeepEqual(getTasksMapForWF(sh.ActionSchema.Tasks), getStepAttrVals(sh)) {
-// 		fieldName := "actionSchema.Properties"
-// 		vErr := wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_ActionSchema_Task_Not_Same_As_PatternSchema_Step_Attr, &fieldName)
-// 		validationErrors = append(validationErrors, vErr)
-// 	}
-// 	return validationErrors
-// }
-
-// func getTasksMapForWF(tasks []string) map[string]bool {
-// 	tm := map[string]bool{}
-// 	for _, t := range tasks {
-// 		tm[t] = true
-// 	}
-// 	// To allow comparison with the set of valid values for the 'step' attribute, which includes "START"
-// 	tm[start] = true
-// 	return tm
-// }
-
-// func getStepAttrVals(sh SchemaNewReq) map[string]bool {
-// 	for _, ps := range sh.PatternSchema.Attr {
-// 		if ps.Name == step {
-// 			val := sliceToMap(ps.Vals)
-// 			return val
-// 		}
-// 	}
-// 	return nil
-// }
-
-// func sliceToMap(slice []string) map[string]bool {
-// 	stringMap := make(map[string]bool)
-// 	for _, s := range slice {
-// 		stringMap[s] = true
-// 	}
-// 	return stringMap
-// }
+		patternSchema := crux.PatternSchema_t{
+			Attr:      patternSchema.Attr,
+			ShortDesc: patternSchema.ShortDesc,
+			LongDesc:  patternSchema.LongDesc,
+			ValType:   patternSchema.ValType,
+			EnumVals:  newEnumVals,
+			ValMin:    patternSchema.ValMin,
+			ValMax:    patternSchema.ValMax,
+			LenMin:    patternSchema.LenMin,
+			LenMax:    patternSchema.LenMax,
+		}
+		newPatternSchema = append(newPatternSchema, patternSchema)
+	}
+	return newPatternSchema
+}

@@ -43,6 +43,6 @@ go test -coverprofile=./coverage/coverage_auth.out -coverpkg=./... server/auth/t
 go tool cover -html=./coverage/coverage_auth.out -o ./coverage/coverage_auth.html
 
 7. coverage_config
-go test -coverprofile=./coverage/coverage_config.out -coverpkg=./... server/config/test/configSet_test.go server/config/test/main_test.go
+go test -coverprofile=./coverage/coverage_config.out -coverpkg=./... server/config/test/configGet_test.go server/config/test/configSet_test.go  server/config/test/main_test.go
 
 go tool cover -html=./coverage/coverage_config.out -o ./coverage/coverage_config.html

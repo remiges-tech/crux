@@ -11,6 +11,47 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const configGet = `-- name: ConfigGet :many
+SELECT 
+name AS attr,
+val,ver,
+setby AS by
+FROM config 
+where realm = $1
+`
+
+type ConfigGetRow struct {
+	Attr string      `json:"attr"`
+	Val  pgtype.Text `json:"val"`
+	Ver  pgtype.Int4 `json:"ver"`
+	By   string      `json:"by"`
+}
+
+func (q *Queries) ConfigGet(ctx context.Context, realm string) ([]ConfigGetRow, error) {
+	rows, err := q.db.Query(ctx, configGet, realm)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ConfigGetRow
+	for rows.Next() {
+		var i ConfigGetRow
+		if err := rows.Scan(
+			&i.Attr,
+			&i.Val,
+			&i.Ver,
+			&i.By,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const configSet = `-- name: ConfigSet :exec
 INSERT INTO
     config(

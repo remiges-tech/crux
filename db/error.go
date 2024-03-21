@@ -25,7 +25,7 @@ func HandleDatabaseError(err error) wscutils.ErrorMessage {
 		case "23503": //foreign_key_violation
 			return wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_NotFound, &pgErr.ConstraintName)
 		case "23502": //not_null_violation
-			return wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_Empty, &pgErr.ConstraintName)
+			return wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_Invalid, &pgErr.ColumnName)
 		case "0A000": //ERROR: cached plan must not change result type (SQLSTATE 0A000)
 
 			return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_Internal_Retry, nil)
@@ -37,10 +37,11 @@ func HandleDatabaseError(err error) wscutils.ErrorMessage {
 	} else if err != nil {
 		if err.Error() == "no rows in result set" {
 			// field := "slice/app/class"
-			return wscutils.BuildErrorMessage(1006, server.ErrCode_InvalidRequest, nil)
+			return wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ERRCode_No_record_Found, nil)
+		} else {
+			return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_DatabaseError, nil)
 		}
 	} else {
 		return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_DatabaseError, nil)
 	}
-	return wscutils.ErrorMessage{}
 }

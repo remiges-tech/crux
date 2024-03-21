@@ -57,7 +57,7 @@ func RealmSlicePurge(c *gin.Context, s *service.Service) {
 	}
 	if strings.Contains(tag.String(), "0") {
 		l.Log("no record found to purse")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ERRCode_No_record_For_purge))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ERRCode_No_record_For_Purge))
 		return
 	}
 

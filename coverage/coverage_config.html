@@ -55,7 +55,7 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">github.com/remiges-tech/crux/db/error.go (0.0%)</option>
+				<option value="file0">github.com/remiges-tech/crux/db/error.go (28.6%)</option>
 				
 				<option value="file1">github.com/remiges-tech/crux/db/pg.go (75.0%)</option>
 				
@@ -63,7 +63,7 @@
 				
 				<option value="file3">github.com/remiges-tech/crux/db/sqlc-gen/capgrant.sql.go (0.0%)</option>
 				
-				<option value="file4">github.com/remiges-tech/crux/db/sqlc-gen/config.sql.go (100.0%)</option>
+				<option value="file4">github.com/remiges-tech/crux/db/sqlc-gen/config.sql.go (80.0%)</option>
 				
 				<option value="file5">github.com/remiges-tech/crux/db/sqlc-gen/db.go (50.0%)</option>
 				
@@ -85,25 +85,29 @@
 				
 				<option value="file14">github.com/remiges-tech/crux/matching-engine/cache.go (0.0%)</option>
 				
-				<option value="file15">github.com/remiges-tech/crux/matching-engine/cache_stats_collection.go (0.0%)</option>
+				<option value="file15">github.com/remiges-tech/crux/matching-engine/cache_data_structures.go (0.0%)</option>
 				
-				<option value="file16">github.com/remiges-tech/crux/matching-engine/cache_utils.go (0.0%)</option>
+				<option value="file16">github.com/remiges-tech/crux/matching-engine/cache_stats_collection.go (0.0%)</option>
 				
-				<option value="file17">github.com/remiges-tech/crux/matching-engine/collect_actions.go (0.0%)</option>
+				<option value="file17">github.com/remiges-tech/crux/matching-engine/cache_utils.go (0.0%)</option>
 				
-				<option value="file18">github.com/remiges-tech/crux/matching-engine/do_match.go (0.0%)</option>
+				<option value="file18">github.com/remiges-tech/crux/matching-engine/collect_actions.go (0.0%)</option>
 				
-				<option value="file19">github.com/remiges-tech/crux/matching-engine/match_pattern.go (0.0%)</option>
+				<option value="file19">github.com/remiges-tech/crux/matching-engine/do_match.go (0.0%)</option>
 				
-				<option value="file20">github.com/remiges-tech/crux/matching-engine/verify_data.go (0.0%)</option>
+				<option value="file20">github.com/remiges-tech/crux/matching-engine/match_pattern.go (0.0%)</option>
 				
-				<option value="file21">github.com/remiges-tech/crux/server/config/configSet.go (68.8%)</option>
+				<option value="file21">github.com/remiges-tech/crux/matching-engine/verify_data.go (0.0%)</option>
 				
-				<option value="file22">github.com/remiges-tech/crux/server/wsc_utils.go (3.1%)</option>
+				<option value="file22">github.com/remiges-tech/crux/server/config/configGet.go (52.4%)</option>
 				
-				<option value="file23">github.com/remiges-tech/crux/testutils/test_utils.go (75.0%)</option>
+				<option value="file23">github.com/remiges-tech/crux/server/config/configSet.go (81.2%)</option>
 				
-				<option value="file24">github.com/remiges-tech/crux/types/types.go (0.0%)</option>
+				<option value="file24">github.com/remiges-tech/crux/server/wsc_utils.go (3.1%)</option>
+				
+				<option value="file25">github.com/remiges-tech/crux/testutils/test_utils.go (75.0%)</option>
+				
+				<option value="file26">github.com/remiges-tech/crux/types/types.go (0.0%)</option>
 				
 				</select>
 			</div>
@@ -134,17 +138,17 @@ import (
 //        it constructs a generic error message indicating an internal server error related to
 //
 // the database.
-func HandleDatabaseError(err error) wscutils.ErrorMessage <span class="cov0" title="0">{
+func HandleDatabaseError(err error) wscutils.ErrorMessage <span class="cov8" title="1">{
         var pgErr *pgconn.PgError
 
-        if errors.As(err, &amp;pgErr) </span><span class="cov0" title="0">{
+        if errors.As(err, &amp;pgErr) </span><span class="cov8" title="1">{
                 switch pgErr.Code </span>{
                 case "23505":<span class="cov0" title="0"> //unique_violation
                         return wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_AlreadyExist, &amp;pgErr.ConstraintName)</span>
-                case "23503":<span class="cov0" title="0"> //foreign_key_violation
+                case "23503":<span class="cov8" title="1"> //foreign_key_violation
                         return wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_NotFound, &amp;pgErr.ConstraintName)</span>
                 case "23502":<span class="cov0" title="0"> //not_null_violation
-                        return wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_Empty, &amp;pgErr.ConstraintName)</span>
+                        return wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_Invalid, &amp;pgErr.ColumnName)</span>
                 case "0A000":<span class="cov0" title="0"> //ERROR: cached plan must not change result type (SQLSTATE 0A000)
 
                         return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_Internal_Retry, nil)</span>
@@ -156,12 +160,13 @@ func HandleDatabaseError(err error) wscutils.ErrorMessage <span class="cov0" tit
         } else<span class="cov0" title="0"> if err != nil </span><span class="cov0" title="0">{
                 if err.Error() == "no rows in result set" </span><span class="cov0" title="0">{
                         // field := "slice/app/class"
-                        return wscutils.BuildErrorMessage(1006, server.ErrCode_InvalidRequest, nil)
+                        return wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ERRCode_No_record_Found, nil)
+                }</span> else<span class="cov0" title="0"> {
+                        return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_DatabaseError, nil)
                 }</span>
         } else<span class="cov0" title="0"> {
                 return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_DatabaseError, nil)
         }</span>
-        <span class="cov0" title="0">return wscutils.ErrorMessage{}</span>
 }
 </pre>
 		
@@ -577,6 +582,47 @@ import (
 
         "github.com/jackc/pgx/v5/pgtype"
 )
+
+const configGet = `-- name: ConfigGet :many
+SELECT 
+name AS attr,
+val,ver,
+setby AS by
+FROM config 
+where realm = (SELECT realm.shortnamelc FROM realm WHERE realm.shortnamelc = $1)
+`
+
+type ConfigGetRow struct {
+        Attr string      `json:"attr"`
+        Val  pgtype.Text `json:"val"`
+        Ver  pgtype.Int4 `json:"ver"`
+        By   string      `json:"by"`
+}
+
+func (q *Queries) ConfigGet(ctx context.Context, shortnamelc string) ([]ConfigGetRow, error) <span class="cov8" title="1">{
+        rows, err := q.db.Query(ctx, configGet, shortnamelc)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">defer rows.Close()
+        var items []ConfigGetRow
+        for rows.Next() </span><span class="cov8" title="1">{
+                var i ConfigGetRow
+                if err := rows.Scan(
+                        &amp;i.Attr,
+                        &amp;i.Val,
+                        &amp;i.Ver,
+                        &amp;i.By,
+                ); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov8" title="1">items = append(items, i)</span>
+        }
+        <span class="cov8" title="1">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return items, nil</span>
+}
 
 const configSet = `-- name: ConfigSet :exec
 INSERT INTO
@@ -1799,39 +1845,39 @@ SELECT
     brwf,
     patternschema,
     actionschema,
-    editedat = CURRENT_TIMESTAMP,
+    editedat,
     editedby
 FROM schema
 WHERE
-    realm = $1
-    AND slice = $2
-    AND class = $3
-    AND app = $4 FOR
+    realm = $4::varchar
+    AND slice = (SELECT realmslice.id FROM realmslice WHERE realmslice.id=$1 AND realmslice.realm = $4)
+    AND class = $2
+    AND app = (SELECT app.shortnamelc FROM app WHERE app.shortnamelc=$3 AND app.realm = $4) FOR
 UPDATE
 `
 
 type GetSchemaWithLockParams struct {
-        Realm string `json:"realm"`
-        Slice int32  `json:"slice"`
-        Class string `json:"class"`
-        App   string `json:"app"`
+        ID          int32  `json:"id"`
+        Class       string `json:"class"`
+        Shortnamelc string `json:"shortnamelc"`
+        RealmName   string `json:"realm_name"`
 }
 
 type GetSchemaWithLockRow struct {
-        ID            int32       `json:"id"`
-        Brwf          BrwfEnum    `json:"brwf"`
-        Patternschema []byte      `json:"patternschema"`
-        Actionschema  []byte      `json:"actionschema"`
-        Column5       bool        `json:"column_5"`
-        Editedby      pgtype.Text `json:"editedby"`
+        ID            int32            `json:"id"`
+        Brwf          BrwfEnum         `json:"brwf"`
+        Patternschema []byte           `json:"patternschema"`
+        Actionschema  []byte           `json:"actionschema"`
+        Editedat      pgtype.Timestamp `json:"editedat"`
+        Editedby      pgtype.Text      `json:"editedby"`
 }
 
 func (q *Queries) GetSchemaWithLock(ctx context.Context, arg GetSchemaWithLockParams) (GetSchemaWithLockRow, error) <span class="cov0" title="0">{
         row := q.db.QueryRow(ctx, getSchemaWithLock,
-                arg.Realm,
-                arg.Slice,
+                arg.ID,
                 arg.Class,
-                arg.App,
+                arg.Shortnamelc,
+                arg.RealmName,
         )
         var i GetSchemaWithLockRow
         err := row.Scan(
@@ -1839,7 +1885,7 @@ func (q *Queries) GetSchemaWithLock(ctx context.Context, arg GetSchemaWithLockPa
                 &amp;i.Brwf,
                 &amp;i.Patternschema,
                 &amp;i.Actionschema,
-                &amp;i.Column5,
+                &amp;i.Editedat,
                 &amp;i.Editedby,
         )
         return i, err
@@ -1925,31 +1971,34 @@ INSERT INTO
         realm, slice, app, brwf, class, patternschema, actionschema, createdat, createdby
     )
 VALUES (
-        $1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, $8
+        $8::varchar, 
+        (SELECT realmslice.id FROM realmslice WHERE realmslice.id=$1 AND realmslice.realm = $8 ), 
+        (SELECT app.shortnamelc FROM app WHERE app.shortnamelc=$2 AND app.realm = $8), 
+        $3, $4, $5, $6, CURRENT_TIMESTAMP, $7
     ) RETURNING id
 `
 
 type SchemaNewParams struct {
-        Realm         string   `json:"realm"`
-        Slice         int32    `json:"slice"`
-        App           string   `json:"app"`
+        ID            int32    `json:"id"`
+        Shortnamelc   string   `json:"shortnamelc"`
         Brwf          BrwfEnum `json:"brwf"`
         Class         string   `json:"class"`
         Patternschema []byte   `json:"patternschema"`
         Actionschema  []byte   `json:"actionschema"`
         Createdby     string   `json:"createdby"`
+        RealmName     string   `json:"realm_name"`
 }
 
 func (q *Queries) SchemaNew(ctx context.Context, arg SchemaNewParams) (int32, error) <span class="cov0" title="0">{
         row := q.db.QueryRow(ctx, schemaNew,
-                arg.Realm,
-                arg.Slice,
-                arg.App,
+                arg.ID,
+                arg.Shortnamelc,
                 arg.Brwf,
                 arg.Class,
                 arg.Patternschema,
                 arg.Actionschema,
                 arg.Createdby,
+                arg.RealmName,
         )
         var id int32
         err := row.Scan(&amp;id)
@@ -1959,39 +2008,39 @@ func (q *Queries) SchemaNew(ctx context.Context, arg SchemaNewParams) (int32, er
 const schemaUpdate = `-- name: SchemaUpdate :exec
 UPDATE schema
 SET
-    brwf = $5,
-    patternschema = $6,
-    actionschema = $7,
+    brwf = $4,
+    patternschema = COALESCE($5,patternschema),
+    actionschema = COALESCE($6,actionschema),
     editedat = CURRENT_TIMESTAMP,
-    editedby = $8
+    editedby = $7
 WHERE
-    realm = $1
-    AND slice = $2
-    AND class = $3
-    AND app = $4
+    realm = $8::varchar
+    AND slice = (SELECT realmslice.id FROM realmslice WHERE realmslice.id=$1 AND realmslice.realm = $8)
+    AND class = $2
+    AND app = (SELECT app.shortnamelc FROM app WHERE app.shortnamelc=$3 AND app.realm = $8)
 `
 
 type SchemaUpdateParams struct {
-        Realm         string      `json:"realm"`
-        Slice         int32       `json:"slice"`
+        ID            int32       `json:"id"`
         Class         string      `json:"class"`
-        App           string      `json:"app"`
+        Shortnamelc   string      `json:"shortnamelc"`
         Brwf          BrwfEnum    `json:"brwf"`
         Patternschema []byte      `json:"patternschema"`
         Actionschema  []byte      `json:"actionschema"`
         Editedby      pgtype.Text `json:"editedby"`
+        RealmName     string      `json:"realm_name"`
 }
 
 func (q *Queries) SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) error <span class="cov0" title="0">{
         _, err := q.db.Exec(ctx, schemaUpdate,
-                arg.Realm,
-                arg.Slice,
+                arg.ID,
                 arg.Class,
-                arg.App,
+                arg.Shortnamelc,
                 arg.Brwf,
                 arg.Patternschema,
                 arg.Actionschema,
                 arg.Editedby,
+                arg.RealmName,
         )
         return err
 }</span>
@@ -2849,6 +2898,134 @@ func Reload(query sqlc.DBQuerier, ctx context.Context) error <span class="cov0" 
 		<pre class="file" id="file15" style="display: none">package crux
 
 import (
+        "reflect"
+        "sync"
+        "time"
+)
+
+type realm_t string
+type app_t string
+type slice_t int
+type className_t string
+type BrwfEnum string
+
+const (
+        valInt_t valType_t = iota
+        valFloat_t
+        valString_t
+        valBool_t
+        valTimestamp_t
+        valEnum_t
+)
+
+type perSlice_t struct {
+        LoadedAt   time.Time
+        BRSchema   map[className_t][]*Schema_t
+        BRRulesets map[className_t][]*Ruleset_t
+        WFSchema   map[className_t][]*Schema_t
+        Workflows  map[className_t][]*Ruleset_t
+}
+
+type Schema_t struct {
+        Class         string            `json:"class"`
+        PatternSchema []PatternSchema_t `json:"patternschema"`
+        ActionSchema  ActionSchema_t    `json:"actionschema"`
+        NChecked      int32             `json:"n_checked"`
+}
+type PatternSchema_t struct {
+        Attr      string              `json:"attr" validate:"required"`
+        ShortDesc string              `json:"shortdesc" validate:"required"`
+        LongDesc  string              `json:"longdesc" validate:"required"`
+        ValType   string              `json:"valtype" validate:"required"`
+        EnumVals  map[string]struct{} `json:"vals,omitempty"`
+        ValMin    float64             `json:"valmin,omitempty"`
+        ValMax    float64             `json:"valmax,omitempty"`
+        LenMin    int                 `json:"lenmin,omitempty"`
+        LenMax    int                 `json:"lenmax,omitempty"`
+}
+
+type valType_t int
+
+const (
+        valInt valType_t = iota
+        valFloat
+        valString
+        valBool
+        valTimestamp
+        valEnum
+)
+
+type ActionSchema_t struct {
+        Tasks      []string `json:"tasks" validate:"required"`
+        Properties []string `json:"properties" validate:"required"`
+}
+
+type ruleOp_t int
+
+const (
+        ruleOpEQ ruleOp_t = iota // Equal to
+        ruleOpNE                 // Not equal to
+        ruleOpGT                 // Greater than
+        ruleOpGE                 // Greater than or equal to
+        ruleOpLT                 // Less than
+        ruleOpLE                 // Less than or equal to
+)
+
+type RulePatternBlock_t struct {
+        Attr string `json:"attr" validate:"required"`
+        Op   string `json:"op" validate:"required"`
+        Val  any    `json:"val" validate:"required"`
+}
+
+type RuleActionBlock_t struct {
+        Task          []string          `json:"tasks" validate:"required"`
+        Properties    map[string]string `json:"properties" validate:"required"`
+        ThenCall      string            `json:"thencall,omitempty"`
+        ElseCall      string            `json:"elsecall,omitempty"`
+        DoReturn      bool              `json:"doreturn,omitempty"`
+        DoExit        bool              `json:"doexit,omitempty"`
+        References    []*Ruleset_t      `json:"-"`
+        ReferenceType string            `json:"referencetype,omitempty"`
+}
+
+type Rule_t struct {
+        RulePatterns []RulePatternBlock_t `json:"rulepattern" validate:"required,dive"`
+        RuleActions  RuleActionBlock_t    `json:"ruleactions" validate:"required"`
+        NMatched     int32
+        NFailed      int32
+}
+
+type Ruleset_t struct {
+        Id            int32    `json:"id"`
+        Class         string   `json:"class"`
+        SetName       string   `json:"setname"`
+        Rules         []Rule_t `json:"rule"`
+        NCalled       int32
+        ReferenceType string
+}
+
+type perApp_t map[slice_t]perSlice_t
+
+type perRealm_t map[app_t]perApp_t
+
+type rulesetCache_t map[realm_t]perRealm_t
+
+type schemaCache_t map[realm_t]perRealm_t
+
+var (
+        rulesetCache rulesetCache_t
+        schemaCache  schemaCache_t
+        cacheLock    sync.RWMutex
+)
+
+func (a ActionSchema_t) IsEmpty() bool <span class="cov0" title="0">{
+        return reflect.DeepEqual(a, ActionSchema_t{})
+}</span>
+</pre>
+		
+		<pre class="file" id="file16" style="display: none">package crux
+
+import (
         "errors"
         "time"
 )
@@ -2967,7 +3144,7 @@ func getStats(realm realm_t, app app_t, slice slice_t) (rulesetStats_t, time.Tim
 }
 </pre>
 		
-		<pre class="file" id="file16" style="display: none">package crux
+		<pre class="file" id="file17" style="display: none">package crux
 
 import (
         "context"
@@ -3469,7 +3646,7 @@ func printStats(statsData rulesetStats_t) <span class="cov0" title="0">{
 }
 </pre>
 		
-		<pre class="file" id="file17" style="display: none">/* This file contains the collectActions() function */
+		<pre class="file" id="file18" style="display: none">/* This file contains the collectActions() function */
 
 package crux
 
@@ -3520,7 +3697,7 @@ func collectActions(actionSet ActionSet, ruleActions RuleActionBlock_t) ActionSe
 }
 </pre>
 		
-		<pre class="file" id="file18" style="display: none">/*
+		<pre class="file" id="file19" style="display: none">/*
 This file contains doMatch() and a helper function called by doMatch().
 
 It also contains ruleSchemasCache and ruleSetsCache, two  variables that currently store rule-schemas
@@ -3655,7 +3832,7 @@ func inconsistentRuleSet(calledSetName string, currSetName string, ruleSets *Rul
 }</span>
 </pre>
 		
-		<pre class="file" id="file19" style="display: none">/* This file contains matchPattern(), and helper functions called by matchPattern() */
+		<pre class="file" id="file20" style="display: none">/* This file contains matchPattern(), and helper functions called by matchPattern() */
 
 package crux
 
@@ -3859,7 +4036,7 @@ func incrementStatsSchemaCounterNChecked(class string, schema []*Schema_t) <span
 }
 </pre>
 		
-		<pre class="file" id="file20" style="display: none">/*
+		<pre class="file" id="file21" style="display: none">/*
 This file contains verifyRuleSchema(), verifyRuleSet(), doReferentialChecks() and verifyEntity(),
 and their helper functions
 */
@@ -4030,7 +4207,7 @@ func VerifyActionSchema(rs Schema_t, isWF bool) []error <span class="cov0" title
         }</span>
 
         <span class="cov0" title="0">if isWF &amp;&amp; !reflect.DeepEqual(getTasksMapForWF(rs.ActionSchema.Tasks), getStepAttrVals(rs)) </span><span class="cov0" title="0">{
-                err := CruxError{Keyword: "NotAllowed", FieldName: "properties", Messages: "action-schema tasks are not the same as valid values for 'step' in pattern-schema"} // fmt.Errorf("action-schema tasks for %v are not the same as valid values for 'step' in pattern-schema", rs.Class)
+                err := CruxError{Keyword: "NotAllowed", FieldName: "task", Messages: "action-schema tasks are not the same as valid values for 'step' in pattern-schema"} // fmt.Errorf("action-schema tasks for %v are not the same as valid values for 'step' in pattern-schema", rs.Class)
                 errs = append(errs, err)
         }</span>
         <span class="cov0" title="0">return errs</span>
@@ -4042,9 +4219,9 @@ func getTasksMapForWF(tasks []string) map[string]struct{} <span class="cov0" tit
                 tm[t] = struct{}{}
         }</span>
         // To allow comparison with the set of valid values for the 'step' attribute, which includes "START"
-        <span class="cov0" title="0">tm[start] = struct{}{}
+        // tm[start] = struct{}{}
 
-        return tm</span>
+        <span class="cov0" title="0">return tm</span>
 }
 
 func getStepAttrVals(rs Schema_t) map[string]struct{} <span class="cov0" title="0">{
@@ -4317,7 +4494,68 @@ func verifyEntity(e Entity) (bool, error) <span class="cov0" title="0">{
 }
 </pre>
 		
-		<pre class="file" id="file21" style="display: none">package config
+		<pre class="file" id="file22" style="display: none">package config
+
+import (
+        "github.com/gin-gonic/gin"
+        "github.com/remiges-tech/alya/service"
+        "github.com/remiges-tech/alya/wscutils"
+        "github.com/remiges-tech/crux/db"
+        "github.com/remiges-tech/crux/db/sqlc-gen"
+        "github.com/remiges-tech/crux/server"
+        "github.com/remiges-tech/crux/types"
+)
+
+func ConfigGet(c *gin.Context, s *service.Service) <span class="cov8" title="1">{
+        l := s.LogHarbour
+        l.Debug0().Log("Starting execution of ConfigGet()")
+
+        // userID, err := server.ExtractUserNameFromJwt(c)
+        // if err != nil {
+        //         l.Info().Log("unable to extract userID from token")
+        //         wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+        //         return
+        // }
+
+        // realmName, err := server.ExtractRealmFromJwt(c)
+        // if err != nil {
+        //         l.Info().Log("unable to extract realm from token")
+        //         wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+        //         return
+        // }
+
+        reqCaps := []string{"root"}
+        isCapable, _ := server.Authz_check(types.OpReq{
+                User:      userID,
+                CapNeeded: reqCaps,
+        }, false)
+
+        if !isCapable </span><span class="cov0" title="0">{
+                l.Info().LogActivity("Unauthorized user:", userID)
+                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
+                return
+        }</span>
+
+        <span class="cov8" title="1">query, ok := s.Dependencies["queries"].(*sqlc.Queries)
+        if !ok </span><span class="cov0" title="0">{
+                l.Debug0().Log("Error while getting query instance from service Dependencies")
+                wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
+                return
+        }</span>
+        <span class="cov8" title="1">configs, err := query.ConfigGet(c, realmName)
+        if err != nil </span><span class="cov0" title="0">{
+                l.Info().Error(err).Log("Error while getting config list")
+                errmsg := db.HandleDatabaseError(err)
+                wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+                return
+        }</span>
+        <span class="cov8" title="1">wscutils.SendSuccessResponse(c, &amp;wscutils.Response{Status: wscutils.SuccessStatus, Data: configs, Messages: nil})
+        l.Debug0().Log("Finished execution of ConfigGet()")</span>
+
+}
+</pre>
+		
+		<pre class="file" id="file23" style="display: none">package config
 
 import (
         "strings"
@@ -4402,7 +4640,7 @@ func ConfigSet(c *gin.Context, s *service.Service) <span class="cov8" title="1">
                 Val:   pgtype.Text{String: req.Val, Valid: true},
                 Setby: userID,
         })
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 l.Info().Error(err).Log("Error while creating config")
                 errmsg := db.HandleDatabaseError(err)
                 wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
@@ -4413,7 +4651,7 @@ func ConfigSet(c *gin.Context, s *service.Service) <span class="cov8" title="1">
 }
 </pre>
 		
-		<pre class="file" id="file22" style="display: none">package server
+		<pre class="file" id="file24" style="display: none">package server
 
 import (
         "encoding/json"
@@ -4569,7 +4807,7 @@ func HandleCruxError(errs []error) []wscutils.ErrorMessage <span class="cov0" ti
 }
 </pre>
 		
-		<pre class="file" id="file23" style="display: none">package testutils
+		<pre class="file" id="file25" style="display: none">package testutils
 
 import (
         "encoding/json"
@@ -4613,7 +4851,7 @@ type TestCasesStruct struct {
 }
 </pre>
 		
-		<pre class="file" id="file24" style="display: none">package types
+		<pre class="file" id="file26" style="display: none">package types
 
 const (
         DevEnv           Environment = "dev_env"

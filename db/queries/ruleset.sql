@@ -69,22 +69,26 @@ INSERT INTO
         realm, slice, app, brwf, class, setname, schemaid, is_active, is_internal, ruleset, createdat, createdby
     )
 VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP, $11
+        @realm_name::varchar,
+        (SELECT realmslice.id FROM realmslice WHERE realmslice.id= @slice AND realmslice.realm = @realm_name ),
+        (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= @app AND app.realm = @realm_name), 
+        $1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, $8
     );
 
 -- name: WorkFlowUpdate :execresult
 UPDATE ruleset
 SET
-    brwf = $5,
-    setname = $6,
-    ruleset = $7,
+    brwf = $2,
+    setname = $3,
+    ruleset = $4,
     editedat = CURRENT_TIMESTAMP,
-    editedby = $8
+    editedby = $5
 WHERE
-    realm = $1
-    AND slice = $2
-    AND class = $3
-    AND app = $4;
+    realm = @realm_name::varchar
+    AND (SELECT realmslice.id FROM realmslice WHERE realmslice.id= @slice AND realmslice.realm = @realm_name )
+    AND class = $1
+    AND (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= @app AND app.realm = @realm_name);
+
 
 -- name: WorkflowList :many
 select

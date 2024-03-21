@@ -146,7 +146,8 @@ func registerRoutes(databaseUrl string) (*gin.Engine, error) {
 		WithDatabase(connPool).
 		WithDependency("queries", queries)
 
-	s.RegisterRoute(http.MethodPost, "/configset", config.ConfigSet)
+	s.RegisterRoute(http.MethodPost, "/configSet", config.ConfigSet)
+	s.RegisterRoute(http.MethodGet, "/configGet", config.ConfigGet)
 	return r, nil
 
 }

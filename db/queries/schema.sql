@@ -4,22 +4,25 @@ INSERT INTO
         realm, slice, app, brwf, class, patternschema, actionschema, createdat, createdby
     )
 VALUES (
-        $1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, $8
+        @realm_name::varchar, 
+        (SELECT realmslice.id FROM realmslice WHERE realmslice.id= @slice AND realmslice.realm = @realm_name ), 
+        (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= @app AND app.realm = @realm_name), 
+        $1, $2, $3, $4, CURRENT_TIMESTAMP, $5
     ) RETURNING id;
 
 -- name: SchemaUpdate :exec
 UPDATE schema
 SET
-    brwf = $5,
-    patternschema = $6,
-    actionschema = $7,
+    brwf = $2,
+    patternschema = COALESCE($3,patternschema),
+    actionschema = COALESCE($4,actionschema),
     editedat = CURRENT_TIMESTAMP,
-    editedby = $8
+    editedby = $5
 WHERE
-    realm = $1
-    AND slice = $2
-    AND class = $3
-    AND app = $4;
+    realm = @realm_name::varchar
+    AND slice = (SELECT realmslice.id FROM realmslice WHERE realmslice.id= @slice AND realmslice.realm = @realm_name)
+    AND class = $1
+    AND app = (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= @app AND app.realm = @realm_name);
 
 -- name: GetSchemaWithLock :one
 SELECT
@@ -27,14 +30,14 @@ SELECT
     brwf,
     patternschema,
     actionschema,
-    editedat = CURRENT_TIMESTAMP,
+    editedat,
     editedby
 FROM schema
 WHERE
-    realm = $1
-    AND slice = $2
-    AND class = $3
-    AND app = $4 FOR
+    realm = @realm_name::varchar
+    AND slice = (SELECT realmslice.id FROM realmslice WHERE realmslice.id=$1 AND realmslice.realm = @realm_name)
+    AND class = $2
+    AND app = (SELECT app.shortnamelc FROM app WHERE app.shortnamelc=$3 AND app.realm = @realm_name) FOR
 UPDATE;
 
 -- name: SchemaDelete :one
