@@ -56,6 +56,57 @@ func (q *Queries) CapGet(ctx context.Context, arg CapGetParams) ([]CapGetRow, er
 	return items, nil
 }
 
+const capList = `-- name: CapList :many
+SELECT "user",app,cap,"from","to",setat,setby from capgrant
+WHERE realm = $1
+and (($2::text[] is null) OR ( app = any($2::text[])))
+and (($3::text[] is null) OR ( cap = any($3::text[])))
+`
+
+type CapListParams struct {
+	Realm string   `json:"realm"`
+	App   []string `json:"app"`
+	Cap   []string `json:"cap"`
+}
+
+type CapListRow struct {
+	User  string           `json:"user"`
+	App   pgtype.Text      `json:"app"`
+	Cap   string           `json:"cap"`
+	From  pgtype.Timestamp `json:"from"`
+	To    pgtype.Timestamp `json:"to"`
+	Setat pgtype.Timestamp `json:"setat"`
+	Setby string           `json:"setby"`
+}
+
+func (q *Queries) CapList(ctx context.Context, arg CapListParams) ([]CapListRow, error) {
+	rows, err := q.db.Query(ctx, capList, arg.Realm, arg.App, arg.Cap)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []CapListRow
+	for rows.Next() {
+		var i CapListRow
+		if err := rows.Scan(
+			&i.User,
+			&i.App,
+			&i.Cap,
+			&i.From,
+			&i.To,
+			&i.Setat,
+			&i.Setby,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const deleteCapGranForApp = `-- name: DeleteCapGranForApp :exec
 
 DELETE FROM capgrant WHERE app = $1 AND realm = $2

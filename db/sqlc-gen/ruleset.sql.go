@@ -358,7 +358,7 @@ where
     brwf = 'W'
     AND realm = $1
     AND ($2::INTEGER is null OR slice = $2::INTEGER)
-    AND ( $3::text[] is null OR app = any( $3::text[]))
+    AND ($3::text[] is null OR app = any( $3::text[]))
     AND ($4::text is null OR class = $4::text)
     AND ($5::text is null OR setname = $5::text)
     AND ($6::BOOLEAN is null OR is_active = $6::BOOLEAN)
