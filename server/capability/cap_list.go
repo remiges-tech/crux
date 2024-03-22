@@ -2,6 +2,7 @@ package capability
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db"
@@ -10,10 +11,19 @@ import (
 	"github.com/remiges-tech/crux/types"
 )
 
-// CapGet: will handle "/capget/:userid" GET
-func CapGet(c *gin.Context, s *service.Service) {
+type CapListReq struct {
+	App []string `json:"app,omitempty"`
+	Cap []string `json:"cap,omitempty"`
+}
+
+// CapList: will handle "/caplist" GET
+func CapList(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
-	l.Debug0().Log("starting execution of CapGet()")
+	l.Debug0().Log("starting execution of CapList()")
+
+	var (
+		request CapListReq
+	)
 
 	userID, err := server.ExtractUserNameFromJwt(c)
 	if err != nil {
@@ -41,11 +51,17 @@ func CapGet(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	// Step:1 - get params / json binding
-	opUserId := c.Param("userid")
-	if opUserId == "" {
-		l.Log("no operational user id found")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ERRCode_User_Id_Not_Exist))
+	err = wscutils.BindJSON(c, &request)
+	if err != nil {
+		l.Debug0().Error(err).Log("error while binding json request")
+		return
+	}
+
+	// Check for validation error
+	validationErrors := wscutils.WscValidate(request, func(err validator.FieldError) []string { return []string{} })
+	if len(validationErrors) > 0 {
+		l.Debug0().LogDebug("standard validation errors", validationErrors)
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
 		return
 	}
 
@@ -58,18 +74,20 @@ func CapGet(c *gin.Context, s *service.Service) {
 	}
 
 	// Step:3 - do the db transaction
-	dbResponse, err := query.CapGet(c, sqlc.CapGetParams{
-		Userid: opUserId,
-		Realm:  realmName,
+	dbResponse, err := query.CapList(c, sqlc.CapListParams{
+		Realm: realmName,
+		App:   request.App,
+		Cap:   request.Cap,
 	})
+
 	if err != nil {
-		l.Info().Error(err).Log("error while getting data from db with func CapGet")
+		l.Info().Error(err).Log("error while getting data from db with func CapList")
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
 
 	// Step:4 - send response
-	l.Debug0().Log("exiting from CapGet()")
-	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(map[string][]sqlc.CapGetRow{"capabilities": dbResponse}))
+	l.Debug0().Log("exiting from CapList()")
+	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(map[string][]sqlc.CapListRow{"capabilities": dbResponse}))
 }

@@ -21,6 +21,7 @@ type Querier interface {
 	AppNew(ctx context.Context, arg AppNewParams) ([]App, error)
 	AppUpdate(ctx context.Context, arg AppUpdateParams) error
 	CapGet(ctx context.Context, arg CapGetParams) ([]CapGetRow, error)
+	CapList(ctx context.Context, arg CapListParams) ([]CapListRow, error)
 	CloneRecordInConfigBySliceID(ctx context.Context, arg CloneRecordInConfigBySliceIDParams) (pgconn.CommandTag, error)
 	CloneRecordInRealmSliceBySliceID(ctx context.Context, arg CloneRecordInRealmSliceBySliceIDParams) (int32, error)
 	CloneRecordInRulesetBySliceID(ctx context.Context, arg CloneRecordInRulesetBySliceIDParams) (pgconn.CommandTag, error)

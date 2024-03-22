@@ -42,3 +42,9 @@ RETURNING *;
 
 -- name: CapGet :many
 SELECT app,cap,setby,setat,"from","to" from capgrant WHERE realm = @realm and "user" = @userId;
+
+-- name: CapList :many
+SELECT "user",app,cap,"from","to",setat,setby from capgrant
+WHERE realm = @realm
+and ((@app::text[] is null) OR ( app = any(@app::text[])))
+and ((@cap::text[] is null) OR ( cap = any(@cap::text[])));

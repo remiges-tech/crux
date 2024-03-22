@@ -11,7 +11,7 @@ import (
 )
 
 func TestCapGet(t *testing.T) {
-	testCases := testUserActivate()
+	testCases := testCapGet()
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 
@@ -37,7 +37,7 @@ func TestCapGet(t *testing.T) {
 
 }
 
-func testUserActivate() []testutils.TestCasesStruct {
+func testCapGet() []testutils.TestCasesStruct {
 
 	testUsrAct := []testutils.TestCasesStruct{
 		{

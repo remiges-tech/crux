@@ -108,7 +108,7 @@ where
     brwf = 'W'
     AND realm = @realm
     AND (sqlc.narg('slice')::INTEGER is null OR slice = sqlc.narg('slice')::INTEGER)
-    AND ( @app::text[] is null OR app = any( @app::text[]))
+    AND (sqlc.narg('app')::text[] is null OR app = any( sqlc.narg('app')::text[]))
     AND (sqlc.narg('class')::text is null OR class = sqlc.narg('class')::text)
     AND (sqlc.narg('setname')::text is null OR setname = sqlc.narg('setname')::text)
     AND (sqlc.narg('is_active')::BOOLEAN is null OR is_active = sqlc.narg('is_active')::BOOLEAN)

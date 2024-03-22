@@ -183,6 +183,7 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/configGet", config.ConfigGet)
 	// capability
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/capget/:userid", capability.CapGet)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/caplist", capability.CapList)
 
 	appServerPortStr := strconv.Itoa(appServerPort)
 	r.Run(":" + appServerPortStr)
