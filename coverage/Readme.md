@@ -46,3 +46,8 @@ go tool cover -html=./coverage/coverage_auth.out -o ./coverage/coverage_auth.htm
 go test -coverprofile=./coverage/coverage_config.out -coverpkg=./... server/config/test/configGet_test.go server/config/test/configSet_test.go  server/config/test/main_test.go
 
 go tool cover -html=./coverage/coverage_config.out -o ./coverage/coverage_config.html
+
+8. coverage_capability
+go test -coverprofile=./coverage/coverage_capability.out -coverpkg=./... server/capability/test/cap_list_test.go server/capability/test/cap_get_test.go  server/capability/test/main_test.go
+
+go tool cover -html=./coverage/coverage_capability.out -o ./coverage/coverage_capability.html
