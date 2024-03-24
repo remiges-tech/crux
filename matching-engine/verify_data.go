@@ -169,7 +169,7 @@ func VerifyActionSchema(rs Schema_t, isWF bool) []error {
 	}
 
 	if isWF && !reflect.DeepEqual(getTasksMapForWF(rs.ActionSchema.Tasks), getStepAttrVals(rs)) {
-		err := CruxError{Keyword: "NotAllowed", FieldName: "properties", Messages: "action-schema tasks are not the same as valid values for 'step' in pattern-schema"} // fmt.Errorf("action-schema tasks for %v are not the same as valid values for 'step' in pattern-schema", rs.Class)
+		err := CruxError{Keyword: "NotAllowed", FieldName: "task", Messages: "action-schema tasks are not the same as valid values for 'step' in pattern-schema"} // fmt.Errorf("action-schema tasks for %v are not the same as valid values for 'step' in pattern-schema", rs.Class)
 		errs = append(errs, err)
 	}
 	return errs
@@ -181,7 +181,7 @@ func getTasksMapForWF(tasks []string) map[string]struct{} {
 		tm[t] = struct{}{}
 	}
 	// To allow comparison with the set of valid values for the 'step' attribute, which includes "START"
-	tm[start] = struct{}{}
+	// tm[start] = struct{}{}
 
 	return tm
 }
@@ -203,7 +203,7 @@ func getStepAttrVals(rs Schema_t) map[string]struct{} {
 // isWF bool: true if the RuleSet is a workflow, otherwise false
 func verifyRuleSet(entiry Entity, rs *Ruleset_t, isWF bool) []error {
 	var errs []error
-	schema, err := getSchema(entiry, entiry.class)
+	schema, err := getSchema(entiry, entiry.Class)
 
 	if err != nil {
 		errs = append(errs, err)
@@ -225,7 +225,7 @@ func VerifyRulePatterns(ruleset *Ruleset_t, schema *Schema_t, isWF bool) []error
 
 		for _, term := range rule.RulePatterns {
 
-			valType := getType(schema, term.Attr)
+			valType := GetType(schema, term.Attr)
 
 			if valType == "" {
 				// If the attribute name is not in the pattern-schema, we check if it's a task "tag"
@@ -269,20 +269,20 @@ func VerifyRulePatterns(ruleset *Ruleset_t, schema *Schema_t, isWF bool) []error
 	return errs
 }
 
-func getSchema(entity Entity, class string) (*Schema_t, error) {
-	ruleSchemas, _ := retriveRuleSchemasAndRuleSetsFromCache(entity.realm, entity.app, entity.class, entity.slice)
+func getSchema(entity Entity, Class string) (*Schema_t, error) {
+	ruleSchemas, _ := retriveRuleSchemasAndRuleSetsFromCache(entity.Realm, entity.App, entity.Class, entity.Slice)
 
 	if ruleSchemas == nil {
-		return nil, fmt.Errorf("no schema found for class %v", class)
+		return nil, fmt.Errorf("no schema found for Class %v", Class)
 	}
-	if class == ruleSchemas.Class {
+	if Class == ruleSchemas.Class {
 		return ruleSchemas, nil
 	}
 
-	return nil, fmt.Errorf("no schema found for class %v", class)
+	return nil, fmt.Errorf("no schema found for Class %v", Class)
 }
 
-func getType(rs *Schema_t, name string) string {
+func GetType(rs *Schema_t, name string) string {
 	for _, as := range rs.PatternSchema {
 		if as.Attr == name {
 			return as.ValType
@@ -416,7 +416,7 @@ func getNextStep(props map[string]string) string {
 }
 
 func doReferentialChecks(e Entity) (bool, error) {
-	_, ruleSets := retriveRuleSchemasAndRuleSetsFromCache(e.realm, e.app, e.class, e.slice)
+	_, ruleSets := retriveRuleSchemasAndRuleSetsFromCache(e.Realm, e.App, e.Class, e.Slice)
 
 	for _, ruleset := range ruleSets {
 		for _, rule := range ruleset.Rules {
@@ -432,22 +432,22 @@ func doReferentialChecks(e Entity) (bool, error) {
 }
 
 func verifyEntity(e Entity) (bool, error) {
-	rs, err := getSchema(e, e.class)
+	rs, err := getSchema(e, e.Class)
 	if err != nil {
 		return false, err
 	}
-	for attrName, attrVal := range e.attrs {
+	for attrName, attrVal := range e.Attrs {
 
-		t := getType(rs, attrName)
+		t := GetType(rs, attrName)
 		if t == "" {
 			return false, fmt.Errorf("schema does not contain attribute %v", attrName)
 		}
-		_, err := convertEntityAttrVal(attrVal, t)
+		_, err := ConvertEntityAttrVal(attrVal, t)
 		if err != nil {
 			return false, fmt.Errorf("attribute %v in entity has value of wrong type", attrName)
 		}
 	}
-	if len(e.attrs) != len(rs.PatternSchema) {
+	if len(e.Attrs) != len(rs.PatternSchema) {
 		return false, fmt.Errorf("entity does not contain all the attributes in its pattern-schema")
 	}
 	return true, nil

@@ -13,9 +13,8 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 
-	sqlc "github.com/remiges-tech/crux/matching-engine/db/sqlc-gen"
-
 	"github.com/jackc/pgx/v5/pgxpool"
+	sqlc "github.com/remiges-tech/crux/matching-engine/db/sqlc-gen"
 )
 
 var queryDbq sqlc.DBQuerier
@@ -43,7 +42,7 @@ func NewProvider(cfg string) sqlc.DBQuerier {
 }
 
 func AddReferencesToRuleSetCache() {
-	for realmKey, perRealm := range rulesetCache {
+	for realmKey, perRealm := range RulesetCache {
 		for _, perApp := range perRealm {
 			for sliceKey, perSlice := range perApp {
 				for _, rulesets := range perSlice.BRRulesets {
@@ -65,23 +64,23 @@ func AddReferencesToRuleSetCache() {
 	}
 }
 
-func processSubRule(subRule *Rule_t, realmKey realm_t, sliceKey slice_t) {
+func processSubRule(subRule *Rule_t, realmKey Realm_t, sliceKey Slice_t) {
 	if subRule.RuleActions.ThenCall != "" {
-		referRuleset := searchAndAddReferences(subRule.RuleActions.ThenCall, rulesetCache, realmKey, sliceKey, "thencall")
+		referRuleset := searchAndAddReferences(subRule.RuleActions.ThenCall, RulesetCache, realmKey, sliceKey, "thencall")
 		if referRuleset != nil {
 			subRule.RuleActions.References = append(subRule.RuleActions.References, referRuleset)
 		}
 	}
 	if subRule.RuleActions.ElseCall != "" {
-		referRuleset := searchAndAddReferences(subRule.RuleActions.ElseCall, rulesetCache, realmKey, sliceKey, "elsecall")
+		referRuleset := searchAndAddReferences(subRule.RuleActions.ElseCall, RulesetCache, realmKey, sliceKey, "elsecall")
 		if referRuleset != nil {
 			subRule.RuleActions.References = append(subRule.RuleActions.References, referRuleset)
 		}
 	}
 }
 
-func searchAndAddReferences(targetSetName string, cache map[realm_t]perRealm_t, realmKey realm_t,
-	sliceKey slice_t, calltype string) *Ruleset_t {
+func searchAndAddReferences(targetSetName string, cache map[Realm_t]PerRealm_t, realmKey Realm_t,
+	sliceKey Slice_t, calltype string) *Ruleset_t {
 	for _, perApp := range cache[realmKey] {
 		for otherSliceKey, perSlice := range perApp {
 			if otherSliceKey == sliceKey {
@@ -110,7 +109,8 @@ func searchAndAddReferences(targetSetName string, cache map[realm_t]perRealm_t, 
 }
 
 func PrintAllRuleSetCache() {
-	for realmKey, perRealm := range rulesetCache {
+
+	for realmKey, perRealm := range RulesetCache {
 		fmt.Println("Realm:", realmKey)
 		for appKey, perApp := range perRealm {
 			fmt.Println("\tApp:", appKey)
@@ -170,7 +170,7 @@ func PrintAllRuleSetCache() {
 }
 func PrintAllSchemaCache() {
 
-	for realmKey, perRealm := range schemaCache {
+	for realmKey, perRealm := range SchemaCache {
 		fmt.Println("Realm:", realmKey)
 		for appKey, perApp := range perRealm {
 			fmt.Println("\tApp:", appKey)
@@ -278,22 +278,22 @@ func containsFieldName(value interface{}, fieldName string) bool {
 }
 
 func retrieveRuleSchemasFromCache(realm string, app string, class string, slice int) (*Schema_t, error) {
-	realmKey := realm_t(realm)
+	realmKey := Realm_t(realm)
 
-	perRealm, realmExists := schemaCache[realmKey]
+	perRealm, realmExists := SchemaCache[realmKey]
 	if !realmExists {
 
 		return nil, errors.New("schema Realmkey not match")
 	}
 
-	appKey := app_t(app)
+	appKey := App_t(app)
 	perApp, appExists := perRealm[appKey]
 	if !appExists {
 
 		return nil, errors.New("schema AppKey not match")
 	}
 
-	sliceKey := slice_t(slice)
+	sliceKey := Slice_t(slice)
 
 	perSlice, sliceExists := perApp[sliceKey]
 	if !sliceExists {
@@ -301,33 +301,33 @@ func retrieveRuleSchemasFromCache(realm string, app string, class string, slice 
 		return nil, errors.New("schema Slice key not match")
 	}
 
-	brSchemas, brExists := perSlice.BRSchema[className_t(class)]
+	brSchemas, brExists := perSlice.BRSchema[ClassName_t(class)]
 	if brExists {
 
 		return &brSchemas, nil
-
 	}
-	wfSchemas, wfExists := perSlice.WFSchema[className_t(class)]
+
+	wfSchemas, wfExists := perSlice.WFSchema[ClassName_t(class)]
 	if wfExists {
 		return &wfSchemas, nil
 	}
 
 	return nil, nil
 }
-func convertAttrValue(entityAttrVal string, valType valType_t) any {
+func convertAttrValue(entityAttrVal string, valType ValType_t) any {
 
 	var entityAttrValConv any
 	var err error
 	switch valType {
-	case valBool_t:
+	case ValBool_t:
 		entityAttrValConv, err = strconv.ParseBool(entityAttrVal)
-	case valInt_t:
+	case ValInt_t:
 		entityAttrValConv, err = strconv.Atoi(entityAttrVal)
-	case valFloat_t:
+	case ValFloat_t:
 		entityAttrValConv, err = strconv.ParseFloat(entityAttrVal, 64)
-	case valString_t, valEnum_t:
+	case ValString_t, ValEnum_t:
 		entityAttrValConv = entityAttrVal
-	case valTimestamp_t:
+	case ValTimestamp_t:
 		entityAttrValConv, err = time.Parse(timeLayout, entityAttrVal)
 	}
 	if err != nil {
@@ -336,21 +336,21 @@ func convertAttrValue(entityAttrVal string, valType valType_t) any {
 	return entityAttrValConv
 }
 
-func retrieveRuleSetsFromCache(realm string, app string, class string, slice int) ([]*Ruleset_t, error) {
-	realmKey := realm_t(realm)
+func RetrieveRuleSetsFromCache(realm string, app string, class string, slice int) ([]*Ruleset_t, error) {
+	realmKey := Realm_t(realm)
 
-	perRealm, realmExists := rulesetCache[realmKey]
+	perRealm, realmExists := RulesetCache[realmKey]
 	if !realmExists {
 		return nil, errors.New("ruleset realmkey not match")
 	}
 
-	appKey := app_t(app)
+	appKey := App_t(app)
 	perApp, appExists := perRealm[appKey]
 	if !appExists {
 		return nil, errors.New("ruleset appKey not match")
 	}
 
-	sliceKey := slice_t(slice)
+	sliceKey := Slice_t(slice)
 	perSlice, sliceExists := perApp[sliceKey]
 	if !sliceExists {
 		return nil, errors.New("ruleset slice key not match")
@@ -361,6 +361,7 @@ func retrieveRuleSetsFromCache(realm string, app string, class string, slice int
 	for _, brRulesets := range perSlice.BRRulesets {
 		ruleSets = append(ruleSets, brRulesets...)
 	}
+
 	for _, wfRulesets := range perSlice.Workflows {
 		ruleSets = append(ruleSets, wfRulesets...)
 	}
@@ -373,15 +374,17 @@ func retriveRuleSchemasAndRuleSetsFromCache(realm string, app string, class stri
 
 	ruleSchemas, _ := retrieveRuleSchemasFromCache(realm, app, class, s)
 
-	ruleSets, _ := retrieveRuleSetsFromCache(realm, app, class, s)
-	return ruleSchemas, ruleSets
+	ruleSets, _ := RetrieveRuleSetsFromCache(realm, app, class, s)
 
+	return ruleSchemas, ruleSets
 }
+
 func retriveRuleSetsFromCache(realm string, app string, class string, slice string) *Ruleset_t {
 	s, _ := strconv.Atoi(slice)
-	ruleSets, _ := retrieveRuleSetsFromCache(realm, app, class, s)
-	return ruleSets[0]
+	ruleSets, _ := RetrieveRuleSetsFromCache(realm, app, class, s)
+	return ruleSets[0] // need only first instance
 }
+
 func printStats(statsData rulesetStats_t) {
 	for realm, perRealm := range statsData {
 		for app, perApp := range perRealm {
@@ -422,23 +425,51 @@ func printStats(statsData rulesetStats_t) {
 		}
 	}
 }
+func RetrieveWorkflowRulesetFromCache(realm string, app string, class string, slice int) ([]*Ruleset_t, error) {
+	realmKey := Realm_t(realm)
+
+	perRealm, realmExists := RulesetCache[realmKey]
+	if !realmExists {
+		return nil, errors.New("ruleset realmkey not match")
+	}
+
+	appKey := App_t(app)
+	perApp, appExists := perRealm[appKey]
+	if !appExists {
+		return nil, errors.New("ruleset appKey not match")
+	}
+
+	sliceKey := Slice_t(slice)
+	perSlice, sliceExists := perApp[sliceKey]
+	if !sliceExists {
+		return nil, errors.New("ruleset slice key not match")
+	}
+
+	var ruleSets []*Ruleset_t
+
+	for _, wfRulesets := range perSlice.Workflows {
+		ruleSets = append(ruleSets, wfRulesets...)
+	}
+
+	return ruleSets, nil
+}
 
 func deleteWFInstance(entity markdone_t) error {
-	sliceInt, err := strconv.Atoi(entity.Entity.slice)
+	sliceInt, err := strconv.Atoi(entity.Entity.Slice)
 	if err != nil {
 		log.Fatal("Failed to convert string to int32:", err)
 	}
 	id := strconv.Itoa(int(entity.Id))
 	params := sqlc.DeleteWFInstancesParams{
 		Slice:    int32(sliceInt),
-		App:      entity.Entity.app,
+		App:      entity.Entity.App,
 		Entityid: id,
 	}
 	return queryDbq.DeleteWFInstances(context.Background(), params)
 }
 
 func createFreshRecord(entity markdone_t, setname, task string, properties map[string]string) ([]sqlc.AddWFNewInstancesRow, error) {
-	sliceInt, err := strconv.Atoi(entity.Entity.slice)
+	sliceInt, err := strconv.Atoi(entity.Entity.Slice)
 	if err != nil {
 		log.Fatal("Failed to convert string to int32:", err)
 		return nil, err
@@ -456,8 +487,8 @@ func createFreshRecord(entity markdone_t, setname, task string, properties map[s
 	params := sqlc.AddWFNewInstancesParams{
 		Entityid: id,
 		Slice:    int32(sliceInt),
-		App:      entity.Entity.app,
-		Class:    entity.Entity.class,
+		App:      entity.Entity.App,
+		Class:    entity.Entity.Class,
 		Workflow: setname, // read from the cache ruleset
 		Step:     steps,
 		Nextstep: properties[nextStep],
@@ -468,7 +499,7 @@ func createFreshRecord(entity markdone_t, setname, task string, properties map[s
 }
 
 func GetWorkFlowInstance(entity markdone_t, workflowname string) (int64, error) {
-	sliceInt, err := strconv.Atoi(entity.Entity.slice)
+	sliceInt, err := strconv.Atoi(entity.Entity.Slice)
 	if err != nil {
 		log.Fatal("Failed to convert string to int32:", err)
 		return -1, err
@@ -476,7 +507,7 @@ func GetWorkFlowInstance(entity markdone_t, workflowname string) (int64, error) 
 	id := strconv.Itoa(int(entity.Id))
 	params := sqlc.GetWFInstanceCountsParams{
 		Slice:    int32(sliceInt),
-		App:      entity.Entity.app,
+		App:      entity.Entity.App,
 		Workflow: workflowname,
 		Entityid: id,
 	}
@@ -485,7 +516,7 @@ func GetWorkFlowInstance(entity markdone_t, workflowname string) (int64, error) 
 }
 func UpdateWFInstanceStep(entity markdone_t, step string) error {
 
-	sliceInt, err := strconv.Atoi(entity.Entity.slice)
+	sliceInt, err := strconv.Atoi(entity.Entity.Slice)
 	if err != nil {
 		log.Fatal("Failed to convert string to int32:", err)
 		return err
@@ -493,7 +524,7 @@ func UpdateWFInstanceStep(entity markdone_t, step string) error {
 	id := strconv.Itoa(int(entity.Id))
 	params := sqlc.UpdateWFInstanceStepParams{
 		Slice:    int32(sliceInt),
-		App:      entity.Entity.app,
+		App:      entity.Entity.App,
 		Entityid: id,
 		Step:     step,
 	}
@@ -503,7 +534,7 @@ func UpdateWFInstanceStep(entity markdone_t, step string) error {
 }
 func UpdateWFInstanceDoneAt(entity markdone_t, t time.Time, wf string) error {
 
-	sliceInt, err := strconv.Atoi(entity.Entity.slice)
+	sliceInt, err := strconv.Atoi(entity.Entity.Slice)
 	if err != nil {
 		log.Fatal("Failed to convert string to int32:", err)
 		return err
@@ -513,7 +544,7 @@ func UpdateWFInstanceDoneAt(entity markdone_t, t time.Time, wf string) error {
 		Doneat:   pgtype.Timestamp{Time: t},
 		Entityid: id,
 		Slice:    int32(sliceInt),
-		App:      entity.Entity.app,
+		App:      entity.Entity.App,
 		Workflow: wf,
 	}
 
@@ -523,7 +554,7 @@ func UpdateWFInstanceDoneAt(entity markdone_t, t time.Time, wf string) error {
 
 func getWFInstanceList(entity markdone_t, wf string) ([]sqlc.Wfinstance, error) {
 
-	sliceInt, err := strconv.Atoi(entity.Entity.slice)
+	sliceInt, err := strconv.Atoi(entity.Entity.Slice)
 	if err != nil {
 		log.Fatal("Failed to convert string to int32:", err)
 		return nil, err
@@ -534,14 +565,14 @@ func getWFInstanceList(entity markdone_t, wf string) ([]sqlc.Wfinstance, error) 
 	params := sqlc.GetWFInstanceListParams{
 		Entityid: id,
 		Slice:    int32(sliceInt),
-		App:      entity.Entity.app,
+		App:      entity.Entity.App,
 		Workflow: wf,
 		Parent:   *parent,
 	}
 	return queryDbq.GetWFInstanceList(context.Background(), params)
 }
 func getCurrentWFINstance(entity markdone_t, wf string) (sqlc.Wfinstance, error) {
-	sliceInt, err := strconv.Atoi(entity.Entity.slice)
+	sliceInt, err := strconv.Atoi(entity.Entity.Slice)
 	if err != nil {
 		log.Fatal("Failed to convert string to int32:", err)
 		return sqlc.Wfinstance{}, err
@@ -552,7 +583,7 @@ func getCurrentWFINstance(entity markdone_t, wf string) (sqlc.Wfinstance, error)
 
 		Entityid: id,
 		Slice:    int32(sliceInt),
-		App:      entity.Entity.app,
+		App:      entity.Entity.App,
 		Workflow: wf,
 	}
 	return queryDbq.GetWFInstanceCurrent(context.Background(), params)

@@ -5,18 +5,18 @@ import (
 	"time"
 )
 
-type rulesetStats_t map[realm_t]statsPerRealm_t
+type rulesetStats_t map[Realm_t]statsPerRealm_t
 
-type statsPerRealm_t map[app_t]statsPerApp_t
+type statsPerRealm_t map[App_t]statsPerApp_t
 
-type statsPerApp_t map[slice_t]statsPerSlice_t
+type statsPerApp_t map[Slice_t]statsPerSlice_t
 
 type statsPerSlice_t struct {
 	loadedAt   time.Time
-	BRSchema   map[className_t]statsSchema_t
-	BRRulesets map[className_t][]statsRuleset_t
-	WFSchema   map[className_t]statsSchema_t
-	Workflows  map[className_t][]statsRuleset_t
+	BRSchema   map[ClassName_t]statsSchema_t
+	BRRulesets map[ClassName_t][]statsRuleset_t
+	WFSchema   map[ClassName_t]statsSchema_t
+	Workflows  map[ClassName_t][]statsRuleset_t
 }
 
 type statsSchema_t struct {
@@ -33,13 +33,13 @@ type statsRule_t struct {
 	nFailed  int32
 }
 
-func getStats(realm realm_t, app app_t, slice slice_t) (rulesetStats_t, time.Time, error) {
+func getStats(realm Realm_t, app App_t, slice Slice_t) (rulesetStats_t, time.Time, error) {
 	var timestamp time.Time
 	var err error
 
 	statsData := make(rulesetStats_t)
 
-	perRealm, realmExists := rulesetCache[realm]
+	perRealm, realmExists := RulesetCache[realm]
 	if !realmExists {
 		return nil, timestamp, errors.New("Realm not found")
 	}
@@ -54,24 +54,26 @@ func getStats(realm realm_t, app app_t, slice slice_t) (rulesetStats_t, time.Tim
 	timestamp = perSlice.LoadedAt
 	statsPerSlice := statsPerSlice_t{
 		loadedAt:   perSlice.LoadedAt,
-		BRSchema:   make(map[className_t]statsSchema_t),
-		BRRulesets: make(map[className_t][]statsRuleset_t),
-		WFSchema:   make(map[className_t]statsSchema_t),
-		Workflows:  make(map[className_t][]statsRuleset_t),
+		BRSchema:   make(map[ClassName_t]statsSchema_t),
+		BRRulesets: make(map[ClassName_t][]statsRuleset_t),
+		WFSchema:   make(map[ClassName_t]statsSchema_t),
+		Workflows:  make(map[ClassName_t][]statsRuleset_t),
 	}
 
-	if schemaData, exists := schemaCache[realm][app][slice]; exists {
-		for className, schemas := range schemaData.BRSchema {
-			statsPerSlice.BRSchema[className] = statsSchema_t{nChecked: schemas.NChecked}
+	if schemaData, exists := SchemaCache[realm][app][slice]; exists {
+		for className, schema := range schemaData.BRSchema {
+			
+				statsPerSlice.BRSchema[className] = statsSchema_t{nChecked: schema.NChecked}
 
+		
 		}
-		for className, schemas := range schemaData.WFSchema {
+		for className, schema := range schemaData.WFSchema {
 
-			statsPerSlice.WFSchema[className] = statsSchema_t{nChecked: schemas.NChecked}
+			statsPerSlice.WFSchema[className] = statsSchema_t{nChecked: schema.NChecked}
 
 		}
 	}
-	if rulesetData, exists := rulesetCache[realm][app][slice]; exists {
+	if rulesetData, exists := RulesetCache[realm][app][slice]; exists {
 		for className, rulesets := range rulesetData.BRRulesets {
 			statsPerSlice.BRRulesets[className] = make([]statsRuleset_t, len(rulesets))
 			for i, ruleset := range rulesets {

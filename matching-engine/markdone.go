@@ -113,7 +113,7 @@ endif
 */
 
 func doMarkDone(entity markdone_t, step string, SetName string) (markdone_t, []response_t, error) {
-	ruleset := retriveRuleSetsFromCache(entity.Entity.realm, entity.Entity.app, entity.Entity.class, entity.Entity.slice)
+	ruleset := retriveRuleSetsFromCache(entity.Entity.Realm, entity.Entity.App, entity.Entity.Class, entity.Entity.Slice)
 	if entity.Stepfailed == true {
 		// Step supplied in the request
 		entity.Step = step
@@ -122,12 +122,12 @@ func doMarkDone(entity markdone_t, step string, SetName string) (markdone_t, []r
 		seenRuleSets := make(map[string]struct{})
 
 		// Call the doMatch function passing the entity.entity, ruleset, and the empty actionSet and seenRuleSets
-		actionset, _, err := doMatch(entity.Entity, ruleset, actionSet, seenRuleSets)
+		actionset, _, err := DoMatch(entity.Entity, ruleset, actionSet, seenRuleSets)
 		if err != nil {
 			return markdone_t{}, []response_t{}, err
 		}
 
-		if actionset.properties[done] == "done" {
+		if actionset.Properties[done] == "done" {
 			// Delete the wfinstance record
 			err := deleteWFInstance(entity)
 			if err != nil {
@@ -139,7 +139,7 @@ func doMarkDone(entity markdone_t, step string, SetName string) (markdone_t, []r
 			return entity, []response_t{}, nil
 		}
 
-		if len(actionset.tasks) > 1 {
+		if len(actionset.Tasks) > 1 {
 			// Has more than one task then delete the old record from wfinstance and create fresh records, one per task
 			err := deleteWFInstance(entity)
 			if err != nil {
@@ -148,8 +148,8 @@ func doMarkDone(entity markdone_t, step string, SetName string) (markdone_t, []r
 			}
 			var response []response_t
 
-			for _, freshtask := range actionset.tasks {
-				newrecord, err := createFreshRecord(entity, SetName, freshtask, actionset.properties)
+			for _, freshtask := range actionset.Tasks {
+				newrecord, err := createFreshRecord(entity, SetName, freshtask, actionset.Properties)
 				if err != nil {
 					if len(newrecord) > 0 {
 						record := newrecord[0] // Assuming only one record is returned
@@ -168,8 +168,8 @@ func doMarkDone(entity markdone_t, step string, SetName string) (markdone_t, []r
 			return entity, response, nil
 		} else {
 			// Update the old record in wfinstance to set the value of "step" = the task returned
-			entity.Step = actionset.tasks[0]
-			UpdateWFInstanceStep(entity, actionset.tasks[0])
+			entity.Step = actionset.Tasks[0]
+			UpdateWFInstanceStep(entity, actionset.Tasks[0])
 			return entity, []response_t{}, nil // Return the task and other data in response
 		}
 	}
@@ -186,12 +186,12 @@ func doMarkDone(entity markdone_t, step string, SetName string) (markdone_t, []r
 		actionSet := ActionSet{}
 		seenRuleSets := make(map[string]struct{})
 
-		actionset, _, err := doMatch(entity.Entity, ruleset, actionSet, seenRuleSets)
+		actionset, _, err := DoMatch(entity.Entity, ruleset, actionSet, seenRuleSets)
 		if err != nil {
 			return markdone_t{}, []response_t{}, err
 		}
 
-		if actionset.properties[done] == "true" {
+		if actionset.Properties[done] == "true" {
 			// Delete the wfinstance record
 			// Return specifying that the workflow is completed
 			err := deleteWFInstance(entity)
@@ -203,7 +203,7 @@ func doMarkDone(entity markdone_t, step string, SetName string) (markdone_t, []r
 			return entity, []response_t{}, nil
 		}
 
-		if len(actionset.tasks) > 1 {
+		if len(actionset.Tasks) > 1 {
 			// Has more than one task then delete the old record from wfinstance and create fresh records, one per task
 			// Return the full set of tasks and their record IDs
 			err := deleteWFInstance(entity)
@@ -213,8 +213,8 @@ func doMarkDone(entity markdone_t, step string, SetName string) (markdone_t, []r
 			}
 			var response []response_t
 
-			for _, freshtask := range actionset.tasks {
-				newrecord, err := createFreshRecord(entity, ruleset.SetName, freshtask, actionset.properties)
+			for _, freshtask := range actionset.Tasks {
+				newrecord, err := createFreshRecord(entity, ruleset.SetName, freshtask, actionset.Properties)
 				if err != nil {
 					if len(newrecord) > 0 {
 						record := newrecord[0] // at time only one record made
@@ -235,7 +235,7 @@ func doMarkDone(entity markdone_t, step string, SetName string) (markdone_t, []r
 			// Update the old record in wfinstance to set the value of "step" to the task returned
 			var response []response_t
 			taskMap := make(map[string]int32)
-			taskMap[actionset.tasks[0]] = entity.Id
+			taskMap[actionset.Tasks[0]] = entity.Id
 
 			param := response_t{
 				Task:     taskMap,
@@ -243,7 +243,7 @@ func doMarkDone(entity markdone_t, step string, SetName string) (markdone_t, []r
 			}
 
 			response = append(response, param)
-			UpdateWFInstanceStep(entity, actionset.tasks[0])
+			UpdateWFInstanceStep(entity, actionset.Tasks[0])
 			return entity, response, nil // Return the task and other data in response
 		}
 	} else if recordcount > 1 {
@@ -283,12 +283,12 @@ func doMarkDone(entity markdone_t, step string, SetName string) (markdone_t, []r
 			actionSet := ActionSet{}
 			seenRuleSets := make(map[string]struct{})
 
-			actionset, _, err := doMatch(entity.Entity, ruleset, actionSet, seenRuleSets)
+			actionset, _, err := DoMatch(entity.Entity, ruleset, actionSet, seenRuleSets)
 			if err != nil {
 				return markdone_t{}, []response_t{}, err
 			}
 
-			if actionset.properties[done] == "true" {
+			if actionset.Properties[done] == "true" {
 				// Delete all wfinstance records with tuple matching (slice, app, workflow, entityid)
 				// Return specifying that the workflow is completed
 				err := deleteWFInstance(entity)
@@ -300,7 +300,7 @@ func doMarkDone(entity markdone_t, step string, SetName string) (markdone_t, []r
 				return entity, []response_t{}, nil
 			}
 
-			if len(actionset.tasks) > 1 {
+			if len(actionset.Tasks) > 1 {
 				// Delete the old record from wfinstance and create fresh records, one per task
 				// Return the full set of tasks and their record IDs
 				err := deleteWFInstance(entity)
@@ -310,8 +310,8 @@ func doMarkDone(entity markdone_t, step string, SetName string) (markdone_t, []r
 				}
 				var response []response_t
 
-				for _, freshtask := range actionset.tasks {
-					newrecord, err := createFreshRecord(entity, ruleset.SetName, freshtask, actionset.properties)
+				for _, freshtask := range actionset.Tasks {
+					newrecord, err := createFreshRecord(entity, ruleset.SetName, freshtask, actionset.Properties)
 					if err != nil {
 						if len(newrecord) > 0 {
 							record := newrecord[0] // Assuming only one record is returned
@@ -333,7 +333,7 @@ func doMarkDone(entity markdone_t, step string, SetName string) (markdone_t, []r
 				// Return the task and other data in response
 				var response []response_t
 				taskMap := make(map[string]int32)
-				taskMap[actionset.tasks[0]] = entity.Id
+				taskMap[actionset.Tasks[0]] = entity.Id
 
 				param := response_t{
 					Task:     taskMap,
@@ -341,7 +341,7 @@ func doMarkDone(entity markdone_t, step string, SetName string) (markdone_t, []r
 				}
 
 				response = append(response, param)
-				UpdateWFInstanceStep(entity, actionset.tasks[0])
+				UpdateWFInstanceStep(entity, actionset.Tasks[0])
 				return entity, response, nil // Return the task and other data in response
 
 			}

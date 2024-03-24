@@ -12,14 +12,13 @@ import (
 	"fmt"
 )
 
-func doMatch(entity Entity, ruleset *Ruleset_t, actionSet ActionSet, seenRuleSets map[string]struct{}) (ActionSet, bool, error) {
+func DoMatch(entity Entity, ruleset *Ruleset_t, actionSet ActionSet, seenRuleSets map[string]struct{}) (ActionSet, bool, error) {
 
-	ruleSchemasCache, ruleSetsCache := retriveRuleSchemasAndRuleSetsFromCache(entity.realm, entity.app, entity.class, entity.slice)
-
+	ruleSchemasCache, ruleSetsCache := retriveRuleSchemasAndRuleSetsFromCache(entity.Realm, entity.App, entity.Class, entity.Slice)
 	if _, seen := seenRuleSets[ruleset.SetName]; seen {
 		return ActionSet{
-			tasks:      []string{},
-			properties: make(map[string]string),
+			Tasks:      []string{},
+			Properties: make(map[string]string),
 		}, false, errors.New("ruleset has already been traversed")
 	}
 
@@ -33,15 +32,15 @@ func doMatch(entity Entity, ruleset *Ruleset_t, actionSet ActionSet, seenRuleSet
 
 		if err != nil {
 			return ActionSet{
-				tasks:      []string{},
-				properties: make(map[string]string),
+				Tasks:      []string{},
+				Properties: make(map[string]string),
 			}, false, err
 		}
-
+        
 		if matched {
 
 			actionSet = collectActions(actionSet, rule.RuleActions)
-
+            
 			if len(rule.RuleActions.ThenCall) > 0 {
 
 				setToCall, exists := findRefRuleSetByName(ruleSetsCache, rule.RuleActions.ThenCall)
@@ -50,16 +49,16 @@ func doMatch(entity Entity, ruleset *Ruleset_t, actionSet ActionSet, seenRuleSet
 					return ActionSet{}, false, errors.New("set not found")
 				}
 
-				if setToCall.Class != entity.class {
+				if setToCall.Class != entity.Class {
 					return inconsistentRuleSet(setToCall.SetName, ruleset.SetName, ruleset)
 				}
 
 				var err error
-				actionSet, DoExit, err = doMatch(entity, setToCall, actionSet, seenRuleSets)
+				actionSet, DoExit, err = DoMatch(entity, setToCall, actionSet, seenRuleSets)
 				if err != nil {
 					return ActionSet{
-						tasks:      []string{},
-						properties: make(map[string]string),
+						Tasks:      []string{},
+						Properties: make(map[string]string),
 					}, false, err
 				}
 			}
@@ -81,16 +80,16 @@ func doMatch(entity Entity, ruleset *Ruleset_t, actionSet ActionSet, seenRuleSet
 				return ActionSet{}, false, errors.New("set not found")
 			}
 
-			if setToCall.Class != entity.class {
+			if setToCall.Class != entity.Class {
 				return inconsistentRuleSet(setToCall.SetName, ruleset.SetName, ruleset)
 			}
 
 			var err error
-			actionSet, DoExit, err = doMatch(entity, setToCall, actionSet, seenRuleSets)
+			actionSet, DoExit, err = DoMatch(entity, setToCall, actionSet, seenRuleSets)
 			if err != nil {
 				return ActionSet{
-					tasks:      []string{},
-					properties: make(map[string]string),
+					Tasks:      []string{},
+					Properties: make(map[string]string),
 				}, false, err
 			} else if DoExit {
 				return actionSet, true, nil

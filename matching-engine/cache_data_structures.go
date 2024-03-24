@@ -1,31 +1,32 @@
 package crux
 
 import (
+	"reflect"
 	"sync"
 	"time"
 )
 
-type realm_t string
-type app_t string
-type slice_t int
-type className_t string
+type Realm_t string
+type App_t string
+type Slice_t int
+type ClassName_t string
 type BrwfEnum string
 
 const (
-	valInt_t valType_t = iota
-	valFloat_t
-	valString_t
-	valBool_t
-	valTimestamp_t
-	valEnum_t
+	ValInt_t ValType_t = iota
+	ValFloat_t
+	ValString_t
+	ValBool_t
+	ValTimestamp_t
+	ValEnum_t
 )
 
-type perSlice_t struct {
+type PerSlice_t struct {
 	LoadedAt   time.Time
-	BRSchema   map[className_t]Schema_t
-	BRRulesets map[className_t][]*Ruleset_t
-	WFSchema   map[className_t]Schema_t
-	Workflows  map[className_t][]*Ruleset_t
+	BRSchema   map[ClassName_t]Schema_t
+	BRRulesets map[ClassName_t][]*Ruleset_t
+	WFSchema   map[ClassName_t]Schema_t
+	Workflows  map[ClassName_t][]*Ruleset_t
 }
 
 type Schema_t struct {
@@ -46,15 +47,15 @@ type PatternSchema_t struct {
 	LenMax    int                 `json:"lenmax,omitempty"`
 }
 
-type valType_t int
+type ValType_t int
 
 const (
-	valInt valType_t = iota
-	valFloat
-	valString
-	valBool
-	valTimestamp
-	valEnum
+	ValInt ValType_t = iota
+	ValFloat
+	ValString
+	ValBool
+	ValTimestamp
+	ValEnum
 )
 
 type ActionSchema_t struct {
@@ -62,15 +63,15 @@ type ActionSchema_t struct {
 	Properties []string `json:"properties" validate:"required"`
 }
 
-type ruleOp_t int
+type RuleOp_t int
 
 const (
-	ruleOpEQ ruleOp_t = iota // Equal to
-	ruleOpNE                 // Not equal to
-	ruleOpGT                 // Greater than
-	ruleOpGE                 // Greater than or equal to
-	ruleOpLT                 // Less than
-	ruleOpLE                 // Less than or equal to
+	RuleOpEQ RuleOp_t = iota // Equal to
+	RuleOpNE                 // Not equal to
+	RuleOpGT                 // Greater than
+	RuleOpGE                 // Greater than or equal to
+	RuleOpLT                 // Less than
+	RuleOpLE                 // Less than or equal to
 )
 
 type RulePatternBlock_t struct {
@@ -106,16 +107,24 @@ type Ruleset_t struct {
 	ReferenceType string
 }
 
-type perApp_t map[slice_t]perSlice_t
+type PerApp_t map[Slice_t]PerSlice_t
 
-type perRealm_t map[app_t]perApp_t
+type PerRealm_t map[App_t]PerApp_t
 
-type rulesetCache_t map[realm_t]perRealm_t
+type RulesetCache_t map[Realm_t]PerRealm_t
 
-type schemaCache_t map[realm_t]perRealm_t
+type SchemaCache_t map[Realm_t]PerRealm_t
 
-var (
-	rulesetCache rulesetCache_t
-	schemaCache  schemaCache_t
-	cacheLock    sync.RWMutex
-)
+var RulesetCache RulesetCache_t
+var SchemaCache SchemaCache_t
+var cacheLock sync.RWMutex
+
+func init() {
+	RulesetCache = make(RulesetCache_t)
+	SchemaCache = make(SchemaCache_t)
+}
+
+
+func (a ActionSchema_t) IsEmpty() bool {
+	return reflect.DeepEqual(a, ActionSchema_t{})
+}
