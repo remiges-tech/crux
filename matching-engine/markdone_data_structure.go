@@ -26,7 +26,14 @@ type markdone_t struct {
 	Trace      int
 }
 
-type response_t struct {
-	Task     map[string]int32 `json:"tasks"`
-	Loggedat time.Time        `json:"loggedat"`
+type ResponseData struct {
+	Id        int32              `json:"id"`
+	Done      bool               `json:"done,omitempty"`
+	DoneAt    time.Time          `json:"doneat,omitempty"`
+	Step      string             `json:"step,omitempty"`
+	Nextstep  string             `json:"nextstep,omitempty"`
+	Tasks     []map[string]int32 `json:"tasks,omitempty"`
+	Loggedat  time.Time          `json:"loggedat,omitempty"`
+	Subflows  map[string]string  `json:"subflows,omitempty"`
+	Tracedata string             `json:"tracedata,omitempty"`
 }

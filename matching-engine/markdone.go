@@ -2,6 +2,7 @@ package crux
 
 import (
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -112,9 +113,10 @@ else (this means count > 1)
 endif
 */
 
-func doMarkDone(entity markdone_t, step string, SetName string) (markdone_t, []response_t, error) {
+func doMarkDone(entity markdone_t, step string, WorkFLowName string) ([]ResponseData, error) {
 	ruleset := retriveRuleSetsFromCache(entity.Entity.Realm, entity.Entity.App, entity.Entity.Class, entity.Entity.Slice)
 	if entity.Stepfailed == true {
+		var response []ResponseData
 		// Step supplied in the request
 		entity.Step = step
 
@@ -124,56 +126,81 @@ func doMarkDone(entity markdone_t, step string, SetName string) (markdone_t, []r
 		// Call the doMatch function passing the entity.entity, ruleset, and the empty actionSet and seenRuleSets
 		actionset, _, err := DoMatch(entity.Entity, ruleset, actionSet, seenRuleSets)
 		if err != nil {
-			return markdone_t{}, []response_t{}, err
+			return response, err
 		}
 
 		if actionset.Properties[done] == "done" {
 			// Delete the wfinstance record
+
 			err := deleteWFInstance(entity)
 			if err != nil {
 				entity.Stepfailed = true
-				return markdone_t{}, []response_t{}, err
+				return response, err
 			} else {
-				entity.Step = done
+
+				param := ResponseData{
+					Done: true,
+				}
+
+				response = append(response, param)
+
 			}
-			return entity, []response_t{}, nil
+			return response, nil
 		}
 
 		if len(actionset.Tasks) > 1 {
 			// Has more than one task then delete the old record from wfinstance and create fresh records, one per task
 			err := deleteWFInstance(entity)
 			if err != nil {
-				entity.Stepfailed = true
-				return markdone_t{}, []response_t{}, err
+
+				return []ResponseData{}, err
 			}
-			var response []response_t
+			var response []ResponseData
 
 			for _, freshtask := range actionset.Tasks {
-				newrecord, err := createFreshRecord(entity, SetName, freshtask, actionset.Properties)
+				newrecord, err := createFreshRecord(entity, WorkFLowName, freshtask, actionset.Properties)
 				if err != nil {
 					if len(newrecord) > 0 {
-						record := newrecord[0] // Assuming only one record is returned
+						record := newrecord[0] // only one record is returned
 						taskMap := make(map[string]int32)
 						taskMap[freshtask] = record.ID
 
-						param := response_t{
-							Task:     taskMap,
-							Loggedat: record.Loggedat.Time, // Assuming Loggedat is a pgtype.Timestamp
+						var subworkflow map[string]string // Initialize subworkflow
+						subflows, err := GetSubFLow(freshtask)
+						if err != nil {
+							fmt.Println("Error getting subflows:", err)
+						} else {
+							subworkflow = make(map[string]string)
+							for _, subflow := range subflows {
+								subworkflow[subflow.Workflow] = subflow.Step
+							}
+						}
+
+						param := ResponseData{
+							Tasks:    []map[string]int32{taskMap},
+							Loggedat: record.Loggedat.Time,
+							Subflows: subworkflow,
 						}
 
 						response = append(response, param)
 					}
 				}
 			}
-			return entity, response, nil
+			return response, nil
 		} else {
 			// Update the old record in wfinstance to set the value of "step" = the task returned
+
+			var response []ResponseData
+
 			entity.Step = actionset.Tasks[0]
 			UpdateWFInstanceStep(entity, actionset.Tasks[0])
-			return entity, []response_t{}, nil // Return the task and other data in response
+			param := ResponseData{
+				Step: actionset.Tasks[0],
+			}
+			response = append(response, param)
+			return response, nil // Return the task and other data in response
 		}
 	}
-
 	// We come here knowing that the previous step didn't fail. We can now proceed to the next step; the previous step was successful
 	recordcount, _ := GetWorkFlowInstance(entity, ruleset.SetName)
 	if recordcount == 1 {
@@ -188,19 +215,27 @@ func doMarkDone(entity markdone_t, step string, SetName string) (markdone_t, []r
 
 		actionset, _, err := DoMatch(entity.Entity, ruleset, actionSet, seenRuleSets)
 		if err != nil {
-			return markdone_t{}, []response_t{}, err
+			return []ResponseData{}, err
 		}
 
 		if actionset.Properties[done] == "true" {
 			// Delete the wfinstance record
 			// Return specifying that the workflow is completed
+			var response []ResponseData
 			err := deleteWFInstance(entity)
 			if err != nil {
-				entity.Stepfailed = true
+
+				return response, err
 			} else {
-				entity.Step = done
+
+				param := ResponseData{
+					Done: true,
+				}
+
+				response = append(response, param)
+
 			}
-			return entity, []response_t{}, nil
+			return response, nil
 		}
 
 		if len(actionset.Tasks) > 1 {
@@ -208,55 +243,66 @@ func doMarkDone(entity markdone_t, step string, SetName string) (markdone_t, []r
 			// Return the full set of tasks and their record IDs
 			err := deleteWFInstance(entity)
 			if err != nil {
-				entity.Stepfailed = true
-				return markdone_t{}, []response_t{}, err
+
+				return []ResponseData{}, err
 			}
-			var response []response_t
+			var response []ResponseData
 
 			for _, freshtask := range actionset.Tasks {
 				newrecord, err := createFreshRecord(entity, ruleset.SetName, freshtask, actionset.Properties)
 				if err != nil {
 					if len(newrecord) > 0 {
-						record := newrecord[0] // at time only one record made
+						record := newrecord[0] // only one record is returned
 						taskMap := make(map[string]int32)
 						taskMap[freshtask] = record.ID
 
-						param := response_t{
-							Task:     taskMap,
-							Loggedat: record.Loggedat.Time, // Assuming Loggedat is a pgtype.Timestamp
+						var subworkflow map[string]string // Initialize subworkflow
+						subflows, err := GetSubFLow(freshtask)
+						if err != nil {
+							fmt.Println("Error getting subflows:", err)
+						} else {
+							subworkflow = make(map[string]string)
+							for _, subflow := range subflows {
+								subworkflow[subflow.Workflow] = subflow.Step
+							}
 						}
-
+						param := ResponseData{
+							Tasks:    []map[string]int32{taskMap},
+							Loggedat: record.Loggedat.Time,
+							Subflows: subworkflow,
+						}
 						response = append(response, param)
 					}
 				}
 			}
-			return entity, response, nil
+			return response, nil
 		} else {
 			// Update the old record in wfinstance to set the value of "step" to the task returned
-			var response []response_t
+			var response []ResponseData
 			taskMap := make(map[string]int32)
 			taskMap[actionset.Tasks[0]] = entity.Id
 
-			param := response_t{
-				Task:     taskMap,
+			param := ResponseData{
+				Tasks:    []map[string]int32{taskMap},
 				Loggedat: time.Now(), // Assuming Loggedat is a pgtype.Timestamp
 			}
 
 			response = append(response, param)
 			UpdateWFInstanceStep(entity, actionset.Tasks[0])
-			return entity, response, nil // Return the task and other data in response
+			return response, nil // Return the task and other data in response
 		}
 	} else if recordcount > 1 {
 		// At this point, we have found multiple records with the same entity ID and workflow, which means they differ only in the value of "step"
 		// Set the doneat field in the current wfinstance record to the current timestamp
-		err := UpdateWFInstanceDoneAt(entity, time.Now(), ruleset.SetName)
+		doneAtTimeStamp := time.Now()
+		err := UpdateWFInstanceDoneAt(entity, doneAtTimeStamp, ruleset.SetName)
 		if err != nil {
-			return markdone_t{}, []response_t{}, err
+			return []ResponseData{}, err
 		}
 		// Look through all the other wfinstance records which have matching tuple (slice,app,workflow,entityid)
 		wfInstances, err := getWFInstanceList(entity, ruleset.SetName)
 		if err != nil {
-			return markdone_t{}, []response_t{}, err
+			return []ResponseData{}, err
 		}
 
 		// Check if all other wfinstance records have doneat set
@@ -271,11 +317,13 @@ func doMarkDone(entity markdone_t, step string, SetName string) (markdone_t, []r
 		}
 
 		if allDone {
+			var response []ResponseData
 			wfinstance, err := getCurrentWFINstance(entity, ruleset.SetName)
 			if err == nil {
-				return markdone_t{}, []response_t{}, err
+				return response, err
 			}
-			entity.Step = wfinstance.Nextstep // The value of "nextstep" from the current wfinstance record
+
+			// The value of "nextstep" from the current wfinstance record
 			// Invoke doMatch() with
 			//  entity = the object received
 			// ruleset = the ruleset name retrieved from wfinstance
@@ -285,19 +333,27 @@ func doMarkDone(entity markdone_t, step string, SetName string) (markdone_t, []r
 
 			actionset, _, err := DoMatch(entity.Entity, ruleset, actionSet, seenRuleSets)
 			if err != nil {
-				return markdone_t{}, []response_t{}, err
+				return []ResponseData{}, err
 			}
 
 			if actionset.Properties[done] == "true" {
 				// Delete all wfinstance records with tuple matching (slice, app, workflow, entityid)
 				// Return specifying that the workflow is completed
+
 				err := deleteWFInstance(entity)
 				if err != nil {
-					entity.Stepfailed = true
+
+					return response, err
 				} else {
-					entity.Step = done
+
+					param := ResponseData{
+						Done: true,
+					}
+
+					response = append(response, param)
+
 				}
-				return entity, []response_t{}, nil
+				return response, nil
 			}
 
 			if len(actionset.Tasks) > 1 {
@@ -305,44 +361,55 @@ func doMarkDone(entity markdone_t, step string, SetName string) (markdone_t, []r
 				// Return the full set of tasks and their record IDs
 				err := deleteWFInstance(entity)
 				if err != nil {
-					entity.Stepfailed = true
-					return markdone_t{}, []response_t{}, err
+
+					return []ResponseData{}, err
 				}
-				var response []response_t
+				var response []ResponseData
 
 				for _, freshtask := range actionset.Tasks {
-					newrecord, err := createFreshRecord(entity, ruleset.SetName, freshtask, actionset.Properties)
-					if err != nil {
-						if len(newrecord) > 0 {
-							record := newrecord[0] // Assuming only one record is returned
-							taskMap := make(map[string]int32)
-							taskMap[freshtask] = record.ID
+					newrecord, _ := createFreshRecord(entity, ruleset.SetName, freshtask, actionset.Properties)
+					if len(newrecord) > 0 {
+						record := newrecord[0] // only one record is returned
+						taskMap := make(map[string]int32)
+						taskMap[freshtask] = record.ID
 
-							param := response_t{
-								Task:     taskMap,
-								Loggedat: record.Loggedat.Time, // Assuming Loggedat is a pgtype.Timestamp
+						var subworkflow map[string]string // Initialize subworkflow
+						subflows, err := GetSubFLow(freshtask)
+						if err != nil {
+							fmt.Println("Error getting subflows:", err)
+						} else {
+							subworkflow = make(map[string]string)
+							for _, subflow := range subflows {
+								subworkflow[subflow.Workflow] = subflow.Step
 							}
-
-							response = append(response, param)
 						}
+
+						param := ResponseData{
+							Tasks:    []map[string]int32{taskMap},
+							Loggedat: record.Loggedat.Time,
+							Subflows: subworkflow,
+							Nextstep: wfinstance.Nextstep,
+						}
+
+						response = append(response, param)
 					}
 				}
-				return entity, response, nil
+				return response, nil
 			} else {
 				// Update the old record in wfinstance to set the value of "step" to the task returned
 				// Return the task and other data in response
-				var response []response_t
+				var response []ResponseData
 				taskMap := make(map[string]int32)
 				taskMap[actionset.Tasks[0]] = entity.Id
 
-				param := response_t{
-					Task:     taskMap,
+				param := ResponseData{
+					Tasks:    []map[string]int32{taskMap},
 					Loggedat: time.Now(), // Assuming Loggedat is a pgtype.Timestamp
 				}
 
 				response = append(response, param)
 				UpdateWFInstanceStep(entity, actionset.Tasks[0])
-				return entity, response, nil // Return the task and other data in response
+				return response, nil // Return the task and other data in response
 
 			}
 		} else {
@@ -352,8 +419,15 @@ func doMarkDone(entity markdone_t, step string, SetName string) (markdone_t, []r
 			// and return to the caller saying "We have marked it done, there is nothing more
 			// to do till one more of the other concurrent steps completes. Keep walking."
 			// Return with details of success of mark-done.
-			return entity, []response_t{}, nil
+			var response []ResponseData
+			param := ResponseData{
+				Id:     entity.Id,
+				DoneAt: doneAtTimeStamp,
+			}
+			response = append(response, param)
+			return response, nil
 		}
+
 	}
-	return markdone_t{}, []response_t{}, errors.New("schema Realmkey not match")
+	return []ResponseData{}, errors.New("schema Realmkey not match")
 }

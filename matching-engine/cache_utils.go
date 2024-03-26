@@ -587,4 +587,9 @@ func getCurrentWFINstance(entity markdone_t, wf string) (sqlc.Wfinstance, error)
 		Workflow: wf,
 	}
 	return queryDbq.GetWFInstanceCurrent(context.Background(), params)
+
+}
+
+func GetSubFLow(step string) ([]sqlc.GetWorkflowRow, error) {
+	return queryDbq.GetWorkflow(context.Background(), step)
 }
