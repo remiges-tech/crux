@@ -180,13 +180,14 @@ func customValidationErrors(sh crux.Schema_t) []wscutils.ErrorMessage {
 		}
 	}
 
-	if !sh.ActionSchema.IsEmpty() {
+	if server.IsZeroOfUnderlyingType(sh.ActionSchema) {
 		err := crux.VerifyActionSchema(sh, true)
 		if err != nil {
 			actionSchemaError := server.HandleCruxError(err)
 			validationErrors = append(validationErrors, actionSchemaError...)
 		}
 	}
+
 	return validationErrors
 }
 

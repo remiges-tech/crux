@@ -36,8 +36,8 @@ func loadInternalSchema(dbResponseSchema []sqlc.Schema) error {
 		if !exists {
 			perApp[sliceKey] = PerSlice_t{
 				LoadedAt: time.Now(),
-				BRSchema: make(map[ClassName_t][]*Schema_t),
-				WFSchema: make(map[ClassName_t][]*Schema_t),
+				BRSchema: make(map[ClassName_t]Schema_t),
+				WFSchema: make(map[ClassName_t]Schema_t),
 			}
 
 			var patterns []PatternSchema_t
@@ -54,7 +54,7 @@ func loadInternalSchema(dbResponseSchema []sqlc.Schema) error {
 				continue
 			}
 
-			schemaData := &Schema_t{
+			schemaData := Schema_t{
 				Class:         row.Class,
 				PatternSchema: patterns,
 				ActionSchema:  actions,
@@ -62,9 +62,9 @@ func loadInternalSchema(dbResponseSchema []sqlc.Schema) error {
 
 			classNameKey := ClassName_t(row.Class)
 			if row.Brwf == "B" {
-				perApp[sliceKey].BRSchema[classNameKey] = append(perApp[sliceKey].BRSchema[classNameKey], schemaData)
+				perApp[sliceKey].BRSchema[classNameKey] = schemaData
 			} else if row.Brwf == "W" {
-				perApp[sliceKey].WFSchema[classNameKey] = append(perApp[sliceKey].WFSchema[classNameKey], schemaData)
+				perApp[sliceKey].WFSchema[classNameKey] = schemaData
 			}
 
 		}
@@ -103,7 +103,6 @@ func loadInternalRuleSet(dbResponseRuleSet []sqlc.Ruleset) error {
 			}
 
 			var rules []Rule_t
-
 			err := json.Unmarshal(row.Ruleset, &rules)
 			if err != nil {
 				fmt.Println("Error unmarshaling rules:", err)

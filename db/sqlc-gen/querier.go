@@ -31,6 +31,7 @@ type Querier interface {
 	DeactivateRecord(ctx context.Context, arg DeactivateRecordParams) error
 	DeleteCapGranForApp(ctx context.Context, arg DeleteCapGranForAppParams) error
 	DeleteWFInstanceListByParents(ctx context.Context, arg DeleteWFInstanceListByParentsParams) ([]Wfinstance, error)
+	DeleteWFInstances(ctx context.Context, arg DeleteWFInstancesParams) error
 	DeleteWfinstanceByID(ctx context.Context, arg DeleteWfinstanceByIDParams) ([]Wfinstance, error)
 	GetApp(ctx context.Context, arg GetAppParams) (string, error)
 	GetAppList(ctx context.Context, realm string) ([]GetAppListRow, error)
@@ -41,6 +42,8 @@ type Querier interface {
 	GetSchemaWithLock(ctx context.Context, arg GetSchemaWithLockParams) (GetSchemaWithLockRow, error)
 	GetWFActiveStatus(ctx context.Context, arg GetWFActiveStatusParams) (pgtype.Bool, error)
 	GetWFINstance(ctx context.Context, arg GetWFINstanceParams) (int64, error)
+	GetWFInstanceCounts(ctx context.Context, arg GetWFInstanceCountsParams) (int64, error)
+	GetWFInstanceCurrent(ctx context.Context, arg GetWFInstanceCurrentParams) (Wfinstance, error)
 	GetWFInstanceList(ctx context.Context, arg GetWFInstanceListParams) ([]Wfinstance, error)
 	GetWFInstanceListByParents(ctx context.Context, id []int32) ([]Wfinstance, error)
 	GetWFInternalStatus(ctx context.Context, arg GetWFInternalStatusParams) (bool, error)
@@ -55,6 +58,8 @@ type Querier interface {
 	SchemaGet(ctx context.Context, arg SchemaGetParams) ([]SchemaGetRow, error)
 	SchemaNew(ctx context.Context, arg SchemaNewParams) (int32, error)
 	SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) error
+	UpdateWFInstanceDoneat(ctx context.Context, arg UpdateWFInstanceDoneatParams) error
+	UpdateWFInstanceStep(ctx context.Context, arg UpdateWFInstanceStepParams) error
 	UserActivate(ctx context.Context, arg UserActivateParams) (Capgrant, error)
 	UserDeactivate(ctx context.Context, arg UserDeactivateParams) (Capgrant, error)
 	WfPatternSchemaGet(ctx context.Context, arg WfPatternSchemaGetParams) ([]byte, error)

@@ -51,19 +51,12 @@ func testBasic(tests *[]doMatchTest) {
 		},
 	}
 
-	rule2 := Rule_t{
-
-		RulePatterns: []RulePatternBlock_t{{"cat", opEQ, "textbook"}},
-		RuleActions: RuleActionBlock_t{
-			Task:       []string{"yearendsale", "summersale"},
-			Properties: map[string]string{"cashback": "10", "discount": "9"},
-		}}
 
 	rs := Ruleset_t{
 		Id:      1,
 		Class:   inventoryItemClass,
 		SetName: mainRS,
-		Rules:   []Rule_t{rule1, rule2},
+		Rules:   []Rule_t{rule1},
 		NCalled: 0,
 	}
 

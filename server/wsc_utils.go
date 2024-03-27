@@ -1,6 +1,7 @@
 package server
 
 import (
+	"reflect"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -151,4 +152,8 @@ func HandleCruxError(errs []error) []wscutils.ErrorMessage {
 
 	}
 	return validationErrors
+}
+
+func IsZeroOfUnderlyingType(x interface{}) bool {
+    return reflect.DeepEqual(x, reflect.Zero(reflect.TypeOf(x)).Interface())
 }
