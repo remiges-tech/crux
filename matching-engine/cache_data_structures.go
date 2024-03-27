@@ -1,7 +1,6 @@
 package crux
 
 import (
-	"reflect"
 	"sync"
 	"time"
 )
@@ -23,9 +22,9 @@ const (
 
 type PerSlice_t struct {
 	LoadedAt   time.Time
-	BRSchema   map[ClassName_t][]*Schema_t
+	BRSchema   map[ClassName_t]Schema_t
 	BRRulesets map[ClassName_t][]*Ruleset_t
-	WFSchema   map[ClassName_t][]*Schema_t
+	WFSchema   map[ClassName_t]Schema_t
 	Workflows  map[ClassName_t][]*Ruleset_t
 }
 
@@ -117,19 +116,14 @@ type SchemaCache_t map[Realm_t]PerRealm_t
 
 var RulesetCache RulesetCache_t
 var SchemaCache SchemaCache_t
-var cacheLock sync.RWMutex
+
+var (
+	rulesetCache RulesetCache_t
+	schemaCache  SchemaCache_t
+	cacheLock    sync.RWMutex
+)
 
 func init() {
 	RulesetCache = make(RulesetCache_t)
 	SchemaCache = make(SchemaCache_t)
-}
-
-// var (
-// 	rulesetCache rulesetCache_t
-// 	schemaCache  schemaCache_t
-// 	cacheLock    sync.RWMutex
-// )
-
-func (a ActionSchema_t) IsEmpty() bool {
-	return reflect.DeepEqual(a, ActionSchema_t{})
 }

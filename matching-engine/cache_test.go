@@ -10,28 +10,26 @@ package crux
 
 import (
 	"context"
-	"log"
 	"testing"
 
 	"github.com/remiges-tech/crux/db/sqlc-gen"
-
-	"github.com/jackc/pgx/v5"
 )
 
-func testinit() (sqlc.Querier, context.Context, error) {
-	var ConnectionString = "host=localhost port=5432 user=postgres password=postgres dbname=crux sslmode=disable"
-	ctx := context.Background()
-	conn, err := pgx.Connect(ctx, ConnectionString)
-	if err != nil {
-		log.Fatal("Failed to load data into cache:", err)
-		return nil, nil, err
-	}
-	defer conn.Close(ctx)
-	query := NewProvider(ConnectionString)
-	return query, ctx, err
+/*
+	func testinit() (sqlc.Querier, context.Context, error) {
+		var ConnectionString = "host=localhost port=5432 user=postgres password=postgres dbname=crux sslmode=disable"
+		ctx := context.Background()
+		conn, err := pgx.Connect(ctx, ConnectionString)
+		if err != nil {
+			log.Fatal("Failed to load data into cache:", err)
+			return nil, nil, err
+		}
+		defer conn.Close(ctx)
+		query := NewProvider(ConnectionString)
+		return query, ctx, err
 
 }
-
+*/
 func testCache(tests *[]doMatchTest, t *testing.T) {
 
 	//query, ctx,err := testinit()

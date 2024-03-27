@@ -11,10 +11,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/remiges-tech/crux/db/sqlc-gen"
+	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	sqlc "github.com/remiges-tech/crux/db/sqlc-gen"
 )
+
+var queryDbq sqlc.DBQuerier
 
 func lockCache() {
 	cacheLock.Lock()
@@ -44,13 +47,15 @@ func AddReferencesToRuleSetCache() {
 			for sliceKey, perSlice := range perApp {
 				for _, rulesets := range perSlice.BRRulesets {
 					for _, rule := range rulesets {
-						for _, subRule := range rule.Rules {
-							if subRule.RuleActions.ThenCall != "" {
-								searchAndAddReferences(subRule.RuleActions.ThenCall, RulesetCache, realmKey, sliceKey, rule, "thencall", subRule)
-							}
-							if subRule.RuleActions.ElseCall != "" {
-								searchAndAddReferences(subRule.RuleActions.ElseCall, RulesetCache, realmKey, sliceKey, rule, "elsecall", subRule)
-							}
+						for idx := range rule.Rules {
+							processSubRule(&rule.Rules[idx], realmKey, sliceKey)
+						}
+					}
+				}
+				for _, rulesets := range perSlice.Workflows {
+					for _, rule := range rulesets {
+						for idx := range rule.Rules {
+							processSubRule(&rule.Rules[idx], realmKey, sliceKey)
 						}
 					}
 				}
@@ -59,8 +64,23 @@ func AddReferencesToRuleSetCache() {
 	}
 }
 
+func processSubRule(subRule *Rule_t, realmKey Realm_t, sliceKey Slice_t) {
+	if subRule.RuleActions.ThenCall != "" {
+		referRuleset := searchAndAddReferences(subRule.RuleActions.ThenCall, RulesetCache, realmKey, sliceKey, "thencall")
+		if referRuleset != nil {
+			subRule.RuleActions.References = append(subRule.RuleActions.References, referRuleset)
+		}
+	}
+	if subRule.RuleActions.ElseCall != "" {
+		referRuleset := searchAndAddReferences(subRule.RuleActions.ElseCall, RulesetCache, realmKey, sliceKey, "elsecall")
+		if referRuleset != nil {
+			subRule.RuleActions.References = append(subRule.RuleActions.References, referRuleset)
+		}
+	}
+}
+
 func searchAndAddReferences(targetSetName string, cache map[Realm_t]PerRealm_t, realmKey Realm_t,
-	sliceKey Slice_t, sourceRule *Ruleset_t, calltype string, subRule Rule_t) {
+	sliceKey Slice_t, calltype string) *Ruleset_t {
 	for _, perApp := range cache[realmKey] {
 		for otherSliceKey, perSlice := range perApp {
 			if otherSliceKey == sliceKey {
@@ -70,7 +90,7 @@ func searchAndAddReferences(targetSetName string, cache map[Realm_t]PerRealm_t, 
 				for _, existingRule := range existingRulesets {
 					if existingRule.SetName == targetSetName {
 						existingRule.ReferenceType = calltype
-						sourceRule.Rules[0].RuleActions.References = append(sourceRule.Rules[0].RuleActions.References, existingRule)
+						return existingRule
 
 					}
 				}
@@ -79,13 +99,13 @@ func searchAndAddReferences(targetSetName string, cache map[Realm_t]PerRealm_t, 
 				for _, existingRule := range existingRulesets {
 					if existingRule.SetName == targetSetName {
 						existingRule.ReferenceType = calltype
-						sourceRule.Rules[0].RuleActions.References = append(sourceRule.Rules[0].RuleActions.References, existingRule)
-
+						return existingRule
 					}
 				}
 			}
 		}
 	}
+	return nil
 }
 
 func PrintAllRuleSetCache() {
@@ -100,22 +120,23 @@ func PrintAllRuleSetCache() {
 
 				// Print BRRulesets
 
-				for className, rulesets := range perSlice.BRRulesets {
+				for className, BRRulesets := range perSlice.BRRulesets {
 					fmt.Println("\t\t\tBRRulesets - Class:", className)
-					for _, rule := range rulesets {
+					for _, rule := range BRRulesets {
 						for _, t := range rule.Rules {
 							fmt.Println("\t\t\t\tRulePatterns:", t.RulePatterns)
 							fmt.Println("\t\t\t\tRuleActions:", t.RuleActions)
 							fmt.Println("\t\t\t\tNMatched:", t.NMatched)
-							fmt.Println("\t\t\t\tNFailed:", rule.Rules[0].NFailed)
+							fmt.Println("\t\t\t\tNFailed:", t.NFailed)
 
-							// Print References if available
-							for _, reference := range rule.Rules[0].RuleActions.References {
-								fmt.Println("\t\t\t\t\tReferenced Rule:")
-								fmt.Println("\t\t\t\t\t\tRulePatterns:", reference.Rules[0].RulePatterns)
-								fmt.Println("\t\t\t\t\t\tRuleActions:", reference.Rules[0].RuleActions)
-								fmt.Println("\t\t\t\t\t\tNMatched:", reference.Rules[0].NMatched)
-								fmt.Println("\t\t\t\t\t\tNFailed:", reference.Rules[0].NFailed)
+							for _, refrule := range t.RuleActions.References {
+								for _, z := range refrule.Rules {
+									fmt.Println("\t\t\t\t\tReferenced Rule:")
+									fmt.Println("\t\t\t\t\t\tRulePatterns:", z.RulePatterns)
+									fmt.Println("\t\t\t\t\t\tRuleActions:", z.RuleActions)
+									fmt.Println("\t\t\t\t\t\tNMatched:", z.NMatched)
+									fmt.Println("\t\t\t\t\t\tNFailed:", z.NFailed)
+								}
 							}
 						}
 					}
@@ -125,18 +146,21 @@ func PrintAllRuleSetCache() {
 				for className, workflows := range perSlice.Workflows {
 					fmt.Println("\t\t\tWorkflows - Class:", className)
 					for _, workflow := range workflows {
-						fmt.Println("\t\t\t\tRulePatterns:", workflow.Rules[0].RulePatterns)
-						fmt.Println("\t\t\t\tRuleActions:", workflow.Rules[0].RuleActions)
-						fmt.Println("\t\t\t\tNMatched:", workflow.Rules[0].NMatched)
-						fmt.Println("\t\t\t\tNFailed:", workflow.Rules[0].NFailed)
+						for _, t := range workflow.Rules {
+							fmt.Println("\t\t\t\tRulePatterns:", t.RulePatterns)
+							fmt.Println("\t\t\t\tRuleActions:", t.RuleActions)
+							fmt.Println("\t\t\t\tNMatched:", t.NMatched)
+							fmt.Println("\t\t\t\tNFailed:", t.NFailed)
 
-						// Print References if available
-						for _, reference := range workflow.Rules[0].RuleActions.References {
-							fmt.Println("\t\t\t\t\tReferenced Rule:")
-							fmt.Println("\t\t\t\t\t\tRulePatterns:", reference.Rules[0].RulePatterns)
-							fmt.Println("\t\t\t\t\t\tRuleActions:", reference.Rules[0].RuleActions)
-							fmt.Println("\t\t\t\t\t\tNMatched:", reference.Rules[0].NMatched)
-							fmt.Println("\t\t\t\t\t\tNFailed:", reference.Rules[0].NFailed)
+							for _, refrule := range t.RuleActions.References {
+								for _, z := range refrule.Rules {
+									fmt.Println("\t\t\t\t\tReferenced Rule:")
+									fmt.Println("\t\t\t\t\t\tRulePatterns:", z.RulePatterns)
+									fmt.Println("\t\t\t\t\t\tRuleActions:", z.RuleActions)
+									fmt.Println("\t\t\t\t\t\tNMatched:", z.NMatched)
+									fmt.Println("\t\t\t\t\t\tNFailed:", z.NFailed)
+								}
+							}
 						}
 					}
 				}
@@ -153,21 +177,21 @@ func PrintAllSchemaCache() {
 			for sliceKey, perSlice := range perApp {
 				fmt.Println("\t\tSlice:", sliceKey)
 				fmt.Println("\t\t\tLoadedAt:", perSlice.LoadedAt)
-				for className, schemas := range perSlice.BRSchema {
+				for className, schema := range perSlice.BRSchema {
 					fmt.Println("\t\t\tBRSchema - Class:", className)
-					for _, schema := range schemas {
-						fmt.Println("\t\t\t\tPatternSchema:", schema.PatternSchema)
-						fmt.Println("\t\t\t\tActionSchema:", schema.ActionSchema)
-						fmt.Println("\t\t\t\tNChecked:", schema.NChecked)
-					}
+					//for _, schema := range schemas {
+					fmt.Println("\t\t\t\tPatternSchema:", schema.PatternSchema)
+					fmt.Println("\t\t\t\tActionSchema:", schema.ActionSchema)
+					fmt.Println("\t\t\t\tNChecked:", schema.NChecked)
+					//}
 				}
-				for className, schemas := range perSlice.WFSchema {
+				for className, schema := range perSlice.WFSchema {
 					fmt.Println("\t\t\tWFSchema - Class:", className)
-					for _, schema := range schemas {
-						fmt.Println("\t\t\t\tPatternSchema:", schema.PatternSchema)
-						fmt.Println("\t\t\t\tActionSchema:", schema.ActionSchema)
-						fmt.Println("\t\t\t\tNChecked:", schema.NChecked)
-					}
+					//for _, schema := range schemas {
+					fmt.Println("\t\t\t\tPatternSchema:", schema.PatternSchema)
+					fmt.Println("\t\t\t\tActionSchema:", schema.ActionSchema)
+					fmt.Println("\t\t\t\tNChecked:", schema.NChecked)
+					//}
 				}
 
 			}
@@ -252,110 +276,8 @@ func containsFieldName(value interface{}, fieldName string) bool {
 	}
 	return false
 }
-func retrieveSchemasFromCacheByte(realm string, app string, class string, slice int, brwf string) ([]byte, []byte, string) {
-	realmKey := Realm_t(realm)
-	perRealm, realmExists := SchemaCache[realmKey]
-	if !realmExists {
-		return nil, nil, "Realmkey not match"
-	}
 
-	appKey := App_t(app)
-	perApp, appExists := perRealm[appKey]
-	if !appExists {
-		return nil, nil, "AppKey not match"
-	}
-
-	sliceKey := Slice_t(slice)
-	perSlice, sliceExists := perApp[sliceKey]
-	if !sliceExists {
-		return nil, nil, "Slice key not match"
-	}
-
-	classNameKey := ClassName_t(class)
-	var schemas []*Schema_t
-
-	if brwf == "B" {
-		schemas = perSlice.BRSchema[classNameKey]
-	} else if brwf == "W" {
-		schemas = perSlice.WFSchema[classNameKey]
-	}
-
-	if len(schemas) == 0 {
-		return nil, nil, "No schemas found for the given class"
-	}
-
-	if len(schemas) == 0 {
-		return nil, nil, "No schemas found for the given class"
-	}
-
-	patternSchemaJSON, err := json.Marshal(schemas[0].PatternSchema)
-	if err != nil {
-		return nil, nil, "JSON failed to marshal pattern"
-	}
-
-	actionSchemaJSON, err := json.Marshal(schemas[0].ActionSchema)
-	if err != nil {
-		return nil, nil, "JSON failed to marshal action"
-	}
-
-	return patternSchemaJSON, actionSchemaJSON, "success"
-}
-
-func RetrieveRulesetsFromCacheByte(realm string, app string, class string, slice int,
-	brwf string) ([]byte, []byte, string, []*Ruleset_t) {
-	realmKey := Realm_t(realm)
-	perRealm, exists := RulesetCache[realmKey]
-	if !exists {
-		return nil, nil, "Realmkey not match", nil
-	}
-
-	appKey := App_t(app)
-	perApp, exists := perRealm[appKey]
-	if !exists {
-		return nil, nil, "AppKey not match", nil
-	}
-
-	sliceKey := Slice_t(slice)
-	perSlice, exists := perApp[sliceKey]
-	if !exists {
-		return nil, nil, "Slice key not match", nil
-	}
-
-	classNameKey := ClassName_t(class)
-	fmt.Println("classname key :", classNameKey)
-	brwfKey := BrwfEnum(brwf)
-	fmt.Println("brwf key :", brwfKey)
-	var rulesets []*Ruleset_t
-
-	if brwfKey == "B" {
-		rulesets = perSlice.BRRulesets[classNameKey]
-	} else {
-		rulesets = perSlice.Workflows[classNameKey]
-	}
-
-	if len(rulesets) == 0 {
-		return nil, nil, "No rulesets found for the given class", nil
-	}
-
-	ruleset := rulesets[0]
-
-	RuleActions, err := json.Marshal(ruleset.Rules[0].RuleActions)
-	if err != nil {
-
-		return nil, nil, "JSON failed to marshal rule actions", nil
-	}
-
-	RulePatterns, err := json.Marshal(ruleset.Rules[0].RulePatterns)
-	if err != nil {
-
-		return nil, nil, "JSON failed to marshal rule patterns", nil
-	}
-
-	return RulePatterns, RuleActions, "success", ruleset.Rules[0].RuleActions.References
-
-}
-
-func retrieveRuleSchemasFromCache(realm string, app string, class string, slice int) ([]*Schema_t, error) {
+func retrieveRuleSchemasFromCache(realm string, app string, class string, slice int) (*Schema_t, error) {
 	realmKey := Realm_t(realm)
 
 	perRealm, realmExists := SchemaCache[realmKey]
@@ -379,24 +301,18 @@ func retrieveRuleSchemasFromCache(realm string, app string, class string, slice 
 		return nil, errors.New("schema Slice key not match")
 	}
 
-	var ruleSchemas []*Schema_t
-
 	brSchemas, brExists := perSlice.BRSchema[ClassName_t(class)]
 	if brExists {
-		for _, schemas := range brSchemas {
 
-			ruleSchemas = append(ruleSchemas, schemas)
-		}
+		return &brSchemas, nil
 	}
 
 	wfSchemas, wfExists := perSlice.WFSchema[ClassName_t(class)]
 	if wfExists {
-		for _, schemas := range wfSchemas {
-			ruleSchemas = append(ruleSchemas, schemas)
-		}
+		return &wfSchemas, nil
 	}
 
-	return ruleSchemas, nil
+	return nil, nil
 }
 func convertAttrValue(entityAttrVal string, valType ValType_t) any {
 
@@ -453,7 +369,7 @@ func RetrieveRuleSetsFromCache(realm string, app string, class string, slice int
 	return ruleSets, nil
 }
 
-func retriveRuleSchemasAndRuleSetsFromCache(realm string, app string, class string, slice string) ([]*Schema_t, []*Ruleset_t) {
+func retriveRuleSchemasAndRuleSetsFromCache(realm string, app string, class string, slice string) (*Schema_t, []*Ruleset_t) {
 	s, _ := strconv.Atoi(slice)
 
 	ruleSchemas, err := retrieveRuleSchemasFromCache(realm, app, class, s)
@@ -465,6 +381,13 @@ func retriveRuleSchemasAndRuleSetsFromCache(realm string, app string, class stri
 
 	return ruleSchemas, ruleSets
 }
+
+func retriveRuleSetsFromCache(realm string, app string, class string, slice string) *Ruleset_t {
+	s, _ := strconv.Atoi(slice)
+	ruleSets, _ := RetrieveRuleSetsFromCache(realm, app, class, s)
+	return ruleSets[0] // need only first instance
+}
+
 func printStats(statsData rulesetStats_t) {
 	for realm, perRealm := range statsData {
 		for app, perApp := range perRealm {
@@ -505,7 +428,6 @@ func printStats(statsData rulesetStats_t) {
 		}
 	}
 }
-
 func RetrieveWorkflowRulesetFromCache(realm string, app string, class string, slice int) ([]*Ruleset_t, error) {
 	realmKey := Realm_t(realm)
 
@@ -533,4 +455,143 @@ func RetrieveWorkflowRulesetFromCache(realm string, app string, class string, sl
 	}
 
 	return ruleSets, nil
+}
+
+func deleteWFInstance(entity markdone_t) error {
+	sliceInt, err := strconv.Atoi(entity.Entity.Slice)
+	if err != nil {
+		log.Fatal("Failed to convert string to int32:", err)
+	}
+	id := strconv.Itoa(int(entity.Id))
+	params := sqlc.DeleteWFInstancesParams{
+		Slice:    int32(sliceInt),
+		App:      entity.Entity.App,
+		Entityid: id,
+	}
+	return queryDbq.DeleteWFInstances(context.Background(), params)
+}
+
+func createFreshRecord(entity markdone_t, setname, task string, properties map[string]string) ([]sqlc.Wfinstance, error) {
+	sliceInt, err := strconv.Atoi(entity.Entity.Slice)
+	if err != nil {
+		log.Fatal("Failed to convert string to int32:", err)
+		return nil, err
+	}
+	id := strconv.Itoa(int(entity.Id))
+
+	steps := make([]string, len(entity.Step))
+	for i, step := range entity.Step {
+		steps[i] = string(step)
+	}
+
+	parent := &pgtype.Int4{} // Ensure parent is of type pgx/v5/pgtype.Int4
+	parent.Int32 = entity.Id
+
+	params := sqlc.AddWFNewInstancesParams{
+		Entityid: id,
+		Slice:    int32(sliceInt),
+		App:      entity.Entity.App,
+		Class:    entity.Entity.Class,
+		Workflow: setname, // read from the cache ruleset
+		Step:     steps,
+		Nextstep: properties[nextStep],
+		Parent:   *parent, // Dereference parent when assigning
+	}
+
+	return queryDbq.AddWFNewInstances(context.Background(), params)
+}
+
+func GetWorkFlowInstance(entity markdone_t, workflowname string) (int64, error) {
+	sliceInt, err := strconv.Atoi(entity.Entity.Slice)
+	if err != nil {
+		log.Fatal("Failed to convert string to int32:", err)
+		return -1, err
+	}
+	id := strconv.Itoa(int(entity.Id))
+	params := sqlc.GetWFInstanceCountsParams{
+		Slice:    int32(sliceInt),
+		App:      entity.Entity.App,
+		Workflow: workflowname,
+		Entityid: id,
+	}
+	return queryDbq.GetWFInstanceCounts(context.Background(), params)
+
+}
+func UpdateWFInstanceStep(entity markdone_t, step string) error {
+
+	sliceInt, err := strconv.Atoi(entity.Entity.Slice)
+	if err != nil {
+		log.Fatal("Failed to convert string to int32:", err)
+		return err
+	}
+	id := strconv.Itoa(int(entity.Id))
+	params := sqlc.UpdateWFInstanceStepParams{
+		Slice:    int32(sliceInt),
+		App:      entity.Entity.App,
+		Entityid: id,
+		Step:     step,
+	}
+
+	return queryDbq.UpdateWFInstanceStep(context.Background(), params)
+
+}
+func UpdateWFInstanceDoneAt(entity markdone_t, t time.Time, wf string) error {
+
+	sliceInt, err := strconv.Atoi(entity.Entity.Slice)
+	if err != nil {
+		log.Fatal("Failed to convert string to int32:", err)
+		return err
+	}
+	id := strconv.Itoa(int(entity.Id))
+	params := sqlc.UpdateWFInstanceDoneatParams{
+		Doneat:   pgtype.Timestamp{Time: t},
+		Entityid: id,
+		Slice:    int32(sliceInt),
+		App:      entity.Entity.App,
+		Workflow: wf,
+	}
+
+	return queryDbq.UpdateWFInstanceDoneat(context.Background(), params)
+
+}
+
+func getWFInstanceList(entity markdone_t, wf string) ([]sqlc.Wfinstance, error) {
+
+	sliceInt, err := strconv.Atoi(entity.Entity.Slice)
+	if err != nil {
+		log.Fatal("Failed to convert string to int32:", err)
+		return nil, err
+	}
+	id := strconv.Itoa(int(entity.Id))
+	parent := &pgtype.Int4{} // Ensure parent is of type pgx/v5/pgtype.Int4
+	parent.Int32 = entity.Id
+	params := sqlc.GetWFInstanceListParams{
+		Entityid: pgtype.Text{String: id, Valid: true},
+		Slice:    pgtype.Int4{Int32: int32(sliceInt), Valid: true},
+		App:      pgtype.Text{String: entity.Entity.App, Valid: true},
+		Workflow: pgtype.Text{String: wf, Valid: true},
+		Parent:   *parent,
+	}
+	return queryDbq.GetWFInstanceList(context.Background(), params)
+}
+func getCurrentWFINstance(entity markdone_t, wf string) (sqlc.Wfinstance, error) {
+	sliceInt, err := strconv.Atoi(entity.Entity.Slice)
+	if err != nil {
+		log.Fatal("Failed to convert string to int32:", err)
+		return sqlc.Wfinstance{}, err
+	}
+	id := strconv.Itoa(int(entity.Id))
+
+	params := sqlc.GetWFInstanceCurrentParams{
+		Entityid: id,
+		Slice:    int32(sliceInt),
+		App:      entity.Entity.App,
+		Workflow: wf,
+	}
+	return queryDbq.GetWFInstanceCurrent(context.Background(), params)
+
+}
+
+func GetSubFLow(step string) ([]sqlc.GetWorkflowRow, error) {
+	return queryDbq.GetWorkflow(context.Background(), step)
 }

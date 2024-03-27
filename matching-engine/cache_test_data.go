@@ -50,6 +50,7 @@ var mockSchemasets = []sqlc.Schema{
 		Editedat:  pgtype.Timestamp{Time: time.Now()},
 		Editedby:  pgtype.Text{String: "user4"},
 	},
+
 	{
 		Realm: "1",
 		App:   "Test6",
@@ -83,6 +84,10 @@ var mockSchemasets = []sqlc.Schema{
 				{
 					"attr": "received",
 					"valtype": "ts"
+				},
+				{   "attr":"bulkorder",
+				    "valtype": "bool"
+
 				}
 			
 		]`),
@@ -258,7 +263,7 @@ var mockSchemasets = []sqlc.Schema{
 				{
 					"attr": "step",
 					"valtype": "enum"
-					Realm:   "1"
+					
 				},
 				{
 					"attr": "stepfailed",
