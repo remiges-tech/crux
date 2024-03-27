@@ -221,31 +221,32 @@ func verifyRuleSet(entiry Entity, rs *Ruleset_t, isWF bool) []error {
 func VerifyRulePatterns(ruleset *Ruleset_t, schema *Schema_t, isWF bool) []error {
 	var errs []error
 	//for _, ruleset := range ruleSets {
-	for _, rule := range ruleset.Rules {
-
-		for _, term := range rule.RulePatterns {
-
+	for i, rule := range ruleset.Rules {
+		i++
+		for j, term := range rule.RulePatterns {
+			j++
 			valType := GetType(schema, term.Attr)
 
-			if valType == "" {
-				// If the attribute name is not in the pattern-schema, we check if it's a task "tag"
-				// by checking for its presence in the action-schema
+			// if valType == "" {
+			// 	// If the attribute name is not in the pattern-schema, we check if it's a task "tag"
+			// 	// by checking for its presence in the action-schema
 
-				if !isStringInArray(term.Attr, schema.ActionSchema.Tasks) {
-					err := CruxError{Keyword: "NotExist", FieldName: "attr", Vals: term.Attr, Messages: "attribute does not exist in schema"} // fmt.Errorf("attribute does not exist in schema: %v", term.Attr)
-					errs = append(errs, err)
-				}
-				// If it is a tag, the value type is set to bool
-				valType = typeStr
-			}
+			// 	if !isStringInArray(term.Attr, schema.ActionSchema.Tasks) {
+			// 		fieldName := fmt.Sprintf("rule[%d].term[%d]attr", i, j)
+			// 		err := CruxError{Keyword: "NotExist", FieldName: fieldName, Vals: term.Attr, Messages: "attribute does not exist in schema"} // fmt.Errorf("attribute does not exist in schema: %v", term.Attr)
+			// 		errs = append(errs, err)
+			// 	}
+			// 	// If it is a tag, the value type is set to bool
+			// 	valType = typeStr
+			// }
 			if !verifyType(term.Val, valType) {
-
-				err := CruxError{Keyword: "NotMatch", FieldName: "val", Messages: "value of this attribute does not match schema"} // fmt.Errorf("value of this attribute does not match schema type: %v", term.Attr)
+				fieldName := fmt.Sprintf("rule[%d].term[%d]val", i, j)
+				err := CruxError{Keyword: "NotMatch", FieldName: fieldName, Messages: "value of this attribute does not match schema"} // fmt.Errorf("value of this attribute does not match schema type: %v", term.Attr)
 				errs = append(errs, err)
 			}
 			if !validOps[term.Op] {
-
-				err := CruxError{Keyword: "Invalid", FieldName: "op", Vals: term.Op, Messages: "invalid operation in rule"} // fmt.Errorf("invalid operation in rule: %v", term.Op)
+				fieldName := fmt.Sprintf("rule[%d].term[%d]op", i, j)
+				err := CruxError{Keyword: "Invalid", FieldName: fieldName, Vals: term.Op, Messages: "invalid operation in rule"} // fmt.Errorf("invalid operation in rule: %v", term.Op)
 				errs = append(errs, err)
 			}
 		}
@@ -260,8 +261,8 @@ func VerifyRulePatterns(ruleset *Ruleset_t, schema *Schema_t, isWF bool) []error
 				}
 			}
 			if !stepFound {
-
-				err := CruxError{Keyword: "Required", FieldName: "attr", Messages: "required one 'step' attribute in a rule in workflow"} // fmt.Errorf("no 'step' attribute found in a rule in workflow %v", ruleset.SetName)
+				fieldName := fmt.Sprintf("rule[%d].attr", i)
+				err := CruxError{Keyword: "Required", FieldName: fieldName, Messages: "required one 'step' attribute in a rule in workflow"} // fmt.Errorf("no 'step' attribute found in a rule in workflow %v", ruleset.SetName)
 				errs = append(errs, err)
 			}
 		}
@@ -331,16 +332,18 @@ func verifyType(val any, valType string) bool {
 func VerifyRuleActions(ruleset *Ruleset_t, schema *Schema_t, isWF bool) []error {
 	var errs []error
 	//for _, ruleset := range ruleSets {
-	for _, rule := range ruleset.Rules {
-		for _, t := range rule.RuleActions.Task {
-
+	for i, rule := range ruleset.Rules {
+		i++
+		for j, t := range rule.RuleActions.Task {
+			j++
 			doRet := rule.RuleActions.DoReturn
 			doExit := rule.RuleActions.DoExit
 
 			found := false
 
 			if doRet && doExit {
-				err := CruxError{Keyword: "Required", FieldName: "rule", Messages: "required one of RETURN or EXIT"} // fmt.Errorf("there is a rule with both the RETURN and EXIT instructions in ruleset %v", ruleset.SetName)
+				fieldName := fmt.Sprintf("rule[%d].ruleActions[%d]", i, j)
+				err := CruxError{Keyword: "Required", FieldName: fieldName, Messages: "required one of RETURN or EXIT"} // fmt.Errorf("there is a rule with both the RETURN and EXIT instructions in ruleset %v", ruleset.SetName)
 				errs = append(errs, err)
 			}
 			if isStringInArray(t, schema.ActionSchema.Tasks) {
@@ -349,7 +352,8 @@ func VerifyRuleActions(ruleset *Ruleset_t, schema *Schema_t, isWF bool) []error 
 			}
 
 			if !found {
-				err := CruxError{Keyword: "NotExist", FieldName: "task", Messages: "task not found in any action-schema"} // fmt.Errorf("task %v not found in any action-schema", t)
+				fieldName := fmt.Sprintf("rule[%d].ruleActions[%d].task", i, j)
+				err := CruxError{Keyword: "NotExist", FieldName: fieldName, Messages: "task not found in any action-schema"} // fmt.Errorf("task %v not found in any action-schema", t)
 				errs = append(errs, err)
 			}
 		}
@@ -363,7 +367,7 @@ func VerifyRuleActions(ruleset *Ruleset_t, schema *Schema_t, isWF bool) []error 
 			}
 
 			if !found {
-				err := CruxError{Keyword: "	", FieldName: "properties", Messages: "property name not found in any action-schema"} // fmt.Errorf("property name %v not found in any action-schema", propName)
+				err := CruxError{Keyword: "NotExist", FieldName: "properties", Messages: "property name not found in any action-schema"} // fmt.Errorf("property name %v not found in any action-schema", propName)
 				errs = append(errs, err)
 
 			}

@@ -78,6 +78,12 @@ INSERT INTO
 VALUES (
         15, 'BSE', 'HDFCBank', 'hdfcbank', 'hdfcbank pvt ltd', 'admin', '2024-01-29 00:00:00'
     );
+
+INSERT INTO
+    "app"
+VALUES (
+        16, 'BSE', 'starMF', 'starmf', 'mutual Fund', 'admin', '2024-01-29 00:00:00'
+    );
 -- capgrant TABLE
 INSERT INTO
     "capgrant"
@@ -154,6 +160,13 @@ VALUES (
         16, 'NSE', 12, 'retailbank', 'B', 'retailcustomer', '[{"attr": "cat", "valtype": "str"}, {"attr": "mrp", "valtype": "float"}, {"attr": "fullname", "valtype": "str"}, {"attr": "ageinstock", "valtype": "int"}, {"attr": "inventoryqty", "valtype": "int"}]', '{"class":"retailcustomer","tasks":["initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"],"properties":["nextstep","done"]}', '2020-03-10T12:06:40Z', 'Marigold Sherwin', '2023-10-21T17:39:11Z', 'Brunhilde Bampkin'
     );
 
+INSERT INTO
+    "schema"
+VALUES (
+        17, 'BSE', 12, 'starmf', 'W', 'ucc', '[{"attr":"step","vals":{"aof":{},"nomauth":{},"kycvalid":{},"bankaccvalid":{},"getcustdetails":{},"dpandbankaccvalid":{},"sendauthlinktoclient":{}},"valtype":"enum","longdesc":"","shortdesc":""},{"attr":"stepfailed","valtype":"bool","longdesc":"","shortdesc":""},{"attr":"mode","vals":{"demat":{},"physical":{}},"valtype":"enum","longdesc":"","shortdesc":""}]', '{"tasks":["getcustdetails","aof","dpandbankaccvalid","kycvalid","nomauth","bankaccvalid","sendauthlinktoclient"],"properties":["nextstep","done"]}', '2020-03-10T12:06:40Z', 'Marigold Sherwin', '2023-10-21T17:39:11Z', 'Brunhilde Bampkin'
+    );
+
+
 -- ruleset
 INSERT INTO
     ruleset (
@@ -187,6 +200,14 @@ INSERT INTO
     )
 VALUES (
         8, 'BSE', 12, 'retailbank', 'inventoryitems', 'W', 'discountcheck', true, false, 12, '[{"ruleactions": {"tasks": ["clearancesale", "yearendsale"], "properties": {"shipby": "ups", "nextstep": "coupondistribution"}}, "rulepattern": [{"op": "eq", "val": "2", "attr": "inventoryqty"}, {"op": "eq", "val": "200", "attr": "mrp"}]}, {"ruleactions": {"tasks": ["diwalisale"], "properties": {"shipby": "ups", "nextstep": "coupondistribution"}}, "rulepattern": [{"op": "eq", "val": "demo", "attr": "cat"}]}, {"ruleactions": {"tasks": ["newyearsale"], "properties": {"shipby": "ups", "nextstep": "coupondistribution"}}, "rulepattern": [{"op": "eq", "val": "belampally", "attr": "fullname"}, {"op": "eq", "val": "200", "attr": "mrp"}]}]', '2024-01-28T00:00:00Z', 'admin', '2024-01-15T00:00:00Z', 'admin'
+    );
+
+INSERT INTO
+    ruleset (
+        id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby, editedat, editedby
+    )
+VALUES (
+        9, 'BSE', 12, 'starmf', 'ucc', 'W', 'ucc_user_cr', false, true, 17, '[{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":["getcustdetails"],"properties":{"nextstep":"getcustdetails"}},"rulepattern":[{"op":"eq","val":"start","attr":"step"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":["aof","dpandbankaccvalid","kycvalid","nomauth"],"properties":{"nextstep":"aof"}},"rulepattern":[{"op":"eq","val":"getcustdetails","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"getcustdetails","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":["aof","kycvalid","nomauth","bankaccvalid"],"properties":{"nextstep":"aof"}},"rulepattern":[{"op":"eq","val":"getcustdetails","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"physical","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"getcustdetails","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":"physical","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":["sendauthlinktoclient"],"properties":{"nextstep":"sendauthlinktoclient"}},"rulepattern":[{"op":"eq","val":"kycvalid","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"kycvalid","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":["sendauthlinktoclient"],"properties":{"nextstep":"sendauthlinktoclient"}},"rulepattern":[{"op":"eq","val":"dpandbankvalidation","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"dpandbankvalidation","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":["sendauthlinktoclient"],"properties":{"nextstep":"sendauthlinktoclient"}},"rulepattern":[{"op":"eq","val":"bankaccvalid","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"bankaccvalid","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":["sendauthlinktoclient"],"properties":{"nextstep":"sendauthlinktoclient"}},"rulepattern":[{"op":"eq","val":"nomauth","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"nomauth","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":["sendauthlinktoclient"],"properties":{"nextstep":"sendauthlinktoclient"}},"rulepattern":[{"op":"eq","val":"aof","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"aof","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"sendauthlinktoclient","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"sendauthlinktoclient","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]}]', '2024-01-28T00:00:00Z', 'admin', '2024-01-15T00:00:00Z', 'admin'
     );
 -- stepworkflow
 INSERT INTO

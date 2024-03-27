@@ -85,9 +85,9 @@ SET
     editedby = $5
 WHERE
     realm = @realm_name::varchar
-    AND (SELECT realmslice.id FROM realmslice WHERE realmslice.id= @slice AND realmslice.realm = @realm_name )
+    AND slice = (SELECT realmslice.id FROM realmslice WHERE realmslice.id= @slice AND realmslice.realm = @realm_name )
     AND class = $1
-    AND (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= @app AND app.realm = @realm_name);
+    AND app = (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= @app AND app.realm = @realm_name);
 
 
 -- name: WorkflowList :many

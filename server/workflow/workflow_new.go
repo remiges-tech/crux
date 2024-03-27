@@ -2,6 +2,7 @@ package workflow
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -12,7 +13,7 @@ import (
 	"github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	crux "github.com/remiges-tech/crux/matching-engine"
-	"github.com/remiges-tech/crux/server"
+	"github.com/remiges-tech/crux/server"	
 	"github.com/remiges-tech/crux/types"
 )
 
@@ -92,10 +93,10 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 	qtx := query.WithTx(tx)
 
 	schema, err := qtx.GetSchemaWithLock(c, sqlc.GetSchemaWithLockParams{
-		RealmName:   realmName,
-		ID:          wf.Slice,
-		Shortnamelc: wf.App,
-		Class:       wf.Class,
+		RealmName: realmName,
+		Slice:     wf.Slice,
+		App:       strings.ToLower(wf.App),
+		Class:     wf.Class,
 	})
 	if err != nil {
 		l.Info().Error(err).Log("failed to get schema from DB:")
@@ -139,7 +140,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 	err = qtx.WorkFlowNew(c, sqlc.WorkFlowNewParams{
 		RealmName:  realmName,
 		Slice:      wf.Slice,
-		App:        wf.App,
+		App:        strings.ToLower(wf.App),
 		Brwf:       brwf,
 		Class:      wf.Class,
 		Setname:    wf.Name,

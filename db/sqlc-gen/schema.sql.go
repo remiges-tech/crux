@@ -58,18 +58,18 @@ SELECT
     editedby
 FROM schema
 WHERE
-    realm = $4::varchar
-    AND slice = (SELECT realmslice.id FROM realmslice WHERE realmslice.id=$1 AND realmslice.realm = $4)
-    AND class = $2
-    AND app = (SELECT app.shortnamelc FROM app WHERE app.shortnamelc=$3 AND app.realm = $4) FOR
+    realm = $2::varchar
+    AND slice = (SELECT realmslice.id FROM realmslice WHERE realmslice.id= $3 AND realmslice.realm = $2)
+    AND class = $1
+    AND app = (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= $4 AND app.realm = $2) FOR
 UPDATE
 `
 
 type GetSchemaWithLockParams struct {
-	ID          int32  `json:"id"`
-	Class       string `json:"class"`
-	Shortnamelc string `json:"shortnamelc"`
-	RealmName   string `json:"realm_name"`
+	Class     string `json:"class"`
+	RealmName string `json:"realm_name"`
+	Slice     int32  `json:"slice"`
+	App       string `json:"app"`
 }
 
 type GetSchemaWithLockRow struct {
@@ -83,10 +83,10 @@ type GetSchemaWithLockRow struct {
 
 func (q *Queries) GetSchemaWithLock(ctx context.Context, arg GetSchemaWithLockParams) (GetSchemaWithLockRow, error) {
 	row := q.db.QueryRow(ctx, getSchemaWithLock,
-		arg.ID,
 		arg.Class,
-		arg.Shortnamelc,
 		arg.RealmName,
+		arg.Slice,
+		arg.App,
 	)
 	var i GetSchemaWithLockRow
 	err := row.Scan(

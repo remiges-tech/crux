@@ -19,8 +19,8 @@ import (
 
 type PatternSchema struct {
 	Attr      string   `json:"attr" validate:"required"`
-	ShortDesc string   `json:"shortdesc" validate:"required"`
-	LongDesc  string   `json:"longdesc" validate:"required"`
+	ShortDesc string   `json:"shortdesc"`
+	LongDesc  string   `json:"longdesc"`
 	ValType   string   `json:"valtype" validate:"required"`
 	EnumVals  []string `json:"vals,omitempty"`
 	ValMin    float64  `json:"valmin,omitempty"`

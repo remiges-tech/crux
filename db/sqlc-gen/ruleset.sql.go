@@ -281,9 +281,9 @@ SET
     editedby = $5
 WHERE
     realm = $6::varchar
-    AND (SELECT realmslice.id FROM realmslice WHERE realmslice.id= $7 AND realmslice.realm = $6 )
+    AND slice = (SELECT realmslice.id FROM realmslice WHERE realmslice.id= $7 AND realmslice.realm = $6 )
     AND class = $1
-    AND (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= $8 AND app.realm = $6)
+    AND app = (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= $8 AND app.realm = $6)
 `
 
 type WorkFlowUpdateParams struct {
