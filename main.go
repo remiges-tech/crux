@@ -17,6 +17,7 @@ import (
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	crux "github.com/remiges-tech/crux/matching-engine"
 	"github.com/remiges-tech/crux/server/app"
+	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/server/auth"
 	"github.com/remiges-tech/crux/server/capability"
 	"github.com/remiges-tech/crux/server/config"
@@ -25,8 +26,6 @@ import (
 	"github.com/remiges-tech/crux/server/wfinstance"
 	"github.com/remiges-tech/crux/server/workflow"
 	"github.com/remiges-tech/logharbour/logharbour"
-	"github.com/remiges-tech/rigel"
-	"github.com/remiges-tech/rigel/etcd"
 )
 
 func main() {
@@ -36,62 +35,68 @@ func main() {
 	lctx := logharbour.NewLoggerContext(logharbour.Debug0)
 	l := logharbour.NewLogger(lctx, "crux", fallbackWriter)
 
-	rigelAppName := flag.String("appName", "crux", "The name of the application")
-	rigelModuleName := flag.String("moduleName", "WFE", "The name of the module")
-	rigelVersionNumber := flag.Int("versionNumber", 1, "The number of the version")
-	rigelConfigName := flag.String("configName", "devConfig", "The name of the configuration")
-	etcdEndpoints := flag.String("etcdEndpoints", "localhost:2379", "Comma-separated list of etcd endpoints")
+	// rigelAppName := flag.String("appName", "crux", "The name of the application")
+	// rigelModuleName := flag.String("moduleName", "WFE", "The name of the module")
+	// rigelVersionNumber := flag.Int("versionNumber", 1, "The number of the version")
+	// rigelConfigName := flag.String("configName", "devConfig", "The name of the configuration")
+	// etcdEndpoints := flag.String("etcdEndpoints", "localhost:2379", "Comma-separated list of etcd endpoints")
 
 	flag.Parse()
 	// Create a new EtcdStorage instance
-	etcdStorage, err := etcd.NewEtcdStorage([]string{*etcdEndpoints})
-	if err != nil {
-		l.LogActivity("Error while Creating new instance of EtcdStorage", err)
-		log.Fatalf("Failed to create EtcdStorage: %v", err)
-	}
-	l.LogActivity("Creates a new instance of EtcdStorage with endpoints", "localhost:2379")
+	// etcdStorage, err := etcd.NewEtcdStorage([]string{*etcdEndpoints})
+	// if err != nil {
+	// 	l.LogActivity("Error while Creating new instance of EtcdStorage", err)
+	// 	log.Fatalf("Failed to create EtcdStorage: %v", err)
+	// }
+	// l.LogActivity("Creates a new instance of EtcdStorage with endpoints", "localhost:2379")
 
 	// Create a new Rigel instance
-	rigel := rigel.New(etcdStorage, *rigelAppName, *rigelModuleName, *rigelVersionNumber, *rigelConfigName)
-	l.LogActivity("Creates a new instance of rigel", rigel)
+	// rigel := rigel.New(etcdStorage, *rigelAppName, *rigelModuleName, *rigelVersionNumber, *rigelConfigName)
+	// l.LogActivity("Creates a new instance of rigel", rigel)
 
 	// Create a context with a timeout
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Second)
 	defer cancel()
 
-	dbHost, err := rigel.GetString(ctx, "db_host")
-	if err != nil {
-		l.LogActivity("Error while getting data from rigel", err)
-		log.Fatalf("Failed to get data from rigel: %v", err)
-	}
-	dbPort, err := rigel.GetInt(ctx, "db_port")
-	if err != nil {
-		l.LogActivity("Error while getting data from rigel", err)
-		log.Fatalf("Failed to get data from rigel: %v", err)
-	}
-	dbUser, err := rigel.GetString(ctx, "db_user")
-	if err != nil {
-		l.LogActivity("Error while getting data from rigel", err)
-		log.Fatalf("Failed to get data from rigel: %v", err)
-	}
-	dbPassword, err := rigel.GetString(ctx, "db_password")
-	if err != nil {
-		l.LogActivity("Error while getting data from rigel", err)
-		log.Fatalf("Failed to get data from rigel: %v", err)
-	}
-	dbName, err := rigel.GetString(ctx, "db_name")
-	if err != nil {
-		l.LogActivity("Error while getting data from rigel", err)
-		log.Fatalf("Failed to get data from rigel: %v", err)
-	}
-	appServerPort, err := rigel.GetInt(ctx, "app_server_port")
-	if err != nil {
-		l.LogActivity("Error while getting data from rigel", err)
-		log.Fatalf("Failed to get data from rigel: %v", err)
-	}
-	l.Log("Retrieves the configuration data from rigel")
+	// dbHost, err := rigel.GetString(ctx, "db_host")
+	// if err != nil {
+	// 	l.LogActivity("Error while getting data from rigel", err)
+	// 	log.Fatalf("Failed to get data from rigel: %v", err)
+	// }
+	// dbPort, err := rigel.GetInt(ctx, "db_port")
+	// if err != nil {
+	// 	l.LogActivity("Error while getting data from rigel", err)
+	// 	log.Fatalf("Failed to get data from rigel: %v", err)
+	// }
+	// dbUser, err := rigel.GetString(ctx, "db_user")
+	// if err != nil {
+	// 	l.LogActivity("Error while getting data from rigel", err)
+	// 	log.Fatalf("Failed to get data from rigel: %v", err)
+	// }
+	// dbPassword, err := rigel.GetString(ctx, "db_password")
+	// if err != nil {
+	// 	l.LogActivity("Error while getting data from rigel", err)
+	// 	log.Fatalf("Failed to get data from rigel: %v", err)
+	// }
+	// dbName, err := rigel.GetString(ctx, "db_name")
+	// if err != nil {
+	// 	l.LogActivity("Error while getting data from rigel", err)
+	// 	log.Fatalf("Failed to get data from rigel: %v", err)
+	// }
+	// appServerPort, err := rigel.GetInt(ctx, "app_server_port")
+	// if err != nil {
+	// 	l.LogActivity("Error while getting data from rigel", err)
+	// 	log.Fatalf("Failed to get data from rigel: %v", err)
+	// }
+	// l.Log("Retrieves the configuration data from rigel")
 
 	// Database connection
+
+	dbHost := "localhost"
+	dbPort := 5432
+	dbUser := "cruxtest"
+	dbPassword := "cruxtest"
+	dbName := "cruxtest"
 	connURL := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", dbHost, dbPort, dbUser, dbPassword, dbName)
 	connPool, err := db.NewProvider(connURL)
 	if err != nil {
@@ -99,6 +104,7 @@ func main() {
 		log.Fatalln("Failed to establishes a connection with database", err)
 	}
 	queries := sqlc.New(connPool)
+
 
 	// load all rulesets and schema's in cache
 	err = crux.Load(queries, ctx)
@@ -162,6 +168,8 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstancenew", wfinstance.GetWFinstanceNew)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstanceabort", wfinstance.GetWFInstanceAbort)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstancelist", wfinstance.GetWFInstanceList)
+	// markdone
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/markdone", server.MarkDone)
 	//app
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/appnew", app.AppNew)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/appupdate", app.AppUpdate)
@@ -185,6 +193,7 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/capget/:userid", capability.CapGet)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/caplist", capability.CapList)
 
+	appServerPort := 8080
 	appServerPortStr := strconv.Itoa(appServerPort)
 	r.Run(":" + appServerPortStr)
 	if err != nil {

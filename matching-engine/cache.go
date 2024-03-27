@@ -95,7 +95,6 @@ func loadInternalRuleSet(dbResponseRuleSet []sqlc.Ruleset) error {
 
 		sliceKey := Slice_t(row.Slice)
 		_, exists = perApp[sliceKey]
-		if !exists {
 			perApp[sliceKey] = PerSlice_t{
 				LoadedAt:   time.Now(),
 				BRRulesets: make(map[ClassName_t][]*Ruleset_t),
@@ -124,8 +123,6 @@ func loadInternalRuleSet(dbResponseRuleSet []sqlc.Ruleset) error {
 				fmt.Printf("workflow name: %v", newRuleset.SetName)
 				perApp[sliceKey].Workflows[classNameKey] = append(perApp[sliceKey].Workflows[classNameKey], newRuleset)
 			}
-
-		}
 	}
 	AddReferencesToRuleSetCache()
 	return nil

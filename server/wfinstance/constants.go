@@ -35,7 +35,7 @@ const (
 	STEPFALED = "stepfailed"
 	DONE      = "done"
 	NEXTSTEP  = "nextstep"
-	START     = "START"
+	START     = "start"
 	FALSE     = "false"
 	TRUE      = "true"
 	REALM     = "BSE"

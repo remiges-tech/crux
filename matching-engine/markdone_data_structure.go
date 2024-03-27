@@ -18,7 +18,7 @@ import "time"
 
 */
 
-type markdone_t struct {
+type Markdone_t struct {
 	Id         int32  `json:"id"`
 	Entity     Entity `json:"entity"`
 	Step       string `json:"step"`

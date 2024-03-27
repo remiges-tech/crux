@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
+
+	"github.com/remiges-tech/crux/db/sqlc-gen"
 )
 
 /*
@@ -113,8 +115,8 @@ else (this means count > 1)
 endif
 */
 
-func doMarkDone(entity markdone_t, step string, WorkFLowName string) ([]ResponseData, error) {
-	ruleset := retriveRuleSetsFromCache(entity.Entity.Realm, entity.Entity.App, entity.Entity.Class, entity.Entity.Slice)
+func DoMarkDone(queries *sqlc.Queries, entity Markdone_t, step string, WorkFLowName string) ([]ResponseData, error) {
+	ruleset := retriveRuleSetsFromCache(entity.Entity.Realm, entity.Entity.App, entity.Entity.Class, entity.Entity.Slice, WorkFLowName)
 	if entity.Stepfailed == true {
 		var response []ResponseData
 		// Step supplied in the request
@@ -202,7 +204,7 @@ func doMarkDone(entity markdone_t, step string, WorkFLowName string) ([]Response
 		}
 	}
 	// We come here knowing that the previous step didn't fail. We can now proceed to the next step; the previous step was successful
-	recordcount, _ := GetWorkFlowInstance(entity, ruleset.SetName)
+	recordcount, _ := GetWorkFlowInstance(queries, entity, ruleset.SetName)
 	if recordcount == 1 {
 		entity.Step = step
 

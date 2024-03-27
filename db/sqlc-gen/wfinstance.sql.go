@@ -212,20 +212,20 @@ func (q *Queries) GetWFINstance(ctx context.Context, arg GetWFINstanceParams) (i
 }
 
 const getWFInstanceCounts = `-- name: GetWFInstanceCounts :one
-SELECT COUNT(*) AS instance_count
-FROM public.wfinstance
+SELECT COUNT(*) 
+FROM wfinstance
 WHERE
     slice = $1
     AND app = $2
     AND workflow = $3
-    AND entityid = $4
+    AND id = $4
 `
 
 type GetWFInstanceCountsParams struct {
 	Slice    int32  `json:"slice"`
 	App      string `json:"app"`
 	Workflow string `json:"workflow"`
-	Entityid string `json:"entityid"`
+	ID       int32  `json:"id"`
 }
 
 func (q *Queries) GetWFInstanceCounts(ctx context.Context, arg GetWFInstanceCountsParams) (int64, error) {
@@ -233,11 +233,11 @@ func (q *Queries) GetWFInstanceCounts(ctx context.Context, arg GetWFInstanceCoun
 		arg.Slice,
 		arg.App,
 		arg.Workflow,
-		arg.Entityid,
+		arg.ID,
 	)
-	var instance_count int64
-	err := row.Scan(&instance_count)
-	return instance_count, err
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }
 
 const getWFInstanceCurrent = `-- name: GetWFInstanceCurrent :one

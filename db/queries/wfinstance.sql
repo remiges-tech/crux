@@ -38,13 +38,14 @@ WHERE
 
 
 -- name: GetWFInstanceCounts :one
-SELECT COUNT(*) AS instance_count
-FROM public.wfinstance
+SELECT COUNT(*) 
+FROM wfinstance
 WHERE
     slice = $1
     AND app = $2
     AND workflow = $3
-    AND entityid = $4;
+    AND id = $4;
+
 -- name: DeleteWFInstances :exec
 DELETE FROM
     public.wfinstance
@@ -52,6 +53,7 @@ WHERE
     entityid = $1
     AND slice = $2
     AND app = $3;
+
 -- name: GetWFInstanceList :many
 SELECT * FROM wfinstance
 WHERE 
