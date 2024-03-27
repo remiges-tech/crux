@@ -100,7 +100,7 @@ CREATE TABLE ruleset (
     createdby VARCHAR(255) NOT NULL,
     editedat TIMESTAMP,
     editedby VARCHAR(255),
-    UNIQUE (realm, slice, app, class)
+    UNIQUE (realm, slice, app, class,setname)
 );
 
 CREATE TABLE wfinstance (

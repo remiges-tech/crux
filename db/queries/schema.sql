@@ -35,9 +35,9 @@ SELECT
 FROM schema
 WHERE
     realm = @realm_name::varchar
-    AND slice = (SELECT realmslice.id FROM realmslice WHERE realmslice.id=$1 AND realmslice.realm = @realm_name)
-    AND class = $2
-    AND app = (SELECT app.shortnamelc FROM app WHERE app.shortnamelc=$3 AND app.realm = @realm_name) FOR
+    AND slice = (SELECT realmslice.id FROM realmslice WHERE realmslice.id= @slice AND realmslice.realm = @realm_name)
+    AND class = $1
+    AND app = (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= @app AND app.realm = @realm_name) FOR
 UPDATE;
 
 -- name: SchemaDelete :one

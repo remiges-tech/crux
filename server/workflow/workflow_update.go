@@ -94,10 +94,10 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 	qtx := query.WithTx(tx)
 
 	schema, err := qtx.GetSchemaWithLock(c, sqlc.GetSchemaWithLockParams{
-		RealmName:   realmName,
-		ID:          wf.Slice,
-		Shortnamelc: wf.App,
-		Class:       wf.Class,
+		RealmName: realmName,
+		Slice:     wf.Slice,
+		App:       strings.ToLower(wf.App),
+		Class:     wf.Class,
 	})
 	if err != nil {
 		l.LogActivity("failed to get schema from DB:", err.Error())
@@ -126,7 +126,7 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 	// custom Validation
 	customValidationErrors := customValidationErrors(schema_t, WorkflowNew{
 		Slice:     wf.Slice,
-		App:       wf.App,
+		App:       strings.ToLower(wf.App),
 		Class:     wf.Class,
 		Name:      wf.Name,
 		Flowrules: wf.Flowrules,
@@ -149,7 +149,7 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 	ruleset, err := qtx.RulesetRowLock(c, sqlc.RulesetRowLockParams{
 		Realm: realmName,
 		Slice: wf.Slice,
-		App:   wf.App,
+		App:   strings.ToLower(wf.App),
 		Class: wf.Class,
 	})
 	if err != nil {
@@ -162,7 +162,7 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 	tag, err := qtx.WorkFlowUpdate(c, sqlc.WorkFlowUpdateParams{
 		RealmName: realmName,
 		Slice:     wf.Slice,
-		App:       wf.App,
+		App:       strings.ToLower(wf.App),
 		Brwf:      brwf,
 		Class:     wf.Class,
 		Setname:   wf.Name,
