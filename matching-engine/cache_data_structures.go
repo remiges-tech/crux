@@ -20,13 +20,14 @@ const (
 	ValEnum_t
 )
 
-type PerSlice_t struct {
-	LoadedAt   time.Time
-	BRSchema   map[ClassName_t]Schema_t
-	BRRulesets map[ClassName_t][]*Ruleset_t
-	WFSchema   map[ClassName_t]Schema_t
-	Workflows  map[ClassName_t][]*Ruleset_t
-}
+	type PerSlice_t struct {
+		LoadedAt   time.Time
+		BRSchema   map[ClassName_t]Schema_t
+		BRRulesets map[ClassName_t][]*Ruleset_t
+		WFSchema   map[ClassName_t]Schema_t
+		Workflows  map[ClassName_t][]*Ruleset_t
+	}
+
 
 type Schema_t struct {
 	Class         string            `json:"class"`
@@ -105,6 +106,17 @@ type Ruleset_t struct {
 	NCalled       int32
 	ReferenceType string
 }
+// type Class_t string
+
+// type PerClass_t struct {
+// 	LoadedAt   time.Time
+// 	BRSchema   map[ClassName_t]Schema_t
+// 	BRRulesets map[ClassName_t][]*Ruleset_t
+// 	WFSchema   map[ClassName_t]Schema_t
+// 	Workflows  map[ClassName_t][]*Ruleset_t
+// }
+
+// type PerSlice_t map[Class_t]PerClass_t
 
 type PerApp_t map[Slice_t]PerSlice_t
 

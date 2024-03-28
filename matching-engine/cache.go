@@ -32,7 +32,8 @@ func loadInternalSchema(dbResponseSchema []sqlc.Schema) error {
 		}
 
 		sliceKey := Slice_t(row.Slice)
-		_, exists = perApp[sliceKey]
+		classNameKey := ClassName_t(row.Class)
+		_, exists = perApp[sliceKey].WFSchema[classNameKey]
 		if !exists {
 			perApp[sliceKey] = PerSlice_t{
 				LoadedAt: time.Now(),
@@ -95,6 +96,7 @@ func loadInternalRuleSet(dbResponseRuleSet []sqlc.Ruleset) error {
 
 		sliceKey := Slice_t(row.Slice)
 		_, exists = perApp[sliceKey]
+		if !exists {
 			perApp[sliceKey] = PerSlice_t{
 				LoadedAt:   time.Now(),
 				BRRulesets: make(map[ClassName_t][]*Ruleset_t),
@@ -123,6 +125,7 @@ func loadInternalRuleSet(dbResponseRuleSet []sqlc.Ruleset) error {
 				fmt.Printf("workflow name: %v", newRuleset.SetName)
 				perApp[sliceKey].Workflows[classNameKey] = append(perApp[sliceKey].Workflows[classNameKey], newRuleset)
 			}
+		}
 	}
 	AddReferencesToRuleSetCache()
 	return nil
@@ -159,10 +162,16 @@ func Load(query sqlc.Querier, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	if len(dbResponseSchema) == 0 {
+		return fmt.Errorf("Didn't get schema")
+	}
 
 	dbResponseRuleSet, err := query.AllRuleset(ctx)
 	if err != nil {
 		return err
+	}
+	if len(dbResponseRuleSet) == 0 {
+		return fmt.Errorf("Didn't get rule set")
 	}
 	err = loadInternal(dbResponseSchema, dbResponseRuleSet)
 	if err != nil {

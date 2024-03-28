@@ -377,7 +377,10 @@ func retriveRuleSchemasAndRuleSetsFromCache(realm string, app string, class stri
 		log.Printf("Failed to retrieveRuleSchemasFromCache: %v", err)
 	}
 
-	ruleSets, _ := RetrieveRuleSetsFromCache(realm, app, class, s)
+	ruleSets, err := RetrieveRuleSetsFromCache(realm, app, class, s)
+	if err != nil {
+		log.Printf("Failed to RetrieveRuleSetsFromCache: %v", err)
+	}
 
 	return ruleSchemas, ruleSets
 }
@@ -450,11 +453,17 @@ func RetrieveWorkflowRulesetFromCache(realm string, app string, class string, sl
 		return nil, errors.New("ruleset slice key not match")
 	}
 
-	var ruleSets []*Ruleset_t
+	// var ruleSets []*Ruleset_t
 
-	for _, wfRulesets := range perSlice.Workflows {
-		ruleSets = append(ruleSets, wfRulesets...)
-	}
+	// for _, wfRulesets := range perSlice.Workflows[ClassName_t(class)] {
+	// 	ruleSets = append(ruleSets, wfRulesets)
+	// }
+	// ruleSets = append(ruleSets, perSlice.Workflows[ClassName_t(class)]...)
+	ruleSets := perSlice.Workflows[ClassName_t(class)]
+	// ruleSets, sliceExists := perApp[sliceKey].Workflows[ClassName_t(class)]
+	// if !sliceExists {
+	// 	return nil, errors.New("ruleset slice key not match")
+	// }
 
 	return ruleSets, nil
 }
