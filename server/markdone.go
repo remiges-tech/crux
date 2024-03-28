@@ -26,10 +26,10 @@ func MarkDone(c *gin.Context, s *service.Service) {
 	}
 
 	query, _ := s.Dependencies["queries"].(*sqlc.Queries)
-	ResponseData, err := crux.DoMarkDone(query, req.Entity, req.Step, req.WorkflowName)
+	ResponseData, err := crux.DoMarkDone(query, req.Entity, req.Entity.Step, req.WorkflowName)
 	if err != nil {
 		l.Debug1().LogDebug("Error while marshaling patternSchema", err)
-		wscutils.SendErrorResponse(c, &wscutils.Response{Data: err})
+		wscutils.SendErrorResponse(c, &wscutils.Response{Data: err.Error()})
 		return
 	}
 	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: ResponseData, Messages: nil})
