@@ -9,31 +9,18 @@ import (
 	"context"
 )
 
-const getWorkflow = `-- name: GetWorkflow :many
-SELECT workflow, step FROM stepworkflow WHERE step = $1
+const getWorkflowNameForStep = `-- name: GetWorkflowNameForStep :one
+SELECT workflow,step FROM stepworkflow WHERE step = $1
 `
 
-type GetWorkflowRow struct {
+type GetWorkflowNameForStepRow struct {
 	Workflow string `json:"workflow"`
 	Step     string `json:"step"`
 }
 
-func (q *Queries) GetWorkflow(ctx context.Context, step string) ([]GetWorkflowRow, error) {
-	rows, err := q.db.Query(ctx, getWorkflow, step)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetWorkflowRow
-	for rows.Next() {
-		var i GetWorkflowRow
-		if err := rows.Scan(&i.Workflow, &i.Step); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+func (q *Queries) GetWorkflowNameForStep(ctx context.Context, step string) (GetWorkflowNameForStepRow, error) {
+	row := q.db.QueryRow(ctx, getWorkflowNameForStep, step)
+	var i GetWorkflowNameForStepRow
+	err := row.Scan(&i.Workflow, &i.Step)
+	return i, err
 }

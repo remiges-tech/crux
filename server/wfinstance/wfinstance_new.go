@@ -31,6 +31,8 @@ type WFInstanceNewResponse struct {
 	Loggedat  pgtype.Timestamp   `json:"loggedat"`
 	Subflows  *map[string]string `json:"subflows"`
 	Tracedata *map[string]string `json:"tracedata"`
+	Done      string             `json:"done,omitempty"`
+	ID        string             `json:"id,omitempty"` //wfinstance id
 }
 
 // GetWFinstanceNew will be responsible for processing the /wfinstanceNew request that comes through as a POST
@@ -160,7 +162,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 			Nextstep: steps[0],
 			Request:  wfinstanceNewreq,
 		}
-		response, err = addTasks(addTaskRequest, s, c)
+		response, err = AddTasks(addTaskRequest, s, c)
 		if err != nil {
 			lh.LogActivity("GetWFinstanceNew||error while adding single step in wfinstance table :", err.Error())
 			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
@@ -177,7 +179,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 			Nextstep: nextStep,
 			Request:  wfinstanceNewreq,
 		}
-		response, err = addTasks(addTaskRequest, s, c)
+		response, err = AddTasks(addTaskRequest, s, c)
 		if err != nil {
 			lh.LogActivity("GetWFinstanceNew||error while adding multiple steps in wfinstance table :", error.Error())
 			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))

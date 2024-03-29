@@ -16,11 +16,11 @@ import (
 	"github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	crux "github.com/remiges-tech/crux/matching-engine"
-	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/server/app"
 	"github.com/remiges-tech/crux/server/auth"
 	"github.com/remiges-tech/crux/server/capability"
 	"github.com/remiges-tech/crux/server/config"
+	"github.com/remiges-tech/crux/server/markdone"
 	"github.com/remiges-tech/crux/server/realmslice"
 	"github.com/remiges-tech/crux/server/schema"
 	"github.com/remiges-tech/crux/server/wfinstance"
@@ -170,7 +170,7 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstanceabort", wfinstance.GetWFInstanceAbort)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstancelist", wfinstance.GetWFInstanceList)
 	// markdone
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/markdone", server.MarkDone)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/markdone", markdone.MarkDone)
 	//app
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/appnew", app.AppNew)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/appupdate", app.AppUpdate)

@@ -218,14 +218,14 @@ WHERE
     slice = $1
     AND app = $2
     AND workflow = $3
-    AND entityid = $4
+    AND id = $4
 `
 
 type GetWFInstanceCountsParams struct {
 	Slice    int32  `json:"slice"`
 	App      string `json:"app"`
 	Workflow string `json:"workflow"`
-	Entityid string `json:"entityid"`
+	ID       int32  `json:"id"`
 }
 
 func (q *Queries) GetWFInstanceCounts(ctx context.Context, arg GetWFInstanceCountsParams) (int64, error) {
@@ -233,7 +233,7 @@ func (q *Queries) GetWFInstanceCounts(ctx context.Context, arg GetWFInstanceCoun
 		arg.Slice,
 		arg.App,
 		arg.Workflow,
-		arg.Entityid,
+		arg.ID,
 	)
 	var count int64
 	err := row.Scan(&count)
@@ -263,6 +263,31 @@ func (q *Queries) GetWFInstanceCurrent(ctx context.Context, arg GetWFInstanceCur
 		arg.Workflow,
 		arg.Entityid,
 	)
+	var i Wfinstance
+	err := row.Scan(
+		&i.ID,
+		&i.Entityid,
+		&i.Slice,
+		&i.App,
+		&i.Class,
+		&i.Workflow,
+		&i.Step,
+		&i.Loggedat,
+		&i.Doneat,
+		&i.Nextstep,
+		&i.Parent,
+	)
+	return i, err
+}
+
+const getWFInstanceFromId = `-- name: GetWFInstanceFromId :one
+SELECT id, entityid, slice, app, class, workflow, step, loggedat, doneat, nextstep, parent FROM wfinstance 
+WHERE 
+    id = $1
+`
+
+func (q *Queries) GetWFInstanceFromId(ctx context.Context, id int32) (Wfinstance, error) {
+	row := q.db.QueryRow(ctx, getWFInstanceFromId, id)
 	var i Wfinstance
 	err := row.Scan(
 		&i.ID,

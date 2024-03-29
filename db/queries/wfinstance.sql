@@ -44,7 +44,7 @@ WHERE
     slice = $1
     AND app = $2
     AND workflow = $3
-    AND entityid = $4;
+    AND id = $4;
 
 -- name: DeleteWFInstances :exec
 DELETE FROM
@@ -92,3 +92,9 @@ WHERE
     AND app = $2
     AND workflow = $3
     AND entityid = $4;
+
+
+-- name: GetWFInstanceFromId :one
+SELECT * FROM wfinstance 
+WHERE 
+    id = $1;
