@@ -478,6 +478,8 @@ VALUES (12,
         'diwalisale',
         'dodiscountcheck');
 
+insert into stepworkflow values (13, 'starmf', 'aof', 'aofworkflow');
+
 --  for test case
 
 INSERT INTO public.wfinstance ("id", "slice", "class", "step", "entityid", "app", "workflow", "loggedat", "nextstep")

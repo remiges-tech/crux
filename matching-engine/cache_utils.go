@@ -482,7 +482,7 @@ func deleteWFInstance(entity Markdone_t) error {
 	return queryDbq.DeleteWFInstances(context.Background(), params)
 }
 
-func createFreshRecord(entity Markdone_t, setname, task string, properties map[string]string) ([]sqlc.Wfinstance, error) {
+func createFreshRecord(entity Markdone_t, setname string, task []string, properties map[string]string) ([]sqlc.Wfinstance, error) {
 	sliceInt, err := strconv.Atoi(entity.Entity.Slice)
 	if err != nil {
 		log.Fatal("Failed to convert string to int32:", err)
@@ -490,10 +490,10 @@ func createFreshRecord(entity Markdone_t, setname, task string, properties map[s
 	}
 	id := strconv.Itoa(int(entity.Id))
 
-	steps := make([]string, len(entity.Step))
-	for i, step := range entity.Step {
-		steps[i] = string(step)
-	}
+	// steps := make([]string, len(entity.Step))
+	// for i, step := range entity.Step {
+	// 	steps[i] = string(step)
+	// }
 
 	parent := &pgtype.Int4{} // Ensure parent is of type pgx/v5/pgtype.Int4
 	parent.Int32 = entity.Id
@@ -504,7 +504,7 @@ func createFreshRecord(entity Markdone_t, setname, task string, properties map[s
 		App:      entity.Entity.App,
 		Class:    entity.Entity.Class,
 		Workflow: setname, // read from the cache ruleset
-		Step:     steps,
+		Step:     task,
 		Nextstep: properties[nextStep],
 		Parent:   *parent, // Dereference parent when assigning
 	}
@@ -519,11 +519,12 @@ func GetWorkFlowInstance(queries *sqlc.Queries, entity Markdone_t, workflowname 
 		log.Fatal("Failed to convert string to int32:", err)
 		return -1, err
 	}
+	entityID := strconv.Itoa(int(entity.Id))
 	params := sqlc.GetWFInstanceCountsParams{
 		Slice:    int32(sliceInt),
 		App:      entity.Entity.App,
 		Workflow: workflowname,
-		ID:       entity.Id,
+		Entityid: entityID,
 	}
 	count, err := queryDbq.GetWFInstanceCounts(context.Background(), params)
 	if err != nil {

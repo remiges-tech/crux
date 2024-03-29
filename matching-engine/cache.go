@@ -32,43 +32,41 @@ func loadInternalSchema(dbResponseSchema []sqlc.Schema) error {
 		}
 
 		sliceKey := Slice_t(row.Slice)
-		classNameKey := ClassName_t(row.Class)
-		_, exists = perApp[sliceKey].WFSchema[classNameKey]
+		_, exists = perApp[sliceKey]
 		if !exists {
 			perApp[sliceKey] = PerSlice_t{
 				LoadedAt: time.Now(),
 				BRSchema: make(map[ClassName_t]Schema_t),
 				WFSchema: make(map[ClassName_t]Schema_t),
 			}
-
-			var patterns []PatternSchema_t
-
-			if err := json.Unmarshal(row.Patternschema, &patterns); err != nil {
-				log.Println("Error unmarshaling Patternschema:", err)
-				continue
-			}
-
-			var actions ActionSchema_t
-
-			if err := json.Unmarshal(row.Actionschema, &actions); err != nil {
-				log.Println("Error parsing ActionSchema JSON:", err)
-				continue
-			}
-
-			schemaData := Schema_t{
-				Class:         row.Class,
-				PatternSchema: patterns,
-				ActionSchema:  actions,
-			}
-
-			classNameKey := ClassName_t(row.Class)
-			if row.Brwf == "B" {
-				perApp[sliceKey].BRSchema[classNameKey] = schemaData
-			} else if row.Brwf == "W" {
-				perApp[sliceKey].WFSchema[classNameKey] = schemaData
-			}
-
 		}
+		var patterns []PatternSchema_t
+
+		if err := json.Unmarshal(row.Patternschema, &patterns); err != nil {
+			log.Println("Error unmarshaling Patternschema:", err)
+			continue
+		}
+
+		var actions ActionSchema_t
+
+		if err := json.Unmarshal(row.Actionschema, &actions); err != nil {
+			log.Println("Error parsing ActionSchema JSON:", err)
+			continue
+		}
+
+		schemaData := Schema_t{
+			Class:         row.Class,
+			PatternSchema: patterns,
+			ActionSchema:  actions,
+		}
+
+		classNameKey := ClassName_t(row.Class)
+		if row.Brwf == "B" {
+			perApp[sliceKey].BRSchema[classNameKey] = schemaData
+		} else if row.Brwf == "W" {
+			perApp[sliceKey].WFSchema[classNameKey] = schemaData
+		}
+
 	}
 	return nil
 }
@@ -102,30 +100,31 @@ func loadInternalRuleSet(dbResponseRuleSet []sqlc.Ruleset) error {
 				BRRulesets: make(map[ClassName_t][]*Ruleset_t),
 				Workflows:  make(map[ClassName_t][]*Ruleset_t),
 			}
-
-			var rules []Rule_t
-			err := json.Unmarshal(row.Ruleset, &rules)
-			if err != nil {
-				fmt.Println("Error unmarshaling rules:", err)
-				return nil
-			}
-
-			classNameKey := ClassName_t(row.Class)
-			newRuleset := &Ruleset_t{
-				Id:      row.ID,
-				Class:   row.Class,
-				SetName: row.Setname,
-				Rules:   rules,
-			}
-			if row.Brwf == "B" {
-				perApp[sliceKey].BRRulesets[classNameKey] = append(perApp[sliceKey].BRRulesets[classNameKey], newRuleset)
-
-			} else if row.Brwf == "W" {
-				fmt.Printf("className: %v", classNameKey)
-				fmt.Printf("workflow name: %v", newRuleset.SetName)
-				perApp[sliceKey].Workflows[classNameKey] = append(perApp[sliceKey].Workflows[classNameKey], newRuleset)
-			}
 		}
+
+		var rules []Rule_t
+		err := json.Unmarshal(row.Ruleset, &rules)
+		if err != nil {
+			fmt.Println("Error unmarshaling rules:", err)
+			return nil
+		}
+
+		classNameKey := ClassName_t(row.Class)
+		newRuleset := &Ruleset_t{
+			Id:      row.ID,
+			Class:   row.Class,
+			SetName: row.Setname,
+			Rules:   rules,
+		}
+		if row.Brwf == "B" {
+			perApp[sliceKey].BRRulesets[classNameKey] = append(perApp[sliceKey].BRRulesets[classNameKey], newRuleset)
+
+		} else if row.Brwf == "W" {
+			fmt.Printf("className: %v", classNameKey)
+			fmt.Printf("workflow name: %v", newRuleset.SetName)
+			perApp[sliceKey].Workflows[classNameKey] = append(perApp[sliceKey].Workflows[classNameKey], newRuleset)
+		}
+
 	}
 	AddReferencesToRuleSetCache()
 	return nil

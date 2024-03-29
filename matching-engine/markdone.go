@@ -159,8 +159,8 @@ func DoMarkDone(queries *sqlc.Queries, entity Markdone_t, step string, WorkFLowN
 			}
 			var response []ResponseData
 
+			newrecord, err := createFreshRecord(entity, WorkFLowName, actionset.Tasks, actionset.Properties)
 			for _, freshtask := range actionset.Tasks {
-				newrecord, err := createFreshRecord(entity, WorkFLowName, freshtask, actionset.Properties)
 				if err != nil {
 					if len(newrecord) > 0 {
 						record := newrecord[0] // only one record is returned
@@ -250,32 +250,35 @@ func DoMarkDone(queries *sqlc.Queries, entity Markdone_t, step string, WorkFLowN
 			}
 			var response []ResponseData
 
+			newrecord, err := createFreshRecord(entity, ruleset.SetName, actionset.Tasks, actionset.Properties)
+			if err != nil {
+				return []ResponseData{}, err
+			}
 			for _, freshtask := range actionset.Tasks {
-				newrecord, err := createFreshRecord(entity, ruleset.SetName, freshtask, actionset.Properties)
-				if err != nil {
-					if len(newrecord) > 0 {
-						record := newrecord[0] // only one record is returned
-						taskMap := make(map[string]int32)
-						taskMap[freshtask] = record.ID
 
-						var subworkflow map[string]string // Initialize subworkflow
-						subflows, err := GetSubFLow(freshtask)
-						if err != nil {
-							fmt.Println("Error getting subflows:", err)
-						} else {
-							subworkflow = make(map[string]string)
-							for _, subflow := range subflows {
-								subworkflow[subflow.Workflow] = subflow.Step
-							}
+				if len(newrecord) > 0 {
+					record := newrecord[0] // only one record is returned
+					taskMap := make(map[string]int32)
+					taskMap[freshtask] = record.ID
+
+					var subworkflow map[string]string // Initialize subworkflow
+					subflows, err := GetSubFLow(freshtask)
+					if err != nil {
+						fmt.Println("Error getting subflows:", err)
+					} else {
+						subworkflow = make(map[string]string)
+						for _, subflow := range subflows {
+							subworkflow[subflow.Workflow] = subflow.Step
 						}
-						param := ResponseData{
-							Tasks:    []map[string]int32{taskMap},
-							Loggedat: record.Loggedat.Time,
-							Subflows: subworkflow,
-						}
-						response = append(response, param)
 					}
+					param := ResponseData{
+						Tasks:    []map[string]int32{taskMap},
+						Loggedat: record.Loggedat.Time,
+						Subflows: subworkflow,
+					}
+					response = append(response, param)
 				}
+
 			}
 			return response, nil
 		} else {
@@ -368,8 +371,8 @@ func DoMarkDone(queries *sqlc.Queries, entity Markdone_t, step string, WorkFLowN
 				}
 				var response []ResponseData
 
+				newrecord, _ := createFreshRecord(entity, ruleset.SetName, actionset.Tasks, actionset.Properties)
 				for _, freshtask := range actionset.Tasks {
-					newrecord, _ := createFreshRecord(entity, ruleset.SetName, freshtask, actionset.Properties)
 					if len(newrecord) > 0 {
 						record := newrecord[0] // only one record is returned
 						taskMap := make(map[string]int32)

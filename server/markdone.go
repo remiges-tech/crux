@@ -4,8 +4,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
-	crux "github.com/remiges-tech/crux/matching-engine"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
+	crux "github.com/remiges-tech/crux/matching-engine"
 )
 
 type request struct {
@@ -29,7 +29,7 @@ func MarkDone(c *gin.Context, s *service.Service) {
 	ResponseData, err := crux.DoMarkDone(query, req.Entity, req.Entity.Step, req.WorkflowName)
 	if err != nil {
 		l.Debug1().LogDebug("Error while marshaling patternSchema", err)
-		wscutils.SendErrorResponse(c, &wscutils.Response{Data: err.Error()})
+		wscutils.SendErrorResponse(c, &wscutils.Response{Status: "error", Data: err.Error()})
 		return
 	}
 	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: ResponseData, Messages: nil})
