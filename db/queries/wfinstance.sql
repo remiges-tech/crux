@@ -92,3 +92,9 @@ WHERE
     AND app = $2
     AND workflow = $3
     AND entityid = $4;
+
+
+-- name: GetWFInstanceFromId :one
+SELECT * FROM wfinstance 
+WHERE 
+    id = $1;

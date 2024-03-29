@@ -36,11 +36,11 @@ func DoMatch(entity Entity, ruleset *Ruleset_t, actionSet ActionSet, seenRuleSet
 				Properties: make(map[string]string),
 			}, false, err
 		}
-        
+
 		if matched {
 
 			actionSet = collectActions(actionSet, rule.RuleActions)
-            
+
 			if len(rule.RuleActions.ThenCall) > 0 {
 
 				setToCall, exists := findRefRuleSetByName(ruleSetsCache, rule.RuleActions.ThenCall)
@@ -61,39 +61,36 @@ func DoMatch(entity Entity, ruleset *Ruleset_t, actionSet ActionSet, seenRuleSet
 						Properties: make(map[string]string),
 					}, false, err
 				}
-			}
-
-			if DoExit || rule.RuleActions.DoExit {
+			} else if DoExit || rule.RuleActions.DoExit {
 
 				return actionSet, true, nil
-			}
-
-			if rule.RuleActions.DoReturn {
+			} else if rule.RuleActions.DoReturn {
 
 				delete(seenRuleSets, ruleset.SetName)
 				return actionSet, false, nil
-			}
-		} else if len(rule.RuleActions.ElseCall) > 0 {
+			} else if len(rule.RuleActions.ElseCall) > 0 {
 
-			setToCall, exists := findRefRuleSetByName(ruleSetsCache, rule.RuleActions.ElseCall)
-			if !exists {
-				return ActionSet{}, false, errors.New("set not found")
-			}
+				setToCall, exists := findRefRuleSetByName(ruleSetsCache, rule.RuleActions.ElseCall)
+				if !exists {
+					return ActionSet{}, false, errors.New("set not found")
+				}
 
-			if setToCall.Class != entity.Class {
-				return inconsistentRuleSet(setToCall.SetName, ruleset.SetName, ruleset)
-			}
+				if setToCall.Class != entity.Class {
+					return inconsistentRuleSet(setToCall.SetName, ruleset.SetName, ruleset)
+				}
 
-			var err error
-			actionSet, DoExit, err = DoMatch(entity, setToCall, actionSet, seenRuleSets)
-			if err != nil {
-				return ActionSet{
-					Tasks:      []string{},
-					Properties: make(map[string]string),
-				}, false, err
-			} else if DoExit {
-				return actionSet, true, nil
+				var err error
+				actionSet, DoExit, err = DoMatch(entity, setToCall, actionSet, seenRuleSets)
+				if err != nil {
+					return ActionSet{
+						Tasks:      []string{},
+						Properties: make(map[string]string),
+					}, false, err
+				} else if DoExit {
+					return actionSet, true, nil
+				}
 			}
+			//return actionSet, false, nil
 		}
 	}
 

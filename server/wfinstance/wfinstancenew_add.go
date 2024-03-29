@@ -2,6 +2,7 @@ package wfinstance
 
 import (
 	"errors"
+	"reflect"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -29,9 +30,9 @@ type ResponseRequest struct {
 }
 
 // To add multiple records in wfinstance table
-func addTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanceNewResponse, error) {
+func AddTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanceNewResponse, error) {
 	var response WFInstanceNewResponse
-	var parent pgtype.Int4 
+	var parent pgtype.Int4
 	subflow := make(map[string]string)
 
 	lh := s.LogHarbour.WithClass("wfinstance")
@@ -44,9 +45,9 @@ func addTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanc
 		return WFInstanceNewResponse{}, errors.New(INVALID_DATABASE_DEPENDENCY)
 	}
 
-	if req.Request.Parent != nil{
-	// convert int32 tp pgtype.Int4
-	parent = ConvertToPGType(*req.Request.Parent)
+	if req.Request.Parent != nil {
+		// convert int32 tp pgtype.Int4
+		parent = ConvertToPGType(*req.Request.Parent)
 	}
 
 	// Add record in wfinstance table
@@ -83,10 +84,10 @@ func addTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanc
 	// To get workflow if step is present in stepworkflow table
 	lh.Debug0().Log("WFInstanceNew||addTasks()||verifying whether step is workflow if it is, then append it to subflow")
 	for _, step := range req.Steps {
-		workflowData, _ := query.GetWorkflow(c, step)
+		workflow, _ := query.GetWorkflowNameForStep(c, step)
 
-		if len(workflowData) > 0 && workflowData[0].Workflow != "" {
-			subflow[workflowData[0].Step] = workflowData[0].Workflow
+		if reflect.ValueOf(workflow).IsZero() {
+			subflow[workflow.Step] = workflow.Workflow
 		}
 
 	}

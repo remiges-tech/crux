@@ -1,6 +1,10 @@
-package crux
+package markdone
 
-import "time"
+import (
+	"time"
+
+	crux "github.com/remiges-tech/crux/matching-engine"
+)
 
 /*
 {
@@ -19,10 +23,10 @@ import "time"
 */
 
 type Markdone_t struct {
-	Id         int32  `json:"id"`
-	Entity     Entity `json:"entity"`
-	Step       string `json:"step"`
-	Stepfailed bool   `json:"stepfailed"`
+	Id         int32       `json:"id"`
+	Entity     crux.Entity `json:"entity"`
+	Step       string      `json:"step"`
+	Stepfailed bool        `json:"stepfailed"`
 	Trace      int
 }
 
