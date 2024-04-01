@@ -92,8 +92,8 @@ type RuleActionBlock_t struct {
 }
 
 type Rule_t struct {
-	RulePatterns []RulePatternBlock_t `json:"rulepattern" validate:"required,dive"`
-	RuleActions  RuleActionBlock_t    `json:"ruleactions" validate:"required"`
+	RulePatterns []RulePatternBlock_t `json:"rulePattern" validate:"required,dive"`
+	RuleActions  RuleActionBlock_t    `json:"ruleActions" validate:"required"`
 	NMatched     int32
 	NFailed      int32
 }

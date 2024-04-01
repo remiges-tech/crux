@@ -215,10 +215,10 @@ const getWFInstanceCounts = `-- name: GetWFInstanceCounts :one
 SELECT COUNT(*) 
 FROM wfinstance
 WHERE
-    slice = $1
-    AND app = $2
-    AND workflow = $3
-    AND id = $4
+    wfinstance.slice = $1
+    AND wfinstance.app = $2
+    AND wfinstance.workflow = $3
+    AND wfinstance.entityid IN (SELECT wfinstance.entityid FROM wfinstance WHERE wfinstance.id = $4)
 `
 
 type GetWFInstanceCountsParams struct {
@@ -399,13 +399,66 @@ func (q *Queries) GetWFInstanceListByParents(ctx context.Context, id []int32) ([
 	return items, nil
 }
 
+const getWFInstanceListForMarkDone = `-- name: GetWFInstanceListForMarkDone :many
+SELECT id, entityid, slice, app, class, workflow, step, loggedat, doneat, nextstep, parent FROM wfinstance 
+WHERE
+    wfinstance.slice = $1
+    AND wfinstance.app = $2
+    AND wfinstance.workflow = $3
+    AND wfinstance.entityid IN (SELECT wfinstance.entityid FROM wfinstance WHERE wfinstance.id = $4)
+`
+
+type GetWFInstanceListForMarkDoneParams struct {
+	Slice    int32  `json:"slice"`
+	App      string `json:"app"`
+	Workflow string `json:"workflow"`
+	ID       int32  `json:"id"`
+}
+
+func (q *Queries) GetWFInstanceListForMarkDone(ctx context.Context, arg GetWFInstanceListForMarkDoneParams) ([]Wfinstance, error) {
+	rows, err := q.db.Query(ctx, getWFInstanceListForMarkDone,
+		arg.Slice,
+		arg.App,
+		arg.Workflow,
+		arg.ID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Wfinstance
+	for rows.Next() {
+		var i Wfinstance
+		if err := rows.Scan(
+			&i.ID,
+			&i.Entityid,
+			&i.Slice,
+			&i.App,
+			&i.Class,
+			&i.Workflow,
+			&i.Step,
+			&i.Loggedat,
+			&i.Doneat,
+			&i.Nextstep,
+			&i.Parent,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateWFInstanceDoneat = `-- name: UpdateWFInstanceDoneat :exec
 
 UPDATE public.wfinstance
 SET 
     doneat = $1 -- Set doneat to the provided timestamp
 WHERE
-    entityid = $2
+    id = $2
     AND slice = $3
     AND app = $4
     AND workflow = $5
@@ -413,7 +466,7 @@ WHERE
 
 type UpdateWFInstanceDoneatParams struct {
 	Doneat   pgtype.Timestamp `json:"doneat"`
-	Entityid string           `json:"entityid"`
+	ID       int32            `json:"id"`
 	Slice    int32            `json:"slice"`
 	App      string           `json:"app"`
 	Workflow string           `json:"workflow"`
@@ -422,7 +475,7 @@ type UpdateWFInstanceDoneatParams struct {
 func (q *Queries) UpdateWFInstanceDoneat(ctx context.Context, arg UpdateWFInstanceDoneatParams) error {
 	_, err := q.db.Exec(ctx, updateWFInstanceDoneat,
 		arg.Doneat,
-		arg.Entityid,
+		arg.ID,
 		arg.Slice,
 		arg.App,
 		arg.Workflow,

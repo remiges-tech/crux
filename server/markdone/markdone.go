@@ -166,13 +166,8 @@ func DoMarkDone(s *service.Service, c *gin.Context, queries *sqlc.Queries, markD
 			return response, nil
 		}
 
-		if len(actionset.Tasks) > 1 {
+		if len(actionset.Tasks) >= 1 {
 			// Has more than one task then delete the old record from wfinstance and create fresh records, one per task
-			err := deleteWFInstance(markDoneReq)
-			if err != nil {
-				lh.Error(err).Log("Error while deleteWFInstance() in DoMarkDone")
-				return wfinstance.WFInstanceNewResponse{}, err
-			}
 
 			// call addTasks
 
@@ -250,12 +245,17 @@ func DoMarkDone(s *service.Service, c *gin.Context, queries *sqlc.Queries, markD
 			return response, nil
 		}
 
-		if len(actionset.Tasks) > 1 {
+		if len(actionset.Tasks) >= 1 {
 			// Has more than one task then delete the old record from wfinstance and create fresh records, one per task
 			// Return the full set of tasks and their record IDs
+
 			err := deleteWFInstance(markDoneReq)
 			if err != nil {
-				lh.Error(err).Log("Error while deleteWFInstance() in DoMarkDone")
+				return wfinstance.WFInstanceNewResponse{}, err
+			}
+			doneAtTimeStamp := time.Now()
+			err = UpdateWFInstanceDoneAt(markDoneReq, doneAtTimeStamp, ruleset.SetName)
+			if err != nil {
 				return wfinstance.WFInstanceNewResponse{}, err
 			}
 
@@ -269,7 +269,7 @@ func DoMarkDone(s *service.Service, c *gin.Context, queries *sqlc.Queries, markD
 				return wfinstance.WFInstanceNewResponse{}, err
 			}
 
-			task := wfinstance.AddTaskRequest{
+			addTaskParam := wfinstance.AddTaskRequest{
 				Steps:    actionset.Tasks,
 				Nextstep: actionset.Properties["nextstep"],
 				Request: wfinstance.WFInstanceNewRequest{
@@ -281,7 +281,7 @@ func DoMarkDone(s *service.Service, c *gin.Context, queries *sqlc.Queries, markD
 				},
 			}
 
-			response, err = wfinstance.AddTasks(task, s, c)
+			response, err = wfinstance.AddTasks(addTaskParam, s, c)
 			if err != nil {
 				lh.Error(err).Log("Error while AddTasks")
 				return wfinstance.WFInstanceNewResponse{}, err
@@ -306,6 +306,7 @@ func DoMarkDone(s *service.Service, c *gin.Context, queries *sqlc.Queries, markD
 		doneAtTimeStamp := time.Now()
 		err := UpdateWFInstanceDoneAt(markDoneReq, doneAtTimeStamp, ruleset.SetName)
 		if err != nil {
+			lh.Error(err).Log("Error while deleteWFInstance() in DoMarkDone")
 			return wfinstance.WFInstanceNewResponse{}, err
 		}
 		// Look through all the other wfinstance records which have matching tuple (slice,app,workflow,entityid)
@@ -318,8 +319,11 @@ func DoMarkDone(s *service.Service, c *gin.Context, queries *sqlc.Queries, markD
 		allDone := true
 		for _, wfInstance := range wfInstances {
 			v, err := wfInstance.Doneat.Value()
+			if err != nil {
+				return wfinstance.WFInstanceNewResponse{}, err
+			}
 
-			if err != nil || v == 0 {
+			if v == nil {
 				allDone = false
 				break
 			}
@@ -358,7 +362,7 @@ func DoMarkDone(s *service.Service, c *gin.Context, queries *sqlc.Queries, markD
 				return response, nil
 			}
 
-			if len(actionset.Tasks) > 1 {
+			if len(actionset.Tasks) >= 1 {
 				// Delete the old record from wfinstance and create fresh records, one per task
 				// Return the full set of tasks and their record IDs
 				err := deleteWFInstance(markDoneReq)
@@ -370,11 +374,6 @@ func DoMarkDone(s *service.Service, c *gin.Context, queries *sqlc.Queries, markD
 				// call addTasks
 
 				markDoneReq.Entity.Attrs["class"] = markDoneReq.Entity.Class
-
-				if err != nil {
-					lh.Error(err).Log("Error while GetWFInstanceFromId() in DoMarkDone")
-					return wfinstance.WFInstanceNewResponse{}, err
-				}
 
 				sliceInt, err := strconv.Atoi(markDoneReq.Entity.Slice)
 				if err != nil {
@@ -406,14 +405,14 @@ func DoMarkDone(s *service.Service, c *gin.Context, queries *sqlc.Queries, markD
 				// taskMap := make(map[string]int32)
 				// taskMap[actionset.Tasks[0]] = markDoneReq.Id
 
-				// // param := ResponseData{
-				// // 	Tasks:    []map[string]int32{taskMap},
-				// // 	Loggedat: time.Now(), // Assuming Loggedat is a pgtype.Timestamp
-				// // }
+				// param := ResponseData{
+				// 	Tasks:    []map[string]int32{taskMap},
+				// 	Loggedat: time.Now(), // Assuming Loggedat is a pgtype.Timestamp
+				// }
 				// respo
 
-				// UpdateWFInstanceStep(markDoneReq, actionset.Tasks[0])
-				// return response, nil // Return the task and other data in response
+				UpdateWFInstanceStep(markDoneReq, actionset.Tasks[0])
+				return response, nil // Return the task and other data in response
 				// Update the old record in wfinstance to set the value of "step" = the task returned
 
 				markDoneReq.Step = actionset.Tasks[0]
@@ -434,8 +433,9 @@ func DoMarkDone(s *service.Service, c *gin.Context, queries *sqlc.Queries, markD
 			// and return to the caller saying "We have marked it done, there is nothing more
 			// to do till one more of the other concurrent steps completes. Keep walking."
 			// Return with details of success of mark-done.
+			id := strconv.Itoa(int(markDoneReq.Id))
 			response := wfinstance.WFInstanceNewResponse{
-				ID:       markDoneReq.Entity.Slice,
+				ID:       id,
 				Loggedat: currentwfinstance.Loggedat,
 			}
 			return response, nil

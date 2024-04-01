@@ -26,11 +26,11 @@ type WFInstanceNewRequest struct {
 
 // WFInstanceNew response format
 type WFInstanceNewResponse struct {
-	Tasks     []map[string]int32 `json:"tasks"`
+	Tasks     []map[string]int32 `json:"tasks,omitempty"`
 	Nextstep  *string            `json:"nextstep,omitempty"`
-	Loggedat  pgtype.Timestamp   `json:"loggedat"`
-	Subflows  *map[string]string `json:"subflows"`
-	Tracedata *map[string]string `json:"tracedata"`
+	Loggedat  pgtype.Timestamp   `json:"loggedat,omitempty"`
+	Subflows  *map[string]string `json:"subflows,omitempty"`
+	Tracedata *map[string]string `json:"tracedata,omitempty"`
 	Done      string             `json:"done,omitempty"`
 	ID        string             `json:"id,omitempty"` //wfinstance id
 }
