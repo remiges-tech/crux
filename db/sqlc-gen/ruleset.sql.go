@@ -233,25 +233,24 @@ INSERT INTO
         realm, slice, app, brwf, class, setname, schemaid, is_active, is_internal, ruleset, createdat, createdby
     )
 VALUES (
-        $9::varchar,
-        (SELECT realmslice.id FROM realmslice WHERE realmslice.id= $10 AND realmslice.realm = $9 ),
-        (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= $11 AND app.realm = $9), 
-        $1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, $8
+        $8::varchar,
+        (SELECT realmslice.id FROM realmslice WHERE realmslice.id= $9 AND realmslice.realm = $8 ),
+        (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= $10 AND app.realm = $8), 
+        $1, $2, $3, $4, false, $5, $6, CURRENT_TIMESTAMP, $7
     )
 `
 
 type WorkFlowNewParams struct {
-	Brwf       BrwfEnum    `json:"brwf"`
-	Class      string      `json:"class"`
-	Setname    string      `json:"setname"`
-	Schemaid   int32       `json:"schemaid"`
-	IsActive   pgtype.Bool `json:"is_active"`
-	IsInternal bool        `json:"is_internal"`
-	Ruleset    []byte      `json:"ruleset"`
-	Createdby  string      `json:"createdby"`
-	RealmName  string      `json:"realm_name"`
-	Slice      int32       `json:"slice"`
-	App        string      `json:"app"`
+	Brwf       BrwfEnum `json:"brwf"`
+	Class      string   `json:"class"`
+	Setname    string   `json:"setname"`
+	Schemaid   int32    `json:"schemaid"`
+	IsInternal bool     `json:"is_internal"`
+	Ruleset    []byte   `json:"ruleset"`
+	Createdby  string   `json:"createdby"`
+	RealmName  string   `json:"realm_name"`
+	Slice      int32    `json:"slice"`
+	App        string   `json:"app"`
 }
 
 func (q *Queries) WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) error {
@@ -260,7 +259,6 @@ func (q *Queries) WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) error 
 		arg.Class,
 		arg.Setname,
 		arg.Schemaid,
-		arg.IsActive,
 		arg.IsInternal,
 		arg.Ruleset,
 		arg.Createdby,
@@ -284,6 +282,7 @@ WHERE
     AND slice = (SELECT realmslice.id FROM realmslice WHERE realmslice.id= $7 AND realmslice.realm = $6 )
     AND class = $1
     AND app = (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= $8 AND app.realm = $6)
+    AND is_active = false
 `
 
 type WorkFlowUpdateParams struct {

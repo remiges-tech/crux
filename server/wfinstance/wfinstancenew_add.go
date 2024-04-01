@@ -86,7 +86,7 @@ func AddTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanc
 	for _, step := range req.Steps {
 		workflow, _ := query.GetWorkflowNameForStep(c, step)
 
-		if reflect.ValueOf(workflow).IsZero() {
+		if !reflect.ValueOf(workflow).IsZero() {
 			subflow[workflow.Step] = workflow.Workflow
 		}
 

@@ -31,7 +31,7 @@ UPDATE public.wfinstance
 SET 
     doneat = $1 -- Set doneat to the provided timestamp
 WHERE
-    entityid = $2
+    id = $2
     AND slice = $3
     AND app = $4
     AND workflow = $5;
@@ -41,10 +41,10 @@ WHERE
 SELECT COUNT(*) 
 FROM wfinstance
 WHERE
-    slice = $1
-    AND app = $2
-    AND workflow = $3
-    AND id = $4;
+    wfinstance.slice = $1
+    AND wfinstance.app = $2
+    AND wfinstance.workflow = $3
+    AND wfinstance.entityid IN (SELECT wfinstance.entityid FROM wfinstance WHERE wfinstance.id = $4);
 
 -- name: DeleteWFInstances :exec
 DELETE FROM
@@ -98,3 +98,12 @@ WHERE
 SELECT * FROM wfinstance 
 WHERE 
     id = $1;
+
+
+-- name: GetWFInstanceListForMarkDone :many
+SELECT * FROM wfinstance 
+WHERE
+    wfinstance.slice = $1
+    AND wfinstance.app = $2
+    AND wfinstance.workflow = $3
+    AND wfinstance.entityid IN (SELECT wfinstance.entityid FROM wfinstance WHERE wfinstance.id = $4);

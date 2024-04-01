@@ -72,7 +72,7 @@ VALUES (
         @realm_name::varchar,
         (SELECT realmslice.id FROM realmslice WHERE realmslice.id= @slice AND realmslice.realm = @realm_name ),
         (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= @app AND app.realm = @realm_name), 
-        $1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, $8
+        $1, $2, $3, $4, false, $5, $6, CURRENT_TIMESTAMP, $7
     );
 
 -- name: WorkFlowUpdate :execresult
@@ -87,7 +87,8 @@ WHERE
     realm = @realm_name::varchar
     AND slice = (SELECT realmslice.id FROM realmslice WHERE realmslice.id= @slice AND realmslice.realm = @realm_name )
     AND class = $1
-    AND app = (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= @app AND app.realm = @realm_name);
+    AND app = (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= @app AND app.realm = @realm_name)
+    AND is_active = false;
 
 
 -- name: WorkflowList :many

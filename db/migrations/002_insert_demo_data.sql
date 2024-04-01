@@ -479,6 +479,7 @@ VALUES (12,
         'dodiscountcheck');
 
 insert into stepworkflow values (13, 'starmf', 'aof', 'aofworkflow');
+insert into stepworkflow values (13, 'starmf', 'dpandbankaccvalid', 'dpandbankaccvalidWorkflow');
 
 --  for test case
 

@@ -47,6 +47,7 @@ type Querier interface {
 	GetWFInstanceFromId(ctx context.Context, id int32) (Wfinstance, error)
 	GetWFInstanceList(ctx context.Context, arg GetWFInstanceListParams) ([]Wfinstance, error)
 	GetWFInstanceListByParents(ctx context.Context, id []int32) ([]Wfinstance, error)
+	GetWFInstanceListForMarkDone(ctx context.Context, arg GetWFInstanceListForMarkDoneParams) ([]Wfinstance, error)
 	GetWFInternalStatus(ctx context.Context, arg GetWFInternalStatusParams) (bool, error)
 	GetWorkflowNameForStep(ctx context.Context, step string) (GetWorkflowNameForStepRow, error)
 	InsertNewRecordInRealmSlice(ctx context.Context, arg InsertNewRecordInRealmSliceParams) (int32, error)

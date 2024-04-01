@@ -6,14 +6,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	crux "github.com/remiges-tech/crux/matching-engine"
-	"github.com/remiges-tech/crux/server"	
+	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/types"
 )
 
@@ -145,7 +144,6 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 		Class:      wf.Class,
 		Setname:    wf.Name,
 		Schemaid:   schema.ID,
-		IsActive:   pgtype.Bool{Bool: false, Valid: true},
 		IsInternal: wf.IsInternal,
 		Ruleset:    ruleset,
 		Createdby:  userID,
