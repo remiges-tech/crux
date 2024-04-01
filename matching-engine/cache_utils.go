@@ -386,7 +386,7 @@ func retriveRuleSchemasAndRuleSetsFromCache(realm string, app string, class stri
 func RetrieveRuleSetsByNameFromCache(realm string, app string, class string, slice string, wfname string) *Ruleset_t {
 	s, _ := strconv.Atoi(slice)
 	// ruleSets, _ := RetrieveRuleSetsFromCache(realm, app, class, s)
-	requiredWf := getWorkflowFromCacheWithName(Realm_t(realm), App_t(app), Slice_t(s), ClassName_t(class), wfname)
+	requiredWf := GetWorkflowFromCacheWithName(Realm_t(realm), App_t(app), Slice_t(s), ClassName_t(class), wfname)
 	// TODO: check if requiredWf is nil and if not, return error
 	return requiredWf
 }
@@ -467,7 +467,7 @@ func RetrieveWorkflowRulesetFromCache(realm string, app string, class string, sl
 }
 
 
-func getWorkflowFromCacheWithName(realm Realm_t, app App_t, slice Slice_t, class ClassName_t, wfname string) (w *Ruleset_t) {
+func GetWorkflowFromCacheWithName(realm Realm_t, app App_t, slice Slice_t, class ClassName_t, wfname string) (w *Ruleset_t) {
 	workflows := RulesetCache[realm][app][slice].Workflows[class]
 	for _, w := range workflows {
 		if w.SetName == wfname {

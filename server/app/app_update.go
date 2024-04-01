@@ -29,14 +29,14 @@ func AppUpdate(c *gin.Context, s *service.Service) {
 	userID, err := server.ExtractUserNameFromJwt(c)
 	if err != nil {
 		lh.Info().Log("unable to extract userID from token")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
 		return
 	}
 
 	realmName, err := server.ExtractRealmFromJwt(c)
 	if err != nil {
 		lh.Info().Log("unable to extract realm from token")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
 		return
 	}
 
@@ -96,7 +96,7 @@ func AppUpdate(c *gin.Context, s *service.Service) {
 	}
 	if len(appData) == 0 {
 		lh.Debug0().LogActivity("app name does not exist in db", request.Name)
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ERRCode_Name_Not_Exist))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ErrCode_Name_Not_Exist))
 		return
 
 	}

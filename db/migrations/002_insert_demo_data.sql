@@ -164,7 +164,7 @@ VALUES (17,
 -- capgrant TABLE
 
 INSERT INTO "capgrant"
-VALUES (1,
+VALUES (10,
         'BSE',
         'john',
         'hdfcbank',
@@ -176,7 +176,7 @@ VALUES (1,
 
 
 INSERT INTO "capgrant"
-VALUES (2,
+VALUES (12,
         'BSE',
         'Raj',
         'hdfcbank',
@@ -188,11 +188,22 @@ VALUES (2,
 
 
 INSERT INTO "capgrant"
-VALUES (3,
+VALUES (13,
         'BSE',
         'Raj',
         'nedbank',
         'user',
+        '2024-01-29 00:00:00',
+        NULL,
+        '2023-12-29 00:00:00',
+        'user');
+
+INSERT INTO "capgrant"
+VALUES (14,
+        'BSE',
+        'kanchan@gmail.com',
+        'nedbank',
+        'auth',
         '2024-01-29 00:00:00',
         NULL,
         '2023-12-29 00:00:00',

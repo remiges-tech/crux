@@ -19,14 +19,14 @@ func RealmSlicePurge(c *gin.Context, s *service.Service) {
 	userID, err := server.ExtractUserNameFromJwt(c)
 	if err != nil {
 		l.Info().Log("unable to extract userID from token")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
 		return
 	}
 
 	realmName, err := server.ExtractRealmFromJwt(c)
 	if err != nil {
 		l.Info().Log("unable to extract realm from token")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
 		return
 	}
 
@@ -57,7 +57,7 @@ func RealmSlicePurge(c *gin.Context, s *service.Service) {
 	}
 	if strings.Contains(tag.String(), "0") {
 		l.Log("no record found to purse")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ERRCode_No_record_For_Purge))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ErrCode_No_record_For_Purge))
 		return
 	}
 
