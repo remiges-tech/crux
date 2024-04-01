@@ -23,14 +23,14 @@ func AppDelete(c *gin.Context, s *service.Service) {
 	userID, err := server.ExtractUserNameFromJwt(c)
 	if err != nil {
 		lh.Info().Log("unable to extract userID from token")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
 		return
 	}
 
 	realmName, err := server.ExtractRealmFromJwt(c)
 	if err != nil {
 		lh.Info().Log("unable to extract realm from token")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
 		return
 	}
 
@@ -85,7 +85,7 @@ func AppDelete(c *gin.Context, s *service.Service) {
 	}
 	if len(appData) == 0 {
 		lh.Debug0().LogActivity("app name does not exist in db", appName)
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ERRCode_Name_Not_Exist))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ErrCode_Name_Not_Exist))
 		return
 
 	}
@@ -105,8 +105,9 @@ func AppDelete(c *gin.Context, s *service.Service) {
 	}
 	// To get cap grants for app
 	capGrantData, err := query.GetCapGrantForApp(c, sqlc.GetCapGrantForAppParams{
-		App:   pgtype.Text{String: applc, Valid: true},
-		Realm: realmName,
+		App:    pgtype.Text{String: applc, Valid: true},
+		Realm:  realmName,
+		Userid: userID,
 	})
 	if err != nil {
 		lh.Info().Error(err).Log("error while getting app capablity grants from db")
@@ -119,8 +120,9 @@ func AppDelete(c *gin.Context, s *service.Service) {
 		// If the app is to be deleted, and there are cap grants to users for this app in the capgrant
 		// table, then those capability grants are deleted too.
 		error := query.DeleteCapGranForApp(c, sqlc.DeleteCapGranForAppParams{
-			App:   pgtype.Text{String: applc, Valid: true},
-			Realm: realmName,
+			App:    pgtype.Text{String: applc, Valid: true},
+			Realm:  realmName,
+			Userid: userID,
 		})
 		if error != nil {
 			lh.Info().Error(err).Log("error while deleting app capablity grants from db")

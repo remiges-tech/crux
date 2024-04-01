@@ -25,14 +25,14 @@ func UserActivate(c *gin.Context, s *service.Service) {
 	userID, err := server.ExtractUserNameFromJwt(c)
 	if err != nil {
 		l.Info().Log("unable to extract userID from token")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
 		return
 	}
 
 	realmName, err := server.ExtractRealmFromJwt(c)
 	if err != nil {
 		l.Info().Log("unable to extract realm from token")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
 		return
 	}
 
@@ -52,7 +52,7 @@ func UserActivate(c *gin.Context, s *service.Service) {
 	opUserId := c.Param("userid")
 	if opUserId == "" {
 		l.Log("no operational user id found")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ERRCode_User_Id_Not_Exist))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ErrCode_User_Id_Not_Exist))
 		return
 	}
 

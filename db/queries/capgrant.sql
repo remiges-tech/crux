@@ -1,10 +1,10 @@
 -- name: DeleteCapGranForApp :exec
 
-DELETE FROM capgrant WHERE app = @app AND realm = @realm;
+DELETE FROM capgrant WHERE app = @app AND realm = @realm AND "user" = @userId;
 
 -- name: GetCapGrantForApp :many
 
-SELECT * FROM capgrant WHERE app = @app AND realm = @realm;
+SELECT * FROM capgrant WHERE app = @app AND realm = @realm AND "user" = @userId;
 
 -- name: UserActivate :one
 UPDATE capgrant
@@ -48,3 +48,28 @@ SELECT "user",app,cap,"from","to",setat,setby from capgrant
 WHERE realm = @realm
 and ((@app::text[] is null) OR ( app = any(@app::text[])))
 and ((@cap::text[] is null) OR ( cap = any(@cap::text[])));
+
+-- name: UpdateCapGranForUser :exec
+UPDATE capgrant set cap = NULL WHERE "user" = @userId;
+
+-- name: GetUserRealm :many
+SELECT  realm  FROM capgrant  WHERE "user" = @userId;
+
+-- name: GrantRealmCapability :exec
+INSERT INTO capgrant (realm,"user",cap,"from","to",setat,setby)
+VALUES(@realm, @userId,unnest(@cap::text []), sqlc.narg ('from') ,sqlc.narg('to'),(NOW() AT TIME ZONE 'UTC'),@setby);
+
+-- name: GrantAppCapability :exec
+INSERT INTO capgrant (realm, "user", app, cap, "from", "to", setat, setby)
+SELECT
+    @realm,
+    @userId,
+    app,
+    cap,
+    sqlc.narg('from'),
+    sqlc.narg('to'),
+    NOW() AT TIME ZONE 'UTC',
+    @setby
+FROM
+    unnest(@app::text[]) AS app,
+    unnest(@cap::text[]) AS cap;

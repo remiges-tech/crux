@@ -48,7 +48,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 		attribute        map[string]string
 		done, nextStep   string
 		steps            []string
-		myRuleSet        *crux.Ruleset_t
+		ruleSet          *crux.Ruleset_t
 	)
 	// USERID, err := server.ExtractUserNameFromJwt(c)
 	// if err != nil {
@@ -110,6 +110,12 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	entity := getEntityStructure(wfinstanceNewreq)
 
 	// To get workflow rulesets from RuleSetCache
+	// ruleSet = crux.GetWorkflowFromCacheWithName(crux.Realm_t(REALM), crux.App_t(wfinstanceNewreq.App), crux.Slice_t(wfinstanceNewreq.Slice), crux.ClassName_t(wfinstanceNewreq.Entity["class"]), wfinstanceNewreq.Workflow)
+	// fmt.Println("?>>>>>>>>>>>>>>>>>>>>>>>>>ruleset  ", ruleSet)
+	// if ruleSet == nil {
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid))
+	// }
+
 	ruleSets, err := crux.RetrieveWorkflowRulesetFromCache(REALM, wfinstanceNewreq.App, wfinstanceNewreq.Entity[CLASS], int(wfinstanceNewreq.Slice))
 	if err != nil {
 		lh.Error(err).Log("GetWFinstanceNew||error while getting workflow rulesets from RuleSetCache ")
@@ -117,15 +123,15 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	for _, ruleSet := range ruleSets {
-		if ruleSet.SetName == wfinstanceNewreq.Workflow {
-			myRuleSet = ruleSet
+	for _, r := range ruleSets {
+		if r.SetName == wfinstanceNewreq.Workflow {
+			ruleSet = r
 		}
 
 	}
 
 	// call DoMatch()
-	actionSet, _, err = crux.DoMatch(entity, myRuleSet, actionSet, seenRuleSets)
+	actionSet, _, err = crux.DoMatch(entity, ruleSet, actionSet, seenRuleSets)
 	if err != nil {
 		lh.Error(err).Log("GetWFinstanceNew||error while calling doMatch Method")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, err.Error()))

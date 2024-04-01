@@ -109,31 +109,33 @@ func (q *Queries) CapList(ctx context.Context, arg CapListParams) ([]CapListRow,
 
 const deleteCapGranForApp = `-- name: DeleteCapGranForApp :exec
 
-DELETE FROM capgrant WHERE app = $1 AND realm = $2
+DELETE FROM capgrant WHERE app = $1 AND realm = $2 AND "user" = $3
 `
 
 type DeleteCapGranForAppParams struct {
-	App   pgtype.Text `json:"app"`
-	Realm string      `json:"realm"`
+	App    pgtype.Text `json:"app"`
+	Realm  string      `json:"realm"`
+	Userid string      `json:"userid"`
 }
 
 func (q *Queries) DeleteCapGranForApp(ctx context.Context, arg DeleteCapGranForAppParams) error {
-	_, err := q.db.Exec(ctx, deleteCapGranForApp, arg.App, arg.Realm)
+	_, err := q.db.Exec(ctx, deleteCapGranForApp, arg.App, arg.Realm, arg.Userid)
 	return err
 }
 
 const getCapGrantForApp = `-- name: GetCapGrantForApp :many
 
-SELECT id, realm, "user", app, cap, "from", "to", setat, setby FROM capgrant WHERE app = $1 AND realm = $2
+SELECT id, realm, "user", app, cap, "from", "to", setat, setby FROM capgrant WHERE app = $1 AND realm = $2 AND "user" = $3
 `
 
 type GetCapGrantForAppParams struct {
-	App   pgtype.Text `json:"app"`
-	Realm string      `json:"realm"`
+	App    pgtype.Text `json:"app"`
+	Realm  string      `json:"realm"`
+	Userid string      `json:"userid"`
 }
 
 func (q *Queries) GetCapGrantForApp(ctx context.Context, arg GetCapGrantForAppParams) ([]Capgrant, error) {
-	rows, err := q.db.Query(ctx, getCapGrantForApp, arg.App, arg.Realm)
+	rows, err := q.db.Query(ctx, getCapGrantForApp, arg.App, arg.Realm, arg.Userid)
 	if err != nil {
 		return nil, err
 	}
@@ -160,6 +162,104 @@ func (q *Queries) GetCapGrantForApp(ctx context.Context, arg GetCapGrantForAppPa
 		return nil, err
 	}
 	return items, nil
+}
+
+const getUserRealm = `-- name: GetUserRealm :many
+SELECT  realm  FROM capgrant  WHERE "user" = $1
+`
+
+func (q *Queries) GetUserRealm(ctx context.Context, userid string) ([]string, error) {
+	rows, err := q.db.Query(ctx, getUserRealm, userid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var realm string
+		if err := rows.Scan(&realm); err != nil {
+			return nil, err
+		}
+		items = append(items, realm)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const grantAppCapability = `-- name: GrantAppCapability :exec
+INSERT INTO capgrant (realm, "user", app, cap, "from", "to", setat, setby)
+SELECT
+    $1,
+    $2,
+    app,
+    cap,
+    $3,
+    $4,
+    NOW() AT TIME ZONE 'UTC',
+    $5
+FROM
+    unnest($6::text[]) AS app,
+    unnest($7::text[]) AS cap
+`
+
+type GrantAppCapabilityParams struct {
+	Realm  string           `json:"realm"`
+	Userid string           `json:"userid"`
+	From   pgtype.Timestamp `json:"from"`
+	To     pgtype.Timestamp `json:"to"`
+	Setby  string           `json:"setby"`
+	App    []string         `json:"app"`
+	Cap    []string         `json:"cap"`
+}
+
+func (q *Queries) GrantAppCapability(ctx context.Context, arg GrantAppCapabilityParams) error {
+	_, err := q.db.Exec(ctx, grantAppCapability,
+		arg.Realm,
+		arg.Userid,
+		arg.From,
+		arg.To,
+		arg.Setby,
+		arg.App,
+		arg.Cap,
+	)
+	return err
+}
+
+const grantRealmCapability = `-- name: GrantRealmCapability :exec
+INSERT INTO capgrant (realm,"user",cap,"from","to",setat,setby)
+VALUES($1, $2,unnest($3::text []), $4 ,$5,(NOW() AT TIME ZONE 'UTC'),$6)
+`
+
+type GrantRealmCapabilityParams struct {
+	Realm  string           `json:"realm"`
+	Userid string           `json:"userid"`
+	Cap    []string         `json:"cap"`
+	From   pgtype.Timestamp `json:"from"`
+	To     pgtype.Timestamp `json:"to"`
+	Setby  string           `json:"setby"`
+}
+
+func (q *Queries) GrantRealmCapability(ctx context.Context, arg GrantRealmCapabilityParams) error {
+	_, err := q.db.Exec(ctx, grantRealmCapability,
+		arg.Realm,
+		arg.Userid,
+		arg.Cap,
+		arg.From,
+		arg.To,
+		arg.Setby,
+	)
+	return err
+}
+
+const updateCapGranForUser = `-- name: UpdateCapGranForUser :exec
+UPDATE capgrant set cap = NULL WHERE "user" = $1
+`
+
+func (q *Queries) UpdateCapGranForUser(ctx context.Context, userid string) error {
+	_, err := q.db.Exec(ctx, updateCapGranForUser, userid)
+	return err
 }
 
 const userActivate = `-- name: UserActivate :one

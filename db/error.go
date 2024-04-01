@@ -37,7 +37,7 @@ func HandleDatabaseError(err error) wscutils.ErrorMessage {
 	} else if err != nil {
 		if err.Error() == "no rows in result set" {
 			// field := "slice/app/class"
-			return wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ERRCode_No_record_Found, nil)
+			return wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_No_record_Found, nil)
 		} else {
 			return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_DatabaseError, nil)
 		}

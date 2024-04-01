@@ -17,9 +17,7 @@ import (
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	crux "github.com/remiges-tech/crux/matching-engine"
 	"github.com/remiges-tech/crux/server/app"
-	"github.com/remiges-tech/crux/server/auth"
 	"github.com/remiges-tech/crux/server/capability"
-	"github.com/remiges-tech/crux/server/config"
 	"github.com/remiges-tech/crux/server/markdone"
 	"github.com/remiges-tech/crux/server/realmslice"
 	"github.com/remiges-tech/crux/server/schema"
@@ -57,7 +55,7 @@ func main() {
 	l.LogActivity("Creates a new instance of rigel", rigel)
 
 	// Create a context with a timeout
-	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	dbHost, err := rigel.GetString(ctx, "db_host")
@@ -113,6 +111,47 @@ func main() {
 		log.Fatalln("error at loading cache", err)
 		return
 	}
+	// perRealm := crux.RulesetCache[crux.Realm_t("BSE")]
+	// perApp := perRealm[crux.App_t("retailbank")]
+	// perSlice := perApp[crux.Slice_t(12)]
+	// ruleSets := perSlice.Workflows[crux.ClassName_t("inventoryitems")]
+	// // for each ruleSet in ruleSets
+	// // 		if ruleSet.Name == "workflow"
+	// //             myruleSet = ruleSet
+	// // end for
+	// var myRuleSet *crux.Ruleset_t
+	// for _, ruleSet := range ruleSets {
+
+	// 	if ruleSet.SetName == "discountcheck" {
+	// 		myRuleSet = ruleSet
+	// 	}
+
+	// }
+	// entity := crux.Entity{
+	// 	Realm: "BSE",
+	// 	App:   "retailbank",
+	// 	Slice: "12",
+	// 	Class: "inventoryitems",
+	// 	Attrs: map[string]string{},
+	// }
+
+	// actionSet := crux.ActionSet{
+	// 	Tasks:      []string{},
+	// 	Properties: map[string]string{},
+	// }
+
+	// var seenRuleSets map[string]struct{}
+	// actionSet, _, err = crux.DoMatch(entity, myRuleSet, actionSet, seenRuleSets)
+	// if err != nil {
+	// 	//lh.Error(err).Log("GetWFinstanceNew||error while calling doMatch Method")
+	// 	//wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid))
+	// 	return
+	// }
+	// fmt.Println(actionSet)
+
+	//matchingEngineDBUrl := ""
+
+	//matchinEngingeQueries := sqlcmatching.New(connPool)
 
 	// Define a custom validation tag-to-message ID map
 	customValidationMap := map[string]int{
@@ -175,7 +214,6 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/appnew", app.AppNew)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/appupdate", app.AppUpdate)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/appdelete/:name", app.AppDelete)
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/applist", app.AppList)
 
 	// Realm-slice management
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmSliceNew", realmslice.RealmSliceNew)
@@ -183,18 +221,10 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmslicedeactivate", realmslice.RealmSliceDeactivate)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/realmSliceApps/:id", realmslice.RealmSliceApps)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/RealmSlicePurge", realmslice.RealmSlicePurge)
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/realmslicelist", realmslice.RealmSliceList)
-	// auth
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/useractivate/:userid", auth.UserActivate)
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/userdeactivate/:userid", auth.UserDeactivate)
-	// config management
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/configSet", config.ConfigSet)
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/configGet", config.ConfigGet)
-	// capability
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/capget/:userid", capability.CapGet)
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/caplist", capability.CapList)
 
-	// appServerPort := 8080
+	// capabilities
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/capgrant", capability.CapGrant)
+
 	appServerPortStr := strconv.Itoa(appServerPort)
 	r.Run(":" + appServerPortStr)
 	if err != nil {
