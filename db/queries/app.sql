@@ -60,3 +60,5 @@ WHERE
 a.realm= @realm;
 
 
+-- name: GetAppNames :many
+SELECT shortname FROM app WHERE realm = @realm;

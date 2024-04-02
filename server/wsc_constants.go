@@ -57,4 +57,6 @@ const (
 	ErrCode_No_record_Found                                       = "no_record_found"
 	ErrCode_Invalid_Timestamp                                     = "invalid timestamp"
 	ErrCode_Invalid_User                                          = "invalid_user"
+	ErrCode_Capability_Does_Not_Exist                             = "cap_does_not_exist"
+	ErrCode_App_Does_Not_Exist                                    = "app_does_not_exist"
 )

@@ -121,10 +121,36 @@ func CapGrant(c *gin.Context, s *service.Service) {
 		caplc := strings.ToLower(cap)
 		if slices.Contains(CAPLIST_REALMLEVEL, caplc) {
 			realmcaps = append(realmcaps, caplc)
-		}
-		if slices.Contains(CAPLIST_APPLEVEL, caplc) {
+		} else if slices.Contains(CAPLIST_APPLEVEL, caplc) {
 			appcaps = append(appcaps, caplc)
+		} else {
+			feildName := "cap"
+			lh.Error(err).Log("error while verifying whether caplist contains valid capability")
+			errmsg := wscutils.BuildErrorMessage(server.MsgId_Missing, server.ErrCode_Capability_Does_Not_Exist, &feildName, caplc)
+			wscutils.SendErrorResponse(c, &wscutils.Response{Status: wscutils.ErrorStatus, Data: nil, Messages: []wscutils.ErrorMessage{errmsg}})
+			return
 		}
+	}
+
+	// validating app
+	appNames, err := query.GetAppNames(c, realmName)
+	if err != nil {
+		lh.Error(err).Log("error while validating app")
+		errmsg := db.HandleDatabaseError(err)
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+		return
+	}
+
+	for _, app := range appNames {
+		applc := strings.ToLower(app)
+		if !slices.Contains(appNames, applc) {
+			feildName := "app"
+			lh.Error(err).Log("error while verifying whether applist congtains valid apps")
+			errmsg := wscutils.BuildErrorMessage(server.MsgId_Missing, server.ErrCode_App_Does_Not_Exist, &feildName, applc)
+			wscutils.SendErrorResponse(c, &wscutils.Response{Status: wscutils.ErrorStatus, Data: nil, Messages: []wscutils.ErrorMessage{errmsg}})
+			return
+		}
+
 	}
 
 	// granting Realm Capability
@@ -162,6 +188,9 @@ func CapGrant(c *gin.Context, s *service.Service) {
 			return
 		}
 	}
+
+	lh.Log("Finished execution of capGrant")
+	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(nil))
 
 }
 

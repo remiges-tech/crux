@@ -118,6 +118,11 @@ func capGrantTestcase() []testutils.TestCasesStruct {
 				},
 			},
 			ExpectedHttpCode: http.StatusOK,
+			ExpectedResult: &wscutils.Response{
+				Status:   wscutils.SuccessStatus,
+				Data:     nil,
+				Messages: nil,
+			},
 		},
 		{
 			Name: " SUCCESS : Granting Only App Level Capabilities",
@@ -131,6 +136,11 @@ func capGrantTestcase() []testutils.TestCasesStruct {
 				},
 			},
 			ExpectedHttpCode: http.StatusOK,
+			ExpectedResult: &wscutils.Response{
+				Status:   wscutils.SuccessStatus,
+				Data:     nil,
+				Messages: nil,
+			},
 		},
 		{
 			Name: " SUCCESS : Granting both App and Realm Level Capabilities",
@@ -144,6 +154,11 @@ func capGrantTestcase() []testutils.TestCasesStruct {
 				},
 			},
 			ExpectedHttpCode: http.StatusOK,
+			ExpectedResult: &wscutils.Response{
+				Status:   wscutils.SuccessStatus,
+				Data:     nil,
+				Messages: nil,
+			},
 		},
 
 		{

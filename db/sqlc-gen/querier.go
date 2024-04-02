@@ -36,6 +36,7 @@ type Querier interface {
 	GetApp(ctx context.Context, arg GetAppParams) (string, error)
 	GetAppList(ctx context.Context, realm string) ([]GetAppListRow, error)
 	GetAppName(ctx context.Context, arg GetAppNameParams) ([]App, error)
+	GetAppNames(ctx context.Context, realm string) ([]string, error)
 	GetCapGrantForApp(ctx context.Context, arg GetCapGrantForAppParams) ([]Capgrant, error)
 	GetClass(ctx context.Context, arg GetClassParams) (string, error)
 	GetRealmSliceListByRealm(ctx context.Context, realm string) ([]GetRealmSliceListByRealmRow, error)
