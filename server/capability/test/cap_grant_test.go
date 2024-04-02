@@ -13,56 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// {
-// 	"data":{
-// 	  "user": "kanchan@gmail.com",
-// 	  "app": [ "nedbank" ],
-// 	  "cap": [ "root", "config" ],
-// 	  "from": "2024-05-20T10:05:00Z",
-// 	  "to": "2024-05-31T10:05:00Z"
-// 	}
-//   }    only realm level
-
-// {
-// 	"data":{
-// 	  "user": "kanchan@gmail.com",
-// 	  "app": [ "nedbank","retailbank","retailbank1"],
-// 	  "cap": [ "schema", "rules" ],
-// 	  "from": "2024-05-20T10:05:00Z",
-// 	  "to": "2024-05-31T10:05:00Z"
-// 	}
-//   }   only app level
-
-// {
-// 	"data":{
-// 	  "user": "kanchan@gmail.com",
-// 	  "app": [ "nedbank","retailbank","retailbank1"],
-// 	  "cap": [ "schema", "root" ],
-// 	  "from": "2024-05-20T10:05:00Z",
-// 	  "to": "2024-05-31T10:05:00Z"
-// 	}
-//   }   mix
-
-// {
-// 	"data":{
-// 	  "user": "kanchan@gmail.com",
-// 	  "app": [ "nedbank","retailbank","retailbank1"],
-// 	  "cap": [ "schema", "root" ],
-// 	  "from": "2024-05-20T10:05:00Z",
-// 	  "to": "2024-05-31T10:05:00Z"
-// 	}
-//   }   // invalid user
-
-// {
-// 	"data":{
-// 	  "user": "kanchan@gmail.com",
-// 	  "app": [ "nedbank","retailbank","retailbank1"],
-// 	  "cap": [ "schema", "root" ],
-// 	  "from": "2022-05-20T10:05:00Z",
-// 	  "to": "2024-05-31T10:05:00Z"
-// 	}
-//   }   // invalid time
-
 func TestCapGrant(t *testing.T) {
 	testCases := capGrantTestcase()
 	for _, tc := range testCases {
