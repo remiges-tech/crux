@@ -223,3 +223,27 @@ func (q *Queries) GetAppName(ctx context.Context, arg GetAppNameParams) ([]App, 
 	}
 	return items, nil
 }
+
+const getAppNames = `-- name: GetAppNames :many
+SELECT shortname FROM app WHERE realm = $1
+`
+
+func (q *Queries) GetAppNames(ctx context.Context, realm string) ([]string, error) {
+	rows, err := q.db.Query(ctx, getAppNames, realm)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var shortname string
+		if err := rows.Scan(&shortname); err != nil {
+			return nil, err
+		}
+		items = append(items, shortname)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
