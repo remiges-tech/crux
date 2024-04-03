@@ -1,0 +1,14 @@
+{
+    "status": "error",
+    "data": null,
+    "messages": [
+        {
+            "msgid": 1013,
+            "errcode": "app_does_not_exist",
+            "field": "app",
+            "vals": [
+                "nedbank"
+            ]
+        }
+    ]
+}

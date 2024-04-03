@@ -225,7 +225,7 @@ func (q *Queries) GetAppName(ctx context.Context, arg GetAppNameParams) ([]App, 
 }
 
 const getAppNames = `-- name: GetAppNames :many
-SELECT shortname FROM app WHERE realm = $1
+SELECT shortnamelc FROM app WHERE realm = $1
 `
 
 func (q *Queries) GetAppNames(ctx context.Context, realm string) ([]string, error) {
@@ -236,11 +236,11 @@ func (q *Queries) GetAppNames(ctx context.Context, realm string) ([]string, erro
 	defer rows.Close()
 	var items []string
 	for rows.Next() {
-		var shortname string
-		if err := rows.Scan(&shortname); err != nil {
+		var shortnamelc string
+		if err := rows.Scan(&shortnamelc); err != nil {
 			return nil, err
 		}
-		items = append(items, shortname)
+		items = append(items, shortnamelc)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

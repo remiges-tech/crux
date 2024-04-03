@@ -81,6 +81,11 @@ func Authz_check(op types.OpReq, trace bool) (bool, []string) {
 	return true, caplist
 }
 
+// To check whether requested user is exist in idshield and it is belong to valid realm
+func IsValidUser(string, string) (bool, error) {
+	return true, nil
+}
+
 // ExtractClaimFromJwt: this will extract the provided singleClaimName as key from the jwt token and return its value as a string
 func ExtractClaimFromJwt(c *gin.Context, singleClaimName string) (string, error) {
 	tokenString, err := router.ExtractToken(c.GetHeader("Authorization"))

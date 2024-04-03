@@ -50,7 +50,7 @@ and ((@app::text[] is null) OR ( app = any(@app::text[])))
 and ((@cap::text[] is null) OR ( cap = any(@cap::text[])));
 
 -- name: UpdateCapGranForUser :exec
-UPDATE capgrant set cap = NULL WHERE "user" = @userId;
+UPDATE capgrant set cap = NULL WHERE "user" = @userId AND realm = @realm;
 
 -- name: GetUserRealm :many
 SELECT  realm  FROM capgrant  WHERE "user" = @userId;
@@ -61,6 +61,7 @@ VALUES(@realm, @userId,unnest(@cap::text []), sqlc.narg ('from') ,sqlc.narg('to'
 
 -- name: GrantAppCapability :exec
 INSERT INTO capgrant (realm, "user", app, cap, "from", "to", setat, setby)
+<<<<<<< Updated upstream
 SELECT
     @realm,
     @userId,
@@ -101,3 +102,17 @@ WHERE @app::text [];
 SELECT count(*)
 FROM capgrant
 WHERE @cap::text [];
+=======
+VALUES (@realm, @userId, @app, @cap, sqlc.narg('from'), sqlc.narg('to'), NOW() AT TIME ZONE 'UTC', @setby);
+
+-- -- name: GetUserCapsByRealm :many
+-- SELECT  cap  FROM capgrant  WHERE "user" = @userId and realm = @realm and ((@app::text[] is null) OR  (app = any(@app::text[])));
+
+
+-- name: GetUserCapsByRealm :many
+SELECT  cap  FROM capgrant  WHERE "user" = @userId and realm = @realm;
+
+-- name: GetUserCapsAndAppsByRealm :many
+SELECT  cap ,app FROM capgrant  WHERE "user" = @userId and realm = @realm and app= any(@app::text[]);
+
+>>>>>>> Stashed changes
