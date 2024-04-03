@@ -166,7 +166,7 @@ func DoMarkDone(s *service.Service, c *gin.Context, queries *sqlc.Queries, markD
 			return response, nil
 		}
 
-		if len(actionset.Tasks) >= 1 {
+		if len(actionset.Tasks) > 1 {
 			// Has more than one task then delete the old record from wfinstance and create fresh records, one per task
 
 			// call addTasks
@@ -198,17 +198,13 @@ func DoMarkDone(s *service.Service, c *gin.Context, queries *sqlc.Queries, markD
 			}
 			return response, nil
 		} else {
-			// Update the old record in wfinstance to set the value of "step" = the task returned
-
 			markDoneReq.Step = actionset.Tasks[0]
-			UpdateWFInstanceStep(markDoneReq, actionset.Tasks[0])
-			// param := ResponseData{
-			// 	Step: actionset.Tasks[0],
-			// }
+			markDoneReq.Id = currentwfinstance.ID
+			UpdateWFInstanceStep(markDoneReq, actionset.Tasks[0], ruleset.SetName)
 			response = wfinstance.WFInstanceNewResponse{
-				Tasks: []map[string]int32{{markDoneReq.Step: 1}}, //have to give instance id instead of 1
+				Tasks: []map[string]int32{{markDoneReq.Step: markDoneReq.Id}},
 			}
-			return response, nil // Return the task and other data in response
+			return response, nil
 		}
 	}
 	// We come here knowing that the previous step didn't fail. We can now proceed to the next step; the previous step was successful
@@ -245,7 +241,7 @@ func DoMarkDone(s *service.Service, c *gin.Context, queries *sqlc.Queries, markD
 			return response, nil
 		}
 
-		if len(actionset.Tasks) >= 1 {
+		if len(actionset.Tasks) > 1 {
 			// Has more than one task then delete the old record from wfinstance and create fresh records, one per task
 			// Return the full set of tasks and their record IDs
 
@@ -288,17 +284,13 @@ func DoMarkDone(s *service.Service, c *gin.Context, queries *sqlc.Queries, markD
 			}
 			return response, nil
 		} else {
-			// Update the old record in wfinstance to set the value of "step" = the task returned
-
 			markDoneReq.Step = actionset.Tasks[0]
-			UpdateWFInstanceStep(markDoneReq, actionset.Tasks[0])
-			// param := ResponseData{
-			// 	Step: actionset.Tasks[0],
-			// }
+			markDoneReq.Id = currentwfinstance.ID
+			UpdateWFInstanceStep(markDoneReq, actionset.Tasks[0], ruleset.SetName)
 			response = wfinstance.WFInstanceNewResponse{
-				Tasks: []map[string]int32{{markDoneReq.Step: currentwfinstance.ID}},
+				Tasks: []map[string]int32{{markDoneReq.Step: markDoneReq.Id}},
 			}
-			return response, nil // Return the task and other data in response
+			return response, nil
 		}
 	} else if recordcount > 1 {
 		// At this point, we have found multiple records with the same entity ID and workflow, which means they differ only in the value of "step"
@@ -362,7 +354,7 @@ func DoMarkDone(s *service.Service, c *gin.Context, queries *sqlc.Queries, markD
 				return response, nil
 			}
 
-			if len(actionset.Tasks) >= 1 {
+			if len(actionset.Tasks) > 1 {
 				// Delete the old record from wfinstance and create fresh records, one per task
 				// Return the full set of tasks and their record IDs
 				err := deleteWFInstance(markDoneReq)
@@ -400,32 +392,15 @@ func DoMarkDone(s *service.Service, c *gin.Context, queries *sqlc.Queries, markD
 				}
 				return response, nil
 			} else {
-				// Update the old record in wfinstance to set the value of "step" to the task returned
-				// Return the task and other data in response
-				// taskMap := make(map[string]int32)
-				// taskMap[actionset.Tasks[0]] = markDoneReq.Id
-
-				// param := ResponseData{
-				// 	Tasks:    []map[string]int32{taskMap},
-				// 	Loggedat: time.Now(), // Assuming Loggedat is a pgtype.Timestamp
-				// }
-				// respo
-
-				UpdateWFInstanceStep(markDoneReq, actionset.Tasks[0])
-				return response, nil // Return the task and other data in response
-				// Update the old record in wfinstance to set the value of "step" = the task returned
-
 				markDoneReq.Step = actionset.Tasks[0]
-				UpdateWFInstanceStep(markDoneReq, actionset.Tasks[0])
-				// param := ResponseData{
-				// 	Step: actionset.Tasks[0],
-				// }
+				markDoneReq.Id = currentwfinstance.ID
+				UpdateWFInstanceStep(markDoneReq, actionset.Tasks[0], ruleset.SetName)
 				response = wfinstance.WFInstanceNewResponse{
-					Tasks: []map[string]int32{{markDoneReq.Step: 1}}, //have to give instance id instead of 1
+					Tasks: []map[string]int32{{markDoneReq.Step: markDoneReq.Id}},
 				}
-				return response, nil // Return the task and other data in response
-
+				return response, nil
 			}
+
 		} else {
 			// We come here when our current step is one of a set of concurrent steps
 			// and one or more of the other concurrent steps is yet to complete.

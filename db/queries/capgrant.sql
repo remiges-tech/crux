@@ -73,3 +73,31 @@ SELECT
 FROM
     unnest(@app::text[]) AS app,
     unnest(@cap::text[]) AS cap;
+
+
+-- name: CapRevoke :execresult
+DELETE FROM capgrant 
+WHERE ((sqlc.narg('cap')::text [] is null) OR (capgrant.cap = any (@cap::text [])))
+AND ((sqlc.narg('app')::text [] is null) OR (capgrant.app = any (@app::text [])))
+AND capgrant.user = $1;
+
+
+-- name: CountOfRootCapUser :one
+SELECT count(1)
+FROM capgrant
+WHERE cap = 'root';
+
+-- name: UserExists :one
+SELECT count(*)
+FROM capgrant
+WHERE "user" = $1;
+
+-- name: AppExists :one
+SELECT count(*)
+FROM capgrant
+WHERE @app::text [];
+
+-- name: CapExists :one
+SELECT count(*)
+FROM capgrant
+WHERE @cap::text [];

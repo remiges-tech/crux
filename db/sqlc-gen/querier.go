@@ -18,16 +18,20 @@ type Querier interface {
 	AllSchemas(ctx context.Context) ([]Schema, error)
 	AppDelete(ctx context.Context, arg AppDeleteParams) error
 	AppExist(ctx context.Context, app string) (int32, error)
+	AppExists(ctx context.Context, app []string) (int64, error)
 	AppNew(ctx context.Context, arg AppNewParams) ([]App, error)
 	AppUpdate(ctx context.Context, arg AppUpdateParams) error
+	CapExists(ctx context.Context, cap []string) (int64, error)
 	CapGet(ctx context.Context, arg CapGetParams) ([]CapGetRow, error)
 	CapList(ctx context.Context, arg CapListParams) ([]CapListRow, error)
+	CapRevoke(ctx context.Context, arg CapRevokeParams) (pgconn.CommandTag, error)
 	CloneRecordInConfigBySliceID(ctx context.Context, arg CloneRecordInConfigBySliceIDParams) (pgconn.CommandTag, error)
 	CloneRecordInRealmSliceBySliceID(ctx context.Context, arg CloneRecordInRealmSliceBySliceIDParams) (int32, error)
 	CloneRecordInRulesetBySliceID(ctx context.Context, arg CloneRecordInRulesetBySliceIDParams) (pgconn.CommandTag, error)
 	CloneRecordInSchemaBySliceID(ctx context.Context, arg CloneRecordInSchemaBySliceIDParams) (pgconn.CommandTag, error)
 	ConfigGet(ctx context.Context, realm string) ([]ConfigGetRow, error)
 	ConfigSet(ctx context.Context, arg ConfigSetParams) error
+	CountOfRootCapUser(ctx context.Context) (int64, error)
 	DeactivateRecord(ctx context.Context, arg DeactivateRecordParams) error
 	DeleteCapGranForApp(ctx context.Context, arg DeleteCapGranForAppParams) error
 	DeleteWFInstanceListByParents(ctx context.Context, arg DeleteWFInstanceListByParentsParams) ([]Wfinstance, error)
@@ -69,6 +73,7 @@ type Querier interface {
 	UpdateWFInstanceStep(ctx context.Context, arg UpdateWFInstanceStepParams) error
 	UserActivate(ctx context.Context, arg UserActivateParams) (Capgrant, error)
 	UserDeactivate(ctx context.Context, arg UserDeactivateParams) (Capgrant, error)
+	UserExists(ctx context.Context, user string) (int64, error)
 	WfPatternSchemaGet(ctx context.Context, arg WfPatternSchemaGetParams) ([]byte, error)
 	WfSchemaGet(ctx context.Context, arg WfSchemaGetParams) (Schema, error)
 	WfSchemaList(ctx context.Context, arg WfSchemaListParams) ([]WfSchemaListRow, error)

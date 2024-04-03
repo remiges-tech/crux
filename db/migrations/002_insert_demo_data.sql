@@ -209,6 +209,13 @@ VALUES (14,
         '2023-12-29 00:00:00',
         'user');
 
+INSERT INTO capgrant (id,realm, "user", app, cap, "from", "to", setby) VALUES
+(15,'BSE', 'john_doe', 'starmf', 'read', '2023-01-01', '2023-12-31', 'admin'),
+(16,'BSE', 'jane_smith', 'hdfcbank', 'write', '2023-02-15', NULL, 'manager'),
+(17,'BSE', 'amit_patel', 'nedbank', 'write', '2023-03-01', NULL, 'team_lead'),
+(18,'BSE', 'neha_gupta', 'uccapp', 'admin', '2023-01-01', '2024-01-01', 'admin');
+
+
 -- config TABLE
 
 INSERT INTO config (realm, slice, name, descr, val, setby)
@@ -350,6 +357,19 @@ VALUES (17,
         '2023-10-21T17:39:11Z',
         'Brunhilde Bampkin');
 
+INSERT INTO "schema"
+VALUES (19,
+        'BSE',
+        13,
+        'uccapp',
+        'W',
+        'ucc_aof',
+        '[{"attr":"step","vals":{"sendtorta":{},"getsigneddocument":{}},"valtype":"enum","longdesc":"","shortdesc":""},{"attr":"stepfailed","valtype":"bool","longdesc":"","shortdesc":""},{"attr":"aofexists","valtype":"bool","longdesc":"","shortdesc":""},{"attr":"mode","vals":{"demat":{},"physical":{}},"valtype":"enum","longdesc":"","shortdesc":""}]',
+        '{"tasks":["getsigneddocument","sendtorta"],"properties":["nextstep","done"]}',
+        '2020-03-10T12:06:40Z',
+        'Marigold Sherwin',
+        '2023-10-21T17:39:11Z',
+        'Brunhilde Bampkin');
 
 INSERT INTO "schema"
 VALUES (18,
@@ -438,6 +458,23 @@ VALUES (8,
         '2024-01-15T00:00:00Z',
         'admin');
 
+INSERT INTO ruleset (id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby, editedat, editedby)
+VALUES (11,
+       'BSE',
+        13,
+        'uccapp',
+        'ucc_aof',
+        'W',
+        'aofworkflow',
+        true,
+        false,
+        19,
+        '[{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":["getsigneddocument"],"properties":{"nextstep":"getsigneddocument"}},"rulePattern":[{"op":"eq","val":"start","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":false,"attr":"aofexists"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":["sendtorta"],"properties":{"nextstep":"sendtorta"}},"rulePattern":[{"op":"eq","val":"getsigneddocument","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":false,"attr":"aofexists"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":[],"properties":{"done":"true"}},"rulePattern":[{"op":"eq","val":"getsigneddocument","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":false,"attr":"aofexists"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":[],"properties":{"done":"true"}},"rulePattern":[{"op":"eq","val":"getsigneddocument","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":true,"attr":"aofexists"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":[],"properties":{"done":"true"}},"rulePattern":[{"op":"eq","val":"sendtorta","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":[],"properties":{"done":"true"}},"rulePattern":[{"op":"eq","val":"sendtorta","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"}]}]',
+        '2024-01-28T00:00:00Z',
+        'admin',
+        '2024-01-15T00:00:00Z',
+        'admin');
+
 
 INSERT INTO ruleset (id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby, editedat, editedby)
 VALUES (9,
@@ -489,8 +526,8 @@ VALUES (12,
         'diwalisale',
         'dodiscountcheck');
 
-insert into stepworkflow values (13, 'starmf', 'aof', 'aofworkflow');
-insert into stepworkflow values (13, 'starmf', 'dpandbankaccvalid', 'dpandbankaccvalidWorkflow');
+insert into stepworkflow values (13, 'uccapp', 'aof', 'aofworkflow');
+-- insert into stepworkflow values (13, 'starmf', 'dpandbankaccvalid', 'dpandbankaccvalidWorkflow');
 
 --  for test case
 

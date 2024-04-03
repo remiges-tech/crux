@@ -1,13 +1,13 @@
 package server
 
 import (
-	"reflect"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"log"
 	"os"
+	"reflect"
 	"slices"
 	"strings"
 
@@ -142,7 +142,7 @@ func HandleCruxError(errs []error) []wscutils.ErrorMessage {
 				vErr := wscutils.BuildErrorMessage(MsgId_Invalid, ErrCode_Does_Not_Contain_Both_Properties_Nextstep_And_Done, &cruxErr.FieldName, cruxErr.Vals)
 				validationErrors = append(validationErrors, vErr)
 			case "NotMatch":
-				vErr := wscutils.BuildErrorMessage(MsgId_Invalid, ErrCode_Does_Not_Contain_Both_Properties_Nextstep_And_Done, &cruxErr.FieldName, cruxErr.Vals)
+				vErr := wscutils.BuildErrorMessage(MsgId_Invalid, ErrCode_Attr_val_not_match, &cruxErr.FieldName, cruxErr.Vals)
 				validationErrors = append(validationErrors, vErr)
 			default:
 				vErr := wscutils.BuildErrorMessage(MsgId_Invalid_Request, ErrCode_InvalidRequest, &cruxErr.FieldName, cruxErr.Vals)
@@ -155,5 +155,5 @@ func HandleCruxError(errs []error) []wscutils.ErrorMessage {
 }
 
 func IsZeroOfUnderlyingType(x interface{}) bool {
-    return reflect.DeepEqual(x, reflect.Zero(reflect.TypeOf(x)).Interface())
+	return reflect.DeepEqual(x, reflect.Zero(reflect.TypeOf(x)).Interface())
 }

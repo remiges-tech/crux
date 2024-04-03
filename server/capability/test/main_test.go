@@ -149,7 +149,7 @@ func registerRoutes(databaseUrl string) (*gin.Engine, error) {
 	s.RegisterRoute(http.MethodGet, "/capget/:userid", capability.CapGet)
 	s.RegisterRoute(http.MethodGet, "/caplist", capability.CapList)
 	s.RegisterRoute(http.MethodPost, "/capgrant", capability.CapGrant)
-
+	s.RegisterRoute(http.MethodPost, "/caprewoke", capability.CapRevoke)
 
 	return r, nil
 

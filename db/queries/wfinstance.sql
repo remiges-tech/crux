@@ -21,12 +21,12 @@ RETURNING *;
 UPDATE public.wfinstance
 SET step = $1
 WHERE
-    entityid = $2
+    id = $2
     AND slice = $3
     AND app = $4
     AND workflow = $5;
+    
 -- name: UpdateWFInstanceDoneat :exec
-
 UPDATE public.wfinstance
 SET 
     doneat = $1 -- Set doneat to the provided timestamp
@@ -48,11 +48,11 @@ WHERE
 
 -- name: DeleteWFInstances :exec
 DELETE FROM
-    public.wfinstance
+    wfinstance
 WHERE
-    entityid = $1
-    AND slice = $2
-    AND app = $3;
+     wfinstance.entityid IN (SELECT wfinstance.entityid FROM wfinstance WHERE wfinstance.id = $1)
+    AND wfinstance.slice = $2
+    AND wfinstance.app = $3;
 
 -- name: GetWFInstanceList :many
 SELECT * FROM wfinstance

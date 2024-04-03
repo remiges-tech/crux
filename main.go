@@ -224,9 +224,9 @@ func main() {
 
 	// capabilities
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/capgrant", capability.CapGrant)
-
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/caprevoke", capability.CapRevoke)
 	appServerPortStr := strconv.Itoa(appServerPort)
-	r.Run(":" + appServerPortStr)
+	err = r.Run(":" + appServerPortStr)
 	if err != nil {
 		l.LogActivity("Failed to start server", err)
 		log.Fatalf("Failed to start server: %v", err)
