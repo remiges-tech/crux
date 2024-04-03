@@ -18,11 +18,11 @@ func deleteWFInstance(entity Markdone_t) error {
 	if err != nil {
 		log.Fatal("Failed to convert string to int32:", err)
 	}
-	id := strconv.Itoa(int(entity.Id))
+	// id := strconv.Itoa(int(entity.Id))
 	params := sqlc.DeleteWFInstancesParams{
-		Slice:    int32(sliceInt),
-		App:      entity.Entity.App,
-		Entityid: id,
+		Slice: int32(sliceInt),
+		App:   entity.Entity.App,
+		ID:    int32(entity.Id),
 	}
 	return queryDbq.DeleteWFInstances(context.Background(), params)
 }
@@ -47,19 +47,19 @@ func GetWFInstanceCountForEntity(queries *sqlc.Queries, entity Markdone_t, workf
 	return count, err
 
 }
-func UpdateWFInstanceStep(entity Markdone_t, step string) error {
+func UpdateWFInstanceStep(entity Markdone_t, step string, workflowname string) error {
 
 	sliceInt, err := strconv.Atoi(entity.Entity.Slice)
 	if err != nil {
 		log.Fatal("Failed to convert string to int32:", err)
 		return err
 	}
-	id := strconv.Itoa(int(entity.Id))
 	params := sqlc.UpdateWFInstanceStepParams{
-		Slice:    int32(sliceInt),
-		App:      entity.Entity.App,
-		Entityid: id,
-		Step:     step,
+		Slice: int32(sliceInt),
+		App:   entity.Entity.App,
+		ID:    int32(entity.Id),
+		Step:  step,
+		Workflow: workflowname,
 	}
 
 	return queryDbq.UpdateWFInstanceStep(context.Background(), params)

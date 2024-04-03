@@ -90,6 +90,18 @@ func AddTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanc
 			subflow[workflow.Step] = workflow.Workflow
 		}
 
+		// if err == nil {
+		// 	subflow[workflow.Step] = workflow.Workflow
+		// }
+
+		// if err != nil {
+		// err.Is(noexist) {
+		//	continue
+		// } else {
+
+		// }
+		// }
+
 	}
 
 	// To get response

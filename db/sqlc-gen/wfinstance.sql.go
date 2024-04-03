@@ -120,21 +120,21 @@ func (q *Queries) DeleteWFInstanceListByParents(ctx context.Context, arg DeleteW
 
 const deleteWFInstances = `-- name: DeleteWFInstances :exec
 DELETE FROM
-    public.wfinstance
+    wfinstance
 WHERE
-    entityid = $1
-    AND slice = $2
-    AND app = $3
+     wfinstance.entityid IN (SELECT wfinstance.entityid FROM wfinstance WHERE wfinstance.id = $1)
+    AND wfinstance.slice = $2
+    AND wfinstance.app = $3
 `
 
 type DeleteWFInstancesParams struct {
-	Entityid string `json:"entityid"`
-	Slice    int32  `json:"slice"`
-	App      string `json:"app"`
+	ID    int32  `json:"id"`
+	Slice int32  `json:"slice"`
+	App   string `json:"app"`
 }
 
 func (q *Queries) DeleteWFInstances(ctx context.Context, arg DeleteWFInstancesParams) error {
-	_, err := q.db.Exec(ctx, deleteWFInstances, arg.Entityid, arg.Slice, arg.App)
+	_, err := q.db.Exec(ctx, deleteWFInstances, arg.ID, arg.Slice, arg.App)
 	return err
 }
 
@@ -453,7 +453,6 @@ func (q *Queries) GetWFInstanceListForMarkDone(ctx context.Context, arg GetWFIns
 }
 
 const updateWFInstanceDoneat = `-- name: UpdateWFInstanceDoneat :exec
-
 UPDATE public.wfinstance
 SET 
     doneat = $1 -- Set doneat to the provided timestamp
@@ -487,7 +486,7 @@ const updateWFInstanceStep = `-- name: UpdateWFInstanceStep :exec
 UPDATE public.wfinstance
 SET step = $1
 WHERE
-    entityid = $2
+    id = $2
     AND slice = $3
     AND app = $4
     AND workflow = $5
@@ -495,7 +494,7 @@ WHERE
 
 type UpdateWFInstanceStepParams struct {
 	Step     string `json:"step"`
-	Entityid string `json:"entityid"`
+	ID       int32  `json:"id"`
 	Slice    int32  `json:"slice"`
 	App      string `json:"app"`
 	Workflow string `json:"workflow"`
@@ -504,7 +503,7 @@ type UpdateWFInstanceStepParams struct {
 func (q *Queries) UpdateWFInstanceStep(ctx context.Context, arg UpdateWFInstanceStepParams) error {
 	_, err := q.db.Exec(ctx, updateWFInstanceStep,
 		arg.Step,
-		arg.Entityid,
+		arg.ID,
 		arg.Slice,
 		arg.App,
 		arg.Workflow,

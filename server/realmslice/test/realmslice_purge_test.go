@@ -53,7 +53,7 @@ func RealmSlicePurgeTestcase() []testutils.TestCasesStruct {
 		{
 			Name:             "error no realmSlice for  purged",
 			ExpectedHttpCode: http.StatusBadRequest,
-			ExpectedResult:   wscutils.NewErrorResponse(server.MsgId_NotFound, server.ERRCode_No_record_For_Purge),
+			ExpectedResult:   wscutils.NewErrorResponse(server.MsgId_NotFound, server.ErrCode_No_record_For_Purge),
 		},
 	}
 	return realmSliceNeTestcase

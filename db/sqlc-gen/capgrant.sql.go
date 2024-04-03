@@ -8,8 +8,35 @@ package sqlc
 import (
 	"context"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+const appExists = `-- name: AppExists :one
+SELECT count(*)
+FROM capgrant
+WHERE $1::text []
+`
+
+func (q *Queries) AppExists(ctx context.Context, app []string) (int64, error) {
+	row := q.db.QueryRow(ctx, appExists, app)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const capExists = `-- name: CapExists :one
+SELECT count(*)
+FROM capgrant
+WHERE $1::text []
+`
+
+func (q *Queries) CapExists(ctx context.Context, cap []string) (int64, error) {
+	row := q.db.QueryRow(ctx, capExists, cap)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
 
 const capGet = `-- name: CapGet :many
 SELECT app,cap,setby,setat,"from","to" from capgrant WHERE realm = $1 and "user" = $2
@@ -105,6 +132,36 @@ func (q *Queries) CapList(ctx context.Context, arg CapListParams) ([]CapListRow,
 		return nil, err
 	}
 	return items, nil
+}
+
+const capRevoke = `-- name: CapRevoke :execresult
+DELETE FROM capgrant 
+WHERE (($2::text [] is null) OR (capgrant.cap = any ($2::text [])))
+AND (($3::text [] is null) OR (capgrant.app = any ($3::text [])))
+AND capgrant.user = $1
+`
+
+type CapRevokeParams struct {
+	User string   `json:"user"`
+	Cap  []string `json:"cap"`
+	App  []string `json:"app"`
+}
+
+func (q *Queries) CapRevoke(ctx context.Context, arg CapRevokeParams) (pgconn.CommandTag, error) {
+	return q.db.Exec(ctx, capRevoke, arg.User, arg.Cap, arg.App)
+}
+
+const countOfRootCapUser = `-- name: CountOfRootCapUser :one
+SELECT count(1)
+FROM capgrant
+WHERE cap = 'root'
+`
+
+func (q *Queries) CountOfRootCapUser(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, countOfRootCapUser)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }
 
 const deleteCapGranForApp = `-- name: DeleteCapGranForApp :exec
@@ -342,4 +399,17 @@ func (q *Queries) UserDeactivate(ctx context.Context, arg UserDeactivateParams) 
 		&i.Setby,
 	)
 	return i, err
+}
+
+const userExists = `-- name: UserExists :one
+SELECT count(*)
+FROM capgrant
+WHERE "user" = $1
+`
+
+func (q *Queries) UserExists(ctx context.Context, user string) (int64, error) {
+	row := q.db.QueryRow(ctx, userExists, user)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }
