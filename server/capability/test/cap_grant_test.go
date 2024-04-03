@@ -50,65 +50,62 @@ func capGrantTestcase() []testutils.TestCasesStruct {
 	invalidfromTSPtr := &InvalidfromTS
 
 	capGrantTestcase := []testutils.TestCasesStruct{
-		{
-			Name:             "ERROR: Invalid User",
-			RequestPayload:   wscutils.Request{Data: capability.CapGrantRequest{User: "kan@gmail.com", App: &[]string{"nedbank", "retailbank", "retailbank1"}, Cap: []string{"schema", "root"}, From: fromTSPtr, To: toTSPtr}},
-			ExpectedHttpCode: http.StatusBadRequest,
-			TestJsonFile:     "../test/data/cap_grant_invalid_user.json",
-		},
+
 		{
 			Name: " SUCCESS : Granting Only Realm Level Capabilities",
 			RequestPayload: wscutils.Request{
 				Data: capability.CapGrantRequest{
 					User: "kanchan@gmail.com",
-					App:  &[]string{"nedbank"},
+					App:  &[]string{"nedbank1"},
 					Cap:  []string{"root", "config"},
 					From: fromTSPtr,
 					To:   toTSPtr,
 				},
 			},
 			ExpectedHttpCode: http.StatusOK,
-			ExpectedResult: &wscutils.Response{
-				Status:   wscutils.SuccessStatus,
-				Data:     nil,
-				Messages: nil,
-			},
+			TestJsonFile:     "../test/data/cap_grant_success_res.json",
 		},
 		{
 			Name: " SUCCESS : Granting Only App Level Capabilities",
 			RequestPayload: wscutils.Request{
 				Data: capability.CapGrantRequest{
 					User: "kanchan@gmail.com",
-					App:  &[]string{"nedbank", "retailbank", "retailbank1"},
+					App:  &[]string{"nedbank1", "retailbank", "hdfcbank"},
 					Cap:  []string{"schema", "rules"},
 					From: fromTSPtr,
 					To:   toTSPtr,
 				},
 			},
 			ExpectedHttpCode: http.StatusOK,
-			ExpectedResult: &wscutils.Response{
-				Status:   wscutils.SuccessStatus,
-				Data:     nil,
-				Messages: nil,
-			},
+			TestJsonFile:     "../test/data/cap_grant_success_res.json",
 		},
 		{
 			Name: " SUCCESS : Granting both App and Realm Level Capabilities",
 			RequestPayload: wscutils.Request{
 				Data: capability.CapGrantRequest{
 					User: "kanchan@gmail.com",
-					App:  &[]string{"nedbank", "retailbank", "retailbank1"},
+					App:  &[]string{"nedbank1", "retailbank", "hdfcbank"},
 					Cap:  []string{"schema", "root"},
 					From: fromTSPtr,
 					To:   toTSPtr,
 				},
 			},
 			ExpectedHttpCode: http.StatusOK,
-			ExpectedResult: &wscutils.Response{
-				Status:   wscutils.SuccessStatus,
-				Data:     nil,
-				Messages: nil,
+			TestJsonFile:     "../test/data/cap_grant_success_res.json",
+		},
+		{
+			Name: " ERROR : Invalid App",
+			RequestPayload: wscutils.Request{
+				Data: capability.CapGrantRequest{
+					User: "kanchan@gmail.com",
+					App:  &[]string{"nedbank"},
+					Cap:  []string{"schema","root"},
+					From: fromTSPtr,
+					To:   toTSPtr,
+				},
 			},
+			ExpectedHttpCode: http.StatusBadRequest,
+			TestJsonFile:     "../test/data/cap_grant_invalid_app.json",
 		},
 
 		{
@@ -116,7 +113,7 @@ func capGrantTestcase() []testutils.TestCasesStruct {
 			RequestPayload: wscutils.Request{
 				Data: capability.CapGrantRequest{
 					User: "kanchan@gmail.com",
-					App:  &[]string{"nedbank", "retailbank", "retailbank1"},
+					App:  &[]string{"nedbank1", "retailbank", "hdfcbank"},
 					Cap:  []string{"schema", "root"},
 					From: invalidfromTSPtr,
 					To:   toTSPtr,

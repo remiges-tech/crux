@@ -221,6 +221,74 @@ func (q *Queries) GetCapGrantForApp(ctx context.Context, arg GetCapGrantForAppPa
 	return items, nil
 }
 
+const getUserCapsAndAppsByRealm = `-- name: GetUserCapsAndAppsByRealm :many
+SELECT  cap ,app FROM capgrant  WHERE "user" = $1 and realm = $2 and app= any($3::text[])
+`
+
+type GetUserCapsAndAppsByRealmParams struct {
+	Userid string   `json:"userid"`
+	Realm  string   `json:"realm"`
+	App    []string `json:"app"`
+}
+
+type GetUserCapsAndAppsByRealmRow struct {
+	Cap string      `json:"cap"`
+	App pgtype.Text `json:"app"`
+}
+
+func (q *Queries) GetUserCapsAndAppsByRealm(ctx context.Context, arg GetUserCapsAndAppsByRealmParams) ([]GetUserCapsAndAppsByRealmRow, error) {
+	rows, err := q.db.Query(ctx, getUserCapsAndAppsByRealm, arg.Userid, arg.Realm, arg.App)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUserCapsAndAppsByRealmRow
+	for rows.Next() {
+		var i GetUserCapsAndAppsByRealmRow
+		if err := rows.Scan(&i.Cap, &i.App); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getUserCapsByRealm = `-- name: GetUserCapsByRealm :many
+
+
+SELECT  cap  FROM capgrant  WHERE "user" = $1 and realm = $2
+`
+
+type GetUserCapsByRealmParams struct {
+	Userid string `json:"userid"`
+	Realm  string `json:"realm"`
+}
+
+// -- name: GetUserCapsByRealm :many
+// SELECT  cap  FROM capgrant  WHERE "user" = @userId and realm = @realm and ((@app::text[] is null) OR  (app = any(@app::text[])));
+func (q *Queries) GetUserCapsByRealm(ctx context.Context, arg GetUserCapsByRealmParams) ([]string, error) {
+	rows, err := q.db.Query(ctx, getUserCapsByRealm, arg.Userid, arg.Realm)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var cap string
+		if err := rows.Scan(&cap); err != nil {
+			return nil, err
+		}
+		items = append(items, cap)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUserRealm = `-- name: GetUserRealm :many
 SELECT  realm  FROM capgrant  WHERE "user" = $1
 `
@@ -247,39 +315,28 @@ func (q *Queries) GetUserRealm(ctx context.Context, userid string) ([]string, er
 
 const grantAppCapability = `-- name: GrantAppCapability :exec
 INSERT INTO capgrant (realm, "user", app, cap, "from", "to", setat, setby)
-SELECT
-    $1,
-    $2,
-    app,
-    cap,
-    $3,
-    $4,
-    NOW() AT TIME ZONE 'UTC',
-    $5
-FROM
-    unnest($6::text[]) AS app,
-    unnest($7::text[]) AS cap
+VALUES ($1, $2, $3, $4, $5, $6, NOW() AT TIME ZONE 'UTC', $7)
 `
 
 type GrantAppCapabilityParams struct {
 	Realm  string           `json:"realm"`
 	Userid string           `json:"userid"`
+	App    pgtype.Text      `json:"app"`
+	Cap    string           `json:"cap"`
 	From   pgtype.Timestamp `json:"from"`
 	To     pgtype.Timestamp `json:"to"`
 	Setby  string           `json:"setby"`
-	App    []string         `json:"app"`
-	Cap    []string         `json:"cap"`
 }
 
 func (q *Queries) GrantAppCapability(ctx context.Context, arg GrantAppCapabilityParams) error {
 	_, err := q.db.Exec(ctx, grantAppCapability,
 		arg.Realm,
 		arg.Userid,
+		arg.App,
+		arg.Cap,
 		arg.From,
 		arg.To,
 		arg.Setby,
-		arg.App,
-		arg.Cap,
 	)
 	return err
 }
@@ -311,11 +368,16 @@ func (q *Queries) GrantRealmCapability(ctx context.Context, arg GrantRealmCapabi
 }
 
 const updateCapGranForUser = `-- name: UpdateCapGranForUser :exec
-UPDATE capgrant set cap = NULL WHERE "user" = $1
+UPDATE capgrant set cap = NULL WHERE "user" = $1 AND realm = $2
 `
 
-func (q *Queries) UpdateCapGranForUser(ctx context.Context, userid string) error {
-	_, err := q.db.Exec(ctx, updateCapGranForUser, userid)
+type UpdateCapGranForUserParams struct {
+	Userid string `json:"userid"`
+	Realm  string `json:"realm"`
+}
+
+func (q *Queries) UpdateCapGranForUser(ctx context.Context, arg UpdateCapGranForUserParams) error {
+	_, err := q.db.Exec(ctx, updateCapGranForUser, arg.Userid, arg.Realm)
 	return err
 }
 

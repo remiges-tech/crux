@@ -32,9 +32,12 @@ func CapGrant(c *gin.Context, s *service.Service) {
 	lh.Log("Capgrant request received")
 
 	var (
-		request   CapGrantRequest
-		realmcaps []string
-		appcaps   []string
+		request    CapGrantRequest
+		realmcaps  []string
+		appcaps    []string
+		appMap     = make(map[string][]string, 0)
+		realmCapDb []string
+		appCapDb   []sqlc.GetUserCapsAndAppsByRealmRow
 	)
 	userID := "Admin"
 	realmName := "BSE"
@@ -96,65 +99,156 @@ func CapGrant(c *gin.Context, s *service.Service) {
 	}
 
 	// validate whether user contains valid realm
-	realmArr, err := query.GetUserRealm(c, request.User)
+	IsValidUser, err := server.IsValidUser(request.User, realmName)
 	if err != nil {
-		lh.Error(err).Log("error while geting count to verify whether user already exist and belong to realm in capgrant table")
+		lh.Error(err).Log("error while verifying  whether user already exist and belong to realm in capgrant table")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid_User))
 		return
 
 	}
 
-	if !slices.Contains(realmArr, realmName) {
-		lh.Log("error while validating  whether userID belongs to valid realm")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid_User))
-		return
-		// err := query.UpdateCapGranForUser(c, userID)
-		// if err != nil {
-		// 	lh.Error(err).Log("error while deleting caps for Invalid user")
-		// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid_User))
-		// 	return
-		// }
-	}
-
-	// caplist
-	for _, cap := range request.Cap {
-		caplc := strings.ToLower(cap)
-		if slices.Contains(CAPLIST_REALMLEVEL, caplc) {
-			realmcaps = append(realmcaps, caplc)
-		} else if slices.Contains(CAPLIST_APPLEVEL, caplc) {
-			appcaps = append(appcaps, caplc)
-		} else {
-			feildName := "cap"
-			lh.Error(err).Log("error while verifying whether caplist contains valid capability")
-			errmsg := wscutils.BuildErrorMessage(server.MsgId_Missing, server.ErrCode_Capability_Does_Not_Exist, &feildName, caplc)
-			wscutils.SendErrorResponse(c, &wscutils.Response{Status: wscutils.ErrorStatus, Data: nil, Messages: []wscutils.ErrorMessage{errmsg}})
+	// if user is invalid then revoke it's all existing capabilities
+	if !IsValidUser {
+		err = query.UpdateCapGranForUser(c, sqlc.UpdateCapGranForUserParams{
+			Userid: request.User,
+			Realm:  realmName,
+		})
+		if err != nil {
+			lh.Error(err).Log("error while deleting caps for Invalid user")
+			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid_User))
 			return
 		}
 	}
 
 	// validating app
-	appNames, err := query.GetAppNames(c, realmName)
-	if err != nil {
-		lh.Error(err).Log("error while validating app")
-		errmsg := db.HandleDatabaseError(err)
-		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
-		return
-	}
-
-	for _, app := range appNames {
-		applc := strings.ToLower(app)
-		if !slices.Contains(appNames, applc) {
-			feildName := "app"
-			lh.Error(err).Log("error while verifying whether applist congtains valid apps")
-			errmsg := wscutils.BuildErrorMessage(server.MsgId_Missing, server.ErrCode_App_Does_Not_Exist, &feildName, applc)
-			wscutils.SendErrorResponse(c, &wscutils.Response{Status: wscutils.ErrorStatus, Data: nil, Messages: []wscutils.ErrorMessage{errmsg}})
+	if *request.App != nil {
+		appNames, err := query.GetAppNames(c, realmName)
+		if err != nil {
+			lh.Error(err).Log("error while validating app")
+			errmsg := db.HandleDatabaseError(err)
+			wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 			return
+		}
+
+		for _, app := range *request.App {
+			applc := strings.ToLower(app)
+			if !slices.Contains(appNames, applc) {
+				fieldName := "app"
+				lh.Log("error while verifying whether applist contains valid apps")
+				errmsg := wscutils.BuildErrorMessage(server.MsgId_Missing, server.ErrCode_App_Does_Not_Exist, &fieldName, applc)
+				wscutils.SendErrorResponse(c, &wscutils.Response{Status: wscutils.ErrorStatus, Data: nil, Messages: []wscutils.ErrorMessage{errmsg}})
+				return
+			}
+
 		}
 
 	}
 
-	// granting Realm Capability
+	// seperating capabilities
+	for _, cap := range request.Cap {
+		caplc := strings.ToLower(cap)
+		if slices.Contains(CAPLIST_REALMLEVEL, caplc) {
+			realmcaps = append(realmcaps, caplc)
+
+		} else if slices.Contains(CAPLIST_APPLEVEL, caplc) {
+			appcaps = append(appcaps, caplc)
+
+		} else {
+			fieldName := "cap"
+			lh.Log("error while verifying whether caplist contains valid capability")
+			errmsg := wscutils.BuildErrorMessage(server.MsgId_Missing, server.ErrCode_Capability_Does_Not_Exist, &fieldName, caplc)
+			wscutils.SendErrorResponse(c, &wscutils.Response{Status: wscutils.ErrorStatus, Data: nil, Messages: []wscutils.ErrorMessage{errmsg}})
+			return
+		}
+	}
+
+	// adding appcaps agasinst each app in appMap
+	if *request.App != nil {
+		for _, app := range *request.App {
+			for _, cap := range appcaps {
+				appMap[app] = append(appMap[app], cap)
+				lh.Debug0().LogActivity("appMap", appMap)
+			}
+		}
+	}
+
+	// app capabilities
+	if appcaps != nil {
+
+		// getting app and caps from db
+		appCapDb, err = query.GetUserCapsAndAppsByRealm(c, sqlc.GetUserCapsAndAppsByRealmParams{
+			Userid: request.User,
+			Realm:  realmName,
+			App:    *request.App,
+		})
+		if err != nil {
+			errmsg := wscutils.BuildErrorMessage(server.MsgId_Missing, server.ErrCode_Capability_Does_Not_Exist, nil, err.Error())
+			wscutils.SendErrorResponse(c, &wscutils.Response{Status: wscutils.ErrorStatus, Data: nil, Messages: []wscutils.ErrorMessage{errmsg}})
+			return
+		}
+
+		// adding elements in appMap
+		if len(appCapDb) > 0 {
+			for _, app := range appCapDb {
+				if slices.Contains(appMap[app.App.String], app.Cap) {
+					i := slices.Index(appMap[app.App.String], app.Cap)
+					appMap[app.App.String][i] = appMap[app.App.String][len(appMap[app.App.String])-1] // Copy last element to index i.
+					appMap[app.App.String][len(appMap[app.App.String])-1] = ""                        // Erase last element (write zero value).
+					appMap[app.App.String] = appMap[app.App.String][:len(appMap[app.App.String])-1]
+				}
+			}
+		}
+	}
+
+	//granting App Capability
+
+	if len(appMap) > 0 {
+
+		for k, v := range appMap {
+			for _, cap := range v {
+
+				err = query.GrantAppCapability(c, sqlc.GrantAppCapabilityParams{
+					Realm:  realmName,
+					Userid: request.User,
+					App:    pgtype.Text{String: k, Valid: true},
+					Cap:    cap,
+					From:   pgtype.Timestamp{Time: *request.From, Valid: request.From != nil},
+					To:     pgtype.Timestamp{Time: *request.To, Valid: request.To != nil},
+					Setby:  userID,
+				})
+
+			}
+		}
+
+	}
+
+	// getting realmcaps from db
+
 	if realmcaps != nil {
+
+		realmCapDb, err = query.GetUserCapsByRealm(c, sqlc.GetUserCapsByRealmParams{
+			Userid: request.User,
+			Realm:  realmName,
+		})
+		if err != nil {
+			errmsg := wscutils.BuildErrorMessage(server.MsgId_Missing, server.ErrCode_Capability_Does_Not_Exist, nil, err.Error())
+			wscutils.SendErrorResponse(c, &wscutils.Response{Status: wscutils.ErrorStatus, Data: nil, Messages: []wscutils.ErrorMessage{errmsg}})
+			return
+		}
+
+		// extracting realm caps which are already present in db
+		if len(realmCapDb) > 0 {
+			for _, v := range realmCapDb {
+				for k, w := range realmcaps {
+					if v == w {
+						realmcaps = RemoveIndex(realmcaps, k)
+						break
+					}
+				}
+			}
+		}
+
+		// granting realmcapability
 		err = query.GrantRealmCapability(c, sqlc.GrantRealmCapabilityParams{
 			Realm:  realmName,
 			Userid: request.User,
@@ -163,30 +257,13 @@ func CapGrant(c *gin.Context, s *service.Service) {
 			To:     pgtype.Timestamp{Time: *request.To, Valid: request.To != nil},
 			Setby:  userID,
 		})
-		if err != nil {
-			lh.Error(err).Log("error while granting realmCapability")
-			errmsg := db.HandleDatabaseError(err)
-			wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
-			return
-		}
+
 	}
-	if appcaps != nil {
-		//granting App Capability
-		err = query.GrantAppCapability(c, sqlc.GrantAppCapabilityParams{
-			Realm:  realmName,
-			Userid: request.User,
-			App:    *request.App,
-			Cap:    appcaps,
-			From:   pgtype.Timestamp{Time: *request.From, Valid: request.From != nil},
-			To:     pgtype.Timestamp{Time: *request.To, Valid: request.To != nil},
-			Setby:  userID,
-		})
-		if err != nil {
-			lh.Error(err).Log("error while granting appCapability")
-			errmsg := db.HandleDatabaseError(err)
-			wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
-			return
-		}
+	if err != nil {
+		lh.Error(err).Log("error while granting Capabilities")
+		errmsg := db.HandleDatabaseError(err)
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+		return
 	}
 
 	lh.Log("Finished execution of capGrant")
@@ -235,4 +312,9 @@ func validateTimestamp(fromTS, toTS *time.Time) error {
 	}
 
 	return nil
+}
+
+// This function removes particular value at particular index
+func RemoveIndex(s []string, index int) []string {
+	return append(s[:index], s[index+1:]...)
 }
