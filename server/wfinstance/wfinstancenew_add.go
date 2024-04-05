@@ -2,7 +2,7 @@ package wfinstance
 
 import (
 	"errors"
-	"reflect"
+	"fmt"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -22,7 +22,7 @@ type AddTaskRequest struct {
 }
 
 // getResponse request
-type ResponseRequest struct {
+type GetResponse struct {
 	Subflow      map[string]string
 	NextStep     string
 	ResponseData []sqlc.Wfinstance
@@ -46,7 +46,7 @@ func AddTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanc
 	}
 
 	if req.Request.Parent != nil {
-		// convert int32 tp pgtype.Int4
+		// convert int32 to pgtype.Int4
 		parent = ConvertToPGType(*req.Request.Parent)
 	}
 
@@ -76,7 +76,8 @@ func AddTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanc
 				{
 					Field:  "row",
 					OldVal: nil,
-					NewVal: val},
+					NewVal: val,
+				},
 			},
 		})
 	}
@@ -84,49 +85,46 @@ func AddTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanc
 	// To get workflow if step is present in stepworkflow table
 	lh.Debug0().Log("WFInstanceNew||addTasks()||verifying whether step is workflow if it is, then append it to subflow")
 	for _, step := range req.Steps {
-		workflow, _ := query.GetWorkflowNameForStep(c, step)
+		workflow, err := query.GetWorkflowNameForStep(c, step)
 
-		if !reflect.ValueOf(workflow).IsZero() {
-			subflow[workflow.Step] = workflow.Workflow
+		if err != nil {
+			if err.Error() == "no rows in result set" {
+				continue // If no workflow is found, continue to the next step
+			}
+		} else {
+			return response, err
 		}
 
-		// if err == nil {
-		// 	subflow[workflow.Step] = workflow.Workflow
-		// }
-
-		// if err != nil {
-		// err.Is(noexist) {
-		//	continue
-		// } else {
-
-		// }
-		// }
-
+		// Only proceed if err is nils
+		if err == nil {
+			subflow[workflow.Step] = workflow.Workflow
+		}
 	}
 
 	// To get response
-	responseRequest := ResponseRequest{
+	getResponseData := GetResponse{
 		Subflow:      subflow,
 		NextStep:     req.Nextstep,
 		ResponseData: responseData,
 		Service:      s,
 	}
 
-	response = getResponse(responseRequest)
+	response = getResponse(getResponseData)
 	lh.Debug0().LogActivity("response of addTask() :", response)
 	return response, nil
 }
 
 // response structure
-func getResponse(r ResponseRequest) WFInstanceNewResponse {
+func getResponse(r GetResponse) WFInstanceNewResponse {
 	var tasks []map[string]int32
 	var loggedDate pgtype.Timestamp
 	var response WFInstanceNewResponse
 
 	lh := r.Service.LogHarbour.WithClass("wfinstance")
 	lh.Debug0().Log("Inside getResponse()")
-
+	fmt.Println(">>>>>>>>>>>>>responsedata :", r.ResponseData)
 	for _, val := range r.ResponseData {
+
 		// adding tasks
 		task := make(map[string]int32)
 		task[val.Step] = val.ID
@@ -134,7 +132,7 @@ func getResponse(r ResponseRequest) WFInstanceNewResponse {
 		//loggingdates
 		loggedDate = val.Loggedat
 	}
-	//var response WFInstanceNewResponse
+
 	if len(tasks) > 1 {
 		// response for multiple task steps
 		response = WFInstanceNewResponse{

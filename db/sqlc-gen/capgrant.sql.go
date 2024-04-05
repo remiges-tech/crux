@@ -257,8 +257,6 @@ func (q *Queries) GetUserCapsAndAppsByRealm(ctx context.Context, arg GetUserCaps
 }
 
 const getUserCapsByRealm = `-- name: GetUserCapsByRealm :many
-
-
 SELECT  cap  FROM capgrant  WHERE "user" = $1 and realm = $2
 `
 
@@ -267,8 +265,6 @@ type GetUserCapsByRealmParams struct {
 	Realm  string `json:"realm"`
 }
 
-// -- name: GetUserCapsByRealm :many
-// SELECT  cap  FROM capgrant  WHERE "user" = @userId and realm = @realm and ((@app::text[] is null) OR  (app = any(@app::text[])));
 func (q *Queries) GetUserCapsByRealm(ctx context.Context, arg GetUserCapsByRealmParams) ([]string, error) {
 	rows, err := q.db.Query(ctx, getUserCapsByRealm, arg.Userid, arg.Realm)
 	if err != nil {
