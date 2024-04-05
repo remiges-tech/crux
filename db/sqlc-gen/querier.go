@@ -46,8 +46,6 @@ type Querier interface {
 	GetRealmSliceListByRealm(ctx context.Context, realm string) ([]GetRealmSliceListByRealmRow, error)
 	GetSchemaWithLock(ctx context.Context, arg GetSchemaWithLockParams) (GetSchemaWithLockRow, error)
 	GetUserCapsAndAppsByRealm(ctx context.Context, arg GetUserCapsAndAppsByRealmParams) ([]GetUserCapsAndAppsByRealmRow, error)
-	// -- name: GetUserCapsByRealm :many
-	// SELECT  cap  FROM capgrant  WHERE "user" = @userId and realm = @realm and ((@app::text[] is null) OR  (app = any(@app::text[])));
 	GetUserCapsByRealm(ctx context.Context, arg GetUserCapsByRealmParams) ([]string, error)
 	GetUserRealm(ctx context.Context, userid string) ([]string, error)
 	GetWFActiveStatus(ctx context.Context, arg GetWFActiveStatusParams) (pgtype.Bool, error)
