@@ -3,6 +3,7 @@ package capability
 import (
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/types"
+	"github.com/remiges-tech/logharbour/logharbour"
 )
 
 type CapGrantRequest struct {
@@ -35,9 +37,9 @@ func CapGrant(c *gin.Context, s *service.Service) {
 		request    CapGrantRequest
 		realmcaps  []string
 		appcaps    []string
-		appMap     = make(map[string][]string, 0)
 		realmCapDb []string
 		appCapDb   []sqlc.GetUserCapsAndAppsByRealmRow
+		appMap     = make(map[string][]string, 0)
 	)
 	// userID := "Admin"
 	// realmName := "BSE"
@@ -69,7 +71,7 @@ func CapGrant(c *gin.Context, s *service.Service) {
 	}
 
 	// json request binding with a struct
-	err = wscutils.BindJSON(c, &request)
+	err := wscutils.BindJSON(c, &request)
 	if err != nil {
 		lh.Debug0().Error(err).Log("error while binding json request error:")
 		return
@@ -86,7 +88,7 @@ func CapGrant(c *gin.Context, s *service.Service) {
 	// verify timestamp
 	err = validateTimestamp(request.From, request.To)
 	if err != nil {
-		lh.Log("error while validating timestamp")
+		lh.Error(err).Log("error while validating timestamp")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid_Timestamp))
 		return
 	}
@@ -109,35 +111,42 @@ func CapGrant(c *gin.Context, s *service.Service) {
 
 	// if user is invalid then revoke it's all existing capabilities
 	if !IsValidUser {
-		err = query.UpdateCapGranForUser(c, sqlc.UpdateCapGranForUserParams{
+
+		// getting capabilities that are already granted to invalid user
+		capGrantdata, err := query.GetCapGrantForUser(c, sqlc.GetCapGrantForUserParams{
 			Userid: request.User,
 			Realm:  realmName,
 		})
 		if err != nil {
-			lh.Error(err).Log("error while deleting caps for Invalid user")
+			lh.Error(err).Log("error while getting granted capabilities for Invalid user")
 			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid_User))
 			return
 		}
-	}
-
-	// validating app
-	if *request.App != nil {
-		appNames, err := query.GetAppNames(c, realmName)
-		if err != nil {
-			lh.Error(err).Log("error while validating app")
-			errmsg := db.HandleDatabaseError(err)
-			wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
-			return
-		}
-
-		for _, app := range *request.App {
-			applc := strings.ToLower(app)
-			if !slices.Contains(appNames, applc) {
-				fieldName := "app"
-				lh.Log("error while verifying whether applist contains valid apps")
-				errmsg := wscutils.BuildErrorMessage(server.MsgId_Missing, server.ErrCode_App_Does_Not_Exist, &fieldName, applc)
-				wscutils.SendErrorResponse(c, &wscutils.Response{Status: wscutils.ErrorStatus, Data: nil, Messages: []wscutils.ErrorMessage{errmsg}})
+		// revoking capabilities from invalid user
+		if len(capGrantdata) > 0 {
+			err = query.RevokeCapGrantForUser(c, sqlc.RevokeCapGrantForUserParams{
+				Userid: request.User,
+				Realm:  realmName,
+			})
+			if err != nil {
+				lh.Error(err).Log("error while deleting caps for Invalid user")
+				wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid_User))
 				return
+			}
+			// data change log
+			for _, val := range capGrantdata {
+				dclog := lh.WithClass("capGrant").WithInstanceId(strconv.Itoa(int(val.ID)))
+				dclog.LogDataChange("deleted capgrant ", logharbour.ChangeInfo{
+					Entity: "capGrant",
+					Op:     "delete",
+					Changes: []logharbour.ChangeDetail{
+						{
+							Field:  "row",
+							OldVal: val,
+							NewVal: nil,
+						},
+					},
+				})
 			}
 
 		}
@@ -161,15 +170,28 @@ func CapGrant(c *gin.Context, s *service.Service) {
 			return
 		}
 	}
-
-	// adding appcaps agasinst each app in appMap
-	if *request.App != nil {
-		for _, app := range *request.App {
-			for _, cap := range appcaps {
-				appMap[app] = append(appMap[app], cap)
-				lh.Debug0().LogActivity("appMap", appMap)
-			}
+	// validating app
+	if *request.App != nil && appcaps != nil {
+		appNames, err := query.GetAppNames(c, realmName)
+		if err != nil {
+			lh.Error(err).Log("error while getting  appList")
+			errmsg := db.HandleDatabaseError(err)
+			wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+			return
 		}
+
+		for _, app := range *request.App {
+			applc := strings.ToLower(app)
+			if !slices.Contains(appNames, applc) {
+				fieldName := "app"
+				lh.Log("error while verifying whether applist contains valid apps")
+				errmsg := wscutils.BuildErrorMessage(server.MsgId_Missing, server.ErrCode_App_Does_Not_Exist, &fieldName, applc)
+				wscutils.SendErrorResponse(c, &wscutils.Response{Status: wscutils.ErrorStatus, Data: nil, Messages: []wscutils.ErrorMessage{errmsg}})
+				return
+			}
+
+		}
+
 	}
 
 	// app capabilities
@@ -186,22 +208,11 @@ func CapGrant(c *gin.Context, s *service.Service) {
 			wscutils.SendErrorResponse(c, &wscutils.Response{Status: wscutils.ErrorStatus, Data: nil, Messages: []wscutils.ErrorMessage{errmsg}})
 			return
 		}
-
 		// adding elements in appMap
-		if len(appCapDb) > 0 {
-			for _, app := range appCapDb {
-				if slices.Contains(appMap[app.App.String], app.Cap) {
-					i := slices.Index(appMap[app.App.String], app.Cap)
-					appMap[app.App.String][i] = appMap[app.App.String][len(appMap[app.App.String])-1] // Copy last element to index i.
-					appMap[app.App.String][len(appMap[app.App.String])-1] = ""                        // Erase last element (write zero value).
-					appMap[app.App.String] = appMap[app.App.String][:len(appMap[app.App.String])-1]
-				}
-			}
-		}
+		appMap = FilterApp(appCapDb, appcaps, request.App)
 	}
 
 	//granting App Capability
-
 	if len(appMap) > 0 {
 
 		for k, v := range appMap {
@@ -216,6 +227,12 @@ func CapGrant(c *gin.Context, s *service.Service) {
 					To:     pgtype.Timestamp{Time: *request.To, Valid: request.To != nil},
 					Setby:  userID,
 				})
+				if err != nil {
+					lh.Error(err).Log("error while granting  App Capabilities")
+					errmsg := db.HandleDatabaseError(err)
+					wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+					return
+				}
 
 			}
 		}
@@ -223,7 +240,6 @@ func CapGrant(c *gin.Context, s *service.Service) {
 	}
 
 	// getting realmcaps from db
-
 	if realmcaps != nil {
 
 		realmCapDb, err = query.GetUserCapsByRealm(c, sqlc.GetUserCapsByRealmParams{
@@ -231,44 +247,79 @@ func CapGrant(c *gin.Context, s *service.Service) {
 			Realm:  realmName,
 		})
 		if err != nil {
+			lh.Error(err).Log("error while getting realmcaps from db")
 			errmsg := wscutils.BuildErrorMessage(server.MsgId_Missing, server.ErrCode_Capability_Does_Not_Exist, nil, err.Error())
 			wscutils.SendErrorResponse(c, &wscutils.Response{Status: wscutils.ErrorStatus, Data: nil, Messages: []wscutils.ErrorMessage{errmsg}})
 			return
 		}
 
 		// extracting realm caps which are already present in db
-		if len(realmCapDb) > 0 {
-			for _, v := range realmCapDb {
-				for k, w := range realmcaps {
-					if v == w {
-						realmcaps = RemoveIndex(realmcaps, k)
-						break
-					}
-				}
-			}
-		}
+		realmcaps = FilterRealm(realmCapDb, realmcaps)
 
 		// granting realmcapability
-		err = query.GrantRealmCapability(c, sqlc.GrantRealmCapabilityParams{
-			Realm:  realmName,
-			Userid: request.User,
-			Cap:    realmcaps,
-			From:   pgtype.Timestamp{Time: *request.From, Valid: request.From != nil},
-			To:     pgtype.Timestamp{Time: *request.To, Valid: request.To != nil},
-			Setby:  userID,
-		})
+		if realmcaps != nil {
+			err = query.GrantRealmCapability(c, sqlc.GrantRealmCapabilityParams{
+				Realm:  realmName,
+				Userid: request.User,
+				Cap:    realmcaps,
+				From:   pgtype.Timestamp{Time: *request.From, Valid: request.From != nil},
+				To:     pgtype.Timestamp{Time: *request.To, Valid: request.To != nil},
+				Setby:  userID,
+			})
+			if err != nil {
+				lh.Error(err).Log("error while granting realm Capabilities")
+				errmsg := db.HandleDatabaseError(err)
+				wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+				return
+			}
 
-	}
-	if err != nil {
-		lh.Error(err).Log("error while granting Capabilities")
-		errmsg := db.HandleDatabaseError(err)
-		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
-		return
+		}
 	}
 
 	lh.Log("Finished execution of capGrant")
 	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(nil))
 
+}
+
+// this function is used to filter apps from appcaps
+func FilterApp(appCapDb []sqlc.GetUserCapsAndAppsByRealmRow, appcaps []string, apps *[]string) map[string][]string {
+	appMap := make(map[string][]string, 0)
+	// adding appcaps against each app in appMap
+	if *apps != nil {
+		for _, app := range *apps {
+			for _, cap := range appcaps {
+				appMap[app] = append(appMap[app], cap)
+			}
+		}
+	}
+
+	// filtering app and caps based on appCapDb
+	if len(appCapDb) > 0 {
+		for _, app := range appCapDb {
+			if slices.Contains(appMap[app.App.String], app.Cap) {
+				i := slices.Index(appMap[app.App.String], app.Cap)
+				appMap[app.App.String][i] = appMap[app.App.String][len(appMap[app.App.String])-1] // Copy last element to index i.
+				appMap[app.App.String][len(appMap[app.App.String])-1] = ""                        // Erase last element (write zero value).
+				appMap[app.App.String] = appMap[app.App.String][:len(appMap[app.App.String])-1]
+			}
+		}
+	}
+	return appMap
+}
+
+// This function is used to filter db realms from realmcaps
+func FilterRealm(realmCapDb []string, realmcaps []string) []string {
+	if len(realmCapDb) > 0 {
+		for _, v := range realmCapDb {
+			for k, w := range realmcaps {
+				if v == w {
+					realmcaps = RemoveIndex(realmcaps, k)
+					break
+				}
+			}
+		}
+	}
+	return realmcaps
 }
 
 // validating timestamp

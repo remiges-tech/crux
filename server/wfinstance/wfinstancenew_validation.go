@@ -14,25 +14,10 @@ import (
 	"github.com/remiges-tech/crux/server"
 )
 
-func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin.Context) (bool, []wscutils.ErrorMessage) {
+func validateWFInstanceNewReq(r WFInstanceNewRequest, realm string, s *service.Service, c *gin.Context) (bool, []wscutils.ErrorMessage) {
 	lh := s.LogHarbour.WithClass("wfinstance")
 	entity := r.Entity
 	var errRes []wscutils.ErrorMessage
-	// userID, err := server.ExtractUserNameFromJwt(c)
-	// if err != nil {
-	// 	lh.Info().Log("unable to extract userID from token")
-	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
-	// 	errRes := append(errRes, wscutils.BuildErrorMessage(server.MsgId_Missing, server.ERRCode_Token_Data_Missing, nil))
-	// 	return false, errRes
-	// }
-
-	// REALM, err := server.ExtractRealmFromJwt(c)
-	// if err != nil {
-	// 	lh.Info().Log("unable to extract realm from token")
-	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
-	// 	errRes := append(errRes, wscutils.BuildErrorMessage(server.MsgId_Missing, server.ERRCode_Token_Data_Missing, nil))
-	// 	return false, errRes
-	// }
 
 	lh.Debug0().Log("Inside ValidateWFInstaceNewReq()")
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
@@ -42,7 +27,7 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
 		return false, errRes
 	}
 	// Validate request
-	isValidReq, errAry := validateWorkflow(r, s, c, REALM)
+	isValidReq, errAry := validateWorkflow(r, s, c, realm)
 	if len(errAry) > 0 || !isValidReq {
 		lh.Debug0().LogActivity("GetWFinstanceNew||validateWFInstanceNewReq()||invalid request:", errAry)
 		errRes = errAry
@@ -64,7 +49,7 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
 		Slice: r.Slice,
 		Class: class,
 		App:   r.App,
-		Realm: REALM,
+		Realm: realm,
 	})
 	if err != nil {
 		lh.Error(err).Log("GetWFinstanceNew||validateWFInstanceNewReq()||failed to get schema pattern from DB")
@@ -86,7 +71,7 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, s *service.Service, c *gin
 	}
 
 	// Forming  requested entity  into proper Entity struct
-	EntityStruct := getEntityStructure(r)
+	EntityStruct := getEntityStructure(r,realm)
 	lh.Debug1().LogActivity("GetWFinstanceNew||validateWFInstanceNewReq()||entity stucture:", EntityStruct)
 
 	//  To match entity against patternschema
@@ -121,7 +106,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 		Slice: r.Slice,
 		App:   r.App,
 		Class: entityClass,
-		Realm: REALM,
+		Realm: realm,
 	})
 
 	if err != nil {
@@ -135,7 +120,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 		Slice: r.Slice,
 		App:   app,
 		Class: entityClass,
-		Realm: REALM,
+		Realm: realm,
 	})
 
 	if err != nil {
@@ -151,7 +136,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 		Slice:   r.Slice,
 		App:     app,
 		Class:   class,
-		Realm:   REALM,
+		Realm:   realm,
 		Setname: r.Workflow,
 	})
 
@@ -166,7 +151,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 		Slice:   r.Slice,
 		App:     app,
 		Class:   class,
-		Realm:   REALM,
+		Realm:   realm,
 		Setname: r.Workflow,
 	})
 
@@ -249,7 +234,7 @@ func byteToPatternSchema(byteData []byte) (*[]crux.PatternSchema_t, error) {
 }
 
 // To convert request entity into proper Entity structure
-func getEntityStructure(req WFInstanceNewRequest) crux.Entity {
+func getEntityStructure(req WFInstanceNewRequest, realm string) crux.Entity {
 
 	var attributes = make(map[string]string)
 	for key, val := range req.Entity {
@@ -258,12 +243,11 @@ func getEntityStructure(req WFInstanceNewRequest) crux.Entity {
 		}
 	}
 	entityStruct := crux.Entity{
-		Realm: REALM,
+		Realm: realm,
 		App:   req.App,
 		Slice: strconv.Itoa(int(req.Slice)),
 		Class: req.Entity[CLASS],
 		Attrs: attributes,
 	}
-	fmt.Println("entity", entityStruct)
 	return entityStruct
 }
