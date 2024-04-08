@@ -42,6 +42,7 @@ type Querier interface {
 	GetAppName(ctx context.Context, arg GetAppNameParams) ([]App, error)
 	GetAppNames(ctx context.Context, realm string) ([]string, error)
 	GetCapGrantForApp(ctx context.Context, arg GetCapGrantForAppParams) ([]Capgrant, error)
+	GetCapGrantForUser(ctx context.Context, arg GetCapGrantForUserParams) ([]Capgrant, error)
 	GetClass(ctx context.Context, arg GetClassParams) (string, error)
 	GetRealmSliceListByRealm(ctx context.Context, realm string) ([]GetRealmSliceListByRealmRow, error)
 	GetSchemaWithLock(ctx context.Context, arg GetSchemaWithLockParams) (GetSchemaWithLockRow, error)
@@ -65,12 +66,12 @@ type Querier interface {
 	RealmSliceAppsList(ctx context.Context, id int32) ([]RealmSliceAppsListRow, error)
 	RealmSliceDeactivate(ctx context.Context, arg RealmSliceDeactivateParams) (Realmslice, error)
 	RealmSlicePurge(ctx context.Context, realm string) (pgconn.CommandTag, error)
+	RevokeCapGrantForUser(ctx context.Context, arg RevokeCapGrantForUserParams) error
 	RulesetRowLock(ctx context.Context, arg RulesetRowLockParams) (Ruleset, error)
 	SchemaDelete(ctx context.Context, id int32) (int32, error)
 	SchemaGet(ctx context.Context, arg SchemaGetParams) ([]SchemaGetRow, error)
 	SchemaNew(ctx context.Context, arg SchemaNewParams) (int32, error)
 	SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) error
-	UpdateCapGranForUser(ctx context.Context, arg UpdateCapGranForUserParams) error
 	UpdateWFInstanceDoneat(ctx context.Context, arg UpdateWFInstanceDoneatParams) error
 	UpdateWFInstanceStep(ctx context.Context, arg UpdateWFInstanceStepParams) error
 	UserActivate(ctx context.Context, arg UserActivateParams) (Capgrant, error)

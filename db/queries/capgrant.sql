@@ -49,8 +49,12 @@ WHERE realm = @realm
 and ((@app::text[] is null) OR ( app = any(@app::text[])))
 and ((@cap::text[] is null) OR ( cap = any(@cap::text[])));
 
--- name: UpdateCapGranForUser :exec
-UPDATE capgrant set cap = NULL WHERE "user" = @userId AND realm = @realm;
+
+-- name: GetCapGrantForUser :many
+DELETE FROM capgrant  WHERE "user" = @userId AND realm = @realm RETURNING * ;
+
+-- name: RevokeCapGrantForUser :exec
+DELETE FROM capgrant  WHERE "user" = @userId AND realm = @realm ;
 
 -- name: GetUserRealm :many
 SELECT  realm  FROM capgrant  WHERE "user" = @userId;

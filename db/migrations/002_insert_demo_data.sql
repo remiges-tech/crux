@@ -209,11 +209,24 @@ VALUES (14,
         '2023-12-29 00:00:00',
         'user');
 
+
 INSERT INTO capgrant (id,realm, "user", app, cap, "from", "to", setby) VALUES
 (15,'BSE', 'john_doe', 'starmf', 'read', '2023-01-01', '2023-12-31', 'admin'),
 (16,'BSE', 'jane_smith', 'hdfcbank', 'write', '2023-02-15', NULL, 'manager'),
 (17,'BSE', 'amit_patel', 'nedbank', 'write', '2023-03-01', NULL, 'team_lead'),
 (18,'BSE', 'neha_gupta', 'uccapp', 'admin', '2023-01-01', '2024-01-01', 'admin');
+INSERT INTO "capgrant"
+VALUES (19,
+        'BSE',
+        'Raj',
+        'starmf',
+        'schema',
+        '2024-01-29 00:00:00',
+        NULL,
+        '2023-12-29 00:00:00',
+        'user');
+
+
 
 
 -- config TABLE

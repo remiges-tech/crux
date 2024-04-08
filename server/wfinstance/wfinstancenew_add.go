@@ -2,7 +2,6 @@ package wfinstance
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -122,7 +121,6 @@ func getResponse(r GetResponse) WFInstanceNewResponse {
 
 	lh := r.Service.LogHarbour.WithClass("wfinstance")
 	lh.Debug0().Log("Inside getResponse()")
-	fmt.Println(">>>>>>>>>>>>>responsedata :", r.ResponseData)
 	for _, val := range r.ResponseData {
 
 		// adding tasks
