@@ -2,11 +2,12 @@ package breschema
 
 import (
 	"encoding/json"
-	"reflect"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db"
@@ -17,33 +18,18 @@ import (
 	"github.com/remiges-tech/logharbour/logharbour"
 )
 
-type PatternSchema struct {
-	Attr      string   `json:"attr" validate:"required"`
-	ShortDesc string   `json:"shortdesc"`
-	LongDesc  string   `json:"longdesc"`
-	ValType   string   `json:"valtype" validate:"required"`
-	EnumVals  []string `json:"vals,omitempty"`
-	ValMin    float64  `json:"valmin,omitempty"`
-	ValMax    float64  `json:"valmax,omitempty"`
-	LenMin    int      `json:"lenmin,omitempty"`
-	LenMax    int      `json:"lenmax,omitempty"`
-}
-
-func (p PatternSchema) IsEmpty() bool {
-	return reflect.DeepEqual(p, PatternSchema{})
-}
-
-type BRESchemaNewReq struct {
+type BREUpdateSchemaRequest struct {
 	Slice         int32               `json:"slice" validate:"required,gt=0,lt=15"`
-	App           string              `json:"app" validate:"required,alpha,lt=15"`
+	App           string              `json:"App" validate:"required,alpha,lt=15"`
 	Class         string              `json:"class" validate:"required,lowercase,lt=15"`
-	PatternSchema []PatternSchema     `json:"patternSchema" validate:"required,dive"`
-	ActionSchema  crux.ActionSchema_t `json:"actionSchema"`
+	PatternSchema []PatternSchema     `json:"patternSchema,omitempty"`
+	ActionSchema  crux.ActionSchema_t `json:"actionSchema,omitempty"`
 }
 
-func BRESchemaNew(c *gin.Context, s *service.Service) {
+func BRESchemaUpdate(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
-	l.Debug0().Log("starting execution of BRESchemaNew()")
+	l.Debug0().Log("starting execution of BRESchemaUpdate()")
+
 	userID := "abc"
 	realmName := "BSE"
 	// userID, err := server.ExtractUserNameFromJwt(c)
@@ -59,10 +45,10 @@ func BRESchemaNew(c *gin.Context, s *service.Service) {
 	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
 	// 	return
 	// }
-	caps := []string{"schema"}
+	capForUpdate := []string{"schema"}
 	isCapable, _ := server.Authz_check(types.OpReq{
 		User:      userID,
-		CapNeeded: caps,
+		CapNeeded: capForUpdate,
 	}, false)
 
 	if !isCapable {
@@ -72,14 +58,15 @@ func BRESchemaNew(c *gin.Context, s *service.Service) {
 	}
 
 	var (
-		req BRESchemaNewReq
+		req BREUpdateSchemaRequest
 	)
 
 	err := wscutils.BindJSON(c, &req)
 	if err != nil {
-		l.Error(err).Log("error unmarshalling query parameters to struct:")
+		l.Error(err).Log("error unmarshalling query paramaeters to struct:")
 		return
 	}
+	
 	newPatternSchema := convertPatternSchema(req.PatternSchema)
 	schema := crux.Schema_t{
 		Class:         req.Class,
@@ -93,17 +80,25 @@ func BRESchemaNew(c *gin.Context, s *service.Service) {
 	customValidationErrors := customValidationErrors(schema)
 	validationErrors = append(validationErrors, customValidationErrors...)
 	if len(validationErrors) > 0 {
-		l.Debug0().LogDebug("validation errors", validationErrors)
+		l.Debug0().LogDebug("standard validation errors", validationErrors)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
 		return
 	}
 
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
-		l.Debug0().Log("error while getting query instance from service Dependencies")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
+		l.Debug0().Log("error while getting query instance from service dependencies")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
+
+	connpool, ok := s.Database.(*pgxpool.Pool)
+	if !ok {
+		l.Debug0().Log("error while getting query instance from service database")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
+		return
+	}
+
 	patternSchema, err := json.Marshal(newPatternSchema)
 	if err != nil {
 		patternSchema := "patternSchema"
@@ -119,7 +114,30 @@ func BRESchemaNew(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_InvalidJson, &actionSchema)}))
 		return
 	}
-	id, err := query.SchemaNew(c, sqlc.SchemaNewParams{
+
+	tx, err := connpool.Begin(c)
+	if err != nil {
+		l.Info().Error(err).Log("error while beginning transaction")
+		errmsg := db.HandleDatabaseError(err)
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+		return
+	}
+	defer tx.Rollback(c)
+	qtx := query.WithTx(tx)
+	getSchema, err := qtx.GetSchemaWithLock(c, sqlc.GetSchemaWithLockParams{
+		RealmName: realmName,
+		Slice:     req.Slice,
+		Class:     req.Class,
+		App:       strings.ToLower(req.App),
+	})
+	if err != nil {
+		tx.Rollback(c)
+		l.Info().Error(err).Log("error while locking schema to get old value")
+		errmsg := db.HandleDatabaseError(err)
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+		return
+	}
+	err = qtx.SchemaUpdate(c, sqlc.SchemaUpdateParams{
 		RealmName:     realmName,
 		Slice:         req.Slice,
 		Class:         req.Class,
@@ -127,97 +145,36 @@ func BRESchemaNew(c *gin.Context, s *service.Service) {
 		Brwf:          sqlc.BrwfEnumB,
 		Patternschema: patternSchema,
 		Actionschema:  actionSchema,
-		Createdby:     userID,
+		Editedby:      pgtype.Text{String: userID, Valid: true},
 	})
 	if err != nil {
-		l.Info().Error(err).Log("error while creating BRESchema")
+		tx.Rollback(c)
+		l.Info().Error(err).Log("error while updating schema")
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
-	dclog := l.WithClass("BRESchema").WithInstanceId(string(id))
-	dclog.LogDataChange("created BRESchema", logharbour.ChangeInfo{
+
+	if err := tx.Commit(c); err != nil {
+		errmsg := db.HandleDatabaseError(err)
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+		return
+	}
+	dclog := l.WithClass("BRESchema").WithInstanceId(string(getSchema.ID))
+	dclog.LogDataChange("Updated BRESchema", logharbour.ChangeInfo{
 		Entity: "BRESchema",
-		Op:     "create",
+		Op:     "Update",
 		Changes: []logharbour.ChangeDetail{
 			{
-				Field:  "realm",
-				OldVal: nil,
-				NewVal: realmName},
-			{
-				Field:  "slice",
-				OldVal: nil,
-				NewVal: req.Slice},
-			{
-				Field:  "app",
-				OldVal: nil,
-				NewVal: req.App},
-			{
-				Field:  "class",
-				OldVal: nil,
-				NewVal: req.Class},
-			{
-				Field:  "brwf",
-				OldVal: nil,
-				NewVal: sqlc.BrwfEnumB},
-			{
 				Field:  "patternSchema",
-				OldVal: nil,
+				OldVal: string(getSchema.Patternschema),
 				NewVal: newPatternSchema},
 			{
 				Field:  "actionSchema",
-				OldVal: nil,
+				OldVal: string(getSchema.Actionschema),
 				NewVal: req.ActionSchema},
 		},
 	})
 	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})
-	l.Debug0().Log("Finished execution of BRESchemaNew()")
-}
-
-func customValidationErrors(sh crux.Schema_t) []wscutils.ErrorMessage {
-	var validationErrors []wscutils.ErrorMessage
-	if len(sh.PatternSchema) > 0 {
-		err := crux.VerifyPatternSchema(sh, true)
-		if err != nil {
-			patternSchemaError := server.HandleCruxError(err)
-			validationErrors = append(validationErrors, patternSchemaError...)
-		}
-	}
-
-	if server.IsZeroOfUnderlyingType(sh.ActionSchema) {
-		err := crux.VerifyActionSchema(sh, true)
-		if err != nil {
-			actionSchemaError := server.HandleCruxError(err)
-			validationErrors = append(validationErrors, actionSchemaError...)
-		}
-	}
-
-	return validationErrors
-}
-
-func convertPatternSchema(oldPatternSchema []PatternSchema) []crux.PatternSchema_t {
-	var newPatternSchema []crux.PatternSchema_t
-	for _, patternSchema := range oldPatternSchema {
-		if patternSchema.IsEmpty() {
-			return newPatternSchema
-		}
-		newEnumVals := make(map[string]struct{})
-		for _, val := range patternSchema.EnumVals {
-			newEnumVals[val] = struct{}{}
-		}
-
-		patternSchema := crux.PatternSchema_t{
-			Attr:      patternSchema.Attr,
-			ShortDesc: patternSchema.ShortDesc,
-			LongDesc:  patternSchema.LongDesc,
-			ValType:   patternSchema.ValType,
-			EnumVals:  newEnumVals,
-			ValMin:    patternSchema.ValMin,
-			ValMax:    patternSchema.ValMax,
-			LenMin:    patternSchema.LenMin,
-			LenMax:    patternSchema.LenMax,
-		}
-		newPatternSchema = append(newPatternSchema, patternSchema)
-	}
-	return newPatternSchema
+	l.Debug0().Log("Finished execution of BRESchemaUpdate()")
 }
