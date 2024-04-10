@@ -180,7 +180,7 @@ func main() {
 
 	//BRESchema
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/breschemanew", breschema.BRESchemaNew)
-	// s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/breschemaupdate", breschema.BRESchemaUpdate)
+	 s.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/breschemaupdate", breschema.BRESchemaUpdate)
 
 	appServerPortStr := strconv.Itoa(appServerPort)
 	err = r.Run(":" + appServerPortStr)
