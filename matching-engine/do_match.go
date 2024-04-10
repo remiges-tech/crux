@@ -8,19 +8,10 @@ and rulesets respectively for the purpose of testing doMatch().
 package crux
 
 import (
-	"errors"
 	"fmt"
 )
 
-func DoMatch(entity Entity, ruleset *Ruleset_t, actionSet ActionSet, seenRuleSets map[string]struct{}) (ActionSet, bool, error) {
-
-	ruleSchemasCache, ruleSetsCache := retriveRuleSchemasAndRuleSetsFromCache(entity.Realm, entity.App, entity.Class, entity.Slice)
-	if _, seen := seenRuleSets[ruleset.SetName]; seen {
-		return ActionSet{
-			Tasks:      []string{},
-			Properties: make(map[string]string),
-		}, false, errors.New("ruleset has already been traversed")
-	}
+func DoMatch(entity Entity, ruleset *Ruleset_t, ruleSchemasCache *Schema_t, actionSet ActionSet, seenRuleSets map[string]struct{}) (ActionSet, bool, error) {
 
 	seenRuleSets[ruleset.SetName] = struct{}{}
 
@@ -43,18 +34,18 @@ func DoMatch(entity Entity, ruleset *Ruleset_t, actionSet ActionSet, seenRuleSet
 
 			if len(rule.RuleActions.ThenCall) > 0 {
 
-				setToCall, exists := findRefRuleSetByName(ruleSetsCache, rule.RuleActions.ThenCall)
+				// setToCall, exists := findRefRuleSetByName(ruleset, rule.RuleActions.ThenCall)
 
-				if !exists {
-					return ActionSet{}, false, errors.New("set not found")
-				}
+				// if !exists {
+				// 	return ActionSet{}, false, errors.New("set not found")
+				// }
 
-				if setToCall.Class != entity.Class {
-					return inconsistentRuleSet(setToCall.SetName, ruleset.SetName, ruleset)
+				if ruleset.Class != entity.Class {
+					return inconsistentRuleSet(ruleset.SetName, ruleset.SetName, ruleset)
 				}
 
 				var err error
-				actionSet, DoExit, err = DoMatch(entity, setToCall, actionSet, seenRuleSets)
+				actionSet, DoExit, err = DoMatch(entity, ruleset, ruleSchemasCache, actionSet, seenRuleSets)
 				if err != nil {
 					return ActionSet{
 						Tasks:      []string{},
@@ -70,17 +61,17 @@ func DoMatch(entity Entity, ruleset *Ruleset_t, actionSet ActionSet, seenRuleSet
 				return actionSet, false, nil
 			} else if len(rule.RuleActions.ElseCall) > 0 {
 
-				setToCall, exists := findRefRuleSetByName(ruleSetsCache, rule.RuleActions.ElseCall)
-				if !exists {
-					return ActionSet{}, false, errors.New("set not found")
-				}
+				// setToCall, exists := findRefRuleSetByName(ruleSetsCache, rule.RuleActions.ElseCall)
+				// if !exists {
+				// 	return ActionSet{}, false, errors.New("set not found")
+				// }
 
-				if setToCall.Class != entity.Class {
-					return inconsistentRuleSet(setToCall.SetName, ruleset.SetName, ruleset)
+				if ruleset.Class != entity.Class {
+					return inconsistentRuleSet(ruleset.SetName, ruleset.SetName, ruleset)
 				}
 
 				var err error
-				actionSet, DoExit, err = DoMatch(entity, setToCall, actionSet, seenRuleSets)
+				actionSet, DoExit, err = DoMatch(entity, ruleset, ruleSchemasCache, actionSet, seenRuleSets)
 				if err != nil {
 					return ActionSet{
 						Tasks:      []string{},
@@ -96,7 +87,7 @@ func DoMatch(entity Entity, ruleset *Ruleset_t, actionSet ActionSet, seenRuleSet
 
 	delete(seenRuleSets, ruleset.SetName)
 
-	return actionSet, false, nil
+	return actionSet, true, nil
 }
 
 func findRefRuleSetByName(ruleSets []*Ruleset_t, setName string) (*Ruleset_t, bool) {

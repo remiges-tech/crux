@@ -147,7 +147,7 @@ func registerRoutes(databaseUrl string) (*gin.Engine, error) {
 		WithDependency("queries", queries)
 
 	s.RegisterRoute(http.MethodPost, "/breschemanew", breschema.BRESchemaNew)
-	s.RegisterRoute(http.MethodPost, "/breschemaupdate", breschema.BRESchemaUpdate)
+	// s.RegisterRoute(http.MethodPost, "/breschemaupdate", breschema.BRESchemaUpdate)
 
 
 	return r, nil

@@ -16,6 +16,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/remiges-tech/alya/router"
 	"github.com/remiges-tech/alya/wscutils"
+
 	crux "github.com/remiges-tech/crux/matching-engine"
 	"github.com/remiges-tech/crux/types"
 )
@@ -138,16 +139,16 @@ func HandleCruxError(errs []error) []wscutils.ErrorMessage {
 				vErr := wscutils.BuildErrorMessage(MsgId_Invalid, ErrCode_Invalid, &cruxErr.FieldName, cruxErr.Vals)
 				validationErrors = append(validationErrors, vErr)
 			case "NotAllowed":
-				vErr := wscutils.BuildErrorMessage(MsgId_Invalid, ErrCode_Invalid, &cruxErr.FieldName, cruxErr.Vals)
+				vErr := wscutils.BuildErrorMessage(MsgId__NotAllowed, ErrCode_NotAllowed, &cruxErr.FieldName, cruxErr.Vals)
 				validationErrors = append(validationErrors, vErr)
 			case "Required":
 				vErr := wscutils.BuildErrorMessage(MsgId_Invalid_Request, ErrCode_RequiredOneOf, &cruxErr.FieldName, cruxErr.Vals)
 				validationErrors = append(validationErrors, vErr)
 			case "NotExist":
-				vErr := wscutils.BuildErrorMessage(MsgId_Invalid, ErrCode_Does_Not_Contain_Both_Properties_Nextstep_And_Done, &cruxErr.FieldName, cruxErr.Vals)
+				vErr := wscutils.BuildErrorMessage(MsgId_NotFound, ErrCode_NotFound, &cruxErr.FieldName, cruxErr.Vals)
 				validationErrors = append(validationErrors, vErr)
 			case "NotMatch":
-				vErr := wscutils.BuildErrorMessage(MsgId_Invalid, ErrCode_Attr_val_not_match, &cruxErr.FieldName, cruxErr.Vals)
+				vErr := wscutils.BuildErrorMessage(MsgID_NotMatched, ErrCode_Not_Match, &cruxErr.FieldName, cruxErr.Vals)
 				validationErrors = append(validationErrors, vErr)
 			default:
 				vErr := wscutils.BuildErrorMessage(MsgId_Invalid_Request, ErrCode_InvalidRequest, &cruxErr.FieldName, cruxErr.Vals)

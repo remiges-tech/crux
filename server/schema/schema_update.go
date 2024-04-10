@@ -115,6 +115,27 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 	}
 	defer tx.Rollback(c)
 	qtx := query.WithTx(tx)
+
+	tag, err := qtx.IsWorkflowReferringSchema(c, sqlc.IsWorkflowReferringSchemaParams{
+		Realm: realmName,
+		Slice: req.Slice,
+		App:   req.App,
+		Class: req.Class,
+	})
+	if err != nil {
+		tx.Rollback(c)
+		l.Info().Error(err).Log("Error while checking does any workflow refers this schema")
+		errmsg := db.HandleDatabaseError(err)
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+		return
+	}
+
+	if tag != 0 {
+		l.Info().Log("cannot update schema because workflows referring it")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId__NotAllowed, server.ErrCode_NotAllowed))
+		return
+	}
+
 	getSchema, err := qtx.GetSchemaWithLock(c, sqlc.GetSchemaWithLockParams{
 		RealmName: realmName,
 		Slice:     req.Slice,

@@ -23,11 +23,12 @@ import (
 */
 
 type Markdone_t struct {
-	Id         int32       `json:"id"`
-	Entity     crux.Entity `json:"entity"`
-	Step       string      `json:"step"`
-	Stepfailed bool        `json:"stepfailed"`
-	Trace      int
+	InstanceID int32       `json:"id" validate:"required"`
+	Workflow   string      `json:"workflow"`
+	EntityID   string      `json:"entityID"`
+	Entity     crux.Entity `json:"entity" validate:"required"`
+	Trace      int         `json:"trace,omitempty"`
+	Loggedat   time.Time   `json:"loggedat,omitempty"`
 }
 
 type ResponseData struct {
