@@ -16,6 +16,7 @@ import (
 	"github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	crux "github.com/remiges-tech/crux/matching-engine"
+	breschema "github.com/remiges-tech/crux/server/BRESchema"
 	"github.com/remiges-tech/crux/server/app"
 	"github.com/remiges-tech/crux/server/capability"
 	"github.com/remiges-tech/crux/server/markdone"
@@ -225,6 +226,11 @@ func main() {
 	// capabilities
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/capgrant", capability.CapGrant)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/caprevoke", capability.CapRevoke)
+
+	//BRESchema
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/breschemanew", breschema.BRESchemaNew)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/breschemaupdate", breschema.BRESchemaUpdate)
+
 	appServerPortStr := strconv.Itoa(appServerPort)
 	err = r.Run(":" + appServerPortStr)
 	if err != nil {
