@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/remiges-tech/alya/service"
@@ -101,10 +102,13 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 	}
 
 	// The value of app specified in the request matches the app ID with which this workflow is associated
+
 	lh.Debug0().Log("GetWFinstanceNew||validateWorkflow()||verifying whether app present in request is valid")
+	applc := strings.ToLower(r.App)
+	
 	app, err := query.GetApp(c, sqlc.GetAppParams{
 		Slice: r.Slice,
-		App:   r.App,
+		App:   applc,
 		Class: entityClass,
 		Realm: realm,
 	})
@@ -134,7 +138,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 	lh.Debug0().Log("GetWFinstanceNew||validateWorkflow()||verifying whether workflow active status is valid")
 	wfActiveStatus, err := query.GetWFActiveStatus(c, sqlc.GetWFActiveStatusParams{
 		Slice:   r.Slice,
-		App:     app,
+		App:     applc,
 		Class:   class,
 		Realm:   realm,
 		Setname: r.Workflow,
@@ -149,7 +153,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 	lh.Debug0().Log("GetWFinstanceNew||validateWorkflow()||verifying whether workflow internal status is valid")
 	wfInternalStatus, err := query.GetWFInternalStatus(c, sqlc.GetWFInternalStatusParams{
 		Slice:   r.Slice,
-		App:     app,
+		App:     applc,
 		Class:   class,
 		Realm:   realm,
 		Setname: r.Workflow,
@@ -165,7 +169,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 	lh.Log("GetWFinstanceNew||validateWorkflow()||verifying whether record is already exist in wfinstance table")
 	wfinstanceRecordCount, err := query.GetWFINstance(c, sqlc.GetWFINstanceParams{
 		Slice:    r.Slice,
-		App:      app,
+		App:      applc,
 		Workflow: r.Workflow,
 		Entityid: r.EntityID,
 	})

@@ -1,0 +1,68 @@
+{
+    "status": "error",
+    "data": null,
+    "messages": [
+        {
+            "msgid": 101,
+            "errcode": "required",
+            "field": "Slice"
+        },
+        {
+            "msgid": 101,
+            "errcode": "required",
+            "field": "App"
+        },
+        {
+            "msgid": 101,
+            "errcode": "required",
+            "field": "Class"
+        },
+        {
+            "msgid": 101,
+            "errcode": "required",
+            "field": "PatternSchema"
+        },
+        {
+            "msgid": 101,
+            "errcode": "required",
+            "field": "Tasks"
+        },
+        {
+            "msgid": 101,
+            "errcode": "required",
+            "field": "Properties"
+        },
+        {
+            "msgid": 1005,
+            "errcode": "empty",
+            "field": "Tasks/Properties",
+            "vals": [
+                ""
+            ]
+        },
+        {
+            "msgid": 1003,
+            "errcode": "invalid",
+            "field": "properties",
+            "vals": [
+                ""
+            ]
+        },
+        {
+            "msgid": 1003,
+            "errcode": "invalid",
+            "field": "properties",
+            "vals": [
+                ""
+            ]
+        },
+        {
+            "msgid": 1003,
+            "errcode": "invalid",
+            "field": "task",
+            "vals": [
+                ""
+            ]
+        }
+    ]
+}
