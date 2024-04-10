@@ -147,10 +147,10 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 	}
 
 	ruleset, err := qtx.RulesetRowLock(c, sqlc.RulesetRowLockParams{
-		Realm: realmName,
-		Slice: wf.Slice,
-		App:   strings.ToLower(wf.App),
-		Class: wf.Class,
+		RealmName: realmName,
+		Slice:     wf.Slice,
+		App:       strings.ToLower(wf.App),
+		Class:     wf.Class,
 	})
 	if err != nil {
 		l.LogActivity("Error while locking row of ruleset", err.Error())

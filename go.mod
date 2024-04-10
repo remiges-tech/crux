@@ -12,7 +12,7 @@ require (
 	github.com/ory/dockertest/v3 v3.10.0
 	github.com/remiges-tech/alya v0.10.0
 	github.com/remiges-tech/logharbour v0.12.0
-	github.com/remiges-tech/rigel v0.12.0
+	github.com/remiges-tech/rigel v0.15.0
 	github.com/stretchr/testify v1.9.0
 	github.com/testcontainers/testcontainers-go v0.29.1
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.29.1

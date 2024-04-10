@@ -181,29 +181,106 @@ func (q *Queries) GetWFInternalStatus(ctx context.Context, arg GetWFInternalStat
 	return is_internal, err
 }
 
+const isWorkflowReferringSchema = `-- name: IsWorkflowReferringSchema :one
+select count(*)
+From ruleset
+Where realm = $1
+AND slice = $2
+AND app = $3
+AND class = $4
+AND is_active = true
+`
+
+type IsWorkflowReferringSchemaParams struct {
+	Realm string `json:"realm"`
+	Slice int32  `json:"slice"`
+	App   string `json:"app"`
+	Class string `json:"class"`
+}
+
+func (q *Queries) IsWorkflowReferringSchema(ctx context.Context, arg IsWorkflowReferringSchemaParams) (int64, error) {
+	row := q.db.QueryRow(ctx, isWorkflowReferringSchema,
+		arg.Realm,
+		arg.Slice,
+		arg.App,
+		arg.Class,
+	)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const loadRuleSet = `-- name: LoadRuleSet :one
+SELECT id, realm, slice, app, brwf, class, setname, schemaid, is_active, is_internal, ruleset, createdat, createdby, editedat, editedby 
+FROM ruleset 
+WHERE
+     realm = $3::varchar
+    AND slice = (SELECT realmslice.id FROM realmslice WHERE realmslice.id= $4 AND realmslice.realm = $3 )
+    AND class = $1
+    AND app = (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= $5 AND app.realm = $3)
+    AND setname = $2
+`
+
+type LoadRuleSetParams struct {
+	Class     string `json:"class"`
+	Setname   string `json:"setname"`
+	RealmName string `json:"realm_name"`
+	Slice     int32  `json:"slice"`
+	App       string `json:"app"`
+}
+
+func (q *Queries) LoadRuleSet(ctx context.Context, arg LoadRuleSetParams) (Ruleset, error) {
+	row := q.db.QueryRow(ctx, loadRuleSet,
+		arg.Class,
+		arg.Setname,
+		arg.RealmName,
+		arg.Slice,
+		arg.App,
+	)
+	var i Ruleset
+	err := row.Scan(
+		&i.ID,
+		&i.Realm,
+		&i.Slice,
+		&i.App,
+		&i.Brwf,
+		&i.Class,
+		&i.Setname,
+		&i.Schemaid,
+		&i.IsActive,
+		&i.IsInternal,
+		&i.Ruleset,
+		&i.Createdat,
+		&i.Createdby,
+		&i.Editedat,
+		&i.Editedby,
+	)
+	return i, err
+}
+
 const rulesetRowLock = `-- name: RulesetRowLock :one
 SELECT id, realm, slice, app, brwf, class, setname, schemaid, is_active, is_internal, ruleset, createdat, createdby, editedat, editedby 
 FROM ruleset 
 WHERE
-    realm = $1
-    AND slice = $2
-    AND class = $3
-    AND app = $4
+     realm = $2::varchar
+    AND slice = (SELECT realmslice.id FROM realmslice WHERE realmslice.id= $3 AND realmslice.realm = $2 )
+    AND class = $1
+    AND app = (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= $4 AND app.realm = $2)
 FOR UPDATE
 `
 
 type RulesetRowLockParams struct {
-	Realm string `json:"realm"`
-	Slice int32  `json:"slice"`
-	Class string `json:"class"`
-	App   string `json:"app"`
+	Class     string `json:"class"`
+	RealmName string `json:"realm_name"`
+	Slice     int32  `json:"slice"`
+	App       string `json:"app"`
 }
 
 func (q *Queries) RulesetRowLock(ctx context.Context, arg RulesetRowLockParams) (Ruleset, error) {
 	row := q.db.QueryRow(ctx, rulesetRowLock,
-		arg.Realm,
-		arg.Slice,
 		arg.Class,
+		arg.RealmName,
+		arg.Slice,
 		arg.App,
 	)
 	var i Ruleset
@@ -499,4 +576,32 @@ func (q *Queries) Workflowget(ctx context.Context, arg WorkflowgetParams) (Workf
 		&i.Editedby,
 	)
 	return i, err
+}
+
+const ruleExists = `-- name: ruleExists :one
+select 1 
+from ruleset 
+where realm = $1
+AND app= $2
+AND slice= $3 
+AND class = $4
+`
+
+type ruleExistsParams struct {
+	Realm string `json:"realm"`
+	App   string `json:"app"`
+	Slice int32  `json:"slice"`
+	Class string `json:"class"`
+}
+
+func (q *Queries) ruleExists(ctx context.Context, arg ruleExistsParams) (int32, error) {
+	row := q.db.QueryRow(ctx, ruleExists,
+		arg.Realm,
+		arg.App,
+		arg.Slice,
+		arg.Class,
+	)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
 }

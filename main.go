@@ -15,7 +15,6 @@ import (
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
-	crux "github.com/remiges-tech/crux/matching-engine"
 	breschema "github.com/remiges-tech/crux/server/BRESchema"
 	"github.com/remiges-tech/crux/server/app"
 	"github.com/remiges-tech/crux/server/capability"
@@ -106,54 +105,6 @@ func main() {
 	}
 	queries := sqlc.New(connPool)
 
-	// load all rulesets and schema's in cache
-	err = crux.Load(queries, ctx)
-	if err != nil {
-		log.Fatalln("error at loading cache", err)
-		return
-	}
-	// perRealm := crux.RulesetCache[crux.Realm_t("BSE")]
-	// perApp := perRealm[crux.App_t("retailbank")]
-	// perSlice := perApp[crux.Slice_t(12)]
-	// ruleSets := perSlice.Workflows[crux.ClassName_t("inventoryitems")]
-	// // for each ruleSet in ruleSets
-	// // 		if ruleSet.Name == "workflow"
-	// //             myruleSet = ruleSet
-	// // end for
-	// var myRuleSet *crux.Ruleset_t
-	// for _, ruleSet := range ruleSets {
-
-	// 	if ruleSet.SetName == "discountcheck" {
-	// 		myRuleSet = ruleSet
-	// 	}
-
-	// }
-	// entity := crux.Entity{
-	// 	Realm: "BSE",
-	// 	App:   "retailbank",
-	// 	Slice: "12",
-	// 	Class: "inventoryitems",
-	// 	Attrs: map[string]string{},
-	// }
-
-	// actionSet := crux.ActionSet{
-	// 	Tasks:      []string{},
-	// 	Properties: map[string]string{},
-	// }
-
-	// var seenRuleSets map[string]struct{}
-	// actionSet, _, err = crux.DoMatch(entity, myRuleSet, actionSet, seenRuleSets)
-	// if err != nil {
-	// 	//lh.Error(err).Log("GetWFinstanceNew||error while calling doMatch Method")
-	// 	//wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid))
-	// 	return
-	// }
-	// fmt.Println(actionSet)
-
-	//matchingEngineDBUrl := ""
-
-	//matchinEngingeQueries := sqlcmatching.New(connPool)
-
 	// Define a custom validation tag-to-message ID map
 	customValidationMap := map[string]int{
 		"required":  101,
@@ -210,7 +161,7 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstanceabort", wfinstance.GetWFInstanceAbort)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstancelist", wfinstance.GetWFInstanceList)
 	// markdone
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/markdone", markdone.MarkDone)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/WFinstanceMarkDone", markdone.WFInstanceMarkDone)
 	//app
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/appnew", app.AppNew)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/appupdate", app.AppUpdate)
@@ -229,7 +180,7 @@ func main() {
 
 	//BRESchema
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/breschemanew", breschema.BRESchemaNew)
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/breschemaupdate", breschema.BRESchemaUpdate)
+	// s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/breschemaupdate", breschema.BRESchemaUpdate)
 
 	appServerPortStr := strconv.Itoa(appServerPort)
 	err = r.Run(":" + appServerPortStr)

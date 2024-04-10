@@ -90,8 +90,6 @@ func AddTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanc
 			if err.Error() == "no rows in result set" {
 				continue // If no workflow is found, continue to the next step
 			}
-		} else {
-			return response, err
 		}
 
 		// Only proceed if err is nils

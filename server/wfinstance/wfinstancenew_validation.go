@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -72,7 +71,7 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, realm string, s *service.S
 	}
 
 	// Forming  requested entity  into proper Entity struct
-	EntityStruct := getEntityStructure(r,realm)
+	EntityStruct := getEntityStructure(r, realm)
 	lh.Debug1().LogActivity("GetWFinstanceNew||validateWFInstanceNewReq()||entity stucture:", EntityStruct)
 
 	//  To match entity against patternschema
@@ -105,7 +104,7 @@ func validateWorkflow(r WFInstanceNewRequest, s *service.Service, c *gin.Context
 
 	lh.Debug0().Log("GetWFinstanceNew||validateWorkflow()||verifying whether app present in request is valid")
 	applc := strings.ToLower(r.App)
-	
+
 	app, err := query.GetApp(c, sqlc.GetAppParams{
 		Slice: r.Slice,
 		App:   applc,
@@ -249,7 +248,7 @@ func getEntityStructure(req WFInstanceNewRequest, realm string) crux.Entity {
 	entityStruct := crux.Entity{
 		Realm: realm,
 		App:   req.App,
-		Slice: strconv.Itoa(int(req.Slice)),
+		Slice: req.Slice,
 		Class: req.Entity[CLASS],
 		Attrs: attributes,
 	}
