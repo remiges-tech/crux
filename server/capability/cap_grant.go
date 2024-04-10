@@ -71,7 +71,7 @@ func CapGrant(c *gin.Context, s *service.Service) {
 	}
 
 	// json request binding with a struct
-	err := wscutils.BindJSON(c, &request)
+	err = wscutils.BindJSON(c, &request)
 	if err != nil {
 		lh.Debug0().Error(err).Log("error while binding json request error:")
 		return

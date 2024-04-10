@@ -333,6 +333,7 @@ where
     schema.app = app.shortname
     and schema.slice = realmslice.id
     AND schema.realm =  $1
+    AND schema.brwf = 'W'
     AND (($2::INTEGER is null) OR (schema.slice = $2::INTEGER))
     AND (($3::text is null) OR (schema.app = $3::text))
     AND ($4::text is null OR schema.class = $4::text)
@@ -402,6 +403,7 @@ where
                     schema.realm = realm.id
                     and schema.slice = realmslice.id
                     and schema.slice = $1
+                    and schema.brwf = 'W'
                     and realmslice.realm = realm.shortname
                     and schema.realm = $4
                     and schema.class = $3
@@ -416,6 +418,7 @@ where
                     and slice = $1
                     and app = $2
                     and class = $3
+                    and brwf = 'W'
             )
     )
 `
@@ -445,6 +448,7 @@ WHERE
     and rs.realm = rm.shortname
     and s.slice = rs.id
     and s.slice = $1
+    and s.brwf = 'W'
     and rm.shortname = $4
     and s.class = $3
     AND s.app = $2

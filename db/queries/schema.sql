@@ -64,6 +64,7 @@ WHERE
     and rs.realm = rm.shortname
     and s.slice = rs.id
     and s.slice = $1
+    and s.brwf = 'W'
     and rm.shortname = @realm
     and s.class = $3
     AND s.app = $2;
@@ -80,6 +81,7 @@ where
                     schema.realm = realm.id
                     and schema.slice = realmslice.id
                     and schema.slice = $1
+                    and schema.brwf = 'W'
                     and realmslice.realm = realm.shortname
                     and schema.realm = @realm
                     and schema.class = $3
@@ -94,6 +96,7 @@ where
                     and slice = $1
                     and app = $2
                     and class = $3
+                    and brwf = 'W'
             )
     );
 
@@ -123,6 +126,7 @@ where
     schema.app = app.shortname
     and schema.slice = realmslice.id
     AND schema.realm =  @relam
+    AND schema.brwf = 'W'
     AND ((sqlc.narg('slice')::INTEGER is null) OR (schema.slice = @slice::INTEGER))
     AND ((sqlc.narg('app')::text is null) OR (schema.app = @app::text))
     AND (sqlc.narg('class')::text is null OR schema.class = sqlc.narg('class')::text);
