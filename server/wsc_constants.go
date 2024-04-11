@@ -14,6 +14,8 @@ const (
 	MsgId_StepNotFound    = 1011
 	MsgId__NonEmpty       = 1012
 	MsgId_Missing         = 1013
+	MsgId__NotAllowed     = 1014
+	MsgID_NotMatched      = 1015
 )
 
 const (
@@ -22,6 +24,8 @@ const (
 	ErrCode_Internal                                              = "internal_err"
 	ErrCode_Internal_Retry                                        = "internal_err_retry"
 	ErrCode_Invalid                                               = "invalid"
+	ErrCode_NotAllowed                                            = "not_allowed"
+	ErrCode_Not_Match                                             = "not_match"
 	ErrCode_InvalidRequest                                        = "invalid_request"
 	ErrCode_Empty                                                 = "empty"
 	ErrCode_InvalidJson                                           = "invalid_json"

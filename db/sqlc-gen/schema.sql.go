@@ -100,6 +100,59 @@ func (q *Queries) GetSchemaWithLock(ctx context.Context, arg GetSchemaWithLockPa
 	return i, err
 }
 
+const loadSchema = `-- name: LoadSchema :many
+SELECT id, realm, slice, app, brwf, class, patternschema, actionschema, createdat, createdby, editedat, editedby FROM SCHEMA
+WHERE realm = $2::varchar
+    AND slice = (SELECT realmslice.id FROM realmslice WHERE realmslice.id= $3 AND realmslice.realm = $2)
+    AND class = $1
+    AND app = (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= $4 AND app.realm = $2)
+`
+
+type LoadSchemaParams struct {
+	Class     string `json:"class"`
+	RealmName string `json:"realm_name"`
+	Slice     int32  `json:"slice"`
+	App       string `json:"app"`
+}
+
+func (q *Queries) LoadSchema(ctx context.Context, arg LoadSchemaParams) ([]Schema, error) {
+	rows, err := q.db.Query(ctx, loadSchema,
+		arg.Class,
+		arg.RealmName,
+		arg.Slice,
+		arg.App,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Schema
+	for rows.Next() {
+		var i Schema
+		if err := rows.Scan(
+			&i.ID,
+			&i.Realm,
+			&i.Slice,
+			&i.App,
+			&i.Brwf,
+			&i.Class,
+			&i.Patternschema,
+			&i.Actionschema,
+			&i.Createdat,
+			&i.Createdby,
+			&i.Editedat,
+			&i.Editedby,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const schemaDelete = `-- name: SchemaDelete :one
 DELETE FROM schema WHERE id = $1 RETURNING id
 `

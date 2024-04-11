@@ -201,44 +201,31 @@ func getStepAttrVals(rs Schema_t) map[string]struct{} {
 // Parameters
 // rs RuleSet: the RuleSet to be verified
 // isWF bool: true if the RuleSet is a workflow, otherwise false
-func verifyRuleSet(entiry Entity, rs *Ruleset_t, isWF bool) []error {
-	var errs []error
-	schema, err := getSchema(entiry, entiry.Class)
+// func verifyRuleSet(entiry Entity, rs *Ruleset_t, isWF bool) []error {
+// 	var errs []error
+// 	schema, err := getSchema(entiry, entiry.Class)
 
-	if err != nil {
-		errs = append(errs, err)
-	}
-	if err := VerifyRulePatterns(rs, schema, isWF); err != nil {
-		errs = append(errs, err...)
-	}
-	if err := VerifyRuleActions(rs, schema, isWF); err != nil {
-		errs = append(errs, err...)
-	}
+// 	if err != nil {
+// 		errs = append(errs, err)
+// 	}
+// 	if err := VerifyRulePatterns(rs, schema, isWF); err != nil {
+// 		errs = append(errs, err...)
+// 	}
+// 	if err := VerifyRuleActions(rs, schema, isWF); err != nil {
+// 		errs = append(errs, err...)
+// 	}
 
-	return errs
-}
+// 	return errs
+// }
 
 func VerifyRulePatterns(ruleset *Ruleset_t, schema *Schema_t, isWF bool) []error {
 	var errs []error
-	//for _, ruleset := range ruleSets {
 	for i, rule := range ruleset.Rules {
 		i++
 		for j, term := range rule.RulePatterns {
 			j++
 			valType := GetType(schema, term.Attr)
 
-			// if valType == "" {
-			// 	// If the attribute name is not in the pattern-schema, we check if it's a task "tag"
-			// 	// by checking for its presence in the action-schema
-
-			// 	if !isStringInArray(term.Attr, schema.ActionSchema.Tasks) {
-			// 		fieldName := fmt.Sprintf("rule[%d].term[%d]attr", i, j)
-			// 		err := CruxError{Keyword: "NotExist", FieldName: fieldName, Vals: term.Attr, Messages: "attribute does not exist in schema"} // fmt.Errorf("attribute does not exist in schema: %v", term.Attr)
-			// 		errs = append(errs, err)
-			// 	}
-			// 	// If it is a tag, the value type is set to bool
-			// 	valType = typeStr
-			// }
 			if !verifyType(term.Val, valType) {
 				fieldName := fmt.Sprintf("rule[%d].term[%d]val", i, j)
 				err := CruxError{Keyword: "NotMatch", FieldName: fieldName, Messages: "value of this attribute does not match schema"} // fmt.Errorf("value of this attribute does not match schema type: %v", term.Attr)
@@ -270,18 +257,18 @@ func VerifyRulePatterns(ruleset *Ruleset_t, schema *Schema_t, isWF bool) []error
 	return errs
 }
 
-func getSchema(entity Entity, Class string) (*Schema_t, error) {
-	ruleSchemas, _ := retriveRuleSchemasAndRuleSetsFromCache(entity.Realm, entity.App, entity.Class, entity.Slice)
+// func getSchema(entity Entity, Class string) (*Schema_t, error) {
+// 	ruleSchemas, _ := retriveRuleSchemasAndRuleSetsFromCache(entity.Realm, entity.App, entity.Class, entity.Slice)
 
-	if ruleSchemas == nil {
-		return nil, fmt.Errorf("no schema found for Class %v", Class)
-	}
-	if Class == ruleSchemas.Class {
-		return ruleSchemas, nil
-	}
+// 	if ruleSchemas == nil {
+// 		return nil, fmt.Errorf("no schema found for Class %v", Class)
+// 	}
+// 	if Class == ruleSchemas.Class {
+// 		return ruleSchemas, nil
+// 	}
 
-	return nil, fmt.Errorf("no schema found for Class %v", Class)
-}
+// 	return nil, fmt.Errorf("no schema found for Class %v", Class)
+// }
 
 func GetType(rs *Schema_t, name string) string {
 	for _, as := range rs.PatternSchema {
@@ -367,7 +354,8 @@ func VerifyRuleActions(ruleset *Ruleset_t, schema *Schema_t, isWF bool) []error 
 			}
 
 			if !found {
-				err := CruxError{Keyword: "NotExist", FieldName: "properties", Messages: "property name not found in any action-schema"} // fmt.Errorf("property name %v not found in any action-schema", propName)
+				fieldName := fmt.Sprintf("rule[%d].property", i)
+				err := CruxError{Keyword: "NotExist", FieldName: fieldName, Messages: "property name not found in any action-schema"} // fmt.Errorf("property name %v not found in any action-schema", propName)
 				errs = append(errs, err)
 
 			}
@@ -378,18 +366,21 @@ func VerifyRuleActions(ruleset *Ruleset_t, schema *Schema_t, isWF bool) []error 
 
 			nsFound, doneFound := areNextStepAndDoneInProps(rule.RuleActions.Properties)
 			if !nsFound && !doneFound {
-				err := CruxError{Keyword: "NotAllowed", FieldName: "rule", Messages: "rule found with neither 'nextstep' nor 'done' in ruleset"} // fmt.Errorf("rule found with neither 'nextstep' nor 'done' in ruleset %v", ruleset.SetName)
+				fieldName := fmt.Sprintf("rule[%d]", i)
+				err := CruxError{Keyword: "NotAllowed", FieldName: fieldName, Messages: "rule found with neither 'nextstep' nor 'done' in ruleset"} // fmt.Errorf("rule found with neither 'nextstep' nor 'done' in ruleset %v", ruleset.SetName)
 				errs = append(errs, err)
 			}
 			if !doneFound && len(rule.RuleActions.Task) == 0 {
-				err := CruxError{Keyword: "NotExist", FieldName: "rule", Messages: "no tasks and no 'done=true' in a rule"} // fmt.Errorf("no tasks and no 'done=true' in a rule in ruleset %v", ruleset.SetName)
+				fieldName := fmt.Sprintf("rule[%d]", i)
+				err := CruxError{Keyword: "NotExist", FieldName: fieldName, Messages: "no tasks and no 'done=true' in a rule"} // fmt.Errorf("no tasks and no 'done=true' in a rule in ruleset %v", ruleset.SetName)
 				errs = append(errs, err)
 			}
-			currNS := getNextStep(rule.RuleActions.Properties)
-			if len(currNS) > 0 && !isStringInArray(currNS, rule.RuleActions.Task) {
-				err := CruxError{Keyword: "NotExist", FieldName: "tasks", Messages: "`nextstep` value not found in `tasks` in a rule "} // fmt.Errorf("`nextstep` value not found in `tasks` in a rule in ruleset %v", ruleset.SetName)
-				errs = append(errs, err)
-			}
+			// currNS := getNextStep(rule.RuleActions.Properties)
+			// fieldName := fmt.Sprintf("rule[%d].task", i)
+			// if len(currNS) > 0 && !isStringInArray(currNS, rule.RuleActions.Task) {
+			// 	err := CruxError{Keyword: "NotExist", FieldName: fieldName, Messages: "`nextstep` value not found in `tasks` in a rule "} // fmt.Errorf("`nextstep` value not found in `tasks` in a rule in ruleset %v", ruleset.SetName)
+			// 	errs = append(errs, err)
+			// }
 		}
 	}
 
@@ -419,40 +410,44 @@ func getNextStep(props map[string]string) string {
 	return ""
 }
 
-func doReferentialChecks(e Entity) (bool, error) {
-	_, ruleSets := retriveRuleSchemasAndRuleSetsFromCache(e.Realm, e.App, e.Class, e.Slice)
+// func doReferentialChecks(e Entity) (bool, error) {
+// 	_, ruleSets := retriveRuleSchemasAndRuleSetsFromCache(e.Realm, e.App, e.Class, e.Slice)
 
-	for _, ruleset := range ruleSets {
-		for _, rule := range ruleset.Rules {
+// 	for _, ruleset := range ruleSets {
+// 		for _, rule := range ruleset.Rules {
 
-			if rule.RuleActions.ThenCall != "" || rule.RuleActions.ElseCall != "" {
+// 			if rule.RuleActions.ThenCall != "" || rule.RuleActions.ElseCall != "" {
 
-				return true, nil
-			}
+// 				return true, nil
+// 			}
 
-		}
-	}
-	return true, nil
-}
+// 		}
+// 	}
+// 	return true, nil
+// }
 
-func verifyEntity(e Entity) (bool, error) {
-	rs, err := getSchema(e, e.Class)
-	if err != nil {
-		return false, err
-	}
-	for attrName, attrVal := range e.Attrs {
+// func verifyEntity(e Entity) (bool, error) {
+// 	rs, err := getSchema(e, e.Class)
+// 	if err != nil {
+// 		return false, err
+// 	}
+// 	for attrName, attrVal := range e.Attrs {
 
-		t := GetType(rs, attrName)
-		if t == "" {
-			return false, fmt.Errorf("schema does not contain attribute %v", attrName)
-		}
-		_, err := ConvertEntityAttrVal(attrVal, t)
-		if err != nil {
-			return false, fmt.Errorf("attribute %v in entity has value of wrong type", attrName)
-		}
-	}
-	if len(e.Attrs) != len(rs.PatternSchema) {
-		return false, fmt.Errorf("entity does not contain all the attributes in its pattern-schema")
-	}
-	return true, nil
+// 		t := GetType(rs, attrName)
+// 		if t == "" {
+// 			return false, fmt.Errorf("schema does not contain attribute %v", attrName)
+// 		}
+// 		_, err := ConvertEntityAttrVal(attrVal, t)
+// 		if err != nil {
+// 			return false, fmt.Errorf("attribute %v in entity has value of wrong type", attrName)
+// 		}
+// 	}
+// 	if len(e.Attrs) != len(rs.PatternSchema) {
+// 		return false, fmt.Errorf("entity does not contain all the attributes in its pattern-schema")
+// 	}
+// 	return true, nil
+// }
+
+func IsZeroOfUnderlyingType(x interface{}) bool {
+	return reflect.DeepEqual(x, reflect.Zero(reflect.TypeOf(x)).Interface())
 }

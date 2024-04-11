@@ -62,6 +62,9 @@ type Querier interface {
 	GrantAppCapability(ctx context.Context, arg GrantAppCapabilityParams) error
 	GrantRealmCapability(ctx context.Context, arg GrantRealmCapabilityParams) error
 	InsertNewRecordInRealmSlice(ctx context.Context, arg InsertNewRecordInRealmSliceParams) (int32, error)
+	IsWorkflowReferringSchema(ctx context.Context, arg IsWorkflowReferringSchemaParams) (int64, error)
+	LoadRuleSet(ctx context.Context, arg LoadRuleSetParams) (Ruleset, error)
+	LoadSchema(ctx context.Context, arg LoadSchemaParams) ([]Schema, error)
 	RealmSliceActivate(ctx context.Context, arg RealmSliceActivateParams) (Realmslice, error)
 	RealmSliceAppsList(ctx context.Context, id int32) ([]RealmSliceAppsListRow, error)
 	RealmSliceDeactivate(ctx context.Context, arg RealmSliceDeactivateParams) (Realmslice, error)
@@ -87,6 +90,7 @@ type Querier interface {
 	WorkflowDelete(ctx context.Context, arg WorkflowDeleteParams) (pgconn.CommandTag, error)
 	WorkflowList(ctx context.Context, arg WorkflowListParams) ([]WorkflowListRow, error)
 	Workflowget(ctx context.Context, arg WorkflowgetParams) (WorkflowgetRow, error)
+	ruleExists(ctx context.Context, arg ruleExistsParams) (int32, error)
 }
 
 var _ Querier = (*Queries)(nil)

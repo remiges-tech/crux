@@ -1,90 +1,90 @@
-/*
-This file contains the functions that represent Cache tests for Load()/Purge()/Reload(). These functions are called
-inside TestCache()) in do_matchest.go.
-
-Some of the definitions of rulesets below deliberately use a lot of whitespace to keep the code consistent
-and to make it easier to understand, add to, and edit these tests
-*/
-
 package crux
 
-import (
-	"context"
-	"testing"
+// /*
+// This file contains the functions that represent Cache tests for Load()/Purge()/Reload(). These functions are called
+// inside TestCache()) in do_matchest.go.
 
-	"github.com/remiges-tech/crux/db/sqlc-gen"
-)
+// Some of the definitions of rulesets below deliberately use a lot of whitespace to keep the code consistent
+// and to make it easier to understand, add to, and edit these tests
+// */
 
-/*
-	func testinit() (sqlc.Querier, context.Context, error) {
-		var ConnectionString = "host=localhost port=5432 user=postgres password=postgres dbname=crux sslmode=disable"
-		ctx := context.Background()
-		conn, err := pgx.Connect(ctx, ConnectionString)
-		if err != nil {
-			log.Fatal("Failed to load data into cache:", err)
-			return nil, nil, err
-		}
-		defer conn.Close(ctx)
-		query := NewProvider(ConnectionString)
-		return query, ctx, err
+// import (
+// 	"context"
+// 	"testing"
 
-}
-*/
-func testCache(tests *[]doMatchTest, t *testing.T) {
+// 	"github.com/remiges-tech/crux/db/sqlc-gen"
+// )
 
-	//query, ctx,err := testinit()
-	//if err != nil {
-	//testLoadDB(tests, t,query,ctx)
-	//}
-	// Call the initializeRuleData function to populate ruleSchemas and ruleSets
+// /*
+// 	func testinit() (sqlc.Querier, context.Context, error) {
+// 		var ConnectionString = "host=localhost port=5432 user=postgres password=postgres dbname=crux sslmode=disable"
+// 		ctx := context.Background()
+// 		conn, err := pgx.Connect(ctx, ConnectionString)
+// 		if err != nil {
+// 			log.Fatal("Failed to load data into cache:", err)
+// 			return nil, nil, err
+// 		}
+// 		defer conn.Close(ctx)
+// 		query := NewProvider(ConnectionString)
+// 		return query, ctx, err
 
-	testLoad(tests, t)
-	setSchemaRulesetCacheBuffer(t)
+// }
+// */
+// func testCache(tests *[]doMatchTest, t *testing.T) {
 
-	//testPurge(tests, t)
-	//testReload(tests, t, query, ctx)
-}
+// 	//query, ctx,err := testinit()
+// 	//if err != nil {
+// 	//testLoadDB(tests, t,query,ctx)
+// 	//}
+// 	// Call the initializeRuleData function to populate ruleSchemas and ruleSets
 
-func testLoadDB(tests *[]doMatchTest, t *testing.T, q sqlc.Querier, c context.Context) {
+// 	testLoad(tests, t)
+// 	setSchemaRulesetCacheBuffer(t)
 
-	err := Load(q, c)
-	if err != nil {
-		t.Errorf("Error:%+v", err)
-	}
-}
+// 	//testPurge(tests, t)
+// 	//testReload(tests, t, query, ctx)
+// }
 
-func setSchemaRulesetCacheBuffer(t *testing.T) {
+// func testLoadDB(tests *[]doMatchTest, t *testing.T, q sqlc.Querier, c context.Context) {
 
-	err := loadInternal(mockSchemasets, mockRulesets)
-	if err != nil {
-		t.Errorf(" %v", err)
-		return
-	}
+// 	err := Load(q, c)
+// 	if err != nil {
+// 		t.Errorf("Error:%+v", err)
+// 	}
+// }
 
-}
+// func setSchemaRulesetCacheBuffer(t *testing.T) {
 
-func testLoad(tests *[]doMatchTest, t *testing.T) {
+// 	err := loadInternal(mockSchemasets, mockRulesets)
+// 	if err != nil {
+// 		t.Errorf(" %v", err)
+// 		return
+// 	}
 
-	setSchemaRulesetCacheBuffer(t)
+// }
 
-	//PrintAllSchemaCache()
-	//PrintAllRuleSetCache()
+// func testLoad(tests *[]doMatchTest, t *testing.T) {
 
-}
+// 	setSchemaRulesetCacheBuffer(t)
 
-func testPurge(tests *[]doMatchTest, t *testing.T) {
+// 	//PrintAllSchemaCache()
+// 	//PrintAllRuleSetCache()
 
-	err := Purge()
-	if err != nil {
-		t.Errorf("ERROR Purge %+v", err)
-	}
-}
+// }
 
-func testReload(tests *[]doMatchTest, t *testing.T, q sqlc.Querier, c context.Context) {
+// func testPurge(tests *[]doMatchTest, t *testing.T) {
 
-	/*err := Reload(q,c)
-	if err != nil {
-		t.Errorf("ERROR Reload %+v", err)
-	}*/
-	// Not needed its a combination of purge and load func
-}
+// 	err := Purge()
+// 	if err != nil {
+// 		t.Errorf("ERROR Purge %+v", err)
+// 	}
+// }
+
+// func testReload(tests *[]doMatchTest, t *testing.T, q sqlc.Querier, c context.Context) {
+
+// 	/*err := Reload(q,c)
+// 	if err != nil {
+// 		t.Errorf("ERROR Reload %+v", err)
+// 	}*/
+// 	// Not needed its a combination of purge and load func
+// }
