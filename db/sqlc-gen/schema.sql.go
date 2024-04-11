@@ -166,7 +166,7 @@ func (q *Queries) SchemaDelete(ctx context.Context, id int32) (int32, error) {
 const schemaGet = `-- name: SchemaGet :many
 SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
 FROM schema
-    JOIN app ON schema.app = app.shortname
+    JOIN app ON schema.app = app.shortnamelc
     JOIN realmslice on schema.slice = realmslice.id
 WHERE
     schema.realm = $1
@@ -383,16 +383,18 @@ const wfSchemaList = `-- name: WfSchemaList :many
 SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
 FROM schema, app, realmslice
 where
-    schema.app = app.shortname
+    schema.app = app.shortnamelc
     and schema.slice = realmslice.id
     AND schema.realm =  $1
-    AND (($2::INTEGER is null) OR (schema.slice = $2::INTEGER))
-    AND (($3::text is null) OR (schema.app = $3::text))
-    AND ($4::text is null OR schema.class = $4::text)
+    AND schema.brwf = $2
+    AND (($3::INTEGER is null) OR (schema.slice = $3::INTEGER))
+    AND (($4::text is null) OR (schema.app = $4::text))
+    AND ($5::text is null OR schema.class = $5::text)
 `
 
 type WfSchemaListParams struct {
 	Relam string      `json:"relam"`
+	Brwf  BrwfEnum    `json:"brwf"`
 	Slice pgtype.Int4 `json:"slice"`
 	App   pgtype.Text `json:"app"`
 	Class pgtype.Text `json:"class"`
@@ -412,6 +414,7 @@ type WfSchemaListRow struct {
 func (q *Queries) WfSchemaList(ctx context.Context, arg WfSchemaListParams) ([]WfSchemaListRow, error) {
 	rows, err := q.db.Query(ctx, wfSchemaList,
 		arg.Relam,
+		arg.Brwf,
 		arg.Slice,
 		arg.App,
 		arg.Class,
@@ -455,8 +458,9 @@ where
                     schema.realm = realm.id
                     and schema.slice = realmslice.id
                     and schema.slice = $1
+                    and schema.brwf = $4
                     and realmslice.realm = realm.shortname
-                    and schema.realm = $4
+                    and schema.realm = $5
                     and schema.class = $3
                     AND schema.app = $2
             ) as id
@@ -465,19 +469,21 @@ where
                 SELECT schemaid
                 FROM ruleset
                 where
-                    realm = $4
+                    realm = $5
                     and slice = $1
                     and app = $2
                     and class = $3
+                    and brwf = $4
             )
     )
 `
 
 type WfschemadeleteParams struct {
-	Slice int32  `json:"slice"`
-	App   string `json:"app"`
-	Class string `json:"class"`
-	Realm string `json:"realm"`
+	Slice int32    `json:"slice"`
+	App   string   `json:"app"`
+	Class string   `json:"class"`
+	Brwf  BrwfEnum `json:"brwf"`
+	Realm string   `json:"realm"`
 }
 
 func (q *Queries) Wfschemadelete(ctx context.Context, arg WfschemadeleteParams) error {
@@ -485,29 +491,32 @@ func (q *Queries) Wfschemadelete(ctx context.Context, arg WfschemadeleteParams) 
 		arg.Slice,
 		arg.App,
 		arg.Class,
+		arg.Brwf,
 		arg.Realm,
 	)
 	return err
 }
 
 const wfschemaget = `-- name: Wfschemaget :one
-SELECT s.slice, s.app, s.class, rm.longname, s.patternschema, s.actionschema, s.createdat, s.createdby, s.editedat, s.editedby
+SELECT s.slice, s.app, s.class, rm.longname, s.patternschema as patternschema, s.actionschema as actionschema, s.createdat, s.createdby, s.editedat, s.editedby
 FROM schema as s, realm as rm, realmslice as rs
 WHERE
     s.realm = rm.shortname
     and rs.realm = rm.shortname
     and s.slice = rs.id
     and s.slice = $1
-    and rm.shortname = $4
+    and s.brwf = $4
+    and rm.shortname = $5
     and s.class = $3
     AND s.app = $2
 `
 
 type WfschemagetParams struct {
-	Slice int32  `json:"slice"`
-	App   string `json:"app"`
-	Class string `json:"class"`
-	Realm string `json:"realm"`
+	Slice int32    `json:"slice"`
+	App   string   `json:"app"`
+	Class string   `json:"class"`
+	Brwf  BrwfEnum `json:"brwf"`
+	Realm string   `json:"realm"`
 }
 
 type WfschemagetRow struct {
@@ -528,6 +537,7 @@ func (q *Queries) Wfschemaget(ctx context.Context, arg WfschemagetParams) (Wfsch
 		arg.Slice,
 		arg.App,
 		arg.Class,
+		arg.Brwf,
 		arg.Realm,
 	)
 	var i WfschemagetRow

@@ -16,16 +16,16 @@ import (
 )
 
 type wfschemagetRow struct {
-	Slice         int32               `json:"slice"`
-	App           string              `json:"app"`
-	Class         string              `json:"class"`
-	Longname      string              `json:"longname"`
-	Patternschema types.PatternSchema `json:"patternschema"`
-	Actionschema  types.ActionSchema  `json:"actionschema"`
-	Createdat     pgtype.Timestamp    `json:"createdat"`
-	Createdby     string              `json:"createdby"`
-	Editedat      pgtype.Timestamp    `json:"editedat"`
-	Editedby      pgtype.Text         `json:"editedby"`
+	Slice         int32            `json:"slice"`
+	App           string           `json:"app"`
+	Class         string           `json:"class"`
+	Longname      string           `json:"longname"`
+	Patternschema interface{}      `json:"patternschema"`
+	Actionschema  interface{}      `json:"actionschema"`
+	Createdat     pgtype.Timestamp `json:"createdat"`
+	Createdby     string           `json:"createdby"`
+	Editedat      pgtype.Timestamp `json:"editedat"`
+	Editedby      pgtype.Text      `json:"editedby"`
 }
 
 // SchemaGet will be responsible for processing the /wfschemaget request that comes through as a POST
@@ -57,6 +57,7 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 		CapNeeded: CapForList,
 	}, false)
 
+	// isCapable := true
 	if !isCapable {
 		lh.Info().LogActivity("unauthorized user:", userID)
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
@@ -88,6 +89,7 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 		App:   request.App,
 		Class: request.Class,
 		Realm: realmName,
+		Brwf:  "W",
 	})
 	if err != nil {
 		lh.Debug0().Error(err).Log("failed to get data from db")
@@ -98,7 +100,7 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 
 	errors := response.bindSchemaGetResp(s, dbResponse)
 	if len(errors) > 0 {
-		lh.Debug0().Error(err).Log("error while converting byte patternschema or action schema to struct")
+		lh.Debug0().LogActivity("error while converting byte patternschema or action schema to struct:", errors)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, errors))
 		return
 	}
@@ -111,8 +113,8 @@ func (response *wfschemagetRow) bindSchemaGetResp(s *service.Service, dbResponse
 	lh := s.LogHarbour
 	lh.Log("bindSchemaGetResp request received")
 	var (
-		pattrn *types.PatternSchema
-		action *types.ActionSchema
+		pattrn *interface{}
+		action *interface{}
 		errors []wscutils.ErrorMessage
 	)
 	response.Slice = dbResponse.Slice
