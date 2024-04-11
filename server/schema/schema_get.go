@@ -11,21 +11,33 @@ import (
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
+	crux "github.com/remiges-tech/crux/matching-engine"
 	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/types"
 )
 
+type patternSchema_t struct {
+	Attr      string   `json:"attr" validate:"required"`
+	ShortDesc string   `json:"shortdesc" validate:"required"`
+	LongDesc  string   `json:"longdesc" validate:"required"`
+	ValType   string   `json:"valtype" validate:"required"`
+	EnumVals  []string `json:"vals,omitempty"`
+	ValMin    float64  `json:"valmin,omitempty"`
+	ValMax    float64  `json:"valmax,omitempty"`
+	LenMin    int      `json:"lenmin,omitempty"`
+	LenMax    int      `json:"lenmax,omitempty"`
+}
 type wfschemagetRow struct {
-	Slice         int32            `json:"slice"`
-	App           string           `json:"app"`
-	Class         string           `json:"class"`
-	Longname      string           `json:"longname"`
-	Patternschema interface{}      `json:"patternschema"`
-	Actionschema  interface{}      `json:"actionschema"`
-	Createdat     pgtype.Timestamp `json:"createdat"`
-	Createdby     string           `json:"createdby"`
-	Editedat      pgtype.Timestamp `json:"editedat"`
-	Editedby      pgtype.Text      `json:"editedby"`
+	Slice         int32               `json:"slice"`
+	App           string              `json:"app"`
+	Class         string              `json:"class"`
+	Longname      string              `json:"longname"`
+	Patternschema []patternSchema_t   `json:"patternschema"`
+	Actionschema  crux.ActionSchema_t `json:"actionschema"`
+	Createdat     pgtype.Timestamp    `json:"createdat"`
+	Createdby     string              `json:"createdby"`
+	Editedat      pgtype.Timestamp    `json:"editedat"`
+	Editedby      pgtype.Text         `json:"editedby"`
 }
 
 // SchemaGet will be responsible for processing the /wfschemaget request that comes through as a POST
@@ -113,8 +125,8 @@ func (response *wfschemagetRow) bindSchemaGetResp(s *service.Service, dbResponse
 	lh := s.LogHarbour
 	lh.Log("bindSchemaGetResp request received")
 	var (
-		pattrn *interface{}
-		action *interface{}
+		pattrn []crux.PatternSchema_t
+		action crux.ActionSchema_t
 		errors []wscutils.ErrorMessage
 	)
 	response.Slice = dbResponse.Slice
@@ -134,9 +146,30 @@ func (response *wfschemagetRow) bindSchemaGetResp(s *service.Service, dbResponse
 	if err != nil {
 		errors = append(errors, wscutils.BuildErrorMessage(server.MsgId_NoSchemaFound, server.ErrCode_Invalid_action_schema, nil))
 	}
-	response.Patternschema = *pattrn
-	response.Actionschema = *action
+
+	for _, v := range pattrn {
+		var t patternSchema_t
+		t.bindPattrnSchemaResp(v)
+		for k, _ := range v.EnumVals {
+			t.EnumVals = append(t.EnumVals, k)
+		}
+		response.Patternschema = append(response.Patternschema, t)
+	}
+
+	// response.Patternschema = pattrn
+	response.Actionschema = action
 	return errors
+}
+
+func (t *patternSchema_t) bindPattrnSchemaResp(v crux.PatternSchema_t) {
+	t.Attr = v.Attr
+	t.ShortDesc = v.ShortDesc
+	t.LongDesc = v.LongDesc
+	t.ValType = v.ValType
+	t.ValMin = v.ValMin
+	t.ValMax = v.ValMax
+	t.LenMin = v.LenMin
+	t.LenMax = v.LenMax
 }
 
 // To convert byte data to patternschema struct
