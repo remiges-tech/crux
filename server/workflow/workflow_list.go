@@ -110,7 +110,15 @@ func WorkflowList(c *gin.Context, s *service.Service) {
 // Function to process the request and get the workflows
 func processRequest(c *gin.Context, lh *logharbour.Logger, hasRootCapabilities bool, query *sqlc.Queries, request *WorkflowListReq) ([]sqlc.WorkflowListRow, error) {
 	lh.Debug0().Log("processRequest request received")
-
+	var (
+		isAct, isIntr bool
+	)
+	if request.IsActive != nil {
+		isAct = *request.IsActive
+	}
+	if request.IsInternal != nil {
+		isIntr = *request.IsInternal
+	}
 	if !hasRootCapabilities {
 		lh.Debug0().Log("user not have root cap")
 		//  if app parameter is present then
@@ -125,8 +133,8 @@ func processRequest(c *gin.Context, lh *logharbour.Logger, hasRootCapabilities b
 					Realm:      realmName,
 					Class:      pgtype.Text{String: request.Class, Valid: !server.IsStringEmpty(&request.Class)},
 					Setname:    pgtype.Text{String: request.Name, Valid: !server.IsStringEmpty(&request.Name)},
-					IsActive:   pgtype.Bool{Bool: request.IsActive, Valid: &request.IsActive != nil},
-					IsInternal: pgtype.Bool{Bool: request.IsInternal, Valid: &request.IsInternal != nil},
+					IsActive:   pgtype.Bool{Bool: isAct, Valid: (request.IsActive != nil)},
+					IsInternal: pgtype.Bool{Bool: isIntr, Valid: (request.IsInternal != nil)},
 				})
 			}
 			lh.Debug0().Log("user not have 'ruleset' rights")
@@ -151,8 +159,8 @@ func processRequest(c *gin.Context, lh *logharbour.Logger, hasRootCapabilities b
 			Realm:      realmName,
 			Class:      pgtype.Text{String: request.Class, Valid: !server.IsStringEmpty(&request.Class)},
 			Setname:    pgtype.Text{String: request.Name, Valid: !server.IsStringEmpty(&request.Name)},
-			IsActive:   pgtype.Bool{Bool: request.IsActive, Valid: &request.IsActive != nil},
-			IsInternal: pgtype.Bool{Bool: request.IsInternal, Valid: &request.IsInternal != nil},
+			IsActive:   pgtype.Bool{Valid: request.IsActive != nil, Bool: isAct},
+			IsInternal: pgtype.Bool{Valid: request.IsInternal != nil, Bool: isIntr},
 		})
 	}
 	lh.Debug0().Log("user have root cap or 'app' is nil")
