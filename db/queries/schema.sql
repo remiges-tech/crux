@@ -48,7 +48,7 @@ DELETE FROM schema WHERE id = $1 RETURNING id;
 -- name: SchemaGet :many
 SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
 FROM schema
-    JOIN app ON schema.app = app.shortname
+    JOIN app ON schema.app = app.shortnamelc
     JOIN realmslice on schema.slice = realmslice.id
 WHERE
     schema.realm = $1
@@ -57,13 +57,14 @@ WHERE
     AND schema.app = $4;
 
 -- name: Wfschemaget :one
-SELECT s.slice, s.app, s.class, rm.longname, s.patternschema, s.actionschema, s.createdat, s.createdby, s.editedat, s.editedby
+SELECT s.slice, s.app, s.class, rm.longname, s.patternschema as patternschema, s.actionschema as actionschema, s.createdat, s.createdby, s.editedat, s.editedby
 FROM schema as s, realm as rm, realmslice as rs
 WHERE
     s.realm = rm.shortname
     and rs.realm = rm.shortname
     and s.slice = rs.id
     and s.slice = $1
+    and s.brwf = @brwf
     and rm.shortname = @realm
     and s.class = $3
     AND s.app = $2;
@@ -80,6 +81,7 @@ where
                     schema.realm = realm.id
                     and schema.slice = realmslice.id
                     and schema.slice = $1
+                    and schema.brwf = @brwf
                     and realmslice.realm = realm.shortname
                     and schema.realm = @realm
                     and schema.class = $3
@@ -94,6 +96,7 @@ where
                     and slice = $1
                     and app = $2
                     and class = $3
+                    and brwf = @brwf
             )
     );
 
@@ -120,12 +123,21 @@ WHERE
 SELECT schema.slice, schema.app, app.longname, schema.class, schema.createdby, schema.createdat, schema.editedby, schema.editedat
 FROM schema, app, realmslice
 where
-    schema.app = app.shortname
+    schema.app = app.shortnamelc
     and schema.slice = realmslice.id
     AND schema.realm =  @relam
+    AND schema.brwf = @brwf
     AND ((sqlc.narg('slice')::INTEGER is null) OR (schema.slice = @slice::INTEGER))
     AND ((sqlc.narg('app')::text is null) OR (schema.app = @app::text))
     AND (sqlc.narg('class')::text is null OR schema.class = sqlc.narg('class')::text);
 
 -- name: AllSchemas :many
 SELECT * FROM public.schema;
+
+
+-- name: LoadSchema :many
+SELECT * FROM SCHEMA
+WHERE realm = @realm_name::varchar
+    AND slice = (SELECT realmslice.id FROM realmslice WHERE realmslice.id= @slice AND realmslice.realm = @realm_name)
+    AND class = $1
+    AND app = (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= @app AND app.realm = @realm_name);

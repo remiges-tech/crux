@@ -130,10 +130,10 @@ where
 SELECT * 
 FROM ruleset 
 WHERE
-    realm = $1
-    AND slice = $2
-    AND class = $3
-    AND app = $4
+     realm = @realm_name::varchar
+    AND slice = (SELECT realmslice.id FROM realmslice WHERE realmslice.id= @slice AND realmslice.realm = @realm_name )
+    AND class = $1
+    AND app = (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= @app AND app.realm = @realm_name)
 FOR UPDATE; 
 
 -- name: AllRuleset :many
@@ -142,3 +142,29 @@ SELECT
 FROM
     public.ruleset;
 
+-- name: ruleExists :one
+select 1 
+from ruleset 
+where realm = $1
+AND app= $2
+AND slice= $3 
+AND class = $4;
+
+-- name: LoadRuleSet :one
+SELECT * 
+FROM ruleset 
+WHERE
+     realm = @realm_name::varchar
+    AND slice = (SELECT realmslice.id FROM realmslice WHERE realmslice.id= @slice AND realmslice.realm = @realm_name )
+    AND class = $1
+    AND app = (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= @app AND app.realm = @realm_name)
+    AND setname = $2; 
+
+-- name: IsWorkflowReferringSchema :one
+select count(*)
+From ruleset
+Where realm = $1
+AND slice = $2
+AND app = $3
+AND class = $4
+AND is_active = true;

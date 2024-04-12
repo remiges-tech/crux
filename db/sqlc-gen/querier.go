@@ -42,6 +42,7 @@ type Querier interface {
 	GetAppName(ctx context.Context, arg GetAppNameParams) ([]App, error)
 	GetAppNames(ctx context.Context, realm string) ([]string, error)
 	GetCapGrantForApp(ctx context.Context, arg GetCapGrantForAppParams) ([]Capgrant, error)
+	GetCapGrantForUser(ctx context.Context, arg GetCapGrantForUserParams) ([]Capgrant, error)
 	GetClass(ctx context.Context, arg GetClassParams) (string, error)
 	GetRealmSliceListByRealm(ctx context.Context, realm string) ([]GetRealmSliceListByRealmRow, error)
 	GetSchemaWithLock(ctx context.Context, arg GetSchemaWithLockParams) (GetSchemaWithLockRow, error)
@@ -61,16 +62,19 @@ type Querier interface {
 	GrantAppCapability(ctx context.Context, arg GrantAppCapabilityParams) error
 	GrantRealmCapability(ctx context.Context, arg GrantRealmCapabilityParams) error
 	InsertNewRecordInRealmSlice(ctx context.Context, arg InsertNewRecordInRealmSliceParams) (int32, error)
+	IsWorkflowReferringSchema(ctx context.Context, arg IsWorkflowReferringSchemaParams) (int64, error)
+	LoadRuleSet(ctx context.Context, arg LoadRuleSetParams) (Ruleset, error)
+	LoadSchema(ctx context.Context, arg LoadSchemaParams) ([]Schema, error)
 	RealmSliceActivate(ctx context.Context, arg RealmSliceActivateParams) (Realmslice, error)
 	RealmSliceAppsList(ctx context.Context, id int32) ([]RealmSliceAppsListRow, error)
 	RealmSliceDeactivate(ctx context.Context, arg RealmSliceDeactivateParams) (Realmslice, error)
 	RealmSlicePurge(ctx context.Context, realm string) (pgconn.CommandTag, error)
+	RevokeCapGrantForUser(ctx context.Context, arg RevokeCapGrantForUserParams) error
 	RulesetRowLock(ctx context.Context, arg RulesetRowLockParams) (Ruleset, error)
 	SchemaDelete(ctx context.Context, id int32) (int32, error)
 	SchemaGet(ctx context.Context, arg SchemaGetParams) ([]SchemaGetRow, error)
 	SchemaNew(ctx context.Context, arg SchemaNewParams) (int32, error)
 	SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) error
-	UpdateCapGranForUser(ctx context.Context, arg UpdateCapGranForUserParams) error
 	UpdateWFInstanceDoneat(ctx context.Context, arg UpdateWFInstanceDoneatParams) error
 	UpdateWFInstanceStep(ctx context.Context, arg UpdateWFInstanceStepParams) error
 	UserActivate(ctx context.Context, arg UserActivateParams) (Capgrant, error)
@@ -86,6 +90,7 @@ type Querier interface {
 	WorkflowDelete(ctx context.Context, arg WorkflowDeleteParams) (pgconn.CommandTag, error)
 	WorkflowList(ctx context.Context, arg WorkflowListParams) ([]WorkflowListRow, error)
 	Workflowget(ctx context.Context, arg WorkflowgetParams) (WorkflowgetRow, error)
+	ruleExists(ctx context.Context, arg ruleExistsParams) (int32, error)
 }
 
 var _ Querier = (*Queries)(nil)

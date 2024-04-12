@@ -64,6 +64,7 @@ func SchemaDelete(c *gin.Context, s *service.Service) {
 		App:   request.App,
 		Class: request.Class,
 		Realm: realmName,
+		Brwf:  "W",
 	})
 	if err != nil {
 		lh.Debug0().LogActivity("failed while deleting record:", err.Error())

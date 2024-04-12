@@ -1,4 +1,4 @@
-package schema
+package breschema
 
 import (
 	"encoding/json"
@@ -18,7 +18,7 @@ import (
 	"github.com/remiges-tech/logharbour/logharbour"
 )
 
-type updateSchema struct {
+type BREUpdateSchemaRequest struct {
 	Slice         int32               `json:"slice" validate:"required,gt=0,lt=15"`
 	App           string              `json:"App" validate:"required,alpha,lt=15"`
 	Class         string              `json:"class" validate:"required,lowercase,lt=15"`
@@ -26,13 +26,22 @@ type updateSchema struct {
 	ActionSchema  crux.ActionSchema_t `json:"actionSchema,omitempty"`
 }
 
-func SchemaUpdate(c *gin.Context, s *service.Service) {
+func BRESchemaUpdate(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
-	l.Debug0().Log("Starting execution of SchemaUpdate()")
+	l.Debug0().Log("starting execution of BRESchemaUpdate()")
 
+	userID := "abc"
+	realmName := "BSE"
 	// userID, err := server.ExtractUserNameFromJwt(c)
 	// if err != nil {
 	// 	l.Info().Log("unable to extract userID from token")
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
+	// 	return
+	// }
+
+	// realmName, err := server.ExtractRealmFromJwt(c)
+	// if err != nil {
+	// 	l.Info().Log("unable to extract realm from token")
 	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
 	// 	return
 	// }
@@ -43,21 +52,21 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 	}, false)
 
 	if !isCapable {
-		l.Info().LogActivity("Unauthorized user:", userID)
+		l.Info().LogActivity("unauthorized user:", userID)
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
 		return
 	}
 
-	var req updateSchema
+	var (
+		req BREUpdateSchemaRequest
+	)
 
-	err = wscutils.BindJSON(c, &req)
+	err := wscutils.BindJSON(c, &req)
 	if err != nil {
-		l.Error(err).Log("Error Unmarshalling Query paramaeters to struct:")
+		l.Error(err).Log("error unmarshalling query paramaeters to struct:")
 		return
 	}
-	// if req.PatternSchema != nil {
-	// 	newPatternSchema := convertPatternSchema(*req.PatternSchema)
-	// }
+	
 	newPatternSchema := convertPatternSchema(req.PatternSchema)
 	schema := crux.Schema_t{
 		Class:         req.Class,
@@ -78,14 +87,14 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
-		l.Debug0().Log("Error while getting query instance from service Dependencies")
+		l.Debug0().Log("error while getting query instance from service dependencies")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
 
 	connpool, ok := s.Database.(*pgxpool.Pool)
 	if !ok {
-		l.Debug0().Log("Error while getting query instance from service Database")
+		l.Debug0().Log("error while getting query instance from service database")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
@@ -93,7 +102,7 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 	patternSchema, err := json.Marshal(newPatternSchema)
 	if err != nil {
 		patternSchema := "patternSchema"
-		l.Debug1().LogDebug("Error while marshaling patternSchema", err)
+		l.Debug1().LogDebug("error while marshaling patternSchema", err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_InvalidJson, &patternSchema)}))
 		return
 	}
@@ -101,41 +110,20 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 	actionSchema, err := json.Marshal(req.ActionSchema)
 	if err != nil {
 		actionSchema := "actionSchema"
-		l.Debug1().LogDebug("Error while marshaling actionSchema", err)
+		l.Debug1().LogDebug("error while marshaling actionSchema", err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_InvalidJson, &actionSchema)}))
 		return
 	}
 
 	tx, err := connpool.Begin(c)
 	if err != nil {
-		l.Info().Error(err).Log("Error while beginning transaction")
+		l.Info().Error(err).Log("error while beginning transaction")
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
 	defer tx.Rollback(c)
 	qtx := query.WithTx(tx)
-
-	tag, err := qtx.IsWorkflowReferringSchema(c, sqlc.IsWorkflowReferringSchemaParams{
-		Realm: realmName,
-		Slice: req.Slice,
-		App:   req.App,
-		Class: req.Class,
-	})
-	if err != nil {
-		tx.Rollback(c)
-		l.Info().Error(err).Log("Error while checking does any workflow refers this schema")
-		errmsg := db.HandleDatabaseError(err)
-		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
-		return
-	}
-
-	if tag != 0 {
-		l.Info().Log("cannot update schema because workflows referring it")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId__NotAllowed, server.ErrCode_NotAllowed))
-		return
-	}
-
 	getSchema, err := qtx.GetSchemaWithLock(c, sqlc.GetSchemaWithLockParams{
 		RealmName: realmName,
 		Slice:     req.Slice,
@@ -144,7 +132,7 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 	})
 	if err != nil {
 		tx.Rollback(c)
-		l.Info().Error(err).Log("Error while locking schema to get old value")
+		l.Info().Error(err).Log("error while locking schema to get old value")
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
@@ -154,14 +142,14 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 		Slice:         req.Slice,
 		Class:         req.Class,
 		App:           strings.ToLower(req.App),
-		Brwf:          sqlc.BrwfEnumW,
+		Brwf:          sqlc.BrwfEnumB,
 		Patternschema: patternSchema,
 		Actionschema:  actionSchema,
 		Editedby:      pgtype.Text{String: userID, Valid: true},
 	})
 	if err != nil {
 		tx.Rollback(c)
-		l.Info().Error(err).Log("Error while updating schema")
+		l.Info().Error(err).Log("error while updating schema")
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
@@ -172,9 +160,9 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
-	dclog := l.WithClass("schema").WithInstanceId(string(getSchema.ID))
-	dclog.LogDataChange("Updated schema", logharbour.ChangeInfo{
-		Entity: "schema",
+	dclog := l.WithClass("BRESchema").WithInstanceId(string(getSchema.ID))
+	dclog.LogDataChange("Updated BRESchema", logharbour.ChangeInfo{
+		Entity: "BRESchema",
 		Op:     "Update",
 		Changes: []logharbour.ChangeDetail{
 			{
@@ -188,5 +176,5 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 		},
 	})
 	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})
-	l.Debug0().Log("Finished execution of SchemaUpdate()")
+	l.Debug0().Log("Finished execution of BRESchemaUpdate()")
 }

@@ -209,11 +209,24 @@ VALUES (14,
         '2023-12-29 00:00:00',
         'user');
 
+
 INSERT INTO capgrant (id,realm, "user", app, cap, "from", "to", setby) VALUES
 (15,'BSE', 'john_doe', 'starmf', 'read', '2023-01-01', '2023-12-31', 'admin'),
 (16,'BSE', 'jane_smith', 'hdfcbank', 'write', '2023-02-15', NULL, 'manager'),
 (17,'BSE', 'amit_patel', 'nedbank', 'write', '2023-03-01', NULL, 'team_lead'),
 (18,'BSE', 'neha_gupta', 'uccapp', 'admin', '2023-01-01', '2024-01-01', 'admin');
+INSERT INTO "capgrant"
+VALUES (19,
+        'BSE',
+        'Raj',
+        'starmf',
+        'schema',
+        '2024-01-29 00:00:00',
+        NULL,
+        '2023-12-29 00:00:00',
+        'user');
+
+
 
 
 -- config TABLE
@@ -358,6 +371,20 @@ VALUES (17,
         'Brunhilde Bampkin');
 
 INSERT INTO "schema"
+VALUES (18,
+        'BSE',
+        12,
+        'starmf',
+        'W',
+        'ucctest',
+        '[{"attr":"step","vals":{"step1":{},"step2":{}},"valtype":"enum","longdesc":"","shortdesc":""},{"attr":"stepfailed","valtype":"bool","longdesc":"","shortdesc":""},{"attr":"mode","vals":{"demat":{},"physical":{}},"valtype":"enum","longdesc":"","shortdesc":""}]',
+        '{"tasks":["step1", "step2"],"properties":["nextstep","done"]}',
+        '2020-03-10T12:06:40Z',
+        'Marigold Sherwin',
+        '2023-10-21T17:39:11Z',
+        'Brunhilde Bampkin');
+
+INSERT INTO "schema"
 VALUES (19,
         'BSE',
         13,
@@ -371,19 +398,19 @@ VALUES (19,
         '2023-10-21T17:39:11Z',
         'Brunhilde Bampkin');
 
-INSERT INTO "schema"
-VALUES (18,
+        INSERT INTO "schema"
+VALUES (20,
         'BSE',
         12,
         'starmf',
-        'W',
-        'ucctest',
-        '[{"attr":"step","vals":{"step1":{},"step2":{}},"valtype":"enum","longdesc":"","shortdesc":""},{"attr":"stepfailed","valtype":"bool","longdesc":"","shortdesc":""},{"attr":"mode","vals":{"demat":{},"physical":{}},"valtype":"enum","longdesc":"","shortdesc":""}]',
-        '{"tasks":["step1", "step2"],"properties":["nextstep","done"]}',
-        '2020-03-10T12:06:40Z',
-        'Marigold Sherwin',
-        '2023-10-21T17:39:11Z',
-        'Brunhilde Bampkin');
+        'B',
+        'custonboarding',
+        '[{"attr": "cat", "valtype": "str"}, {"attr": "mrp", "valtype": "float"}, {"attr": "fullname", "valtype": "str"}, {"attr": "ageinstock", "valtype": "int"}, {"attr": "inventoryqty", "valtype": "int"}]',
+        '{"class":"retailcustomer","tasks":["initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"],"properties":["nextstep","done"]}',
+        '2021-01-03T06:02:41Z',
+        'Marielle Strongitharm',
+        '2021-06-07T02:28:17Z',
+        'Therese Roselli');
 
 -- ruleset
 

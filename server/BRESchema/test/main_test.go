@@ -1,4 +1,4 @@
-package wfinstance_test
+package breschema_test
 
 import (
 	"context"
@@ -11,18 +11,19 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	_ "github.com/lib/pq"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/modules/postgres"
+	"github.com/testcontainers/testcontainers-go/wait"
+
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/tern/migrate"
-	_ "github.com/lib/pq"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	pg "github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
-	"github.com/remiges-tech/crux/server/wfinstance"
+	breschema "github.com/remiges-tech/crux/server/BRESchema"
 	"github.com/remiges-tech/logharbour/logharbour"
-	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
-	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 var r *gin.Engine
@@ -145,9 +146,9 @@ func registerRoutes(databaseUrl string) (*gin.Engine, error) {
 		WithDatabase(connPool).
 		WithDependency("queries", queries)
 
-	s.RegisterRoute(http.MethodPost, "/wfinstancenew", wfinstance.GetWFinstanceNew)
-	s.RegisterRoute(http.MethodPost, "/wfinstanceabort", wfinstance.GetWFInstanceAbort)
-	s.RegisterRoute(http.MethodPost, "/wfinstancelist", wfinstance.GetWFInstanceList)
+	s.RegisterRoute(http.MethodPost, "/breschemanew", breschema.BRESchemaNew)
+	s.RegisterRoute(http.MethodPut, "/breschemaupdate", breschema.BRESchemaUpdate)
+
 
 	return r, nil
 

@@ -430,8 +430,8 @@ github.com/remiges-tech/alya v0.10.0 h1:xClcdoxVIl/FzAbzUTk5DCkK7zUIMekGkSeYsxxJ
 github.com/remiges-tech/alya v0.10.0/go.mod h1:BWLmuGtYUBojoaOeLk1FjVbvPpdPCT3o/i9EyUUPIhk=
 github.com/remiges-tech/logharbour v0.12.0 h1:oHMJjbpHvR+Yt1UyqF9lUJtx/LOAvd42dk1IT5YERVw=
 github.com/remiges-tech/logharbour v0.12.0/go.mod h1:94IwYcGw9mrukiHJgqoAiXj5izf6umGP9N0NEGkBUx4=
-github.com/remiges-tech/rigel v0.12.0 h1:gsfvyXP8Lj2PTLFF5SyL6OMMRSrjzfCeiSBipfEsv7I=
-github.com/remiges-tech/rigel v0.12.0/go.mod h1:U2EJT5VlNoneb6NYZd2hw2VaxlEP27gJC+cBwyzUAUA=
+github.com/remiges-tech/rigel v0.15.0 h1:lYwkm96kpQPsIHcQLcoRbLDpHPU1bSy41Av4ycihjPc=
+github.com/remiges-tech/rigel v0.15.0/go.mod h1:xr7Mm6KpT94dAnzpRJNEN1TBGXUZhaGpCiUh9O9U6LE=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/rogpeppe/go-internal v1.12.0 h1:exVL4IDcn6na9z1rAb56Vxr+CgyK3nn3O+epU5NdKM8=

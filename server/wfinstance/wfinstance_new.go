@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
+	"github.com/remiges-tech/crux/db/sqlc-gen"
 	crux "github.com/remiges-tech/crux/matching-engine"
 	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/types"
@@ -48,30 +49,28 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 		attribute        map[string]string
 		done, nextStep   string
 		steps            []string
-		ruleSet          *crux.Ruleset_t
+		// ruleSet          *crux.Ruleset_t
 	)
-	// USERID, err := server.ExtractUserNameFromJwt(c)
+	// userID, err := server.ExtractUserNameFromJwt(c)
 	// if err != nil {
 	// 	lh.Info().Log("unable to extract userID from token")
-	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
-	// 	errRes := append(errRes, wscutils.BuildErrorMessage(server.MsgId_Missing, server.ERRCode_Token_Data_Missing, nil))
-	// 	return false, errRes
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
+	// 	return
 	// }
 
-	// REALM, err := server.ExtractRealmFromJwt(c)
+	// realm, err := server.ExtractRealmFromJwt(c)
 	// if err != nil {
 	// 	lh.Info().Log("unable to extract realm from token")
-	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ERRCode_Token_Data_Missing))
-	// 	errRes := append(errRes, wscutils.BuildErrorMessage(server.MsgId_Missing, server.ERRCode_Token_Data_Missing, nil))
-	// 	return false, errRes
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
+	// 	return
 	// }
 
 	isCapable, _ := server.Authz_check(types.OpReq{
-		User: USERID,
+		User: userID,
 	}, false)
 
 	if !isCapable {
-		lh.Info().LogActivity("unauthorized user:", USERID)
+		lh.Info().LogActivity("unauthorized user:", userID)
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
 		return
 	}
@@ -91,7 +90,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	}
 	// Validate request
 	existingEntity := wfinstanceNewreq.Entity
-	isValidReq, errStr := validateWFInstanceNewReq(wfinstanceNewreq, s, c)
+	isValidReq, errStr := validateWFInstanceNewReq(wfinstanceNewreq, realm, s, c)
 	if len(errStr) > 0 || !isValidReq {
 		lh.Debug0().LogActivity("GetWFinstanceNew||request validation error:", errStr)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, errStr))
@@ -107,7 +106,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	//  doMatch() Processing
 
 	// To get Entity
-	entity := getEntityStructure(wfinstanceNewreq)
+	entity := getEntityStructure(wfinstanceNewreq, realm)
 
 	// To get workflow rulesets from RuleSetCache
 	// ruleSet = crux.GetWorkflowFromCacheWithName(crux.Realm_t(REALM), crux.App_t(wfinstanceNewreq.App), crux.Slice_t(wfinstanceNewreq.Slice), crux.ClassName_t(wfinstanceNewreq.Entity["class"]), wfinstanceNewreq.Workflow)
@@ -116,22 +115,46 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid))
 	// }
 
-	ruleSets, err := crux.RetrieveWorkflowRulesetFromCache(REALM, wfinstanceNewreq.App, wfinstanceNewreq.Entity[CLASS], int(wfinstanceNewreq.Slice))
+	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
+	if !ok {
+		lh.Debug0().Log("Error while getting query instance from service Dependencies")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
+		return
+	}
+
+	var cacheData = crux.Cache{
+		Ctx:          c,
+		Query:        query,
+		Slice:        crux.Slice_t(wfinstanceNewreq.Slice),
+		App:          crux.App_t(wfinstanceNewreq.App),
+		Class:        crux.ClassName_t(wfinstanceNewreq.Entity[CLASS]),
+		Realm:        crux.Realm_t(realm),
+		WorkflowName: wfinstanceNewreq.Workflow,
+	}
+
+	schema, err := cacheData.RetrieveRuleSchemasFromCache("W")
+	if err != nil || schema == nil {
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, err.Error()))
+		return
+	}
+
+	// ruleSets, err := crux.RetrieveWorkflowRulesetFromCache(REALM, wfinstanceNewreq.App, wfinstanceNewreq.Entity[CLASS], int(wfinstanceNewreq.Slice))
+	ruleSets, err := cacheData.RetrieveWorkflowRuleSetFromCache("W")
 	if err != nil {
 		lh.Error(err).Log("GetWFinstanceNew||error while getting workflow rulesets from RuleSetCache ")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, err.Error()))
 		return
 	}
 
-	for _, r := range ruleSets {
-		if r.SetName == wfinstanceNewreq.Workflow {
-			ruleSet = r
-		}
+	// for _, r := range ruleSets {
+	// 	if r.SetName == wfinstanceNewreq.Workflow {
+	// 		ruleSet = r
+	// 	}
 
-	}
+	// }
 
 	// call DoMatch()
-	actionSet, _, err = crux.DoMatch(entity, ruleSet, actionSet, seenRuleSets)
+	actionSet, _, err = crux.DoMatch(entity, ruleSets, schema, actionSet, seenRuleSets)
 	if err != nil {
 		lh.Error(err).Log("GetWFinstanceNew||error while calling doMatch Method")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, err.Error()))
@@ -170,7 +193,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 		}
 		response, err = AddTasks(addTaskRequest, s, c)
 		if err != nil {
-			lh.LogActivity("GetWFinstanceNew||error while adding single step in wfinstance table :", err.Error())
+			lh.Error(err).Log("GetWFinstanceNew||error while adding single step in wfinstance table")
 			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 			return
 		}
@@ -187,7 +210,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 		}
 		response, err = AddTasks(addTaskRequest, s, c)
 		if err != nil {
-			lh.LogActivity("GetWFinstanceNew||error while adding multiple steps in wfinstance table :", error.Error())
+			lh.Error(err).Log("GetWFinstanceNew||error while adding multiple steps in wfinstance table")
 			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 			return
 		}

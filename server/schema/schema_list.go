@@ -113,5 +113,6 @@ func getSchemaList(c *gin.Context, sh SchemaStruct, query *sqlc.Queries) ([]sqlc
 		Slice: pgtype.Int4{Int32: sh.Slice, Valid: sh.Slice > 0},
 		App:   pgtype.Text{String: sh.App, Valid: !server.IsStringEmpty(&sh.App)},
 		Class: pgtype.Text{String: sh.Class, Valid: !server.IsStringEmpty(&sh.Class)},
+		Brwf:  "W",
 	})
 }

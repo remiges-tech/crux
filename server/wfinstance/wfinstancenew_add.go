@@ -2,7 +2,6 @@ package wfinstance
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -91,8 +90,6 @@ func AddTasks(req AddTaskRequest, s *service.Service, c *gin.Context) (WFInstanc
 			if err.Error() == "no rows in result set" {
 				continue // If no workflow is found, continue to the next step
 			}
-		} else {
-			return response, err
 		}
 
 		// Only proceed if err is nils
@@ -122,7 +119,6 @@ func getResponse(r GetResponse) WFInstanceNewResponse {
 
 	lh := r.Service.LogHarbour.WithClass("wfinstance")
 	lh.Debug0().Log("Inside getResponse()")
-	fmt.Println(">>>>>>>>>>>>>responsedata :", r.ResponseData)
 	for _, val := range r.ResponseData {
 
 		// adding tasks

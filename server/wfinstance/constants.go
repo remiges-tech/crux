@@ -12,8 +12,8 @@ const (
 	START     = "start"
 	FALSE     = "false"
 	TRUE      = "true"
-	REALM     = "BSE"
-	USERID    = "1234"
+	realm     = "BSE"
+	userID    = "1234"
 )
 
 //var ENTITYREALM = "BSE"

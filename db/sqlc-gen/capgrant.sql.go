@@ -221,6 +221,45 @@ func (q *Queries) GetCapGrantForApp(ctx context.Context, arg GetCapGrantForAppPa
 	return items, nil
 }
 
+const getCapGrantForUser = `-- name: GetCapGrantForUser :many
+DELETE FROM capgrant  WHERE "user" = $1 AND realm = $2 RETURNING id, realm, "user", app, cap, "from", "to", setat, setby
+`
+
+type GetCapGrantForUserParams struct {
+	Userid string `json:"userid"`
+	Realm  string `json:"realm"`
+}
+
+func (q *Queries) GetCapGrantForUser(ctx context.Context, arg GetCapGrantForUserParams) ([]Capgrant, error) {
+	rows, err := q.db.Query(ctx, getCapGrantForUser, arg.Userid, arg.Realm)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Capgrant
+	for rows.Next() {
+		var i Capgrant
+		if err := rows.Scan(
+			&i.ID,
+			&i.Realm,
+			&i.User,
+			&i.App,
+			&i.Cap,
+			&i.From,
+			&i.To,
+			&i.Setat,
+			&i.Setby,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUserCapsAndAppsByRealm = `-- name: GetUserCapsAndAppsByRealm :many
 SELECT  cap ,app FROM capgrant  WHERE "user" = $1 and realm = $2 and app= any($3::text[])
 `
@@ -363,17 +402,17 @@ func (q *Queries) GrantRealmCapability(ctx context.Context, arg GrantRealmCapabi
 	return err
 }
 
-const updateCapGranForUser = `-- name: UpdateCapGranForUser :exec
-UPDATE capgrant set cap = NULL WHERE "user" = $1 AND realm = $2
+const revokeCapGrantForUser = `-- name: RevokeCapGrantForUser :exec
+DELETE FROM capgrant  WHERE "user" = $1 AND realm = $2
 `
 
-type UpdateCapGranForUserParams struct {
+type RevokeCapGrantForUserParams struct {
 	Userid string `json:"userid"`
 	Realm  string `json:"realm"`
 }
 
-func (q *Queries) UpdateCapGranForUser(ctx context.Context, arg UpdateCapGranForUserParams) error {
-	_, err := q.db.Exec(ctx, updateCapGranForUser, arg.Userid, arg.Realm)
+func (q *Queries) RevokeCapGrantForUser(ctx context.Context, arg RevokeCapGrantForUserParams) error {
+	_, err := q.db.Exec(ctx, revokeCapGrantForUser, arg.Userid, arg.Realm)
 	return err
 }
 
