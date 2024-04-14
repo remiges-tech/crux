@@ -160,7 +160,7 @@ func DoMarkDone(c *gin.Context, s *service.Service, queries *sqlc.Queries, DoMar
 		seenRuleSets := make(map[string]struct{})
 
 		// Call the doMatch function passing the entity.entity, ruleset, and the empty actionSet and seenRuleSets
-		actionset, _, err := crux.DoMatch(DoMarkDoneParam.Entity, ruleset, schema, actionSet, seenRuleSets)
+		actionset, _, err, _ := crux.DoMatch(DoMarkDoneParam.Entity, ruleset, schema, actionSet, seenRuleSets, crux.Trace_t{})
 		if err != nil {
 			return wfinstance.WFInstanceNewResponse{}, err
 		}
@@ -232,7 +232,7 @@ func DoMarkDone(c *gin.Context, s *service.Service, queries *sqlc.Queries, DoMar
 		actionSet := crux.ActionSet{}
 		seenRuleSets := make(map[string]struct{})
 
-		actionset, match, err := crux.DoMatch(DoMarkDoneParam.Entity, ruleset, schema, actionSet, seenRuleSets)
+		actionset, match, err, _ := crux.DoMatch(DoMarkDoneParam.Entity, ruleset, schema, actionSet, seenRuleSets, crux.Trace_t{})
 		if err != nil {
 			return wfinstance.WFInstanceNewResponse{}, err
 		}
@@ -341,7 +341,7 @@ func DoMarkDone(c *gin.Context, s *service.Service, queries *sqlc.Queries, DoMar
 			actionSet := crux.ActionSet{}
 			seenRuleSets := make(map[string]struct{})
 
-			actionset, _, err := crux.DoMatch(DoMarkDoneParam.Entity, ruleset, schema, actionSet, seenRuleSets)
+			actionset, _, err, _ := crux.DoMatch(DoMarkDoneParam.Entity, ruleset, schema, actionSet, seenRuleSets, crux.Trace_t{})
 			if err != nil {
 				return wfinstance.WFInstanceNewResponse{}, err
 			}
