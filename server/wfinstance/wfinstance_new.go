@@ -8,7 +8,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
-	"github.com/remiges-tech/crux/db/sqlc-gen"
 	crux "github.com/remiges-tech/crux/matching-engine"
 	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/types"
@@ -35,6 +34,8 @@ type WFInstanceNewResponse struct {
 	Done      string             `json:"done,omitempty"`
 	ID        string             `json:"id,omitempty"` //wfinstance id
 }
+
+const WFE = "W"
 
 // GetWFinstanceNew will be responsible for processing the /wfinstanceNew request that comes through as a POST
 func GetWFinstanceNew(c *gin.Context, s *service.Service) {
@@ -115,33 +116,28 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid))
 	// }
 
-	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
+	// query, ok := s.Dependencies["queries"].(*sqlc.Queries)
+	// if !ok {
+	// 	lh.Debug0().Log("Error while getting query instance from service Dependencies")
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
+	// 	return
+	// }
+
+	cruxCache, ok := s.Dependencies["cruxCache"].(*crux.Cache)
 	if !ok {
-		lh.Debug0().Log("Error while getting query instance from service Dependencies")
+		lh.Debug0().Debug1().Log("Error while getting cruxCache instance from service Dependencies")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
 
-	var cacheData = crux.Cache{
-		Ctx:          c,
-		Query:        query,
-		Slice:        crux.Slice_t(wfinstanceNewreq.Slice),
-		App:          crux.App_t(wfinstanceNewreq.App),
-		Class:        crux.ClassName_t(wfinstanceNewreq.Entity[CLASS]),
-		Realm:        crux.Realm_t(realm),
-		WorkflowName: wfinstanceNewreq.Workflow,
-	}
-
-	schema, err := cacheData.RetrieveRuleSchemasFromCache("W")
-	if err != nil || schema == nil {
+	class := wfinstanceNewreq.Entity["class"]
+	schema, ruleset, err := cruxCache.RetriveRuleSchemasAndRuleSetsFromCache(WFE, wfinstanceNewreq.App, realm, class, wfinstanceNewreq.Workflow, wfinstanceNewreq.Slice)
+	if err != nil {
+		lh.Debug0().Error(err).Log("error while Retrieve RuleSchemas and RuleSets FromCache")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, err.Error()))
 		return
-	}
-
-	// ruleSets, err := crux.RetrieveWorkflowRulesetFromCache(REALM, wfinstanceNewreq.App, wfinstanceNewreq.Entity[CLASS], int(wfinstanceNewreq.Slice))
-	ruleSets, err := cacheData.RetrieveWorkflowRuleSetFromCache("W")
-	if err != nil {
-		lh.Error(err).Log("GetWFinstanceNew||error while getting workflow rulesets from RuleSetCache ")
+	} else if schema == nil || ruleset == nil {
+		lh.Debug0().Error(err).Log("didn't find any data in RuleSchemas or RuleSets cache")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, err.Error()))
 		return
 	}
@@ -154,7 +150,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	// }
 
 	// call DoMatch()
-	actionSet, _, err = crux.DoMatch(entity, ruleSets, schema, actionSet, seenRuleSets)
+	actionSet, _, err = crux.DoMatch(entity, ruleset, schema, actionSet, seenRuleSets)
 	if err != nil {
 		lh.Error(err).Log("GetWFinstanceNew||error while calling doMatch Method")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, err.Error()))

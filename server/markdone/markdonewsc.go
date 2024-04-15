@@ -56,12 +56,13 @@ func WFInstanceMarkDone(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
 		return
 	}
+	l.Info().Log("Authz_check completed")
 
 	var req WFInstanceMarkDoneReq
 
 	err := wscutils.BindJSON(c, &req)
 	if err != nil {
-		l.Error(err).Log("Error Unmarshalling Query parameters to struct:")
+		l.Error(err).Debug0().Log("Error Unmarshalling Query parameters to struct:")
 		return
 	}
 	// Validate request
@@ -74,20 +75,20 @@ func WFInstanceMarkDone(c *gin.Context, s *service.Service) {
 
 	queries, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
-		l.Debug0().Log("Error while getting query instance from service Dependencies")
+		l.Debug0().Debug1().Log("Error while getting query instance from service Dependencies")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
 
 	connpool, ok := s.Database.(*pgxpool.Pool)
 	if !ok {
-		l.Debug0().Log("Error while getting connection pool instance from service Database")
+		l.Debug0().Debug1().Log("Error while getting connection pool instance from service Database")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
 	tx, err := connpool.Begin(c)
 	if err != nil {
-		l.LogActivity("Error while Begin tx", err.Error())
+		l.Error(err).Err().Log("Error while Begin tx")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
@@ -97,7 +98,7 @@ func WFInstanceMarkDone(c *gin.Context, s *service.Service) {
 	// get instance record
 	wfinstance, err := queries.GetWFInstanceFromId(c, req.ID)
 	if err != nil {
-		l.Error(err).Log("Error while GetWFInstanceFromId() in WFInstanceMarkDone")
+		l.Err().Error(err).Log("Error while GetWFInstanceFromId() in WFInstanceMarkDone")
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
@@ -122,16 +123,16 @@ func WFInstanceMarkDone(c *gin.Context, s *service.Service) {
 
 	ResponseData, err := DoMarkDone(c, s, qtx, DoMarkDoneParam)
 	if err != nil {
-		l.Debug1().LogDebug("Error while marshaling patternSchema", err)
+		l.Err().Error(err).Log("Error in DoMarkDone")
 		wscutils.SendErrorResponse(c, &wscutils.Response{Status: "error", Data: err.Error()})
 		return
 	}
 
 	if err := tx.Commit(c); err != nil {
-		l.LogActivity("Error while commits the transaction", err.Error())
+		l.Err().Error(err).Log("Error while commits the transaction")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
 	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: ResponseData, Messages: nil})
-
+	l.Debug0().Log("finished execution of WFInstanceMarkDone()")
 }

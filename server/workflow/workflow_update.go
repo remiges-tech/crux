@@ -98,6 +98,7 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 		Slice:     wf.Slice,
 		App:       strings.ToLower(wf.App),
 		Class:     wf.Class,
+		Brwf:      sqlc.BrwfEnumW,
 	})
 	if err != nil {
 		l.LogActivity("failed to get schema from DB:", err.Error())
@@ -163,7 +164,7 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 		RealmName: realmName,
 		Slice:     wf.Slice,
 		App:       strings.ToLower(wf.App),
-		Brwf:      brwf,
+		Brwf:      sqlc.BrwfEnumW,
 		Class:     wf.Class,
 		Setname:   wf.Name,
 		Ruleset:   flowrules,
@@ -177,7 +178,7 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 	}
 	if strings.Contains(tag.String(), "0") {
 		l.Log("no record found to update")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ErrCode_NotFound))
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ErrCode_No_record_Found))
 		return
 	}
 	if err := tx.Commit(c); err != nil {
@@ -190,14 +191,6 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 		Entity: "ruleset",
 		Op:     "Update",
 		Changes: []logharbour.ChangeDetail{
-			{
-				Field:  "brwf",
-				OldVal: ruleset.Brwf,
-				NewVal: brwf},
-			{
-				Field:  "setname",
-				OldVal: ruleset.Setname,
-				NewVal: wf.Name},
 			{
 				Field:  "ruleset",
 				OldVal: string(ruleset.Ruleset),

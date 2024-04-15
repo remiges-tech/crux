@@ -1,126 +1,67 @@
 {
-    "slice": 2,
-    "app": "retailBANK",
-    "class": "retailcustomer",
-    "name": "workflow",
-    "is_internal": true,
-    "flowrules": [
-        {
-            "rulepattern": [
-                {
-                    "attr": "branchtypeNotInSchema",
-                    "op": "eq",
-                    "val": "rural"
-                },
-                {
-                    "attr": "accttype",
-                    "op": "equal",
-                    "val": 1200
-                }
-            ],
-            "ruleactions": {
-                "tasks": [
-                    "aadhaarcheck"
-                ],
-                "properties": [
+    "data": {
+        "slice": 12,
+        "app": "retailBANK",
+        "class": "custonboarding",
+        "name": "workflow",
+        "is_internal": true,
+        "flowrules": [
+            {
+                "rulepattern": [
                     {
-                        "name": "nextstep",
-                        "val": "aadhaarcheck"
+                        "attr": "step",
+                        "op": "eq",
+                        "val": "initialdoc"
                     },
                     {
-                        "name": "done",
-                        "val": "aadhaarcheck"
-                    }
-                ],
-                "exit": true
-            }
-        },
-        {
-            "rulepattern": [
-                {
-                    "attr": "step",
-                    "op": "eq",
-                    "val": "initialdoc"
-                },
-                {
-                    "attr": "branchtype",
-                    "op": "eq",
-                    "val": "semirural"
-                },
-                {
-                    "attr": "accttype",
-                    "op": "ne",
-                    "val": "ppf"
-                }
-            ],
-            "ruleactions": {
-                "tasks": [
-                    "creditbureauchk",
-                    "drivingLisence",
-                    "bankdetails",
-                    "panchk"
-                ],
-                "properties": [
+                        "attr": "branchtype",
+                        "op": "eq",
+                        "val": "rural"
+                    },
                     {
-                        "name": "nextsteps",
-                        "val": "creditbureauchk"
+                        "attr": "accttype",
+                        "op": "eq",
+                        "val": "savings"
                     }
                 ],
-                "exit": true
-            }
-        },
-        {
-            "rulepattern": [
-                {
-                    "attr": "branchtype",
-                    "op": "eq",
-                    "val": "rural"
-                },
-                {
-                    "attr": "accttype",
-                    "op": "eq",
-                    "val": "ppf"
+                "ruleactions": {
+                    "tasks": [
+                        "aadhaarcheck"
+                    ],
+                    "properties": {
+                        "nextstep": "aadhaarcheck"
+                    }
                 }
-            ],
-            "ruleactions": {
-                "tasks": [
-                    "creditbureauchk",
-                    "bankdetails",
-                    "panchk"
-                ],
-                "properties": [
+            },
+            {
+                "rulepattern": [
                     {
-                        "name": "done",
-                        "val": "true"
+                        "attr": "step",
+                        "op": "eq",
+                        "val": "initialdoc"
+                    },
+                    {
+                        "attr": "branchtype",
+                        "op": "eq",
+                        "val": "semirural"
+                    },
+                    {
+                        "attr": "accttype",
+                        "op": "ne",
+                        "val": "ppf"
                     }
                 ],
-                "exit": true
-            }
-        },
-        {
-            "rulepattern": [
-                {
-                    "attr": "branchtype",
-                    "op": "eq",
-                    "val": "rural"
-                },
-                {
-                    "attr": "accttype",
-                    "op": "eq",
-                    "val": "ppf"
+                "ruleactions": {
+                    "tasks": [
+                        "creditbureauchk",
+                        "bankdetails",
+                        "panchk"
+                    ],
+                    "properties": {
+                        "done": "true"
+                    }
                 }
-            ],
-            "ruleactions": {
-                "tasks": [],
-                "properties": [
-                    {
-                        "name": "nextstep",
-                        "val": "creditbureauchk"
-                    }
-                ],
-                "willReturn": true,
-                "WillExit": true
             }
-        }
-    ]
+        ]
+    }
 }

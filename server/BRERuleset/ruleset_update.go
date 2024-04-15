@@ -1,4 +1,4 @@
-package workflow
+package breruleset
 
 import (
 	"encoding/json"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
@@ -17,18 +18,17 @@ import (
 	"github.com/remiges-tech/logharbour/logharbour"
 )
 
-type WorkflowNew struct {
-	Slice      int32         `json:"slice" validate:"required,gt=0,lt=15"`
-	App        string        `json:"app" validate:"required,alpha,lt=15"`
-	Class      string        `json:"class" validate:"required,lowercase,lt=15"`
-	Name       string        `json:"name" validate:"required,lowercase,lt=15"`
-	IsInternal bool          `json:"is_internal" validate:"required"`
-	Flowrules  []crux.Rule_t `json:"flowrules" validate:"required,dive"`
+type RulesSetUpdate struct {
+	Slice   int32         `json:"slice" validate:"required,gt=0,lt=15"`
+	App     string        `json:"app" validate:"required,alpha,lt=15"`
+	Class   string        `json:"class" validate:"required,lowercase,lt=15"`
+	Name    string        `json:"name" validate:"required,lowercase,lt=15"`
+	RuleSet []crux.Rule_t `json:"ruleset" validate:"required,dive"`
 }
 
-func WorkFlowNew(c *gin.Context, s *service.Service) {
+func RuleSetUpdate(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
-	l.Debug0().Log("Starting execution of WorkFlowNew()")
+	l.Debug0().Log("Starting execution of RuleSetUpdate()")
 
 	// userID, err := server.ExtractUserNameFromJwt(c)
 	// if err != nil {
@@ -43,7 +43,6 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
 	// 	return
 	// }
-
 	capNeeded := []string{"ruleset"}
 	isCapable, _ := server.Authz_check(types.OpReq{
 		User:      userID,
@@ -55,15 +54,16 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
 		return
 	}
-	var wf WorkflowNew
 
-	err := wscutils.BindJSON(c, &wf)
+	var req RulesSetUpdate
+
+	err := wscutils.BindJSON(c, &req)
 	if err != nil {
 		l.Error(err).Log("Error Unmarshalling Query parameters to struct:")
 		return
 	}
 
-	validationErrors := wscutils.WscValidate(wf, func(err validator.FieldError) []string { return []string{} })
+	validationErrors := wscutils.WscValidate(req, func(err validator.FieldError) []string { return []string{} })
 	if len(validationErrors) > 0 {
 		l.Debug0().LogDebug("standard validation errors", validationErrors)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, validationErrors))
@@ -85,7 +85,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 	}
 	tx, err := connpool.Begin(c)
 	if err != nil {
-		l.Info().Error(err).Log("Error while Begin tx")
+		l.LogActivity("Error while Begin tx", err.Error())
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
@@ -94,21 +94,23 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 
 	schema, err := qtx.GetSchemaWithLock(c, sqlc.GetSchemaWithLockParams{
 		RealmName: realmName,
-		Slice:     wf.Slice,
-		App:       strings.ToLower(wf.App),
-		Class:     wf.Class,
-		Brwf: sqlc.BrwfEnumW,
+		Slice:     req.Slice,
+		App:       strings.ToLower(req.App),
+		Class:     req.Class,
+		Brwf:      sqlc.BrwfEnumB,	
 	})
 	if err != nil {
-		l.Info().Error(err).Log("failed to get schema from DB:")
+		l.LogActivity("failed to get schema from DB:", err.Error())
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
+
 	schema_t := crux.Schema_t{
-		Class: wf.Class,
+		Class: req.Class,
 	}
-	err = json.Unmarshal([]byte(schema.Patternschema), &schema_t.PatternSchema)
+
+	err = json.Unmarshal(schema.Patternschema, &schema_t.PatternSchema)
 	if err != nil {
 		l.Debug1().Error(err).Log("Error while Unmarshalling PatternSchema")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
@@ -116,13 +118,13 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 	}
 	err = json.Unmarshal(schema.Actionschema, &schema_t.ActionSchema)
 	if err != nil {
-		l.Debug1().LogDebug("Error while Unmarshaling ActionSchema", err)
+		l.Debug1().Error(err).Log("Error while Unmarshaling ActionSchema")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
 
 	// custom Validation
-	customValidationErrors := customValidationErrors(schema_t, wf)
+	customValidationErrors := customValidationErrors(schema_t, req)
 	validationErrors = append(validationErrors, customValidationErrors...)
 	if len(validationErrors) > 0 {
 		l.Debug0().LogDebug("custom validation errors", validationErrors)
@@ -130,123 +132,100 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	ruleset, err := json.Marshal(wf.Flowrules)
+	ruleSet, err := json.Marshal(req.RuleSet)
 	if err != nil {
-		patternSchema := "flowrules"
-		l.Debug1().Error(err).Log("Error while marshaling Flowrules")
+		patternSchema := "ruleSet"
+		l.Debug1().LogDebug("Error while marshaling ruleSet", err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_InvalidRequest, &patternSchema)}))
 		return
 	}
 
-	id, err := qtx.WorkFlowNew(c, sqlc.WorkFlowNewParams{
-		RealmName:  realmName,
-		Slice:      wf.Slice,
-		App:        strings.ToLower(wf.App),
-		Brwf:       sqlc.BrwfEnumW,
-		Class:      wf.Class,
-		Setname:    wf.Name,
-		Schemaid:   schema.ID,
-		IsInternal: wf.IsInternal,
-		Ruleset:    ruleset,
-		Createdby:  userID,
+	ruleset, err := qtx.RulesetRowLock(c, sqlc.RulesetRowLockParams{
+		RealmName: realmName,
+		Slice:     req.Slice,
+		App:       strings.ToLower(req.App),
+		Class:     req.Class,
 	})
 	if err != nil {
-		l.Info().LogActivity("Error while Inserting data in ruleset", err.Error())
+		l.LogActivity("Error while locking row of ruleset", err.Error())
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
 	}
+
+	tag, err := qtx.WorkFlowUpdate(c, sqlc.WorkFlowUpdateParams{
+		RealmName: realmName,
+		Slice:     req.Slice,
+		App:       strings.ToLower(req.App),
+		Brwf:      sqlc.BrwfEnumB,
+		Class:     req.Class,
+		Setname:   req.Name,
+		Ruleset:   ruleSet,
+		Editedby:  pgtype.Text{String: userID, Valid: true},
+	})
+	if err != nil {
+		l.LogActivity("Error while Updating data in ruleset", err.Error())
+		errmsg := db.HandleDatabaseError(err)
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+		return
+	}
+	if strings.Contains(tag.String(), "0") {
+		l.Log("no record found to update")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ErrCode_No_record_Found))
+		return
+	}
 	if err := tx.Commit(c); err != nil {
-		l.Info().Error(err).Log("Error while commits the transaction")
+		l.LogActivity("Error while commits the transaction", err.Error())
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
-
-	dclog := l.WithClass("ruleset").WithInstanceId(string(id))
-	dclog.LogDataChange("insert ruleset", logharbour.ChangeInfo{
+	dclog := l.WithClass("ruleset").WithInstanceId(string(ruleset.ID))
+	dclog.LogDataChange("Updated ruleset", logharbour.ChangeInfo{
 		Entity: "ruleset",
-		Op:     "insert",
+		Op:     "Update",
 		Changes: []logharbour.ChangeDetail{
 			{
-				Field:  "realmName",
-				OldVal: nil,
-				NewVal: realmName,
-			},
-			{
-				Field:  "Slice",
-				OldVal: nil,
-				NewVal: wf.Slice,
-			},
-			{
-				Field:  "App",
-				OldVal: nil,
-				NewVal: wf.App,
-			},
-			{
 				Field:  "brwf",
-				OldVal: nil,
-				NewVal: sqlc.BrwfEnumW,
-			},
-			{
-				Field:  "Class",
-				OldVal: nil,
-				NewVal: wf.Class,
-			},
+				OldVal: ruleset.Brwf,
+				NewVal: brwf},
 			{
 				Field:  "setname",
-				OldVal: nil,
-				NewVal: wf.Name,
-			},
-			{
-				Field:  "Schemaid",
-				OldVal: nil,
-				NewVal: schema.ID,
-			},
-			{
-				Field:  "IsInternal",
-				OldVal: nil,
-				NewVal: wf.IsInternal,
-			},
+				OldVal: ruleset.Setname,
+				NewVal: req.Name},
 			{
 				Field:  "ruleset",
-				OldVal: nil,
-				NewVal: wf.Flowrules,
-			},
-			{
-				Field:  "Createdby",
-				OldVal: nil,
-				NewVal: userID,
-			},
+				OldVal: string(ruleset.Ruleset),
+				NewVal: req.RuleSet},
 		},
 	})
-
 	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})
-	l.Debug0().Log("Finished execution of WorkFlowNew()")
+	l.Debug0().Log("Finished execution of RuleSetUpdate()")
+
 }
 
-func customValidationErrors(schema_t crux.Schema_t, wf WorkflowNew) []wscutils.ErrorMessage {
+func customValidationErrors(schema_t crux.Schema_t, rs RulesSetUpdate) []wscutils.ErrorMessage {
 	var validationErrors []wscutils.ErrorMessage
-	if len(wf.Flowrules) == 0 {
-		fieldName := "flowrules"
+	if len(rs.RuleSet) == 0 {
+		fieldName := "RuleSet"
 		vErr := wscutils.BuildErrorMessage(server.MsgId_Empty, server.ErrCode_Empty, &fieldName)
 		validationErrors = append(validationErrors, vErr)
 		return validationErrors
 	}
 	ruleSet := crux.Ruleset_t{
 		// Id:            0,
-		Class:   wf.Class,
-		SetName: wf.Name, //
-		Rules:   wf.Flowrules,
+		Class:   rs.Class,
+		SetName: rs.Name, //
+		Rules:   rs.RuleSet,
 		// NCalled:       0,
 		// ReferenceType: "",
 	}
-	err := crux.VerifyRulePatterns(&ruleSet, &schema_t, true)
+	err := crux.VerifyRulePatterns(&ruleSet, &schema_t, false)
 	if err != nil {
 		rulePatternError := server.HandleCruxError(err)
 		validationErrors = append(validationErrors, rulePatternError...)
 	}
 
-	err = crux.VerifyRuleActions(&ruleSet, &schema_t, true)
+	err = crux.VerifyRuleActions(&ruleSet, &schema_t, false)
 	if err != nil {
 		ruleActionError := server.HandleCruxError(err)
 		validationErrors = append(validationErrors, ruleActionError...)

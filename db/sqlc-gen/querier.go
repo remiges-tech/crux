@@ -85,7 +85,7 @@ type Querier interface {
 	WfSchemaList(ctx context.Context, arg WfSchemaListParams) ([]WfSchemaListRow, error)
 	Wfschemadelete(ctx context.Context, arg WfschemadeleteParams) error
 	Wfschemaget(ctx context.Context, arg WfschemagetParams) (WfschemagetRow, error)
-	WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) error
+	WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) (int32, error)
 	WorkFlowUpdate(ctx context.Context, arg WorkFlowUpdateParams) (pgconn.CommandTag, error)
 	WorkflowDelete(ctx context.Context, arg WorkflowDeleteParams) (pgconn.CommandTag, error)
 	WorkflowList(ctx context.Context, arg WorkflowListParams) ([]WorkflowListRow, error)

@@ -27,7 +27,6 @@ WHERE
 -- name: GetSchemaWithLock :one
 SELECT
     id,
-    brwf,
     patternschema,
     actionschema,
     editedat,
@@ -37,6 +36,7 @@ WHERE
     realm = @realm_name::varchar
     AND slice = (SELECT realmslice.id FROM realmslice WHERE realmslice.id= @slice AND realmslice.realm = @realm_name)
     AND class = $1
+    AND brwf =$2
     AND app = (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= @app AND app.realm = @realm_name) FOR
 UPDATE;
 
