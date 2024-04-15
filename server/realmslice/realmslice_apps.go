@@ -1,7 +1,7 @@
 package realmslice
 
 import (
-	"fmt"
+	
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -33,7 +33,6 @@ func RealmSliceApps(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
 		return
 	}
-	fmt.Println("(c.Param(id))", (c.Param("id")))
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		l.Error(err).Log("Error while parsing string param to int")

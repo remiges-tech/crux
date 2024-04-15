@@ -27,10 +27,11 @@ func HandleDatabaseError(err error) wscutils.ErrorMessage {
 		case "23502": //not_null_violation
 			return wscutils.BuildErrorMessage(server.MsgId_Invalid_Request, server.ErrCode_Invalid, &pgErr.ColumnName)
 		case "0A000": //ERROR: cached plan must not change result type (SQLSTATE 0A000)
-
 			return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_Internal_Retry, nil)
 		case "XX000": //ERROR: cache lookup failed for type 67119 (SQLSTATE XX000)
 			return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_Internal_Retry, nil)
+		case "42P01": //ERROR: relation \"<field>\" does not exist (SQLSTATE 42P01)
+			return wscutils.BuildErrorMessage(server.MsgId_NotFound, server.ErrCode_NotExist, nil)
 		default:
 			return wscutils.BuildErrorMessage(server.MsgId_InternalErr, server.ErrCode_DatabaseError, nil)
 		}

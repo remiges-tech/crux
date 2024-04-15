@@ -141,6 +141,7 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 		Slice:     req.Slice,
 		Class:     req.Class,
 		App:       strings.ToLower(req.App),
+		Brwf: sqlc.BrwfEnumW,
 	})
 	if err != nil {
 		tx.Rollback(c)

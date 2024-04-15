@@ -51,30 +51,30 @@ func (q *Queries) AllSchemas(ctx context.Context) ([]Schema, error) {
 const getSchemaWithLock = `-- name: GetSchemaWithLock :one
 SELECT
     id,
-    brwf,
     patternschema,
     actionschema,
     editedat,
     editedby
 FROM schema
 WHERE
-    realm = $2::varchar
-    AND slice = (SELECT realmslice.id FROM realmslice WHERE realmslice.id= $3 AND realmslice.realm = $2)
+    realm = $3::varchar
+    AND slice = (SELECT realmslice.id FROM realmslice WHERE realmslice.id= $4 AND realmslice.realm = $3)
     AND class = $1
-    AND app = (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= $4 AND app.realm = $2) FOR
+    AND brwf =$2
+    AND app = (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= $5 AND app.realm = $3) FOR
 UPDATE
 `
 
 type GetSchemaWithLockParams struct {
-	Class     string `json:"class"`
-	RealmName string `json:"realm_name"`
-	Slice     int32  `json:"slice"`
-	App       string `json:"app"`
+	Class     string   `json:"class"`
+	Brwf      BrwfEnum `json:"brwf"`
+	RealmName string   `json:"realm_name"`
+	Slice     int32    `json:"slice"`
+	App       string   `json:"app"`
 }
 
 type GetSchemaWithLockRow struct {
 	ID            int32            `json:"id"`
-	Brwf          BrwfEnum         `json:"brwf"`
 	Patternschema []byte           `json:"patternschema"`
 	Actionschema  []byte           `json:"actionschema"`
 	Editedat      pgtype.Timestamp `json:"editedat"`
@@ -84,6 +84,7 @@ type GetSchemaWithLockRow struct {
 func (q *Queries) GetSchemaWithLock(ctx context.Context, arg GetSchemaWithLockParams) (GetSchemaWithLockRow, error) {
 	row := q.db.QueryRow(ctx, getSchemaWithLock,
 		arg.Class,
+		arg.Brwf,
 		arg.RealmName,
 		arg.Slice,
 		arg.App,
@@ -91,7 +92,6 @@ func (q *Queries) GetSchemaWithLock(ctx context.Context, arg GetSchemaWithLockPa
 	var i GetSchemaWithLockRow
 	err := row.Scan(
 		&i.ID,
-		&i.Brwf,
 		&i.Patternschema,
 		&i.Actionschema,
 		&i.Editedat,

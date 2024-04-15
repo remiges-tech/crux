@@ -10,17 +10,115 @@ import (
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 )
 
+const (
+	BRE = "B"
+	WFE = "W"
+)
+
 type Cache struct {
 	Ctx          context.Context
-	Query        sqlc.Querier
-	Slice        Slice_t
-	App          App_t
-	Class        ClassName_t
-	Realm        Realm_t
-	WorkflowName string
+	Query        *sqlc.Queries
+	RulesetCache RulesetCache_t
+	SchemaCache  SchemaCache_t
 }
 
-func loadInternalSchema(dbResponseSchema []sqlc.Schema) error {
+func lockCache() {
+	cacheLock.Lock()
+}
+
+func unlockCache() {
+	cacheLock.Unlock()
+}
+
+/*
+NewCache creates and returns an empty cache instance. The purpose of this function is to ensure that there is
+always a single instance of the cache throughout the application's lifecycle.
+*/
+func NewCache(c context.Context, queries *sqlc.Queries) *Cache {
+	return &Cache{
+		Ctx:          c,
+		Query:        queries,
+		RulesetCache: make(RulesetCache_t),
+		SchemaCache:  make(SchemaCache_t),
+	}
+}
+func (c Cache) Load(realm, app, class, ruleSetName string, slice int32) error {
+	err := c.loadSchema(realm, app, class, slice)
+	if err != nil {
+		return err
+	}
+
+	err = c.loadRuleSet(realm, app, class, ruleSetName, slice)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (c Cache) loadSchema(realm, app, class string, slice int32) error {
+	lockCache()
+	defer unlockCache()
+
+	dbResponseSchema, err := c.Query.LoadSchema(context.Background(), sqlc.LoadSchemaParams{
+		RealmName: realm,
+		Slice:     slice,
+		Class:     class,
+		App:       app,
+	})
+	if err != nil {
+		return err
+	}
+	if len(dbResponseSchema) == 0 {
+		return fmt.Errorf("schema not found")
+	}
+
+	err = c.loadInternalSchema(dbResponseSchema)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c Cache) loadRuleSet(realm, app, class, ruleSetName string, slice int32) error {
+
+	lockCache()
+	defer unlockCache()
+
+	dbResponseRuleSet, err := c.Query.LoadRuleSet(c.Ctx,
+		sqlc.LoadRuleSetParams{
+			RealmName: realm,
+			Slice:     slice,
+			Class:     class,
+			App:       app,
+			Setname:   ruleSetName,
+		})
+	if err != nil {
+		return err
+	}
+	if IsZeroOfUnderlyingType(dbResponseRuleSet) {
+		return fmt.Errorf("rule set not found")
+	}
+	err = c.loadInternalRuleSet(dbResponseRuleSet)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c Cache) loadInternal(dbResponseSchema []sqlc.Schema, dbResponseRuleSet sqlc.Ruleset) error {
+
+	err := c.loadInternalSchema(dbResponseSchema)
+	if err != nil {
+		return err
+	}
+
+	err = c.loadInternalRuleSet(dbResponseRuleSet)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c Cache) loadInternalSchema(dbResponseSchema []sqlc.Schema) error {
 
 	if len(dbResponseSchema) == 0 {
 		return fmt.Errorf("dbResponseRuleSet is empty")
@@ -28,10 +126,10 @@ func loadInternalSchema(dbResponseSchema []sqlc.Schema) error {
 
 	for _, row := range dbResponseSchema {
 		realmKey := Realm_t(string(row.Realm))
-		perRealm, exists := SchemaCache[realmKey]
+		perRealm, exists := c.SchemaCache[realmKey]
 		if !exists {
 			perRealm = make(PerRealm_t)
-			SchemaCache[realmKey] = perRealm
+			c.SchemaCache[realmKey] = perRealm
 		}
 
 		appKey := App_t(row.App)
@@ -71,9 +169,9 @@ func loadInternalSchema(dbResponseSchema []sqlc.Schema) error {
 		}
 
 		classNameKey := ClassName_t(row.Class)
-		if row.Brwf == "B" {
+		if row.Brwf == BRE {
 			perApp[sliceKey].BRSchema[classNameKey] = schemaData
-		} else if row.Brwf == "W" {
+		} else if row.Brwf == WFE {
 			perApp[sliceKey].WFSchema[classNameKey] = schemaData
 		}
 
@@ -81,17 +179,17 @@ func loadInternalSchema(dbResponseSchema []sqlc.Schema) error {
 	return nil
 }
 
-func loadInternalRuleSet(dbResponseRuleSet sqlc.Ruleset) error {
+func (c Cache) loadInternalRuleSet(dbResponseRuleSet sqlc.Ruleset) error {
 
 	if IsZeroOfUnderlyingType(dbResponseRuleSet) {
 		return fmt.Errorf("didn't get rule set")
 	}
 
 	realmKey := Realm_t(string(dbResponseRuleSet.Realm))
-	perRealm, exists := RulesetCache[realmKey]
+	perRealm, exists := c.RulesetCache[realmKey]
 	if !exists {
 		perRealm = make(PerRealm_t)
-		RulesetCache[realmKey] = perRealm
+		c.RulesetCache[realmKey] = perRealm
 	}
 
 	appKey := App_t(dbResponseRuleSet.App)
@@ -125,10 +223,10 @@ func loadInternalRuleSet(dbResponseRuleSet sqlc.Ruleset) error {
 		SetName: dbResponseRuleSet.Setname,
 		Rules:   rules,
 	}
-	if dbResponseRuleSet.Brwf == "B" {
+	if dbResponseRuleSet.Brwf == BRE {
 		perApp[sliceKey].BRRulesets[classNameKey] = append(perApp[sliceKey].BRRulesets[classNameKey], newRuleset)
 
-	} else if dbResponseRuleSet.Brwf == "W" {
+	} else if dbResponseRuleSet.Brwf == WFE {
 		fmt.Printf("className: %v", classNameKey)
 		fmt.Printf("workflow name: %v", newRuleset.SetName)
 		perApp[sliceKey].Workflows[classNameKey] = append(perApp[sliceKey].Workflows[classNameKey], newRuleset)
@@ -138,78 +236,22 @@ func loadInternalRuleSet(dbResponseRuleSet sqlc.Ruleset) error {
 	return nil
 }
 
-func loadInternal(dbResponseSchema []sqlc.Schema, dbResponseRuleSet sqlc.Ruleset) error {
-	RulesetCache = make(RulesetCache_t)
-	SchemaCache = make(SchemaCache_t)
+// func (c Cache) Purge(brwf, field string) {
+// 	lockCache()
+// 	defer unlockCache()
 
-	err := loadInternalSchema(dbResponseSchema)
-	if err != nil {
-		return err
-	}
-
-	err = loadInternalRuleSet(dbResponseRuleSet)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (c Cache) Load() error {
-
-	lockCache()
-	defer unlockCache()
-
-	// dbResponseSchema, err := query.AllSchemas(ctx)
-	dbResponseSchema, err := c.Query.LoadSchema(c.Ctx, sqlc.LoadSchemaParams{
-		RealmName: string(c.Realm),
-		Slice:     int32(c.Slice),
-		Class:     string(c.Class),
-		App:       string(c.App),
-	})
-	if err != nil {
-		return err
-	}
-	if len(dbResponseSchema) == 0 {
-		return fmt.Errorf("schema not found")
-	}
-
-	dbResponseRuleSet, err := c.Query.LoadRuleSet(c.Ctx,
-		sqlc.LoadRuleSetParams{
-			RealmName: string(c.Realm),
-			Slice:     int32(c.Slice),
-			Class:     string(c.Class),
-			App:       string(c.App),
-			Setname:   c.WorkflowName,
-		})
-	if err != nil {
-		return err
-	}
-	if IsZeroOfUnderlyingType(dbResponseRuleSet) {
-		return fmt.Errorf("rule set not found")
-	}
-	err = loadInternal(dbResponseSchema, dbResponseRuleSet)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (c Cache) Purge(brwf, field string) {
-	lockCache()
-	defer unlockCache()
-
-	if brwf == "B" && field == "schema" {
-		SchemaCache[c.Realm][c.App][c.Slice].BRSchema[ClassName_t(c.Class)] = Schema_t{}
-		RulesetCache[c.Realm][c.App][c.Slice].BRRulesets[c.Class] = nil
-	} else if brwf == "B" && field == "rule" {
-		RulesetCache[c.Realm][c.App][c.Slice].BRRulesets[c.Class] = nil
-	} else if brwf == "w" && field == "schema" {
-		SchemaCache[c.Realm][c.App][c.Slice].WFSchema[ClassName_t(c.Class)] = Schema_t{}
-		RulesetCache[c.Realm][c.App][c.Slice].Workflows[c.Class] = nil
-	} else if brwf == "W" && field == "rule" {
-		RulesetCache[c.Realm][c.App][c.Slice].Workflows[c.Class] = nil
-	}
-}
+// 	if brwf == "B" && field == "schema" {
+// 		SchemaCache[c.Realm][c.App][c.Slice].BRSchema[ClassName_t(c.Class)] = Schema_t{}
+// 		RulesetCache[c.Realm][c.App][c.Slice].BRRulesets[c.Class] = nil
+// 	} else if brwf == "B" && field == "rule" {
+// 		RulesetCache[c.Realm][c.App][c.Slice].BRRulesets[c.Class] = nil
+// 	} else if brwf == "w" && field == "schema" {
+// 		SchemaCache[c.Realm][c.App][c.Slice].WFSchema[ClassName_t(c.Class)] = Schema_t{}
+// 		RulesetCache[c.Realm][c.App][c.Slice].Workflows[c.Class] = nil
+// 	} else if brwf == "W" && field == "rule" {
+// 		RulesetCache[c.Realm][c.App][c.Slice].Workflows[c.Class] = nil
+// 	}
+// }
 
 // func Reload(ctx context.Context, query sqlc.Querier, slice int32, app, class, realm, workflowName string) error {
 // 	lockCache()
@@ -251,3 +293,99 @@ func (c Cache) Purge(brwf, field string) {
 // 	}
 // 	return nil
 // }
+
+func (c Cache) RetriveRuleSchemasAndRuleSetsFromCache(brwf, app, realm, class, ruleSetName string, slice int32) (*Schema_t, *Ruleset_t, error) {
+
+	ruleSchemas, err := c.RetrieveRuleSchemasFromCache(brwf, app, realm, class, slice)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to retrieveRuleSchemasFromCache: %v", err)
+	}
+
+	ruleSets, err := c.RetrieveWorkflowRuleSetFromCache(brwf, app, realm, class, ruleSetName, slice)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to RetrieveRuleSetsFromCache: %v", err)
+	}
+
+	return ruleSchemas, ruleSets, nil
+}
+
+func (c Cache) RetrieveRuleSchemasFromCache(brwf, app, realm, class string, slice int32) (*Schema_t, error) {
+	if brwf == BRE {
+		brSchemas, brExists := c.SchemaCache[Realm_t(realm)][App_t(app)][Slice_t(slice)].BRSchema[ClassName_t(class)]
+		if brExists {
+			return &brSchemas, nil
+		}
+		if !brExists {
+			if err := c.loadSchema(realm, app, class, slice); err != nil {
+				return nil, fmt.Errorf("error while loading cache in RetrieveWorkflowRulesetFromCache: %v", err)
+			} else {
+				brSchemas, brExists := c.SchemaCache[Realm_t(realm)][App_t(app)][Slice_t(slice)].BRSchema[ClassName_t(class)]
+				if brExists {
+					return &brSchemas, nil
+				} else {
+					return nil, fmt.Errorf("no brschema found")
+				}
+			}
+		}
+	} else if brwf == WFE {
+		wfSchemas, wfExists := c.SchemaCache[Realm_t(realm)][App_t(app)][Slice_t(slice)].WFSchema[ClassName_t(class)]
+		if wfExists {
+			return &wfSchemas, nil
+		}
+		if !wfExists {
+			if err := c.loadSchema(realm, app, class, slice); err != nil {
+				return nil, fmt.Errorf("error while loading cache in RetrieveWorkflowRulesetFromCache: %v", err)
+			} else {
+				wfSchemas, wfExists := c.SchemaCache[Realm_t(realm)][App_t(app)][Slice_t(slice)].WFSchema[ClassName_t(class)]
+				if wfExists {
+					return &wfSchemas, nil
+				} else {
+					return nil, fmt.Errorf("no wfschema found")
+				}
+			}
+		}
+	}
+	return nil, fmt.Errorf("no schema found")
+}
+
+func (c Cache) RetrieveWorkflowRuleSetFromCache(brwf, app, realm, class, ruleSetName string, slice int32) (*Ruleset_t, error) {
+
+	ruleSets, exists := c.getRulesetsFromCacheWithName(brwf, app, realm, class, ruleSetName, slice)
+	if exists {
+		return ruleSets, nil
+	} else {
+		if err := c.loadRuleSet(realm, app, class, ruleSetName, slice); err != nil {
+			return nil, fmt.Errorf("error while loading cache in RetrieveWorkflowRulesetFromCache: %v", err)
+		} else {
+			ruleSets, exists := c.getRulesetsFromCacheWithName(brwf, app, realm, class, ruleSetName, slice)
+			if exists {
+				return ruleSets, nil
+			} else {
+				return nil, fmt.Errorf("rule set not exist for given specification")
+			}
+		}
+	}
+}
+
+func (c Cache) getRulesetsFromCacheWithName(brwf, app, realm, class, ruleSetName string, slice int32) (*Ruleset_t, bool) {
+	if brwf == BRE {
+		brRulesets, exist := c.RulesetCache[Realm_t(realm)][App_t(app)][Slice_t(slice)].Workflows[ClassName_t(class)]
+		if exist {
+			for _, r := range brRulesets {
+				if r.SetName == ruleSetName {
+					return r, true
+				}
+			}
+		}
+	} else if brwf == WFE {
+		workflows, exist := c.RulesetCache[Realm_t(realm)][App_t(app)][Slice_t(slice)].Workflows[ClassName_t(class)]
+		if exist {
+			for _, w := range workflows {
+				if w.SetName == ruleSetName {
+					return w, true
+				}
+			}
+		}
+	}
+	return nil, false
+}

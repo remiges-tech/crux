@@ -15,6 +15,8 @@ import (
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
+	crux "github.com/remiges-tech/crux/matching-engine"
+	breruleset "github.com/remiges-tech/crux/server/BRERuleset"
 	breschema "github.com/remiges-tech/crux/server/BRESchema"
 	"github.com/remiges-tech/crux/server/app"
 	"github.com/remiges-tech/crux/server/capability"
@@ -32,7 +34,7 @@ func main() {
 
 	// logger setup
 	fallbackWriter := logharbour.NewFallbackWriter(os.Stdout, os.Stdout)
-	lctx := logharbour.NewLoggerContext(logharbour.Debug0)
+	lctx := logharbour.NewLoggerContext(logharbour.Debug1)
 	l := logharbour.NewLogger(lctx, "crux", fallbackWriter)
 
 	rigelAppName := flag.String("appName", "crux", "The name of the application")
@@ -105,6 +107,8 @@ func main() {
 	}
 	queries := sqlc.New(connPool)
 
+	cruxCache := crux.NewCache(context.Background(), queries)
+
 	// Define a custom validation tag-to-message ID map
 	customValidationMap := map[string]int{
 		"required":  101,
@@ -140,7 +144,8 @@ func main() {
 	s := service.NewService(r).
 		WithLogHarbour(l).
 		WithDatabase(connPool).
-		WithDependency("queries", queries)
+		WithDependency("queries", queries).
+		WithDependency("cruxCache", cruxCache)
 
 	apiV1Group := r.Group("/api/v1/")
 
@@ -180,7 +185,10 @@ func main() {
 
 	//BRESchema
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/breschemanew", breschema.BRESchemaNew)
-	 s.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/breschemaupdate", breschema.BRESchemaUpdate)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/breschemaupdate", breschema.BRESchemaUpdate)
+
+	// BRERuleSet
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/BRErulesetUpdate", breruleset.RuleSetUpdate)
 
 	appServerPortStr := strconv.Itoa(appServerPort)
 	err = r.Run(":" + appServerPortStr)

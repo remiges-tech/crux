@@ -63,7 +63,7 @@ where
     and realm = @realm
     AND brwf = 'W';
 
--- name: WorkFlowNew :exec
+-- name: WorkFlowNew :one
 INSERT INTO
     ruleset (
         realm, slice, app, brwf, class, setname, schemaid, is_active, is_internal, ruleset, createdat, createdby
@@ -73,13 +73,11 @@ VALUES (
         (SELECT realmslice.id FROM realmslice WHERE realmslice.id= @slice AND realmslice.realm = @realm_name ),
         (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= @app AND app.realm = @realm_name), 
         $1, $2, $3, $4, false, $5, $6, CURRENT_TIMESTAMP, $7
-    );
+    )RETURNING id;
 
 -- name: WorkFlowUpdate :execresult
 UPDATE ruleset
 SET
-    brwf = $2,
-    setname = $3,
     ruleset = $4,
     editedat = CURRENT_TIMESTAMP,
     editedby = $5
@@ -88,6 +86,8 @@ WHERE
     AND slice = (SELECT realmslice.id FROM realmslice WHERE realmslice.id= @slice AND realmslice.realm = @realm_name )
     AND class = $1
     AND app = (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= @app AND app.realm = @realm_name)
+    AND brwf = $2
+    AND setname = $3
     AND is_active = false;
 
 

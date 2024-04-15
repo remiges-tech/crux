@@ -1,7 +1,6 @@
 package crux
 
 import (
-	"errors"
 	"time"
 )
 
@@ -33,86 +32,85 @@ type statsRule_t struct {
 	nFailed  int32
 }
 
-func getStats(realm Realm_t, app App_t, slice Slice_t) (rulesetStats_t, time.Time, error) {
-	var timestamp time.Time
-	var err error
+// func getStats(realm Realm_t, app App_t, slice Slice_t) (rulesetStats_t, time.Time, error) {
+// 	var timestamp time.Time
+// 	var err error
 
-	statsData := make(rulesetStats_t)
+// 	statsData := make(rulesetStats_t)
 
-	perRealm, realmExists := RulesetCache[realm]
-	if !realmExists {
-		return nil, timestamp, errors.New("Realm not found")
-	}
-	perApp, appExists := perRealm[app]
-	if !appExists {
-		return nil, timestamp, errors.New("App not found")
-	}
-	perSlice, sliceExists := perApp[slice]
-	if !sliceExists {
-		return nil, timestamp, errors.New("Slice not found")
-	}
-	timestamp = perSlice.LoadedAt
-	statsPerSlice := statsPerSlice_t{
-		loadedAt:   perSlice.LoadedAt,
-		BRSchema:   make(map[ClassName_t]statsSchema_t),
-		BRRulesets: make(map[ClassName_t][]statsRuleset_t),
-		WFSchema:   make(map[ClassName_t]statsSchema_t),
-		Workflows:  make(map[ClassName_t][]statsRuleset_t),
-	}
+// 	perRealm, realmExists := RulesetCache[realm]
+// 	if !realmExists {
+// 		return nil, timestamp, errors.New("Realm not found")
+// 	}
+// 	perApp, appExists := perRealm[app]
+// 	if !appExists {
+// 		return nil, timestamp, errors.New("App not found")
+// 	}
+// 	perSlice, sliceExists := perApp[slice]
+// 	if !sliceExists {
+// 		return nil, timestamp, errors.New("Slice not found")
+// 	}
+// 	timestamp = perSlice.LoadedAt
+// 	statsPerSlice := statsPerSlice_t{
+// 		loadedAt:   perSlice.LoadedAt,
+// 		BRSchema:   make(map[ClassName_t]statsSchema_t),
+// 		BRRulesets: make(map[ClassName_t][]statsRuleset_t),
+// 		WFSchema:   make(map[ClassName_t]statsSchema_t),
+// 		Workflows:  make(map[ClassName_t][]statsRuleset_t),
+// 	}
 
-	if schemaData, exists := SchemaCache[realm][app][slice]; exists {
-		for className, schema := range schemaData.BRSchema {
-			
-				statsPerSlice.BRSchema[className] = statsSchema_t{nChecked: schema.NChecked}
+// 	if schemaData, exists := SchemaCache[realm][app][slice]; exists {
+// 		for className, schema := range schemaData.BRSchema {
 
-		
-		}
-		for className, schema := range schemaData.WFSchema {
+// 				statsPerSlice.BRSchema[className] = statsSchema_t{nChecked: schema.NChecked}
 
-			statsPerSlice.WFSchema[className] = statsSchema_t{nChecked: schema.NChecked}
+// 		}
+// 		for className, schema := range schemaData.WFSchema {
 
-		}
-	}
-	if rulesetData, exists := RulesetCache[realm][app][slice]; exists {
-		for className, rulesets := range rulesetData.BRRulesets {
-			statsPerSlice.BRRulesets[className] = make([]statsRuleset_t, len(rulesets))
-			for i, ruleset := range rulesets {
-				statsPerSlice.BRRulesets[className][i] = statsRuleset_t{
-					nCalled:    ruleset.NCalled,
-					rulesStats: make([]statsRule_t, len(ruleset.Rules)),
-				}
-				for j, rule := range ruleset.Rules {
-					statsPerSlice.BRRulesets[className][i].rulesStats[j] = statsRule_t{
-						nMatched: rule.NMatched,
-						nFailed:  rule.NFailed,
-					}
-				}
-			}
-		}
-		for className, rulesets := range rulesetData.Workflows {
-			statsPerSlice.Workflows[className] = make([]statsRuleset_t, len(rulesets))
-			for i, ruleset := range rulesets {
-				statsPerSlice.Workflows[className][i] = statsRuleset_t{
-					nCalled:    ruleset.NCalled,
-					rulesStats: make([]statsRule_t, len(ruleset.Rules)),
-				}
-				for j, rule := range ruleset.Rules {
-					statsPerSlice.Workflows[className][i].rulesStats[j] = statsRule_t{
-						nMatched: rule.NMatched,
-						nFailed:  rule.NFailed,
-					}
-				}
-			}
-		}
-	}
+// 			statsPerSlice.WFSchema[className] = statsSchema_t{nChecked: schema.NChecked}
 
-	statsPerApp := make(statsPerApp_t)
-	statsPerApp[slice] = statsPerSlice
+// 		}
+// 	}
+// 	if rulesetData, exists := RulesetCache[realm][app][slice]; exists {
+// 		for className, rulesets := range rulesetData.BRRulesets {
+// 			statsPerSlice.BRRulesets[className] = make([]statsRuleset_t, len(rulesets))
+// 			for i, ruleset := range rulesets {
+// 				statsPerSlice.BRRulesets[className][i] = statsRuleset_t{
+// 					nCalled:    ruleset.NCalled,
+// 					rulesStats: make([]statsRule_t, len(ruleset.Rules)),
+// 				}
+// 				for j, rule := range ruleset.Rules {
+// 					statsPerSlice.BRRulesets[className][i].rulesStats[j] = statsRule_t{
+// 						nMatched: rule.NMatched,
+// 						nFailed:  rule.NFailed,
+// 					}
+// 				}
+// 			}
+// 		}
+// 		for className, rulesets := range rulesetData.Workflows {
+// 			statsPerSlice.Workflows[className] = make([]statsRuleset_t, len(rulesets))
+// 			for i, ruleset := range rulesets {
+// 				statsPerSlice.Workflows[className][i] = statsRuleset_t{
+// 					nCalled:    ruleset.NCalled,
+// 					rulesStats: make([]statsRule_t, len(ruleset.Rules)),
+// 				}
+// 				for j, rule := range ruleset.Rules {
+// 					statsPerSlice.Workflows[className][i].rulesStats[j] = statsRule_t{
+// 						nMatched: rule.NMatched,
+// 						nFailed:  rule.NFailed,
+// 					}
+// 				}
+// 			}
+// 		}
+// 	}
 
-	statsPerRealm := make(statsPerRealm_t)
-	statsPerRealm[app] = statsPerApp
+// 	statsPerApp := make(statsPerApp_t)
+// 	statsPerApp[slice] = statsPerSlice
 
-	statsData[realm] = statsPerRealm
+// 	statsPerRealm := make(statsPerRealm_t)
+// 	statsPerRealm[app] = statsPerApp
 
-	return statsData, timestamp, err
-}
+// 	statsData[realm] = statsPerRealm
+
+// 	return statsData, timestamp, err
+// }

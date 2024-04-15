@@ -11,12 +11,14 @@ import (
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	crux "github.com/remiges-tech/crux/matching-engine"
 	"github.com/remiges-tech/crux/server/wfinstance"
+	"github.com/remiges-tech/logharbour/logharbour"
 
 	"github.com/remiges-tech/alya/service"
 )
 
 const (
 	doneProp = "done"
+	WFE      = "W"
 )
 
 /*
@@ -126,30 +128,35 @@ else (this means count > 1)
 endif
 */
 func DoMarkDone(c *gin.Context, s *service.Service, queries *sqlc.Queries, DoMarkDoneParam Markdone_t) (wfinstance.WFInstanceNewResponse, error) {
-	lh := s.LogHarbour.WithClass("wfinstance")
-	lh.Log("GetWFinstanceNew request received")
+	l := s.LogHarbour.WithClass("DoMarkDone")
+	l.Debug1().Log("DoMarkDone function execution started")
+
+	cruxCache, ok := s.Dependencies["cruxCache"].(*crux.Cache)
+	if !ok {
+		l.Debug0().Debug1().Log("Error while getting cruxCache instance from service Dependencies")
+		return wfinstance.WFInstanceNewResponse{}, fmt.Errorf("Error while getting cruxCache instance from service Dependencies")
+	}
 
 	stepfailed, err := strconv.ParseBool(DoMarkDoneParam.Entity.Attrs["stepfailed"])
 	if err != nil {
+		l.Debug1().Error(err)
 		return wfinstance.WFInstanceNewResponse{}, fmt.Errorf("error while converting stepfailed val from string to bool")
 	}
 	step := DoMarkDoneParam.Entity.Attrs["step"]
 
-	var cacheData = crux.Cache{
-		Ctx:          c,
-		Query:        queries,
-		Slice:        crux.Slice_t(DoMarkDoneParam.Entity.Slice),
-		App:          crux.App_t(DoMarkDoneParam.Entity.App),
-		Class:        crux.ClassName_t(DoMarkDoneParam.Entity.Class),
-		Realm:        crux.Realm_t(DoMarkDoneParam.Entity.Realm),
-		WorkflowName: DoMarkDoneParam.Workflow,
-	}
-
-	schema, ruleset, err := cacheData.RetriveRuleSchemasAndRuleSetsFromCache("W")
+	schema, ruleset, err := cruxCache.RetriveRuleSchemasAndRuleSetsFromCache(WFE,DoMarkDoneParam.Entity.App,DoMarkDoneParam.Entity.Realm,DoMarkDoneParam.Entity.Class,DoMarkDoneParam.Workflow,DoMarkDoneParam.Entity.Slice)
 	if err != nil {
+		l.Debug0().Error(err).Log("error while Retrieve RuleSchemas and RuleSets FromCache")
 		return wfinstance.WFInstanceNewResponse{}, fmt.Errorf("error while Retrieve RuleSchemas and RuleSets FromCache: %v", err)
 	} else if schema == nil || ruleset == nil {
+		l.Debug0().Error(err).Log("didn't find any data in RuleSchemas or RuleSets cache")
 		return wfinstance.WFInstanceNewResponse{}, fmt.Errorf("didn't find any data in RuleSchemas or RuleSets cache: ")
+	}
+
+	err = crux.VerifyEntity(DoMarkDoneParam.Entity, schema)
+	if err != nil {
+		l.Debug0().Error(err).Log("error while verifying entityFromCache")
+		return wfinstance.WFInstanceNewResponse{}, fmt.Errorf("error while verifying entityFromCache: %v", err)
 	}
 
 	var response wfinstance.WFInstanceNewResponse
@@ -162,6 +169,7 @@ func DoMarkDone(c *gin.Context, s *service.Service, queries *sqlc.Queries, DoMar
 		// Call the doMatch function passing the entity.entity, ruleset, and the empty actionSet and seenRuleSets
 		actionset, _, err := crux.DoMatch(DoMarkDoneParam.Entity, ruleset, schema, actionSet, seenRuleSets)
 		if err != nil {
+			l.Debug0().Error(err).Log("error while performing DoMatch")
 			return wfinstance.WFInstanceNewResponse{}, err
 		}
 
@@ -170,6 +178,7 @@ func DoMarkDone(c *gin.Context, s *service.Service, queries *sqlc.Queries, DoMar
 
 			err := deleteWFInstance(queries, DoMarkDoneParam)
 			if err != nil {
+				l.Info().Error(err).Log("Error while deleteWFInstance() in DoMarkDone")
 				return wfinstance.WFInstanceNewResponse{}, err
 			} else {
 
@@ -178,6 +187,44 @@ func DoMarkDone(c *gin.Context, s *service.Service, queries *sqlc.Queries, DoMar
 				}
 
 			}
+			dclog := l.WithClass("WFInstance").WithInstanceId(string(DoMarkDoneParam.InstanceID))
+			dclog.LogDataChange("insert ruleset", logharbour.ChangeInfo{
+				Entity: "WFInstance",
+				Op:     "delete",
+				Changes: []logharbour.ChangeDetail{
+					{
+						Field:  "entityid",
+						OldVal: nil,
+						NewVal: DoMarkDoneParam.EntityID,
+					},
+					{
+						Field:  "slice",
+						OldVal: nil,
+						NewVal: DoMarkDoneParam.Entity.Slice,
+					},
+					{
+						Field:  "app",
+						OldVal: nil,
+						NewVal: DoMarkDoneParam.Entity.App,
+					},
+					{
+						Field:  "class",
+						OldVal: nil,
+						NewVal: DoMarkDoneParam.Entity.Class,
+					},
+					{
+						Field:  "workflow",
+						OldVal: nil,
+						NewVal: DoMarkDoneParam.Workflow,
+					},
+					{
+						Field:  "step",
+						OldVal: nil,
+						NewVal: step,
+					},
+				},
+			})
+
 			return response, nil
 		}
 
@@ -202,7 +249,7 @@ func DoMarkDone(c *gin.Context, s *service.Service, queries *sqlc.Queries, DoMar
 
 			response, err = wfinstance.AddTasks(task, s, c)
 			if err != nil {
-				lh.Error(err).Log("Error while AddTasks")
+				l.Info().Error(err).Log("Error while AddTasks")
 				return wfinstance.WFInstanceNewResponse{}, err
 			}
 			return response, nil
@@ -210,7 +257,7 @@ func DoMarkDone(c *gin.Context, s *service.Service, queries *sqlc.Queries, DoMar
 			DoMarkDoneParam.Entity.Attrs["step"] = actionset.Tasks[0]
 			err = UpdateWFInstanceStep(queries, DoMarkDoneParam, actionset.Tasks[0], ruleset.SetName)
 			if err != nil {
-				lh.Error(err).Log("Error while Update WFInstance Step")
+				l.Info().Error(err).Log("Error while Update WFInstance Step")
 				return wfinstance.WFInstanceNewResponse{}, err
 			}
 			response = wfinstance.WFInstanceNewResponse{
@@ -234,6 +281,7 @@ func DoMarkDone(c *gin.Context, s *service.Service, queries *sqlc.Queries, DoMar
 
 		actionset, match, err := crux.DoMatch(DoMarkDoneParam.Entity, ruleset, schema, actionSet, seenRuleSets)
 		if err != nil {
+			l.Info().Error(err).Log("error while performing DoMatch")
 			return wfinstance.WFInstanceNewResponse{}, err
 		}
 
@@ -245,7 +293,7 @@ func DoMarkDone(c *gin.Context, s *service.Service, queries *sqlc.Queries, DoMar
 			// Return specifying that the workflow is completed
 			err := deleteWFInstance(queries, DoMarkDoneParam)
 			if err != nil {
-
+				l.Info().Error(err).Log("Error while deleteWFInstance() in DoMarkDone")
 				return response, err
 			} else {
 
@@ -254,6 +302,44 @@ func DoMarkDone(c *gin.Context, s *service.Service, queries *sqlc.Queries, DoMar
 				}
 
 			}
+			dclog := l.WithClass("WFInstance").WithInstanceId(string(DoMarkDoneParam.InstanceID))
+			dclog.LogDataChange("insert ruleset", logharbour.ChangeInfo{
+				Entity: "WFInstance",
+				Op:     "delete",
+				Changes: []logharbour.ChangeDetail{
+					{
+						Field:  "entityid",
+						OldVal: nil,
+						NewVal: DoMarkDoneParam.EntityID,
+					},
+					{
+						Field:  "slice",
+						OldVal: nil,
+						NewVal: DoMarkDoneParam.Entity.Slice,
+					},
+					{
+						Field:  "app",
+						OldVal: nil,
+						NewVal: DoMarkDoneParam.Entity.App,
+					},
+					{
+						Field:  "class",
+						OldVal: nil,
+						NewVal: DoMarkDoneParam.Entity.Class,
+					},
+					{
+						Field:  "workflow",
+						OldVal: nil,
+						NewVal: DoMarkDoneParam.Workflow,
+					},
+					{
+						Field:  "step",
+						OldVal: nil,
+						NewVal: step,
+					},
+				},
+			})
+
 			return response, nil
 		}
 
@@ -263,11 +349,51 @@ func DoMarkDone(c *gin.Context, s *service.Service, queries *sqlc.Queries, DoMar
 
 			err := deleteWFInstance(queries, DoMarkDoneParam)
 			if err != nil {
+				l.Info().Error(err).Log("Error while deleteWFInstance() in DoMarkDone")
 				return wfinstance.WFInstanceNewResponse{}, err
 			}
+			dclog := l.WithClass("WFInstance").WithInstanceId(string(DoMarkDoneParam.InstanceID))
+			dclog.LogDataChange("insert ruleset", logharbour.ChangeInfo{
+				Entity: "WFInstance",
+				Op:     "delete",
+				Changes: []logharbour.ChangeDetail{
+					{
+						Field:  "entityid",
+						OldVal: nil,
+						NewVal: DoMarkDoneParam.EntityID,
+					},
+					{
+						Field:  "slice",
+						OldVal: nil,
+						NewVal: DoMarkDoneParam.Entity.Slice,
+					},
+					{
+						Field:  "app",
+						OldVal: nil,
+						NewVal: DoMarkDoneParam.Entity.App,
+					},
+					{
+						Field:  "class",
+						OldVal: nil,
+						NewVal: DoMarkDoneParam.Entity.Class,
+					},
+					{
+						Field:  "workflow",
+						OldVal: nil,
+						NewVal: DoMarkDoneParam.Workflow,
+					},
+					{
+						Field:  "step",
+						OldVal: nil,
+						NewVal: step,
+					},
+				},
+			})
+
 			doneAtTimeStamp := time.Now()
 			err = UpdateWFInstanceDoneAt(queries, DoMarkDoneParam, doneAtTimeStamp, ruleset.SetName)
 			if err != nil {
+				l.Info().Error(err).Log("Error while update wfinstance Done At() in DoMarkDone")
 				return wfinstance.WFInstanceNewResponse{}, err
 			}
 
@@ -289,7 +415,7 @@ func DoMarkDone(c *gin.Context, s *service.Service, queries *sqlc.Queries, DoMar
 
 			response, err = wfinstance.AddTasks(addTaskParam, s, c)
 			if err != nil {
-				lh.Error(err).Log("Error while AddTasks")
+				l.Error(err).Log("Error while AddTasks")
 				return wfinstance.WFInstanceNewResponse{}, err
 			}
 			return response, nil
@@ -308,12 +434,13 @@ func DoMarkDone(c *gin.Context, s *service.Service, queries *sqlc.Queries, DoMar
 		doneAtTimeStamp := time.Now()
 		err := UpdateWFInstanceDoneAt(queries, DoMarkDoneParam, doneAtTimeStamp, ruleset.SetName)
 		if err != nil {
-			lh.Error(err).Log("Error while deleteWFInstance() in DoMarkDone")
+			l.Info().Error(err).Log("Error while update wfinstance Done At() in DoMarkDone")
 			return wfinstance.WFInstanceNewResponse{}, err
 		}
 		// Look through all the other wfinstance records which have matching tuple (slice,app,workflow,entityid)
 		wfInstances, err := getWFInstanceList(queries, DoMarkDoneParam, ruleset.SetName)
 		if err != nil {
+			l.Info().Error(err).Log("Error while getWFInstanceList() in DoMarkDone")
 			return wfinstance.WFInstanceNewResponse{}, err
 		}
 
@@ -343,6 +470,7 @@ func DoMarkDone(c *gin.Context, s *service.Service, queries *sqlc.Queries, DoMar
 
 			actionset, _, err := crux.DoMatch(DoMarkDoneParam.Entity, ruleset, schema, actionSet, seenRuleSets)
 			if err != nil {
+				l.Info().Error(err).Log("error while performing DoMatch")
 				return wfinstance.WFInstanceNewResponse{}, err
 			}
 
@@ -352,7 +480,7 @@ func DoMarkDone(c *gin.Context, s *service.Service, queries *sqlc.Queries, DoMar
 
 				err := deleteWFInstance(queries, DoMarkDoneParam)
 				if err != nil {
-
+					l.Info().Error(err).Log("Error while deleteWFInstance() in DoMarkDone")
 					return response, err
 				} else {
 
@@ -361,6 +489,44 @@ func DoMarkDone(c *gin.Context, s *service.Service, queries *sqlc.Queries, DoMar
 					}
 
 				}
+				dclog := l.WithClass("WFInstance").WithInstanceId(string(DoMarkDoneParam.InstanceID))
+				dclog.LogDataChange("insert ruleset", logharbour.ChangeInfo{
+					Entity: "WFInstance",
+					Op:     "delete",
+					Changes: []logharbour.ChangeDetail{
+						{
+							Field:  "entityid",
+							OldVal: nil,
+							NewVal: DoMarkDoneParam.EntityID,
+						},
+						{
+							Field:  "slice",
+							OldVal: nil,
+							NewVal: DoMarkDoneParam.Entity.Slice,
+						},
+						{
+							Field:  "app",
+							OldVal: nil,
+							NewVal: DoMarkDoneParam.Entity.App,
+						},
+						{
+							Field:  "class",
+							OldVal: nil,
+							NewVal: DoMarkDoneParam.Entity.Class,
+						},
+						{
+							Field:  "workflow",
+							OldVal: nil,
+							NewVal: DoMarkDoneParam.Workflow,
+						},
+						{
+							Field:  "step",
+							OldVal: nil,
+							NewVal: step,
+						},
+					},
+				})
+
 				return response, nil
 			}
 
@@ -369,9 +535,46 @@ func DoMarkDone(c *gin.Context, s *service.Service, queries *sqlc.Queries, DoMar
 				// Return the full set of tasks and their record IDs
 				err := deleteWFInstance(queries, DoMarkDoneParam)
 				if err != nil {
-					lh.Error(err).Log("Error while deleteWFInstance() in DoMarkDone")
+					l.Info().Error(err).Log("Error while deleteWFInstance() in DoMarkDone")
 					return wfinstance.WFInstanceNewResponse{}, err
 				}
+				dclog := l.WithClass("WFInstance").WithInstanceId(string(DoMarkDoneParam.InstanceID))
+				dclog.LogDataChange("insert ruleset", logharbour.ChangeInfo{
+					Entity: "WFInstance",
+					Op:     "delete",
+					Changes: []logharbour.ChangeDetail{
+						{
+							Field:  "entityid",
+							OldVal: nil,
+							NewVal: DoMarkDoneParam.EntityID,
+						},
+						{
+							Field:  "slice",
+							OldVal: nil,
+							NewVal: DoMarkDoneParam.Entity.Slice,
+						},
+						{
+							Field:  "app",
+							OldVal: nil,
+							NewVal: DoMarkDoneParam.Entity.App,
+						},
+						{
+							Field:  "class",
+							OldVal: nil,
+							NewVal: DoMarkDoneParam.Entity.Class,
+						},
+						{
+							Field:  "workflow",
+							OldVal: nil,
+							NewVal: DoMarkDoneParam.Workflow,
+						},
+						{
+							Field:  "step",
+							OldVal: nil,
+							NewVal: step,
+						},
+					},
+				})
 
 				// call addTasks
 
@@ -391,7 +594,7 @@ func DoMarkDone(c *gin.Context, s *service.Service, queries *sqlc.Queries, DoMar
 
 				response, err = wfinstance.AddTasks(task, s, c)
 				if err != nil {
-					lh.Error(err).Log("Error while AddTasks")
+					l.Error(err).Log("Error while AddTasks")
 					return wfinstance.WFInstanceNewResponse{}, err
 				}
 				return response, nil

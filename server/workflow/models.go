@@ -1,12 +1,14 @@
 package workflow
 
-import "github.com/jackc/pgx/v5/pgtype"
+import (
+	"github.com/jackc/pgx/v5/pgtype"
+	crux "github.com/remiges-tech/crux/matching-engine"
+)
 
 const (
 	editedBy = "admin"
 	// userID = "123"
 
-	brwf      = "W"
 	isActive  = false
 	typeBool  = "bool"
 	typeInt   = "int"
@@ -87,7 +89,7 @@ type WorkflowgetRow struct {
 	Name       string           `json:"name"`
 	IsActive   bool             `json:"is_active"`
 	IsInternal bool             `json:"is_internal"`
-	Flowrules  interface{}      `json:"flowrules"`
+	Flowrules  []crux.Rule_t    `json:"flowrules"`
 	Createdat  pgtype.Timestamp `json:"createdat"`
 	Createdby  string           `json:"createdby"`
 	Editedat   pgtype.Timestamp `json:"editedat"`

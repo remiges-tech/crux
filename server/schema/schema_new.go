@@ -134,7 +134,7 @@ func SchemaNew(c *gin.Context, s *service.Service) {
 	dclog := l.WithClass("schema").WithInstanceId(string(id))
 	dclog.LogDataChange("created schema", logharbour.ChangeInfo{
 		Entity: "schema",
-		Op:     "create",
+		Op:     "insert",
 		Changes: []logharbour.ChangeDetail{
 			{
 				Field:  "realm",
