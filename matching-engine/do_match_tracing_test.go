@@ -12,15 +12,17 @@ import (
 
 const (
 	TestTracing_1 = "L1 trace: only `match` and `mismatch`"
-	// TestTracing_2 = "SUCCESS_2- get schema by valid req"
+	TestTracing_2 = "wfinstancenew matching"
 )
 
 type tracingTestCasesStruct struct {
+	entity  Entity
+	ruleset *Ruleset_t
+	// TestJsonFile       string
 	TestCaseName       string
-	entity             Entity
-	ruleset            *Ruleset_t
+	entityFilePath     string
+	rulesetFilePath    string
 	ruleSchemasCache   *Schema_t
-	TestJsonFile       string
 	ExpectedResultFile string
 	Url                string
 }
@@ -31,6 +33,17 @@ var (
 		App:   "starmf",
 		Slice: 12,
 		Class: "ucctest",
+		Attrs: map[string]string{
+			"mode":       "demat",
+			"step":       "start",
+			"stepfailed": "false",
+		},
+	}
+	sampleEntityWfinstancenew = Entity{
+		Realm: "BSE",
+		App:   "uccapp",
+		Slice: 12,
+		Class: "ucc",
 		Attrs: map[string]string{
 			"mode":       "demat",
 			"step":       "start",
@@ -121,9 +134,22 @@ var (
 func TestDoMatchTracee(t *testing.T) {
 	testCases := testcase()
 	for _, tc := range testCases {
+		if tc.rulesetFilePath != "" {
+			var temp_ruleset Ruleset_t
+			rulesetFile, err := readJsonFromFile(tc.rulesetFilePath)
+			require.NoError(t, err)
+
+			err = json.Unmarshal(rulesetFile, &temp_ruleset)
+			require.NoError(t, err)
+			tc.ruleset = &temp_ruleset
+		}
+
 		t.Run(tc.TestCaseName, func(t *testing.T) {
 			_, _, err, trace := DoMatch(tc.entity, tc.ruleset, tc.ruleSchemasCache, ActionSet{}, map[string]struct{}{}, Trace_t{})
 			require.NoError(t, err)
+
+			traceByt, _ := json.Marshal(trace)
+			fmt.Println("<<<<<<<<<<<<<<<<<<< traceByt:", string(traceByt))
 
 			expected, err := readJsonFromFile(tc.ExpectedResultFile)
 			require.NoError(t, err)
@@ -146,6 +172,16 @@ func testcase() []tracingTestCasesStruct {
 			ruleSchemasCache: &Schema_t{},
 			// TestJsonFile:       "./data/action_.json",
 			ExpectedResultFile: "./data/expected_trace.json",
+		},
+		// 2nd test case
+		{
+			TestCaseName: TestTracing_2,
+			entity:       sampleEntityWfinstancenew,
+			// ruleset:          &sampleRuleset,
+			rulesetFilePath:  "./data/ruleset_wfinstancenew.json",
+			ruleSchemasCache: &Schema_t{},
+			// TestJsonFile:       "./data/action_.json",
+			ExpectedResultFile: "./data/expected_trace2.json",
 		},
 	}
 	return tracingTestcases

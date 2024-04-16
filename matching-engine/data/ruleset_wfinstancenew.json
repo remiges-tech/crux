@@ -1,0 +1,202 @@
+{
+  "id": 8,
+  "class": "ucc",
+  "setname": "ucc_user_cr",
+  "rule": [
+    {
+      "rulePattern": [
+        { "attr": "step", "op": "eq", "val": "start" },
+        { "attr": "mode", "op": "eq", "val": "demat" }
+      ],
+      "ruleActions": {
+        "tasks": ["getcustdetails"],
+        "properties": { "nextstep": "getcustdetails" }
+      },
+      "NMatched": 0,
+      "NFailed": 0
+    },
+    {
+      "rulePattern": [
+        { "attr": "step", "op": "eq", "val": "getcustdetails" },
+        { "attr": "stepfailed", "op": "eq", "val": false },
+        { "attr": "mode", "op": "eq", "val": "demat" }
+      ],
+      "ruleActions": {
+        "tasks": ["aof", "dpandbankaccvalid", "kycvalid", "nomauth"],
+        "properties": { "nextstep": "aof" }
+      },
+      "NMatched": 0,
+      "NFailed": 0
+    },
+    {
+      "rulePattern": [
+        { "attr": "step", "op": "eq", "val": "getcustdetails" },
+        { "attr": "stepfailed", "op": "eq", "val": true },
+        { "attr": "mode", "op": "eq", "val": "demat" }
+      ],
+      "ruleActions": { "tasks": [], "properties": { "done": "true" } },
+      "NMatched": 0,
+      "NFailed": 0
+    },
+    {
+      "rulePattern": [
+        { "attr": "step", "op": "eq", "val": "getcustdetails" },
+        { "attr": "stepfailed", "op": "eq", "val": false },
+        { "attr": "mode", "op": "eq", "val": "physical" }
+      ],
+      "ruleActions": {
+        "tasks": ["aof", "kycvalid", "nomauth", "bankaccvalid"],
+        "properties": { "nextstep": "aof" }
+      },
+      "NMatched": 0,
+      "NFailed": 0
+    },
+    {
+      "rulePattern": [
+        { "attr": "step", "op": "eq", "val": "getcustdetails" },
+        { "attr": "stepfailed", "op": "eq", "val": true },
+        { "attr": "mode", "op": "eq", "val": "physical" }
+      ],
+      "ruleActions": { "tasks": [], "properties": { "done": "true" } },
+      "NMatched": 0,
+      "NFailed": 0
+    },
+    {
+      "rulePattern": [
+        { "attr": "step", "op": "eq", "val": "kycvalid" },
+        { "attr": "stepfailed", "op": "eq", "val": false },
+        { "attr": "mode", "op": "eq", "val": "demat" }
+      ],
+      "ruleActions": {
+        "tasks": ["sendauthlinktoclient"],
+        "properties": { "nextstep": "sendauthlinktoclient" }
+      },
+      "NMatched": 0,
+      "NFailed": 0
+    },
+    {
+      "rulePattern": [
+        { "attr": "step", "op": "eq", "val": "kycvalid" },
+        { "attr": "stepfailed", "op": "eq", "val": true },
+        { "attr": "mode", "op": "eq", "val": "demat" }
+      ],
+      "ruleActions": { "tasks": [], "properties": { "done": "true" } },
+      "NMatched": 0,
+      "NFailed": 0
+    },
+    {
+      "rulePattern": [
+        { "attr": "step", "op": "eq", "val": "dpandbankvalidation" },
+        { "attr": "stepfailed", "op": "eq", "val": false },
+        { "attr": "mode", "op": "eq", "val": "demat" }
+      ],
+      "ruleActions": {
+        "tasks": ["sendauthlinktoclient"],
+        "properties": { "nextstep": "sendauthlinktoclient" }
+      },
+      "NMatched": 0,
+      "NFailed": 0
+    },
+    {
+      "rulePattern": [
+        { "attr": "step", "op": "eq", "val": "dpandbankvalidation" },
+        { "attr": "stepfailed", "op": "eq", "val": true },
+        { "attr": "mode", "op": "eq", "val": "demat" }
+      ],
+      "ruleActions": { "tasks": [], "properties": { "done": "true" } },
+      "NMatched": 0,
+      "NFailed": 0
+    },
+    {
+      "rulePattern": [
+        { "attr": "step", "op": "eq", "val": "bankaccvalid" },
+        { "attr": "stepfailed", "op": "eq", "val": false },
+        { "attr": "mode", "op": "eq", "val": "demat" }
+      ],
+      "ruleActions": {
+        "tasks": ["sendauthlinktoclient"],
+        "properties": { "nextstep": "sendauthlinktoclient" }
+      },
+      "NMatched": 0,
+      "NFailed": 0
+    },
+    {
+      "rulePattern": [
+        { "attr": "step", "op": "eq", "val": "bankaccvalid" },
+        { "attr": "stepfailed", "op": "eq", "val": true },
+        { "attr": "mode", "op": "eq", "val": "demat" }
+      ],
+      "ruleActions": { "tasks": [], "properties": { "done": "true" } },
+      "NMatched": 0,
+      "NFailed": 0
+    },
+    {
+      "rulePattern": [
+        { "attr": "step", "op": "eq", "val": "nomauth" },
+        { "attr": "stepfailed", "op": "eq", "val": false },
+        { "attr": "mode", "op": "eq", "val": "demat" }
+      ],
+      "ruleActions": {
+        "tasks": ["sendauthlinktoclient"],
+        "properties": { "nextstep": "sendauthlinktoclient" }
+      },
+      "NMatched": 0,
+      "NFailed": 0
+    },
+    {
+      "rulePattern": [
+        { "attr": "step", "op": "eq", "val": "nomauth" },
+        { "attr": "stepfailed", "op": "eq", "val": true },
+        { "attr": "mode", "op": "eq", "val": "demat" }
+      ],
+      "ruleActions": { "tasks": [], "properties": { "done": "true" } },
+      "NMatched": 0,
+      "NFailed": 0
+    },
+    {
+      "rulePattern": [
+        { "attr": "step", "op": "eq", "val": "aof" },
+        { "attr": "stepfailed", "op": "eq", "val": false },
+        { "attr": "mode", "op": "eq", "val": "demat" }
+      ],
+      "ruleActions": {
+        "tasks": ["sendauthlinktoclient"],
+        "properties": { "nextstep": "sendauthlinktoclient" }
+      },
+      "NMatched": 0,
+      "NFailed": 0
+    },
+    {
+      "rulePattern": [
+        { "attr": "step", "op": "eq", "val": "aof" },
+        { "attr": "stepfailed", "op": "eq", "val": true },
+        { "attr": "mode", "op": "eq", "val": "demat" }
+      ],
+      "ruleActions": { "tasks": [], "properties": { "done": "true" } },
+      "NMatched": 0,
+      "NFailed": 0
+    },
+    {
+      "rulePattern": [
+        { "attr": "step", "op": "eq", "val": "sendauthlinktoclient" },
+        { "attr": "stepfailed", "op": "eq", "val": false },
+        { "attr": "mode", "op": "eq", "val": "demat" }
+      ],
+      "ruleActions": { "tasks": [], "properties": { "done": "true" } },
+      "NMatched": 0,
+      "NFailed": 0
+    },
+    {
+      "rulePattern": [
+        { "attr": "step", "op": "eq", "val": "sendauthlinktoclient" },
+        { "attr": "stepfailed", "op": "eq", "val": true },
+        { "attr": "mode", "op": "eq", "val": "demat" }
+      ],
+      "ruleActions": { "tasks": [], "properties": { "done": "true" } },
+      "NMatched": 0,
+      "NFailed": 0
+    }
+  ],
+  "NCalled": 0,
+  "ReferenceType": ""
+}

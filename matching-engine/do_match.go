@@ -18,6 +18,9 @@ import (
 
 func DoMatch(entity Entity, ruleset *Ruleset_t, ruleSchemasCache *Schema_t, actionSet ActionSet, seenRuleSets map[string]struct{}, trace Trace_t) (ActionSet, bool, error, Trace_t) {
 
+	// byt, _ := json.Marshal(ruleset)
+	// fmt.Println(">>>>>>>byt:", string(byt))
+
 	if trace.TraceData == nil {
 		// time_s := time.Now()
 		// this `time` is used for testing purposee revert with above in dev
@@ -32,16 +35,16 @@ func DoMatch(entity Entity, ruleset *Ruleset_t, ruleSchemasCache *Schema_t, acti
 
 	for ruleNumber, rule := range ruleset.Rules {
 		var (
-			eachRule TraceDataRule_t
-			l2data   TraceDataRuleL2_t
+			eachRule = TraceDataRule_t{}
+			l2data   = TraceDataRuleL2_t{}
 		)
 		eachRule.RuleNo = ruleNumber
-		l2data.Tasks = rule.RuleActions.Task
-		l2data.Properties = rule.RuleActions.Properties
-
 		if len(l2data.ActionSet.Tasks) == 0 {
 			l2data.ActionSet.Tasks = append(l2data.ActionSet.Tasks, rule.RuleActions.Task...)
 		}
+		l2data.Tasks = rule.RuleActions.Task
+		l2data.Properties = rule.RuleActions.Properties
+
 		if len(l2data.ActionSet.Properties) == 0 {
 			l2data.ActionSet.Properties = rule.RuleActions.Properties
 		} else {
@@ -73,6 +76,7 @@ func DoMatch(entity Entity, ruleset *Ruleset_t, ruleSchemasCache *Schema_t, acti
 			actionSet = collectActions(actionSet, rule.RuleActions)
 
 			if len(rule.RuleActions.ThenCall) > 0 {
+				eachRule.Res = ThenCall
 
 				// setToCall, exists := findRefRuleSetByName(ruleset, rule.RuleActions.ThenCall)
 
@@ -94,6 +98,7 @@ func DoMatch(entity Entity, ruleset *Ruleset_t, ruleSchemasCache *Schema_t, acti
 				}
 
 			} else if DoExit || rule.RuleActions.DoExit {
+				eachRule.Res = Exit
 
 				// eachRule.add_L2data(actionSet)
 				// traceData.Rules = append(traceData.Rules, eachRule)
@@ -101,10 +106,12 @@ func DoMatch(entity Entity, ruleset *Ruleset_t, ruleSchemasCache *Schema_t, acti
 
 				return actionSet, true, nil, trace
 			} else if rule.RuleActions.DoReturn {
+				eachRule.Res = Return
 
 				delete(seenRuleSets, ruleset.SetName)
 				return actionSet, false, nil, trace
 			} else if len(rule.RuleActions.ElseCall) > 0 {
+				eachRule.Res = ElseCall
 
 				// setToCall, exists := findRefRuleSetByName(ruleSetsCache, rule.RuleActions.ElseCall)
 				// if !exists {
@@ -128,6 +135,9 @@ func DoMatch(entity Entity, ruleset *Ruleset_t, ruleSchemasCache *Schema_t, acti
 			}
 			//return actionSet, false, nil
 		}
+		// if ruleNumber == (len(ruleset.Rules) - 1) {
+		// 	eachRule.Res = Exit
+		// }
 		//*********************************************************************************************
 		eachRule.L2Data = l2data
 		traceData.Rules = append(traceData.Rules, eachRule)
