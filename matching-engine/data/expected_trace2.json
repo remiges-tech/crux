@@ -1,0 +1,270 @@
+{
+  "start": "2024-04-10T23:00:00Z",
+  "end": "2024-04-10T23:00:00Z",
+  "realm": "BSE",
+  "app": "uccapp",
+  "entryRulesetID": 8,
+  "entryRulesetName": "ucc_user_cr",
+  "tracedata": [
+    {
+      "id": 8,
+      "setName": "ucc_user_cr",
+      "rules": [
+        {
+          "r": 0,
+          "res": "+",
+          "l2data": {
+            "tasks": ["getcustdetails"],
+            "properties": {
+              "nextstep": "getcustdetails"
+            },
+            "actionset": {
+              "tasks": ["getcustdetails"],
+              "properties": {
+                "nextstep": "getcustdetails"
+              }
+            }
+          }
+        },
+        {
+          "r": 1,
+          "res": "+",
+          "l2data": {
+            "tasks": ["aof", "dpandbankaccvalid", "kycvalid", "nomauth"],
+            "properties": {
+              "nextstep": "aof"
+            },
+            "actionset": {
+              "tasks": ["aof", "dpandbankaccvalid", "kycvalid", "nomauth"],
+              "properties": {
+                "nextstep": "aof"
+              }
+            }
+          }
+        },
+        {
+          "r": 2,
+          "res": "+",
+          "l2data": {
+            "properties": {
+              "done": "true"
+            },
+            "actionset": {
+              "properties": {
+                "done": "true"
+              }
+            }
+          }
+        },
+        {
+          "r": 3,
+          "res": "+",
+          "l2data": {
+            "tasks": ["aof", "kycvalid", "nomauth", "bankaccvalid"],
+            "properties": {
+              "nextstep": "aof"
+            },
+            "actionset": {
+              "tasks": ["aof", "kycvalid", "nomauth", "bankaccvalid"],
+              "properties": {
+                "nextstep": "aof"
+              }
+            }
+          }
+        },
+        {
+          "r": 4,
+          "res": "+",
+          "l2data": {
+            "properties": {
+              "done": "true"
+            },
+            "actionset": {
+              "properties": {
+                "done": "true"
+              }
+            }
+          }
+        },
+        {
+          "r": 5,
+          "res": "+",
+          "l2data": {
+            "tasks": ["sendauthlinktoclient"],
+            "properties": {
+              "nextstep": "sendauthlinktoclient"
+            },
+            "actionset": {
+              "tasks": ["sendauthlinktoclient"],
+              "properties": {
+                "nextstep": "sendauthlinktoclient"
+              }
+            }
+          }
+        },
+        {
+          "r": 6,
+          "res": "+",
+          "l2data": {
+            "properties": {
+              "done": "true"
+            },
+            "actionset": {
+              "properties": {
+                "done": "true"
+              }
+            }
+          }
+        },
+        {
+          "r": 7,
+          "res": "+",
+          "l2data": {
+            "tasks": ["sendauthlinktoclient"],
+            "properties": {
+              "nextstep": "sendauthlinktoclient"
+            },
+            "actionset": {
+              "tasks": ["sendauthlinktoclient"],
+              "properties": {
+                "nextstep": "sendauthlinktoclient"
+              }
+            }
+          }
+        },
+        {
+          "r": 8,
+          "res": "+",
+          "l2data": {
+            "properties": {
+              "done": "true"
+            },
+            "actionset": {
+              "properties": {
+                "done": "true"
+              }
+            }
+          }
+        },
+        {
+          "r": 9,
+          "res": "+",
+          "l2data": {
+            "tasks": ["sendauthlinktoclient"],
+            "properties": {
+              "nextstep": "sendauthlinktoclient"
+            },
+            "actionset": {
+              "tasks": ["sendauthlinktoclient"],
+              "properties": {
+                "nextstep": "sendauthlinktoclient"
+              }
+            }
+          }
+        },
+        {
+          "r": 10,
+          "res": "+",
+          "l2data": {
+            "properties": {
+              "done": "true"
+            },
+            "actionset": {
+              "properties": {
+                "done": "true"
+              }
+            }
+          }
+        },
+        {
+          "r": 11,
+          "res": "+",
+          "l2data": {
+            "tasks": ["sendauthlinktoclient"],
+            "properties": {
+              "nextstep": "sendauthlinktoclient"
+            },
+            "actionset": {
+              "tasks": ["sendauthlinktoclient"],
+              "properties": {
+                "nextstep": "sendauthlinktoclient"
+              }
+            }
+          }
+        },
+        {
+          "r": 12,
+          "res": "+",
+          "l2data": {
+            "properties": {
+              "done": "true"
+            },
+            "actionset": {
+              "properties": {
+                "done": "true"
+              }
+            }
+          }
+        },
+        {
+          "r": 13,
+          "res": "+",
+          "l2data": {
+            "tasks": ["sendauthlinktoclient"],
+            "properties": {
+              "nextstep": "sendauthlinktoclient"
+            },
+            "actionset": {
+              "tasks": ["sendauthlinktoclient"],
+              "properties": {
+                "nextstep": "sendauthlinktoclient"
+              }
+            }
+          }
+        },
+        {
+          "r": 14,
+          "res": "+",
+          "l2data": {
+            "properties": {
+              "done": "true"
+            },
+            "actionset": {
+              "properties": {
+                "done": "true"
+              }
+            }
+          }
+        },
+        {
+          "r": 15,
+          "res": "+",
+          "l2data": {
+            "properties": {
+              "done": "true"
+            },
+            "actionset": {
+              "properties": {
+                "done": "true"
+              }
+            }
+          }
+        },
+        {
+          "r": 16,
+          "res": "+",
+          "l2data": {
+            "properties": {
+              "done": "true"
+            },
+            "actionset": {
+              "properties": {
+                "done": "true"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
