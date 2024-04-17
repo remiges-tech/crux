@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/remiges-tech/alya/service"
@@ -26,7 +25,6 @@ import (
 	"github.com/remiges-tech/crux/server/wfinstance"
 	"github.com/remiges-tech/crux/server/workflow"
 	"github.com/remiges-tech/logharbour/logharbour"
-	"github.com/remiges-tech/rigel"
 	"github.com/remiges-tech/rigel/etcd"
 )
 
@@ -92,15 +90,16 @@ func main() {
 	}
 	l.Log("Retrieves the configuration data from rigel")
 
-	// Database connection
+	// // Database connection
 
 	// dbHost := "localhost"
 	// dbPort := 5432
-	// dbUser := "cruxtest"
-	// dbPassword := "cruxtest"
-	// dbName := "cruxtest"
+	// dbUser := "postgres"
+	// dbPassword := "postgres"
+	// dbName := "crux"
 	connURL := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", dbHost, dbPort, dbUser, dbPassword, dbName)
 	connPool, err := db.NewProvider(connURL)
+
 	if err != nil {
 		l.LogActivity("Error while establishes a connection with database", err)
 		log.Fatalln("Failed to establishes a connection with database", err)
@@ -186,6 +185,9 @@ func main() {
 	//BRESchema
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/breschemanew", breschema.BRESchemaNew)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/breschemaupdate", breschema.BRESchemaUpdate)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/breschemalist", breschema.BRESchemaList)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/breschemaget", breschema.BRESchemaGet)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/breschemadelete", breschema.BRESchemaDelete)
 
 	// BRERuleSet
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/BRErulesetUpdate", breruleset.RuleSetUpdate)

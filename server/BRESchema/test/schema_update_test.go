@@ -2,7 +2,6 @@ package breschema_test
 
 import (
 	"bytes"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -14,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSchemaUpdate(t *testing.T) {
+func TestBRESchemaUpdate(t *testing.T) {
 	testCases := schemaUpdateTestcase()
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
@@ -23,7 +22,6 @@ func TestSchemaUpdate(t *testing.T) {
 
 			res := httptest.NewRecorder()
 			req, err := http.NewRequest(http.MethodPut, "/breschemaupdate", payload)
-			fmt.Println("error>>>>>>>>>>>>",err)
 			require.NoError(t, err)
 
 			r.ServeHTTP(res, req)

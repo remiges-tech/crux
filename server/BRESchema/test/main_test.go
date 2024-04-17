@@ -148,6 +148,11 @@ func registerRoutes(databaseUrl string) (*gin.Engine, error) {
 
 	s.RegisterRoute(http.MethodPost, "/breschemanew", breschema.BRESchemaNew)
 	s.RegisterRoute(http.MethodPut, "/breschemaupdate", breschema.BRESchemaUpdate)
+	s.RegisterRoute(http.MethodPost, "/breschemaget", breschema.BRESchemaGet)
+	s.RegisterRoute(http.MethodPost, "/breschemalist", breschema.BRESchemaList)
+	s.RegisterRoute(http.MethodPost, "/breschemadelete", breschema.BRESchemaDelete)
+
+
 
 
 	return r, nil

@@ -36,24 +36,24 @@
             ]
         },
         {
-            "msgid": 1003,
-            "errcode": "invalid",
+            "msgid": 1014,
+            "errcode": "not_allowed",
             "field": "properties",
             "vals": [
                 ""
             ]
         },
         {
-            "msgid": 1003,
-            "errcode": "invalid",
+            "msgid": 1014,
+            "errcode": "not_allowed",
             "field": "properties",
             "vals": [
                 ""
             ]
         },
         {
-            "msgid": 1003,
-            "errcode": "invalid",
+            "msgid": 1014,
+            "errcode": "not_allowed",
             "field": "task",
             "vals": [
                 ""

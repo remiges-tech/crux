@@ -1,0 +1,62 @@
+{
+    "status": "success",
+    "data": {
+        "slice": 12,
+        "app": "starmf",
+        "class": "custonboarding",
+        "longname": "Bombay Stock Exchange",
+        "patternschema": [
+            {
+                "attr": "cat",
+                "shortdesc": "",
+                "longdesc": "",
+                "valtype": "str"
+            },
+            {
+                "attr": "mrp",
+                "shortdesc": "",
+                "longdesc": "",
+                "valtype": "float"
+            },
+            {
+                "attr": "fullname",
+                "shortdesc": "",
+                "longdesc": "",
+                "valtype": "str"
+            },
+            {
+                "attr": "ageinstock",
+                "shortdesc": "",
+                "longdesc": "",
+                "valtype": "int"
+            },
+            {
+                "attr": "inventoryqty",
+                "shortdesc": "",
+                "longdesc": "",
+                "valtype": "int"
+            }
+        ],
+        "actionschema": {
+            "tasks": [
+                "initialdoc",
+                "aadhaarcheck",
+                "creditbureauchk",
+                "panchk",
+                "bankdetails",
+                "referencechk",
+                "stage2done",
+                "complete"
+            ],
+            "properties": [
+                "nextstep",
+                "done"
+            ]
+        },
+        "createdat": "2021-01-03T06:02:41Z",
+        "createdby": "Marielle Strongitharm",
+        "editedat": "2021-06-07T02:28:17Z",
+        "editedby": "Therese Roselli"
+    },
+    "messages": null
+}

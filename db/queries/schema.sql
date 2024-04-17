@@ -69,36 +69,15 @@ WHERE
     and s.class = $3
     AND s.app = $2;
 
--- name: Wfschemadelete :exec
-DELETE from schema
-where
-    id in (
-        select id
-        from (
-                SELECT schema.id
-                FROM schema, realm, realmslice
-                WHERE
-                    schema.realm = realm.id
-                    and schema.slice = realmslice.id
-                    and schema.slice = $1
-                    and schema.brwf = @brwf
-                    and realmslice.realm = realm.shortname
-                    and schema.realm = @realm
-                    and schema.class = $3
-                    AND schema.app = $2
-            ) as id
-        where
-            id not in(
-                SELECT schemaid
-                FROM ruleset
-                where
-                    realm = @realm
-                    and slice = $1
-                    and app = $2
-                    and class = $3
-                    and brwf = @brwf
-            )
-    );
+
+-- name: Wfschemadelete :many
+DELETE from schema where id in(SELECT s.id FROM schema as s, realm as r, realmslice as rs
+WHERE s.realm = r.shortnamelc and s.slice = rs.id and s.slice = @slice and s.brwf = @brwf
+and rs.realm = r.shortnamelc and s.realm = @realm and s.class = @class AND s.app = @app
+AND  s.id not in( SELECT schemaid FROM ruleset where realm = @realm and slice = @slice
+and app = @app and class = @class and brwf = @brwf)) RETURNING *;
+
+
 
 -- name: WfPatternSchemaGet :one
 SELECT patternschema

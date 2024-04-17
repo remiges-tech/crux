@@ -1,4 +1,4 @@
-package schema
+package breschema
 
 import (
 	"strconv"
@@ -14,10 +14,10 @@ import (
 	"github.com/remiges-tech/logharbour/logharbour"
 )
 
-// SchemaDelete will be responsible for processing the /WFschemaDelete request that comes through as a POST
-func SchemaDelete(c *gin.Context, s *service.Service) {
+func BRESchemaDelete(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour
-	lh.Log("SchemaDelete request received")
+	lh.Log("BRESchemaDelete request received")
+
 	userID, err := server.ExtractUserNameFromJwt(c)
 	if err != nil {
 		lh.Info().Log("unable to extract userID from token")
@@ -38,12 +38,12 @@ func SchemaDelete(c *gin.Context, s *service.Service) {
 	}, false)
 
 	if !isCapable {
-		lh.Info().LogActivity("Unauthorized user:", userID)
+		lh.Info().LogActivity("unauthorized user:", userID)
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
 		return
 	}
 
-	var request SchemaGetReq
+	var request BRESchemaGetReq
 	err = wscutils.BindJSON(c, &request)
 	if err != nil {
 		lh.Debug0().LogActivity("error while binding json request error:", err.Error)
@@ -58,7 +58,7 @@ func SchemaDelete(c *gin.Context, s *service.Service) {
 	}
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
 	if !ok {
-		lh.Log("Error while getting query instance from service Dependencies")
+		lh.Log("error while getting query instance from service Dependencies")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
@@ -67,7 +67,7 @@ func SchemaDelete(c *gin.Context, s *service.Service) {
 		App:   request.App,
 		Class: request.Class,
 		Realm: realmName,
-		Brwf:  sqlc.BrwfEnumW,
+		Brwf:  sqlc.BrwfEnumB,
 	})
 	if err != nil {
 		lh.Debug0().LogActivity("failed while deleting record:", err.Error())
@@ -78,9 +78,9 @@ func SchemaDelete(c *gin.Context, s *service.Service) {
 
 	// data change log
 	for _, val := range deletedSchemaData {
-		dclog := lh.WithClass("WFSchema").WithInstanceId(strconv.Itoa(int(val.ID)))
-		dclog.LogDataChange("deleted WFSchema ", logharbour.ChangeInfo{
-			Entity: "WFSchema",
+		dclog := lh.WithClass("BRESchema").WithInstanceId(strconv.Itoa(int(val.ID)))
+		dclog.LogDataChange("deleted BRESchema ", logharbour.ChangeInfo{
+			Entity: "BRESchema",
 			Op:     "delete",
 			Changes: []logharbour.ChangeDetail{
 				{
@@ -91,7 +91,6 @@ func SchemaDelete(c *gin.Context, s *service.Service) {
 			},
 		})
 	}
-
-	lh.Debug0().Log("Record deleted finished execution of SchemaDelete()")
+	lh.Debug0().Log("Record deleted finished execution of BRESchemaDelete()")
 	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(err))
 }
