@@ -3,13 +3,14 @@ package markdone
 import (
 	"context"
 	"log"
-	"strconv"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 
 	sqlc "github.com/remiges-tech/crux/db/sqlc-gen"
 	crux "github.com/remiges-tech/crux/matching-engine"
+	"github.com/remiges-tech/crux/server/wfinstance"
+	"github.com/remiges-tech/logharbour/logharbour"
 )
 
 func deleteWFInstance(queries *sqlc.Queries, instanceID int32, entity crux.Entity) error {
@@ -79,20 +80,55 @@ func getWFInstanceList(queries *sqlc.Queries, instanceID int32, entity crux.Enti
 	}
 	return list, nil
 }
-func getCurrentWFINstance(queries *sqlc.Queries, instanceID int32, entity crux.Entity, wf string) (sqlc.Wfinstance, error) {
 
-	id := strconv.Itoa(int(instanceID))
+func doneTrue(l *logharbour.Logger, qtx *sqlc.Queries, instanceID int32, entity_t crux.Entity, wfinst sqlc.Wfinstance) (wfinstance.WFInstanceNewResponse, error) {
+	// Delete all wfinstance records with tuple matching (slice, app, workflow, entityid)
+	// Return specifying that the workflow is completed
 
-	params := sqlc.GetWFInstanceCurrentParams{
-		Entityid: id,
-		Slice:    entity.Slice,
-		App:      entity.App,
-		Workflow: wf,
+	err := deleteWFInstance(qtx, instanceID, entity_t)
+	if err != nil {
+		l.Info().Error(err).Log("Error while deleteWFInstance() in DoMarkDone")
+		return wfinstance.WFInstanceNewResponse{}, err
 	}
-	return queries.GetWFInstanceCurrent(context.Background(), params)
+	dclog := l.WithClass("WFInstance").WithInstanceId(string(instanceID))
+	dclog.LogDataChange("insert ruleset", logharbour.ChangeInfo{
+		Entity: "WFInstance",
+		Op:     "delete",
+		Changes: []logharbour.ChangeDetail{
+			{
+				Field:  "entityid",
+				OldVal: nil,
+				NewVal: wfinst.Entityid,
+			},
+			{
+				Field:  "slice",
+				OldVal: nil,
+				NewVal: wfinst.Slice,
+			},
+			{
+				Field:  "app",
+				OldVal: nil,
+				NewVal: wfinst.App,
+			},
+			{
+				Field:  "class",
+				OldVal: nil,
+				NewVal: wfinst.Class,
+			},
+			{
+				Field:  "workflow",
+				OldVal: nil,
+				NewVal: wfinst.Workflow,
+			},
+			{
+				Field:  "step",
+				OldVal: nil,
+				NewVal: entity_t.Attrs["step"],
+			},
+		},
+	})
+	return wfinstance.WFInstanceNewResponse{
+		Done: "true",
+	}, nil
 
-}
-
-func GetSubFLow(queries *sqlc.Queries, step string) (sqlc.GetWorkflowNameForStepRow, error) {
-	return queries.GetWorkflowNameForStep(context.Background(), step)
 }

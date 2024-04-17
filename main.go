@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/remiges-tech/alya/service"
@@ -25,6 +26,7 @@ import (
 	"github.com/remiges-tech/crux/server/wfinstance"
 	"github.com/remiges-tech/crux/server/workflow"
 	"github.com/remiges-tech/logharbour/logharbour"
+	"github.com/remiges-tech/rigel"
 	"github.com/remiges-tech/rigel/etcd"
 )
 
@@ -165,18 +167,18 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstanceabort", wfinstance.GetWFInstanceAbort)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstancelist", wfinstance.GetWFInstanceList)
 	// markdone
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/WFinstanceMarkDone", markdone.WFInstanceMarkDone)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wFinstancemarkdone", markdone.WFInstanceMarkDone)
 	//app
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/appnew", app.AppNew)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/appupdate", app.AppUpdate)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/appdelete/:name", app.AppDelete)
 
 	// Realm-slice management
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmSliceNew", realmslice.RealmSliceNew)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmslicenew", realmslice.RealmSliceNew)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmsliceactivate", realmslice.RealmSliceActivate)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmslicedeactivate", realmslice.RealmSliceDeactivate)
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/realmSliceApps/:id", realmslice.RealmSliceApps)
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/RealmSlicePurge", realmslice.RealmSlicePurge)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/realmsliceapps/:id", realmslice.RealmSliceApps)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmslicepurge", realmslice.RealmSlicePurge)
 
 	// capabilities
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/capgrant", capability.CapGrant)
@@ -190,7 +192,7 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/breschemadelete", breschema.BRESchemaDelete)
 
 	// BRERuleSet
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/BRErulesetUpdate", breruleset.RuleSetUpdate)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/brerulesetUpdate", breruleset.RuleSetUpdate)
 
 	appServerPortStr := strconv.Itoa(appServerPort)
 	err = r.Run(":" + appServerPortStr)
