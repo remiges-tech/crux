@@ -15,11 +15,11 @@ import (
 
 // Incoming request format
 type WFInstanceNewRequest struct {
-	Slice    int32             `json:"slice" validate:"required,gt=0,lt=85"`
-	App      string            `json:"app" validate:"required,lt=15"`
+	Slice    int32             `json:"slice" validate:"required,gt=0"`
+	App      string            `json:"app" validate:"required,lt=50"`
 	EntityID string            `json:"entityid" validate:"required,gt=0,lt=40"`
 	Entity   map[string]string `json:"entity" validate:"required"`
-	Workflow string            `json:"workflow" validate:"required,gt=0,lt=20"`
+	Workflow string            `json:"workflow" validate:"required,gt=0,lt=50"`
 	Trace    *int              `json:"trace,omitempty"`
 	Parent   *int32            `json:"parent,omitempty"`
 }

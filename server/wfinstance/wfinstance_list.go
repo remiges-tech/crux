@@ -14,7 +14,7 @@ import (
 
 // WFInstanceList rquest format
 type WFInstanceListRequest struct {
-	Slice    *int32  `json:"slice" validate:"omitempty,gt=0,lt=15"`
+	Slice    *int32  `json:"slice" validate:"omitempty,gt=0,lt=50"`
 	EntityID *string `json:"entityid" validate:"omitempty,gt=0,lt=40"`
 	App      *string `json:"app" validate:"omitempty,alpha,gt=0,lt=15"`
 	Workflow *string `json:"workflow" validate:"omitempty,gt=0,lt=20"`
