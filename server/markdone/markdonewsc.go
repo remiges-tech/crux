@@ -8,9 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
-	"github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
-	crux "github.com/remiges-tech/crux/matching-engine"
 	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/types"
 )
@@ -21,10 +19,10 @@ var (
 )
 
 type WFInstanceMarkDoneReq struct {
-	ID         int32             `json:"id" validate:"required"`
-	Entity     map[string]string `json:"entity" validate:"required"`
-	Step       string            `json:"step" validate:"required,alpha"`
-	Stepfailed bool              `json:"stepfailed"`
+	ID         int32             `json:"id" validate:"required,lt=50"`
+	Entity     map[string]string `json:"entity" validate:"required,lt=50"`
+	Step       string            `json:"step" validate:"required,lt=50"`
+	Stepfailed bool              `json:"stepfailed,omitempty"`
 	Trace      int               `json:"trace,omitempty"`
 }
 
@@ -96,32 +94,32 @@ func WFInstanceMarkDone(c *gin.Context, s *service.Service) {
 	qtx := queries.WithTx(tx)
 
 	// get instance record
-	wfinstance, err := queries.GetWFInstanceFromId(c, req.ID)
-	if err != nil {
-		l.Err().Error(err).Log("Error while GetWFInstanceFromId() in WFInstanceMarkDone")
-		errmsg := db.HandleDatabaseError(err)
-		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
-		return
-	}
+	// wfinstance, err := queries.GetWFInstanceFromId(c, req.ID)
+	// if err != nil {
+	// 	l.Err().Error(err).Log("Error while GetWFInstanceFromId() in WFInstanceMarkDone")
+	// 	errmsg := db.HandleDatabaseError(err)
+	// 	wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+	// 	return
+	// }
 
 	req.Entity["step"] = req.Step
 	req.Entity["stepfailed"] = strconv.FormatBool(req.Stepfailed)
 
-	var DoMarkDoneParam = Markdone_t{
-		InstanceID: wfinstance.ID,
-		EntityID:   wfinstance.Entityid,
-		Workflow:   wfinstance.Workflow,
-		Loggedat:   wfinstance.Loggedat.Time,
-		Entity: crux.Entity{
-			Realm: realmName,
-			App:   wfinstance.App,
-			Slice: wfinstance.Slice,
-			Class: wfinstance.Class,
-			Attrs: req.Entity,
-		},
-	}
+	// var DoMarkDoneParam = Markdone_t{
+	// 	InstanceID: wfinstance.ID,
+	// 	EntityID:   wfinstance.Entityid,
+	// 	Workflow:   wfinstance.Workflow,
+	// 	Loggedat:   wfinstance.Loggedat.Time,
+	// 	Entity: crux.Entity{
+	// 		Realm: realmName,
+	// 		App:   wfinstance.App,
+	// 		Slice: wfinstance.Slice,
+	// 		Class: wfinstance.Class,
+	// 		Attrs: req.Entity,
+	// 	},
+	// }
 
-	ResponseData, err := DoMarkDone(c, s, qtx, DoMarkDoneParam)
+	ResponseData, err := DoMarkDone(c, s, qtx, req.ID, req.Entity)
 	if err != nil {
 		l.Err().Error(err).Log("Error in DoMarkDone")
 		wscutils.SendErrorResponse(c, &wscutils.Response{Status: "error", Data: err.Error()})

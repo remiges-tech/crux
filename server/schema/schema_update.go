@@ -19,9 +19,9 @@ import (
 )
 
 type updateSchema struct {
-	Slice         int32               `json:"slice" validate:"required,gt=0,lt=15"`
-	App           string              `json:"App" validate:"required,alpha,lt=15"`
-	Class         string              `json:"class" validate:"required,lowercase,lt=15"`
+	Slice         int32               `json:"slice" validate:"required,gt=0,lt=50"`
+	App           string              `json:"App" validate:"required,alpha,lt=50"`
+	Class         string              `json:"class" validate:"required,lowercase,lt=50"`
 	PatternSchema []PatternSchema     `json:"patternSchema,omitempty"`
 	ActionSchema  crux.ActionSchema_t `json:"actionSchema,omitempty"`
 }

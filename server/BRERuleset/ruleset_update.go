@@ -19,10 +19,10 @@ import (
 )
 
 type RulesSetUpdate struct {
-	Slice   int32         `json:"slice" validate:"required,gt=0,lt=15"`
-	App     string        `json:"app" validate:"required,alpha,lt=15"`
-	Class   string        `json:"class" validate:"required,lowercase,lt=15"`
-	Name    string        `json:"name" validate:"required,lowercase,lt=15"`
+	Slice   int32         `json:"slice" validate:"required,gt=0,lt=50"`
+	App     string        `json:"app" validate:"required,alpha,lt=50"`
+	Class   string        `json:"class" validate:"required,lowercase,lt=50"`
+	Name    string        `json:"name" validate:"required,lowercase,lt=50"`
 	RuleSet []crux.Rule_t `json:"ruleset" validate:"required,dive"`
 }
 
