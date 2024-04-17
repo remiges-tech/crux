@@ -93,31 +93,8 @@ func WFInstanceMarkDone(c *gin.Context, s *service.Service) {
 	defer tx.Rollback(c)
 	qtx := queries.WithTx(tx)
 
-	// get instance record
-	// wfinstance, err := queries.GetWFInstanceFromId(c, req.ID)
-	// if err != nil {
-	// 	l.Err().Error(err).Log("Error while GetWFInstanceFromId() in WFInstanceMarkDone")
-	// 	errmsg := db.HandleDatabaseError(err)
-	// 	wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
-	// 	return
-	// }
-
 	req.Entity["step"] = req.Step
 	req.Entity["stepfailed"] = strconv.FormatBool(req.Stepfailed)
-
-	// var DoMarkDoneParam = Markdone_t{
-	// 	InstanceID: wfinstance.ID,
-	// 	EntityID:   wfinstance.Entityid,
-	// 	Workflow:   wfinstance.Workflow,
-	// 	Loggedat:   wfinstance.Loggedat.Time,
-	// 	Entity: crux.Entity{
-	// 		Realm: realmName,
-	// 		App:   wfinstance.App,
-	// 		Slice: wfinstance.Slice,
-	// 		Class: wfinstance.Class,
-	// 		Attrs: req.Entity,
-	// 	},
-	// }
 
 	ResponseData, err := DoMarkDone(c, s, qtx, req.ID, req.Entity)
 	if err != nil {

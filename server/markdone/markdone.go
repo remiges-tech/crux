@@ -186,58 +186,12 @@ func DoMarkDone(c *gin.Context, s *service.Service, qtx *sqlc.Queries, instanceI
 		}
 
 		if actionset.Properties[doneProp] == "true" {
-			// Delete the wfinstance record
-
-			err := deleteWFInstance(qtx, instanceID, entity_t)
+			res, err := doneTrue(l, qtx, instanceID, entity_t, wfinst)
 			if err != nil {
-				l.Info().Error(err).Log("Error while deleteWFInstance() in DoMarkDone")
+				l.Info().Error(err).Log("error while deleting wfinstance")
 				return wfinstance.WFInstanceNewResponse{}, err
-			} else {
-
-				response = wfinstance.WFInstanceNewResponse{
-					Done: "true",
-				}
-
 			}
-			dclog := l.WithClass("WFInstance").WithInstanceId(string(instanceID))
-			dclog.LogDataChange("insert ruleset", logharbour.ChangeInfo{
-				Entity: "WFInstance",
-				Op:     "delete",
-				Changes: []logharbour.ChangeDetail{
-					{
-						Field:  "entityid",
-						OldVal: nil,
-						NewVal: wfinst.Entityid,
-					},
-					{
-						Field:  "slice",
-						OldVal: nil,
-						NewVal: wfinst.Slice,
-					},
-					{
-						Field:  "app",
-						OldVal: nil,
-						NewVal: wfinst.App,
-					},
-					{
-						Field:  "class",
-						OldVal: nil,
-						NewVal: wfinst.Class,
-					},
-					{
-						Field:  "workflow",
-						OldVal: nil,
-						NewVal: wfinst.Workflow,
-					},
-					{
-						Field:  "step",
-						OldVal: nil,
-						NewVal: step,
-					},
-				},
-			})
-
-			return response, nil
+			return res, nil
 		}
 
 		if len(actionset.Tasks) > 1 {
@@ -301,58 +255,12 @@ func DoMarkDone(c *gin.Context, s *service.Service, qtx *sqlc.Queries, instanceI
 			return wfinstance.WFInstanceNewResponse{}, fmt.Errorf("rule are not matched")
 		}
 		if actionset.Properties[doneProp] == "true" {
-			// Delete the wfinstance record
-			// Return specifying that the workflow is completed
-			err := deleteWFInstance(qtx, instanceID, entity_t)
+			res, err := doneTrue(l, qtx, instanceID, entity_t, wfinst)
 			if err != nil {
-				l.Info().Error(err).Log("Error while deleteWFInstance() in DoMarkDone")
-				return response, err
-			} else {
-
-				response = wfinstance.WFInstanceNewResponse{
-					Done: "true",
-				}
-
+				l.Info().Error(err).Log("error while deleting wfinstance")
+				return wfinstance.WFInstanceNewResponse{}, err
 			}
-			dclog := l.WithClass("WFInstance").WithInstanceId(string(instanceID))
-			dclog.LogDataChange("insert ruleset", logharbour.ChangeInfo{
-				Entity: "WFInstance",
-				Op:     "delete",
-				Changes: []logharbour.ChangeDetail{
-					{
-						Field:  "entityid",
-						OldVal: nil,
-						NewVal: wfinst.Entityid,
-					},
-					{
-						Field:  "slice",
-						OldVal: nil,
-						NewVal: wfinst.Slice,
-					},
-					{
-						Field:  "app",
-						OldVal: nil,
-						NewVal: wfinst.App,
-					},
-					{
-						Field:  "class",
-						OldVal: nil,
-						NewVal: wfinst.Class,
-					},
-					{
-						Field:  "workflow",
-						OldVal: nil,
-						NewVal: wfinst.Workflow,
-					},
-					{
-						Field:  "step",
-						OldVal: nil,
-						NewVal: step,
-					},
-				},
-			})
-
-			return response, nil
+			return res, nil
 		}
 
 		if len(actionset.Tasks) > 1 {
@@ -487,59 +395,13 @@ func DoMarkDone(c *gin.Context, s *service.Service, qtx *sqlc.Queries, instanceI
 			}
 
 			if actionset.Properties[doneProp] == "true" {
-				// Delete all wfinstance records with tuple matching (slice, app, workflow, entityid)
-				// Return specifying that the workflow is completed
 
-				err := deleteWFInstance(qtx, instanceID, entity_t)
+				res, err := doneTrue(l, qtx, instanceID, entity_t, wfinst)
 				if err != nil {
-					l.Info().Error(err).Log("Error while deleteWFInstance() in DoMarkDone")
-					return response, err
-				} else {
-
-					response = wfinstance.WFInstanceNewResponse{
-						Done: "true",
-					}
-
+					l.Info().Error(err).Log("error while deleting wfinstance")
+					return wfinstance.WFInstanceNewResponse{}, err
 				}
-				dclog := l.WithClass("WFInstance").WithInstanceId(string(instanceID))
-				dclog.LogDataChange("insert ruleset", logharbour.ChangeInfo{
-					Entity: "WFInstance",
-					Op:     "delete",
-					Changes: []logharbour.ChangeDetail{
-						{
-							Field:  "entityid",
-							OldVal: nil,
-							NewVal: wfinst.Entityid,
-						},
-						{
-							Field:  "slice",
-							OldVal: nil,
-							NewVal: wfinst.Slice,
-						},
-						{
-							Field:  "app",
-							OldVal: nil,
-							NewVal: wfinst.App,
-						},
-						{
-							Field:  "class",
-							OldVal: nil,
-							NewVal: wfinst.Class,
-						},
-						{
-							Field:  "workflow",
-							OldVal: nil,
-							NewVal: wfinst.Workflow,
-						},
-						{
-							Field:  "step",
-							OldVal: nil,
-							NewVal: step,
-						},
-					},
-				})
-
-				return response, nil
+				return res, nil
 			}
 
 			if len(actionset.Tasks) >= 1 {

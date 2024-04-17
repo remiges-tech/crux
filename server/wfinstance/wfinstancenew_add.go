@@ -133,16 +133,16 @@ func getResponse(r GetResponse) WFInstanceNewResponse {
 		// response for multiple task steps
 		response = WFInstanceNewResponse{
 			Tasks:    tasks,
-			Nextstep: &r.NextStep,
+			Nextstep: r.NextStep,
 			Loggedat: loggedDate,
-			Subflows: &r.Subflow,
+			Subflows: r.Subflow,
 		}
 	} else {
 		//response for single task step
 		response = WFInstanceNewResponse{
 			Tasks:    tasks,
 			Loggedat: loggedDate,
-			Subflows: &r.Subflow,
+			Subflows: r.Subflow,
 		}
 	}
 	return response

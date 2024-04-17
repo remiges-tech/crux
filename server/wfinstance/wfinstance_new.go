@@ -27,10 +27,10 @@ type WFInstanceNewRequest struct {
 // WFInstanceNew response format
 type WFInstanceNewResponse struct {
 	Tasks     []map[string]int32 `json:"tasks,omitempty"`
-	Nextstep  *string            `json:"nextstep,omitempty"`
+	Nextstep  string            `json:"nextstep,omitempty"`
 	Loggedat  pgtype.Timestamp   `json:"loggedat,omitempty"`
-	Subflows  *map[string]string `json:"subflows,omitempty"`
-	Tracedata *map[string]string `json:"tracedata,omitempty"`
+	Subflows  map[string]string `json:"subflows,omitempty"`
+	Tracedata map[string]string `json:"tracedata,omitempty"`
 	Done      string             `json:"done,omitempty"`
 	ID        string             `json:"id,omitempty"` //wfinstance id
 }
@@ -100,7 +100,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	} else {
 		// Additional attributes to append
 		existingEntity[STEP] = START
-		existingEntity[STEPFALED] = FALSE
+		// existingEntity[STEPFALED] = FALSE
 	}
 	lh.Debug0().LogActivity("wfinstanceNewRequest after adding additional attributes :", wfinstanceNewreq)
 
@@ -223,10 +223,7 @@ func getValidPropertyAttr(a crux.ActionSet) (map[string]string, error) {
 
 	isDoneOrNextStepPresent := false
 	for attr, val := range attributes {
-		if attr == DONE {
-			attribute[attr] = val
-			isDoneOrNextStepPresent = true
-		} else if attr == NEXTSTEP {
+		if attr == DONE || attr == NEXTSTEP {
 			attribute[attr] = val
 			isDoneOrNextStepPresent = true
 		}
