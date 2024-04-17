@@ -1,4 +1,4 @@
-package schema
+package breschema
 
 import (
 	"encoding/json"
@@ -27,7 +27,7 @@ type patternSchema_t struct {
 	LenMin    int      `json:"lenmin,omitempty"`
 	LenMax    int      `json:"lenmax,omitempty"`
 }
-type wfschemagetRow struct {
+type BREwfschemagetRow struct {
 	Slice         int32               `json:"slice"`
 	App           string              `json:"app"`
 	Class         string              `json:"class"`
@@ -40,28 +40,33 @@ type wfschemagetRow struct {
 	Editedby      pgtype.Text         `json:"editedby"`
 }
 
-// SchemaGet will be responsible for processing the /wfschemaget request that comes through as a POST
-func SchemaGet(c *gin.Context, s *service.Service) {
+type BRESchemaGetReq struct {
+	Slice int32  `json:"slice" validate:"required,gt=0,lt=15"`
+	App   string `json:"app" validate:"required,alpha,lt=15"`
+	Class string `json:"class" validate:"required,alpha,lt=15"`
+}
+
+func BRESchemaGet(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour
-	lh.Log("SchemaGet request received")
+	lh.Log("BRESchemaGet request received")
 
-	// userID, err := server.ExtractUserNameFromJwt(c)
-	// if err != nil {
-	// 	lh.Info().Log("unable to extract userID from token")
-	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
-	// 	return
-	// }
+	userID, err := server.ExtractUserNameFromJwt(c)
+	if err != nil {
+		lh.Info().Log("unable to extract userID from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
+		return
+	}
 
-	// realmName, err := server.ExtractRealmFromJwt(c)
-	// if err != nil {
-	// 	lh.Info().Log("unable to extract realm from token")
-	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
-	// 	return
-	// }
+	realmName, err := server.ExtractRealmFromJwt(c)
+	if err != nil {
+		lh.Info().Log("unable to extract realm from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
+		return
+	}
 
 	var (
-		request  SchemaGetReq
-		response wfschemagetRow
+		request  BRESchemaGetReq
+		response BREwfschemagetRow
 	)
 
 	isCapable, _ := server.Authz_check(types.OpReq{
@@ -101,7 +106,7 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 		App:   request.App,
 		Class: request.Class,
 		Realm: realmName,
-		Brwf:  sqlc.BrwfEnumW,
+		Brwf:  sqlc.BrwfEnumB,
 	})
 	if err != nil {
 		lh.Debug0().Error(err).Log("failed to get data from db")
@@ -110,20 +115,20 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	errors := response.bindSchemaGetResp(s, dbResponse)
+	errors := response.bindBRESchemaGetResp(s, dbResponse)
 	if len(errors) > 0 {
 		lh.Debug0().LogActivity("error while converting byte patternschema or action schema to struct:", errors)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, errors))
 		return
 	}
 
-	lh.Debug0().Log("record found finished execution of SchemaGet()")
+	lh.Debug0().Log("record found finished execution of BRESchemaGet()")
 	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(response))
 }
 
-func (response *wfschemagetRow) bindSchemaGetResp(s *service.Service, dbResponse sqlc.WfschemagetRow) []wscutils.ErrorMessage {
+func (response *BREwfschemagetRow) bindBRESchemaGetResp(s *service.Service, dbResponse sqlc.WfschemagetRow) []wscutils.ErrorMessage {
 	lh := s.LogHarbour
-	lh.Log("bindSchemaGetResp request received")
+	lh.Log("bindBRESchemaGetResp request received")
 	var (
 		pattrn []crux.PatternSchema_t
 		action crux.ActionSchema_t
@@ -156,7 +161,6 @@ func (response *wfschemagetRow) bindSchemaGetResp(s *service.Service, dbResponse
 		response.Patternschema = append(response.Patternschema, t)
 	}
 
-	// response.Patternschema = pattrn
 	response.Actionschema = action
 	return errors
 }

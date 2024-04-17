@@ -55,9 +55,7 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 		l.Error(err).Log("Error Unmarshalling Query paramaeters to struct:")
 		return
 	}
-	// if req.PatternSchema != nil {
-	// 	newPatternSchema := convertPatternSchema(*req.PatternSchema)
-	// }
+
 	newPatternSchema := convertPatternSchema(req.PatternSchema)
 	schema := crux.Schema_t{
 		Class:         req.Class,

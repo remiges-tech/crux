@@ -1,0 +1,36 @@
+{
+    "status": "success",
+    "data": [
+        {
+            "slice": 11,
+            "app": "retailbank",
+            "longname": "retailbank pvt ltd",
+            "class": "custonboarding",
+            "createdby": "Mal Houndsom",
+            "createdat": "2022-12-26T09:03:46Z",
+            "editedby": "Clerc Careless",
+            "editedat": "2023-07-12T01:33:32Z"
+        },
+        {
+            "slice": 11,
+            "app": "retailbank",
+            "longname": "retailbank pvt ltd",
+            "class": "temp",
+            "createdby": "Olly Gerrish",
+            "createdat": "2022-12-24T19:38:52Z",
+            "editedby": "Ronni Matson",
+            "editedat": "2021-04-28T20:39:09Z"
+        },
+        {
+            "slice": 12,
+            "app": "starmf",
+            "longname": "mutual Fund",
+            "class": "custonboarding",
+            "createdby": "Marielle Strongitharm",
+            "createdat": "2021-01-03T06:02:41Z",
+            "editedby": "Therese Roselli",
+            "editedat": "2021-06-07T02:28:17Z"
+        }
+    ],
+    "messages": null
+}

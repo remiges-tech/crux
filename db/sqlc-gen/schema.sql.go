@@ -446,55 +446,59 @@ func (q *Queries) WfSchemaList(ctx context.Context, arg WfSchemaListParams) ([]W
 	return items, nil
 }
 
-const wfschemadelete = `-- name: Wfschemadelete :exec
-DELETE from schema
-where
-    id in (
-        select id
-        from (
-                SELECT schema.id
-                FROM schema, realm, realmslice
-                WHERE
-                    schema.realm = realm.id
-                    and schema.slice = realmslice.id
-                    and schema.slice = $1
-                    and schema.brwf = $4
-                    and realmslice.realm = realm.shortname
-                    and schema.realm = $5
-                    and schema.class = $3
-                    AND schema.app = $2
-            ) as id
-        where
-            id not in(
-                SELECT schemaid
-                FROM ruleset
-                where
-                    realm = $5
-                    and slice = $1
-                    and app = $2
-                    and class = $3
-                    and brwf = $4
-            )
-    )
+const wfschemadelete = `-- name: Wfschemadelete :many
+DELETE from schema where id in(SELECT s.id FROM schema as s, realm as r, realmslice as rs
+WHERE s.realm = r.shortnamelc and s.slice = rs.id and s.slice = $1 and s.brwf = $2
+and rs.realm = r.shortnamelc and s.realm = $3 and s.class = $4 AND s.app = $5
+AND  s.id not in( SELECT schemaid FROM ruleset where realm = $3 and slice = $1
+and app = $5 and class = $4 and brwf = $2)) RETURNING id, realm, slice, app, brwf, class, patternschema, actionschema, createdat, createdby, editedat, editedby
 `
 
 type WfschemadeleteParams struct {
 	Slice int32    `json:"slice"`
-	App   string   `json:"app"`
-	Class string   `json:"class"`
 	Brwf  BrwfEnum `json:"brwf"`
 	Realm string   `json:"realm"`
+	Class string   `json:"class"`
+	App   string   `json:"app"`
 }
 
-func (q *Queries) Wfschemadelete(ctx context.Context, arg WfschemadeleteParams) error {
-	_, err := q.db.Exec(ctx, wfschemadelete,
+func (q *Queries) Wfschemadelete(ctx context.Context, arg WfschemadeleteParams) ([]Schema, error) {
+	rows, err := q.db.Query(ctx, wfschemadelete,
 		arg.Slice,
-		arg.App,
-		arg.Class,
 		arg.Brwf,
 		arg.Realm,
+		arg.Class,
+		arg.App,
 	)
-	return err
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Schema
+	for rows.Next() {
+		var i Schema
+		if err := rows.Scan(
+			&i.ID,
+			&i.Realm,
+			&i.Slice,
+			&i.App,
+			&i.Brwf,
+			&i.Class,
+			&i.Patternschema,
+			&i.Actionschema,
+			&i.Createdat,
+			&i.Createdby,
+			&i.Editedat,
+			&i.Editedby,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const wfschemaget = `-- name: Wfschemaget :one
