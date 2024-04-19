@@ -1,0 +1,47 @@
+{
+    "start": "2024-04-10T23:00:00Z",
+    "end": "2024-04-10T23:00:00Z",
+    "realm": "BSE",
+    "app": "starmf",
+    "entryRulesetID": 10,
+    "entryRulesetName": "ucctest", "tracedata": [
+        {
+            "id": 10,
+            "setName": "ucctest",
+            "rules": [
+                {
+                    "r": 0,
+                    "res": "+",
+                    "l2data": {
+                        "tasks": [ "step1" ],
+                        "properties": { "nextstep": "step1" },
+                        "actionset": {
+                            "tasks": [ "step1" ],
+                            "properties": { "nextstep": "step1" }
+                        }
+                    }
+                },
+                {
+                    "r": 1,
+                    "res": "+",
+                    "l2data": {
+                        "tasks": [ "step2" ],
+                        "properties": { "nextstep": "step2" },
+                        "actionset": {
+                            "tasks": [ "step2" ],
+                            "properties": { "nextstep": "step2" }
+                        }
+                    }
+                },
+                {
+                    "r": 2,
+                    "res": "+",
+                    "l2data": {
+                        "properties": { "done": "true" },
+                        "actionset": { "properties": { "done": "true" } }
+                    }
+                }
+            ]
+        }
+    ]
+}

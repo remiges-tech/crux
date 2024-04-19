@@ -179,7 +179,8 @@ func DoMarkDone(c *gin.Context, s *service.Service, qtx *sqlc.Queries, instanceI
 		seenRuleSets := make(map[string]struct{})
 
 		// Call the doMatch function passing the entity.entity, ruleset, and the empty actionSet and seenRuleSets
-		actionset, _, err := crux.DoMatch(entity_t, ruleset, schema, actionSet, seenRuleSets)
+		actionset, _, err, _ := crux.DoMatch(entity_t, ruleset, schema, actionSet, seenRuleSets, crux.Trace_t{})
+
 		if err != nil {
 			l.Debug0().Error(err).Log("error while performing DoMatch")
 			return wfinstance.WFInstanceNewResponse{}, err
@@ -245,7 +246,9 @@ func DoMarkDone(c *gin.Context, s *service.Service, qtx *sqlc.Queries, instanceI
 		actionSet := crux.ActionSet{}
 		seenRuleSets := make(map[string]struct{})
 
-		actionset, match, err := crux.DoMatch(entity_t, ruleset, schema, actionSet, seenRuleSets)
+
+		actionset, match, err, _ := crux.DoMatch(entity_t, ruleset, schema, actionSet, seenRuleSets, crux.Trace_t{})
+
 		if err != nil {
 			l.Info().Error(err).Log("error while performing DoMatch")
 			return wfinstance.WFInstanceNewResponse{}, err
@@ -387,8 +390,12 @@ func DoMarkDone(c *gin.Context, s *service.Service, qtx *sqlc.Queries, instanceI
 			// actionset and seenrulesets: empty
 			actionSet := crux.ActionSet{}
 			seenRuleSets := make(map[string]struct{})
+
 			entity_t.Attrs["step"] = wfinst.Nextstep
-			actionset, _, err := crux.DoMatch(entity_t, ruleset, schema, actionSet, seenRuleSets)
+
+
+			actionset, _, err, _ := crux.DoMatch(entity_t, ruleset, schema, actionSet, seenRuleSets, crux.Trace_t{})
+
 			if err != nil {
 				l.Info().Error(err).Log("error while performing DoMatch")
 				return wfinstance.WFInstanceNewResponse{}, err

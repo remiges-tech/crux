@@ -150,7 +150,9 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	// }
 
 	// call DoMatch()
-	actionSet, _, err = crux.DoMatch(entity, ruleset, schema, actionSet, seenRuleSets)
+
+	actionSet, _, err, _ = crux.DoMatch(entity, ruleSets, schema, actionSet, seenRuleSets, crux.Trace_t{})
+
 	if err != nil {
 		lh.Error(err).Log("GetWFinstanceNew||error while calling doMatch Method")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, err.Error()))
