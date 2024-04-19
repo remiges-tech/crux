@@ -19,9 +19,9 @@ import (
 )
 
 type updateSchema struct {
-	Slice         int32               `json:"slice" validate:"required,gt=0,lt=15"`
-	App           string              `json:"App" validate:"required,alpha,lt=15"`
-	Class         string              `json:"class" validate:"required,lowercase,lt=15"`
+	Slice         int32               `json:"slice" validate:"required,gt=0,lt=50"`
+	App           string              `json:"App" validate:"required,alpha,lt=50"`
+	Class         string              `json:"class" validate:"required,lowercase,lt=50"`
 	PatternSchema []PatternSchema     `json:"patternSchema,omitempty"`
 	ActionSchema  crux.ActionSchema_t `json:"actionSchema,omitempty"`
 }
@@ -55,9 +55,7 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 		l.Error(err).Log("Error Unmarshalling Query paramaeters to struct:")
 		return
 	}
-	// if req.PatternSchema != nil {
-	// 	newPatternSchema := convertPatternSchema(*req.PatternSchema)
-	// }
+
 	newPatternSchema := convertPatternSchema(req.PatternSchema)
 	schema := crux.Schema_t{
 		Class:         req.Class,
@@ -141,6 +139,7 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 		Slice:     req.Slice,
 		Class:     req.Class,
 		App:       strings.ToLower(req.App),
+		Brwf: sqlc.BrwfEnumW,
 	})
 	if err != nil {
 		tx.Rollback(c)

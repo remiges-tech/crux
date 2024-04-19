@@ -20,15 +20,6 @@ const (
 	ValEnum_t
 )
 
-	type PerSlice_t struct {
-		LoadedAt   time.Time
-		BRSchema   map[ClassName_t]Schema_t
-		BRRulesets map[ClassName_t][]*Ruleset_t
-		WFSchema   map[ClassName_t]Schema_t
-		Workflows  map[ClassName_t][]*Ruleset_t
-	}
-
-
 type Schema_t struct {
 	Class         string            `json:"class"`
 	PatternSchema []PatternSchema_t `json:"patternschema"`
@@ -87,15 +78,15 @@ type RuleActionBlock_t struct {
 	ElseCall      string            `json:"elsecall,omitempty"`
 	DoReturn      bool              `json:"doreturn,omitempty"`
 	DoExit        bool              `json:"doexit,omitempty"`
-	References    []*Ruleset_t      `json:"-"`
+	References    []*Ruleset_t      `json:"reference,omitempty"`
 	ReferenceType string            `json:"referencetype,omitempty"`
 }
 
 type Rule_t struct {
-	RulePatterns []RulePatternBlock_t `json:"rulePattern" validate:"required,dive"`
-	RuleActions  RuleActionBlock_t    `json:"ruleActions" validate:"required"`
-	NMatched     int32
-	NFailed      int32
+	RulePatterns []RulePatternBlock_t `json:"rulepattern" validate:"required,dive"`
+	RuleActions  RuleActionBlock_t    `json:"ruleactions" validate:"required"`
+	NMatched     int32                `json:"nmatched,omitempty"`
+	NFailed      int32                `json:"nfailed,omitempty"`
 }
 
 type Ruleset_t struct {
@@ -106,17 +97,13 @@ type Ruleset_t struct {
 	NCalled       int32
 	ReferenceType string
 }
-// type Class_t string
-
-// type PerClass_t struct {
-// 	LoadedAt   time.Time
-// 	BRSchema   map[ClassName_t]Schema_t
-// 	BRRulesets map[ClassName_t][]*Ruleset_t
-// 	WFSchema   map[ClassName_t]Schema_t
-// 	Workflows  map[ClassName_t][]*Ruleset_t
-// }
-
-// type PerSlice_t map[Class_t]PerClass_t
+type PerSlice_t struct {
+	LoadedAt   time.Time
+	BRSchema   map[ClassName_t]Schema_t
+	BRRulesets map[ClassName_t][]*Ruleset_t
+	WFSchema   map[ClassName_t]Schema_t
+	Workflows  map[ClassName_t][]*Ruleset_t
+}
 
 type PerApp_t map[Slice_t]PerSlice_t
 
@@ -126,16 +113,4 @@ type RulesetCache_t map[Realm_t]PerRealm_t
 
 type SchemaCache_t map[Realm_t]PerRealm_t
 
-var RulesetCache RulesetCache_t
-var SchemaCache SchemaCache_t
-
-var (
-	rulesetCache RulesetCache_t
-	schemaCache  SchemaCache_t
-	cacheLock    sync.RWMutex
-)
-
-func init() {
-	RulesetCache = make(RulesetCache_t)
-	SchemaCache = make(SchemaCache_t)
-}
+var cacheLock sync.RWMutex

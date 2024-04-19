@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
+	"slices"
 	"time"
 )
 
@@ -240,9 +241,17 @@ func VerifyRulePatterns(ruleset *Ruleset_t, schema *Schema_t, isWF bool) []error
 		// Workflows only
 		if isWF {
 			stepFound := false
-			for _, term := range rule.RulePatterns {
+			for j, term := range rule.RulePatterns {
 				if term.Attr == step {
-
+					str := term.Val.(string)
+					if str == "start" {
+						stepFound = true
+						break
+					} else if !slices.Contains(schema.ActionSchema.Tasks, str) {
+						fieldName := fmt.Sprintf("rule[%d].term[%d]Attr", i, j)
+						err := CruxError{Keyword: "NotAllowed", FieldName: fieldName, Vals: str, Messages: "step must be present in schema Pattern or action"}
+						errs = append(errs, err)
+					}
 					stepFound = true
 					break
 				}
@@ -401,14 +410,14 @@ func areNextStepAndDoneInProps(props map[string]string) (bool, bool) {
 	return nsFound, doneFound
 }
 
-func getNextStep(props map[string]string) string {
-	for name, val := range props {
-		if name == nextStep {
-			return val
-		}
-	}
-	return ""
-}
+// func getNextStep(props map[string]string) string {
+// 	for name, val := range props {
+// 		if name == nextStep {
+// 			return val
+// 		}
+// 	}
+// 	return ""
+// }
 
 // func doReferentialChecks(e Entity) (bool, error) {
 // 	_, ruleSets := retriveRuleSchemasAndRuleSetsFromCache(e.Realm, e.App, e.Class, e.Slice)
@@ -426,27 +435,24 @@ func getNextStep(props map[string]string) string {
 // 	return true, nil
 // }
 
-// func verifyEntity(e Entity) (bool, error) {
-// 	rs, err := getSchema(e, e.Class)
-// 	if err != nil {
-// 		return false, err
-// 	}
-// 	for attrName, attrVal := range e.Attrs {
+func VerifyEntity(e Entity, rs *Schema_t) error {
 
-// 		t := GetType(rs, attrName)
-// 		if t == "" {
-// 			return false, fmt.Errorf("schema does not contain attribute %v", attrName)
-// 		}
-// 		_, err := ConvertEntityAttrVal(attrVal, t)
-// 		if err != nil {
-// 			return false, fmt.Errorf("attribute %v in entity has value of wrong type", attrName)
-// 		}
-// 	}
-// 	if len(e.Attrs) != len(rs.PatternSchema) {
-// 		return false, fmt.Errorf("entity does not contain all the attributes in its pattern-schema")
-// 	}
-// 	return true, nil
-// }
+	for attrName, attrVal := range e.Attrs {
+
+		t := GetType(rs, attrName)
+		if t == "" {
+			return fmt.Errorf("schema does not contain attribute %v", attrName)
+		}
+		_, err := ConvertEntityAttrVal(attrVal, t)
+		if err != nil {
+			return fmt.Errorf("attribute %v in entity has value of wrong type", attrName)
+		}
+	}
+	if len(e.Attrs) != len(rs.PatternSchema) {
+		return fmt.Errorf("entity does not contain all the attributes in its pattern-schema")
+	}
+	return nil
+}
 
 func IsZeroOfUnderlyingType(x interface{}) bool {
 	return reflect.DeepEqual(x, reflect.Zero(reflect.TypeOf(x)).Interface())

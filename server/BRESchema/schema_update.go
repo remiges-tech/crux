@@ -30,21 +30,19 @@ func BRESchemaUpdate(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
 	l.Debug0().Log("starting execution of BRESchemaUpdate()")
 
-	userID := "abc"
-	realmName := "BSE"
-	// userID, err := server.ExtractUserNameFromJwt(c)
-	// if err != nil {
-	// 	l.Info().Log("unable to extract userID from token")
-	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
-	// 	return
-	// }
+	userID, err := server.ExtractUserNameFromJwt(c)
+	if err != nil {
+		l.Info().Log("unable to extract userID from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
+		return
+	}
 
-	// realmName, err := server.ExtractRealmFromJwt(c)
-	// if err != nil {
-	// 	l.Info().Log("unable to extract realm from token")
-	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
-	// 	return
-	// }
+	realmName, err := server.ExtractRealmFromJwt(c)
+	if err != nil {
+		l.Info().Log("unable to extract realm from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
+		return
+	}
 	capForUpdate := []string{"schema"}
 	isCapable, _ := server.Authz_check(types.OpReq{
 		User:      userID,
@@ -61,12 +59,12 @@ func BRESchemaUpdate(c *gin.Context, s *service.Service) {
 		req BREUpdateSchemaRequest
 	)
 
-	err := wscutils.BindJSON(c, &req)
+	err = wscutils.BindJSON(c, &req)
 	if err != nil {
 		l.Error(err).Log("error unmarshalling query paramaeters to struct:")
 		return
 	}
-	
+
 	newPatternSchema := convertPatternSchema(req.PatternSchema)
 	schema := crux.Schema_t{
 		Class:         req.Class,

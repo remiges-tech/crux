@@ -35,6 +35,7 @@ func ReadJsonFromFile(filepath string) ([]byte, error) {
 type TestCasesStruct struct {
 	Name             string
 	RequestPayload   wscutils.Request
+	PayloadFile      string
 	ExpectedHttpCode int
 	TestJsonFile     string
 	ExpectedResult   *wscutils.Response

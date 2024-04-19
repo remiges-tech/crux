@@ -3,29 +3,31 @@ package markdone
 import (
 	"context"
 	"log"
-	"strconv"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 
 	sqlc "github.com/remiges-tech/crux/db/sqlc-gen"
+	crux "github.com/remiges-tech/crux/matching-engine"
+	"github.com/remiges-tech/crux/server/wfinstance"
+	"github.com/remiges-tech/logharbour/logharbour"
 )
 
-func deleteWFInstance(queries *sqlc.Queries, entity Markdone_t) error {
+func deleteWFInstance(queries *sqlc.Queries, instanceID int32, entity crux.Entity) error {
 	params := sqlc.DeleteWFInstancesParams{
-		Slice: entity.Entity.Slice,
-		App:   entity.Entity.App,
-		ID:    entity.InstanceID,
+		Slice: entity.Slice,
+		App:   entity.App,
+		ID:    instanceID,
 	}
 	return queries.DeleteWFInstances(context.Background(), params)
 }
 
-func GetWFInstanceCountForEntity(queries *sqlc.Queries, entity Markdone_t, workflowname string) (int64, error) {
+func GetWFInstanceCountForEntity(queries *sqlc.Queries, instanceID int32, entity crux.Entity, workflowname string) (int64, error) {
 	params := sqlc.GetWFInstanceCountsParams{
-		Slice:    entity.Entity.Slice,
-		App:      entity.Entity.App,
+		Slice:    entity.Slice,
+		App:      entity.App,
 		Workflow: workflowname,
-		ID:       entity.InstanceID,
+		ID:       instanceID,
 	}
 	count, err := queries.GetWFInstanceCounts(context.Background(), params)
 	if err != nil {
@@ -34,12 +36,12 @@ func GetWFInstanceCountForEntity(queries *sqlc.Queries, entity Markdone_t, workf
 	return count, err
 
 }
-func UpdateWFInstanceStep(queries *sqlc.Queries, entity Markdone_t, step string, workflowname string) error {
+func UpdateWFInstanceStep(queries *sqlc.Queries, instanceID int32, entity crux.Entity, step string, workflowname string) error {
 
 	params := sqlc.UpdateWFInstanceStepParams{
-		Slice:    entity.Entity.Slice,
-		App:      entity.Entity.App,
-		ID:       int32(entity.InstanceID),
+		Slice:    entity.Slice,
+		App:      entity.App,
+		ID:       int32(instanceID),
 		Step:     step,
 		Workflow: workflowname,
 	}
@@ -47,14 +49,14 @@ func UpdateWFInstanceStep(queries *sqlc.Queries, entity Markdone_t, step string,
 	return queries.UpdateWFInstanceStep(context.Background(), params)
 
 }
-func UpdateWFInstanceDoneAt(queries *sqlc.Queries, entity Markdone_t, t time.Time, wf string) error {
+func UpdateWFInstanceDoneAt(queries *sqlc.Queries, instanceID int32, entity crux.Entity, t time.Time, wf string) error {
 
-	// id := strconv.Itoa(int(entity.InstanceID))
+	// id := strconv.Itoa(int(instanceID))
 	params := sqlc.UpdateWFInstanceDoneatParams{
 		Doneat:   pgtype.Timestamp{Time: t, Valid: true},
-		ID:       entity.InstanceID,
-		Slice:    entity.Entity.Slice,
-		App:      entity.Entity.App,
+		ID:       instanceID,
+		Slice:    entity.Slice,
+		App:      entity.App,
 		Workflow: wf,
 	}
 
@@ -62,14 +64,14 @@ func UpdateWFInstanceDoneAt(queries *sqlc.Queries, entity Markdone_t, t time.Tim
 
 }
 
-func getWFInstanceList(queries *sqlc.Queries, entity Markdone_t, wf string) ([]sqlc.Wfinstance, error) {
+func getWFInstanceList(queries *sqlc.Queries, instanceID int32, entity crux.Entity, wf string) ([]sqlc.Wfinstance, error) {
 
 	parent := &pgtype.Int4{} // Ensure parent is of type pgx/v5/pgtype.Int4
-	parent.Int32 = entity.InstanceID
+	parent.Int32 = instanceID
 	params := sqlc.GetWFInstanceListForMarkDoneParams{
-		ID:       entity.InstanceID,
-		Slice:    entity.Entity.Slice,
-		App:      entity.Entity.App,
+		ID:       instanceID,
+		Slice:    entity.Slice,
+		App:      entity.App,
 		Workflow: wf,
 	}
 	list, err := queries.GetWFInstanceListForMarkDone(context.Background(), params)
@@ -78,20 +80,55 @@ func getWFInstanceList(queries *sqlc.Queries, entity Markdone_t, wf string) ([]s
 	}
 	return list, nil
 }
-func getCurrentWFINstance(queries *sqlc.Queries, entity Markdone_t, wf string) (sqlc.Wfinstance, error) {
 
-	id := strconv.Itoa(int(entity.InstanceID))
+func doneTrue(l *logharbour.Logger, qtx *sqlc.Queries, instanceID int32, entity_t crux.Entity, wfinst sqlc.Wfinstance) (wfinstance.WFInstanceNewResponse, error) {
+	// Delete all wfinstance records with tuple matching (slice, app, workflow, entityid)
+	// Return specifying that the workflow is completed
 
-	params := sqlc.GetWFInstanceCurrentParams{
-		Entityid: id,
-		Slice:    entity.Entity.Slice,
-		App:      entity.Entity.App,
-		Workflow: wf,
+	err := deleteWFInstance(qtx, instanceID, entity_t)
+	if err != nil {
+		l.Info().Error(err).Log("Error while deleteWFInstance() in DoMarkDone")
+		return wfinstance.WFInstanceNewResponse{}, err
 	}
-	return queries.GetWFInstanceCurrent(context.Background(), params)
+	dclog := l.WithClass("WFInstance").WithInstanceId(string(instanceID))
+	dclog.LogDataChange("insert ruleset", logharbour.ChangeInfo{
+		Entity: "WFInstance",
+		Op:     "delete",
+		Changes: []logharbour.ChangeDetail{
+			{
+				Field:  "entityid",
+				OldVal: nil,
+				NewVal: wfinst.Entityid,
+			},
+			{
+				Field:  "slice",
+				OldVal: nil,
+				NewVal: wfinst.Slice,
+			},
+			{
+				Field:  "app",
+				OldVal: nil,
+				NewVal: wfinst.App,
+			},
+			{
+				Field:  "class",
+				OldVal: nil,
+				NewVal: wfinst.Class,
+			},
+			{
+				Field:  "workflow",
+				OldVal: nil,
+				NewVal: wfinst.Workflow,
+			},
+			{
+				Field:  "step",
+				OldVal: nil,
+				NewVal: entity_t.Attrs["step"],
+			},
+		},
+	})
+	return wfinstance.WFInstanceNewResponse{
+		Done: "true",
+	}, nil
 
-}
-
-func GetSubFLow(queries *sqlc.Queries, step string) (sqlc.GetWorkflowNameForStepRow, error) {
-	return queries.GetWorkflowNameForStep(context.Background(), step)
 }

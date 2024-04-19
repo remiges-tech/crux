@@ -101,7 +101,7 @@ func SchemaGet(c *gin.Context, s *service.Service) {
 		App:   request.App,
 		Class: request.Class,
 		Realm: realmName,
-		Brwf:  "W",
+		Brwf:  sqlc.BrwfEnumW,
 	})
 	if err != nil {
 		lh.Debug0().Error(err).Log("failed to get data from db")

@@ -304,7 +304,7 @@ func (q *Queries) RulesetRowLock(ctx context.Context, arg RulesetRowLockParams) 
 	return i, err
 }
 
-const workFlowNew = `-- name: WorkFlowNew :exec
+const workFlowNew = `-- name: WorkFlowNew :one
 INSERT INTO
     ruleset (
         realm, slice, app, brwf, class, setname, schemaid, is_active, is_internal, ruleset, createdat, createdby
@@ -314,7 +314,7 @@ VALUES (
         (SELECT realmslice.id FROM realmslice WHERE realmslice.id= $9 AND realmslice.realm = $8 ),
         (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= $10 AND app.realm = $8), 
         $1, $2, $3, $4, false, $5, $6, CURRENT_TIMESTAMP, $7
-    )
+    )RETURNING id
 `
 
 type WorkFlowNewParams struct {
@@ -330,8 +330,8 @@ type WorkFlowNewParams struct {
 	App        string   `json:"app"`
 }
 
-func (q *Queries) WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) error {
-	_, err := q.db.Exec(ctx, workFlowNew,
+func (q *Queries) WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) (int32, error) {
+	row := q.db.QueryRow(ctx, workFlowNew,
 		arg.Brwf,
 		arg.Class,
 		arg.Setname,
@@ -343,14 +343,14 @@ func (q *Queries) WorkFlowNew(ctx context.Context, arg WorkFlowNewParams) error 
 		arg.Slice,
 		arg.App,
 	)
-	return err
+	var id int32
+	err := row.Scan(&id)
+	return id, err
 }
 
 const workFlowUpdate = `-- name: WorkFlowUpdate :execresult
 UPDATE ruleset
 SET
-    brwf = $2,
-    setname = $3,
     ruleset = $4,
     editedat = CURRENT_TIMESTAMP,
     editedby = $5
@@ -359,6 +359,8 @@ WHERE
     AND slice = (SELECT realmslice.id FROM realmslice WHERE realmslice.id= $7 AND realmslice.realm = $6 )
     AND class = $1
     AND app = (SELECT app.shortnamelc FROM app WHERE app.shortnamelc= $8 AND app.realm = $6)
+    AND brwf = $2
+    AND setname = $3
     AND is_active = false
 `
 

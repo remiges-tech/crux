@@ -14,6 +14,7 @@ import (
 	crux "github.com/remiges-tech/crux/matching-engine"
 	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/types"
+	"github.com/remiges-tech/logharbour/logharbour"
 )
 
 type WorkflowNew struct {
@@ -96,6 +97,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 		Slice:     wf.Slice,
 		App:       strings.ToLower(wf.App),
 		Class:     wf.Class,
+		Brwf: sqlc.BrwfEnumW,
 	})
 	if err != nil {
 		l.Info().Error(err).Log("failed to get schema from DB:")
@@ -136,11 +138,11 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	err = qtx.WorkFlowNew(c, sqlc.WorkFlowNewParams{
+	id, err := qtx.WorkFlowNew(c, sqlc.WorkFlowNewParams{
 		RealmName:  realmName,
 		Slice:      wf.Slice,
 		App:        strings.ToLower(wf.App),
-		Brwf:       brwf,
+		Brwf:       sqlc.BrwfEnumW,
 		Class:      wf.Class,
 		Setname:    wf.Name,
 		Schemaid:   schema.ID,
@@ -159,6 +161,65 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
+
+	dclog := l.WithClass("ruleset").WithInstanceId(string(id))
+	dclog.LogDataChange("insert ruleset", logharbour.ChangeInfo{
+		Entity: "ruleset",
+		Op:     "insert",
+		Changes: []logharbour.ChangeDetail{
+			{
+				Field:  "realmName",
+				OldVal: nil,
+				NewVal: realmName,
+			},
+			{
+				Field:  "Slice",
+				OldVal: nil,
+				NewVal: wf.Slice,
+			},
+			{
+				Field:  "App",
+				OldVal: nil,
+				NewVal: wf.App,
+			},
+			{
+				Field:  "brwf",
+				OldVal: nil,
+				NewVal: sqlc.BrwfEnumW,
+			},
+			{
+				Field:  "Class",
+				OldVal: nil,
+				NewVal: wf.Class,
+			},
+			{
+				Field:  "setname",
+				OldVal: nil,
+				NewVal: wf.Name,
+			},
+			{
+				Field:  "Schemaid",
+				OldVal: nil,
+				NewVal: schema.ID,
+			},
+			{
+				Field:  "IsInternal",
+				OldVal: nil,
+				NewVal: wf.IsInternal,
+			},
+			{
+				Field:  "ruleset",
+				OldVal: nil,
+				NewVal: wf.Flowrules,
+			},
+			{
+				Field:  "Createdby",
+				OldVal: nil,
+				NewVal: userID,
+			},
+		},
+	})
+
 	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})
 	l.Debug0().Log("Finished execution of WorkFlowNew()")
 }

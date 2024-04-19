@@ -15,6 +15,8 @@ import (
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
+	crux "github.com/remiges-tech/crux/matching-engine"
+	breruleset "github.com/remiges-tech/crux/server/BRERuleset"
 	breschema "github.com/remiges-tech/crux/server/BRESchema"
 	"github.com/remiges-tech/crux/server/app"
 	"github.com/remiges-tech/crux/server/capability"
@@ -32,7 +34,7 @@ func main() {
 
 	// logger setup
 	fallbackWriter := logharbour.NewFallbackWriter(os.Stdout, os.Stdout)
-	lctx := logharbour.NewLoggerContext(logharbour.Debug0)
+	lctx := logharbour.NewLoggerContext(logharbour.Debug1)
 	l := logharbour.NewLogger(lctx, "crux", fallbackWriter)
 
 	rigelAppName := flag.String("appName", "crux", "The name of the application")
@@ -90,20 +92,23 @@ func main() {
 	}
 	l.Log("Retrieves the configuration data from rigel")
 
-	// Database connection
+	// // Database connection
 
 	// dbHost := "localhost"
 	// dbPort := 5432
-	// dbUser := "cruxtest"
-	// dbPassword := "cruxtest"
-	// dbName := "cruxtest"
+	// dbUser := "postgres"
+	// dbPassword := "postgres"
+	// dbName := "crux"
 	connURL := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", dbHost, dbPort, dbUser, dbPassword, dbName)
 	connPool, err := db.NewProvider(connURL)
+
 	if err != nil {
 		l.LogActivity("Error while establishes a connection with database", err)
 		log.Fatalln("Failed to establishes a connection with database", err)
 	}
 	queries := sqlc.New(connPool)
+
+	cruxCache := crux.NewCache(context.Background(), queries)
 
 	// Define a custom validation tag-to-message ID map
 	customValidationMap := map[string]int{
@@ -140,7 +145,8 @@ func main() {
 	s := service.NewService(r).
 		WithLogHarbour(l).
 		WithDatabase(connPool).
-		WithDependency("queries", queries)
+		WithDependency("queries", queries).
+		WithDependency("cruxCache", cruxCache)
 
 	apiV1Group := r.Group("/api/v1/")
 
@@ -161,18 +167,18 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstanceabort", wfinstance.GetWFInstanceAbort)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstancelist", wfinstance.GetWFInstanceList)
 	// markdone
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/WFinstanceMarkDone", markdone.WFInstanceMarkDone)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wFinstancemarkdone", markdone.WFInstanceMarkDone)
 	//app
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/appnew", app.AppNew)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/appupdate", app.AppUpdate)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/appdelete/:name", app.AppDelete)
 
 	// Realm-slice management
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmSliceNew", realmslice.RealmSliceNew)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmslicenew", realmslice.RealmSliceNew)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmsliceactivate", realmslice.RealmSliceActivate)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmslicedeactivate", realmslice.RealmSliceDeactivate)
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/realmSliceApps/:id", realmslice.RealmSliceApps)
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/RealmSlicePurge", realmslice.RealmSlicePurge)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/realmsliceapps/:id", realmslice.RealmSliceApps)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmslicepurge", realmslice.RealmSlicePurge)
 
 	// capabilities
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/capgrant", capability.CapGrant)
@@ -180,7 +186,13 @@ func main() {
 
 	//BRESchema
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/breschemanew", breschema.BRESchemaNew)
-	 s.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/breschemaupdate", breschema.BRESchemaUpdate)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/breschemaupdate", breschema.BRESchemaUpdate)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/breschemalist", breschema.BRESchemaList)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/breschemaget", breschema.BRESchemaGet)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/breschemadelete", breschema.BRESchemaDelete)
+
+	// BRERuleSet
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/brerulesetUpdate", breruleset.RuleSetUpdate)
 
 	appServerPortStr := strconv.Itoa(appServerPort)
 	err = r.Run(":" + appServerPortStr)

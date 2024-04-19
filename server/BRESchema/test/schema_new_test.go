@@ -2,8 +2,6 @@ package breschema_test
 
 import (
 	"bytes"
-	"encoding/json"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -15,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSchemaNew(t *testing.T) {
+func TestBRESchemaNew(t *testing.T) {
 	testCases := BRESchemaNewTestcase()
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
@@ -43,14 +41,6 @@ func TestSchemaNew(t *testing.T) {
 }
 
 func BRESchemaNewTestcase() []testutils.TestCasesStruct {
-	valTestJson, err := testutils.ReadJsonFromFile("./data/schema_new_validation_payload.json")
-	if err != nil {
-		log.Fatalln("Error reading JSON file:", err)
-	}
-	var valPayload breschema.BRESchemaNewReq
-	if err := json.Unmarshal(valTestJson, &valPayload); err != nil {
-		log.Fatalln("Error unmarshalling JSON:", err)
-	}
 
 	BRESchemaNewTestcase := []testutils.TestCasesStruct{
 		{

@@ -12,22 +12,12 @@ VALUES (11,
 
 INSERT INTO realm
 VALUES (12,
-        'NSE',
-        'NSE',
-        'National Stock Exchange',
-        'umflw',
-        '1993-06-05T12:56:23Z',
-        '216');
-
-
-INSERT INTO realm
-VALUES (13,
-        'MERCE',
-        'MERCE',
-        'MERCE pvt LTD',
-        'iuykj',
-        '1978-10-06T12:04:41Z',
-        '886');
+        'Ecommerce',
+        'ecommerce',
+        'buying and selling goods and services online',
+        'Tushar',
+        CURRENT_TIMESTAMP,
+        '{}');
 
 
 INSERT INTO realm
@@ -43,12 +33,12 @@ VALUES (14,
 
 INSERT INTO realmslice
 VALUES (11,
-        'NSE',
-        'Stock Market',
+        'Ecommerce',
+        'buying and selling goods and services online',
         true,
+        CURRENT_TIMESTAMP,
         NULL,
-        NULL,
-        '2024-03-01 00:00:00',
+        CURRENT_TIMESTAMP,
         'aniket',
         NULL,
         NULL);
@@ -70,7 +60,7 @@ VALUES (12,
 INSERT INTO realmslice
 VALUES (13,
         'BSE',
-        'Merce Pvt ltd',
+        'Stock Market',
         true,
         NULL,
         NULL,
@@ -106,22 +96,13 @@ VALUES (11,
 
 INSERT INTO "app"
 VALUES (12,
-        'NSE',
-        'retailbank1',
-        'retailbank1',
-        'retailbank pvt ltd',
-        'admin',
-        '2024-01-29 00:00:00');
+        'Ecommerce',
+        'Amazon',
+        'amazon',
+        'American multinational technology company, engaged in e-commerce',
+        'tushar',
+        CURRENT_TIMESTAMP);
 
-
-INSERT INTO "app"
-VALUES (13,
-        'MERCE',
-        'nedbank',
-        'nedbank',
-        'nedbank from canada',
-        'admin',
-        '2024-01-29 00:00:00');
 
 
 INSERT INTO "app"
@@ -188,17 +169,6 @@ VALUES (12,
 
 
 INSERT INTO "capgrant"
-VALUES (13,
-        'BSE',
-        'Raj',
-        'nedbank',
-        'schema',
-        '2024-01-29 00:00:00',
-        NULL,
-        '2023-12-29 00:00:00',
-        'user');
-
-INSERT INTO "capgrant"
 VALUES (14,
         'BSE',
         'Raj',
@@ -213,7 +183,6 @@ VALUES (14,
 INSERT INTO capgrant (id,realm, "user", app, cap, "from", "to", setby) VALUES
 (15,'BSE', 'john_doe', 'starmf', 'read', '2023-01-01', '2023-12-31', 'admin'),
 (16,'BSE', 'jane_smith', 'hdfcbank', 'write', '2023-02-15', NULL, 'manager'),
-(17,'BSE', 'amit_patel', 'nedbank', 'write', '2023-03-01', NULL, 'team_lead'),
 (18,'BSE', 'neha_gupta', 'uccapp', 'admin', '2023-01-01', '2024-01-01', 'admin');
 INSERT INTO "capgrant"
 VALUES (19,
@@ -227,8 +196,6 @@ VALUES (19,
         'user');
 
 
-
-
 -- config TABLE
 
 INSERT INTO config (realm, slice, name, descr, val, setby)
@@ -237,17 +204,14 @@ VALUES ('BSE',
         'CONFIG_A',
         'Description for CONFIG_A',
         'Value for CONFIG_A',
-        'User1'), ('NSE',
-                   12,
-                   'CONFIG_B',
-                   'Description for CONFIG_B',
-                   'Value for CONFIG_B',
-                   'User2'), ('MERCE',
-                              13,
-                              'CONFIG_C',
-                              'Description for CONFIG_C',
-                              'Value for CONFIG_C',
-                              'User3');
+        'User1'),
+
+         ('Ecommerce',
+        12,
+        'CONFIG_B',
+        'Description for CONFIG_B',
+        'Value for CONFIG_B',
+        'User2');
 
 -- schema(schema table)
 
@@ -268,17 +232,17 @@ VALUES (10,
 
 INSERT INTO "schema"
 VALUES (11,
-        'NSE',
-        12,
-        'nedbank',
-        'W',
-        'custonboarding',
-        '[{"attr": "cat", "valtype": "str"}, {"attr": "mrp", "valtype": "float"}, {"attr": "fullname", "valtype": "str"}, {"attr": "ageinstock", "valtype": "int"}, {"attr": "inventoryqty", "valtype": "int"}]',
-        '{"class":"retailcustomer","tasks":["initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"],"properties":["nextstep","done"]}',
+        'Ecommerce',
+        11,
+        'amazon',
+        'B',
+        'inventoryitems',
+        '[{"attr":"cat","valtype":"enum","vals":{"textbook":{},"notebook":{},"stationery":{},"refbooks":{}}},{"attr":"mrp","shortdesc":"Maximum retail price","longdesc":"The maximum retail price of the item in INR as declared by the manufacturer.","valtype":"float"},{"attr":"fullname","valtype":"str"},{"attr":"ageinstock","valtype":"int"},{"attr":"inventoryqty","valtype":"int"}]',
+        '{"tasks":["cat","mrp","fullname","ageinstock","inventoryqty"],"properties":["nextstep","done"]}',
         '2021-01-03T06:02:41Z',
         'Marielle Strongitharm',
         '2021-06-07T02:28:17Z',
-        'Therese Roselli');
+        'Tushar');
 
 
 insert into "schema"
@@ -317,7 +281,7 @@ VALUES (14,
         11,
         'retailbank',
         'B',
-        'temp',
+        'members',
         '[{"attr": "cat", "valtype": "str"}, {"attr": "mrp", "valtype": "float"}, {"attr": "fullname", "valtype": "str"}, {"attr": "ageinstock", "valtype": "int"}, {"attr": "inventoryqty", "valtype": "int"}]',
         '{"class":"retailcustomer","tasks":["initialdoc","aadhaarcheck","creditbureauchk","panchk","bankdetails","referencechk","stage2done","complete"],"properties":["nextstep","done"]}',
         '2022-12-24T19:38:52Z',
@@ -348,8 +312,8 @@ VALUES (16,
         'uccapp',
         'W',
         'ucc',
-        '[{"attr":"step","vals":{"aof":{},"nomauth":{},"kycvalid":{},"bankaccvalid":{},"getcustdetails":{},"dpandbankaccvalid":{},"sendauthlinktoclient":{}},"valtype":"enum","longdesc":"","shortdesc":""},{"attr":"stepfailed","valtype":"bool","longdesc":"","shortdesc":""},{"attr":"mode","vals":{"demat":{},"physical":{}},"valtype":"enum","longdesc":"","shortdesc":""}]',
-        '{"tasks":["getcustdetails","aof","dpandbankaccvalid","kycvalid","nomauth","bankaccvalid","sendauthlinktoclient"],"properties":["nextstep","done"]}',
+        '[{"attr":"step","vals":{"aof":{},"nomauth":{},"kycvalid":{},"bankaccvalid":{},"getcustdetails":{},"dpandbankaccvalid":{},"auth_done":{},"sendauthlinktoclient":{}},"valtype":"enum","longdesc":"","shortdesc":""},{"attr":"stepfailed","valtype":"bool","longdesc":"","shortdesc":""},{"attr":"mode","vals":{"demat":{},"physical":{}},"valtype":"enum","longdesc":"","shortdesc":""}]',
+        '{"tasks":["getcustdetails","aof","dpandbankaccvalid","kycvalid","nomauth","bankaccvalid","auth_done","sendauthlinktoclient"],"properties":["nextstep","done"]}',
         '2020-03-10T12:06:40Z',
         'Marigold Sherwin',
         '2023-10-21T17:39:11Z',
@@ -363,12 +327,10 @@ VALUES (17,
         'starmf',
         'W',
         'ucc',
-        '[{"attr":"step","vals":{"aof":{},"nomauth":{},"kycvalid":{},"bankaccvalid":{},"getcustdetails":{},"dpandbankaccvalid":{},"sendauthlinktoclient":{}},"valtype":"enum","longdesc":"","shortdesc":""},{"attr":"stepfailed","valtype":"bool","longdesc":"","shortdesc":""},{"attr":"mode","vals":{"demat":{},"physical":{}},"valtype":"enum","longdesc":"","shortdesc":""}]',
-        '{"tasks":["getcustdetails","aof","dpandbankaccvalid","kycvalid","nomauth","bankaccvalid","sendauthlinktoclient"],"properties":["nextstep","done"]}',
-        '2020-03-10T12:06:40Z',
-        'Marigold Sherwin',
-        '2023-10-21T17:39:11Z',
-        'Brunhilde Bampkin');
+        '[{"attr": "step", "vals": {"aof": {}, "start": {}, "kyc_done": {}, "dp_bank_done": {}, "dp_verification": {}, "kyc_verification": {}, "pan_verification": {}, "bank_verification": {}, "ucc_authentication": {}, "pan_aadhaar_linking": {}, "fataca_ubo_verification": {}, "nomination_authentication": {}}, "valtype": "enum", "longdesc": "", "shortdesc": ""}, {"attr": "stepfailed", "valtype": "bool", "longdesc": "", "shortdesc": ""}, {"attr": "member_type", "vals": {"broker": {}, "non-broker": {}}, "valtype": "enum", "longdesc": "", "shortdesc": ""}, {"attr": "ucc_type", "vals": {"demat": {}, "physical": {}}, "valtype": "enum", "longdesc": "", "shortdesc": ""}, {"attr": "tax_status_type", "vals": {"individual": {}, "non_individual": {}}, "valtype": "enum", "longdesc": "", "shortdesc": ""}]',
+        '{"tasks": ["ucc_authentication", "pan_verification", "pan_aadhaar_linking", "kyc_verification", "dp_verification", "bank_verification", "nomination_authentication", "aof", "fataca_ubo_verification", "kyc_done", "dp_bank_done"], "properties": ["nextstep", "done"]}',
+        CURRENT_TIMESTAMP,
+        'tushar');
 
 INSERT INTO "schema"
 VALUES (18,
@@ -416,16 +378,16 @@ VALUES (20,
 
 INSERT INTO ruleset (id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby, editedat, editedby)
 VALUES (5,
-        'BSE',
+        'Ecommerce',
         11,
-        'retailbank',
-        'members',
-        'W',
-        'goldstatus',
+        'amazon',
+        'inventoryitems',
+        'B',
+        'amazonruleset',
+        false,
         true,
-        true,
-        10,
-        '[{"ruleactions": {"tasks": ["clearancesale"], "properties": {"shipby": "ups"}}, "rulepattern": [{"op": "eq", "val": "2", "attr": "inventoryqty"}, {"op": "eq", "val": "200", "attr": "mrp"}]}]',
+        11,
+        '[{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":["christmassale"],"properties":{"shipby":"fedex"}},"rulepattern":[{"op":"eq","val":"textbook","attr":"cat"},{"op":"ge","val":5000,"attr":"mrp"}]}]',
         '2024-01-28T00:00:00Z',
         'admin',
         '2024-01-15T00:00:00Z',
@@ -451,24 +413,6 @@ VALUES (6,
 
 
 INSERT INTO ruleset (id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby, editedat, editedby)
-VALUES (7,
-        'BSE',
-        13,
-        'nedbank',
-        'calls',
-        'W',
-        'vip',
-        false,
-        false,
-        13,
-        '[{"ruleactions": {"tasks": ["clearancesale"], "properties": {"shipby": "ups"}}, "rulepattern": [{"op": "eq", "val": "2", "attr": "inventoryqty"}, {"op": "eq", "val": "200", "attr": "mrp"}]}]',
-        '2024-01-28T00:00:00Z',
-        'aniket',
-        '2024-01-15T00:00:00Z',
-        'tushar');
-
-
-INSERT INTO ruleset (id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby, editedat, editedby)
 VALUES (8,
        'BSE',
         13,
@@ -479,7 +423,7 @@ VALUES (8,
         true,
         false,
         17,
-        '[{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":["getcustdetails"],"properties":{"nextstep":"getcustdetails"}},"rulepattern":[{"op":"eq","val":"start","attr":"step"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":["aof","dpandbankaccvalid","kycvalid","nomauth"],"properties":{"nextstep":"aof"}},"rulepattern":[{"op":"eq","val":"getcustdetails","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"getcustdetails","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":["aof","kycvalid","nomauth","bankaccvalid"],"properties":{"nextstep":"aof"}},"rulepattern":[{"op":"eq","val":"getcustdetails","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"physical","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"getcustdetails","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":"physical","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":["sendauthlinktoclient"],"properties":{"nextstep":"sendauthlinktoclient"}},"rulepattern":[{"op":"eq","val":"kycvalid","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"kycvalid","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":["sendauthlinktoclient"],"properties":{"nextstep":"sendauthlinktoclient"}},"rulepattern":[{"op":"eq","val":"dpandbankvalidation","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"dpandbankvalidation","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":["sendauthlinktoclient"],"properties":{"nextstep":"sendauthlinktoclient"}},"rulepattern":[{"op":"eq","val":"bankaccvalid","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"bankaccvalid","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":["sendauthlinktoclient"],"properties":{"nextstep":"sendauthlinktoclient"}},"rulepattern":[{"op":"eq","val":"nomauth","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"nomauth","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":["sendauthlinktoclient"],"properties":{"nextstep":"sendauthlinktoclient"}},"rulepattern":[{"op":"eq","val":"aof","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"aof","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"sendauthlinktoclient","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"sendauthlinktoclient","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]}]',
+        '[{"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":true,"attr":"stepfailed"}]},{"ruleactions":{"tasks":["getcustdetails"],"properties":{"nextstep":"getcustdetails"}},"rulepattern":[{"op":"eq","val":"start","attr":"step"},{"op":"eq","val":"demat","attr":"mode"}]},{"ruleactions":{"tasks":["aof","dpandbankaccvalid","kycvalid","nomauth"],"properties":{"nextstep":"auth_done"}},"rulepattern":[{"op":"eq","val":"getcustdetails","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"ruleactions":{"tasks":["aof","kycvalid","nomauth","bankaccvalid"],"properties":{"nextstep":"aof"}},"rulepattern":[{"op":"eq","val":"getcustdetails","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"physical","attr":"mode"}]},{"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"kycvalid","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"dpandbankaccvalid","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"bankaccvalid","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"nomauth","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"aof","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"ruleactions":{"tasks":["sendauthlinktoclient"],"properties":{"nextstep":"sendauthlinktoclient"}},"rulepattern":[{"op":"eq","val":"auth_done","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"sendauthlinktoclient","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]}]',
         '2024-01-28T00:00:00Z',
         'admin',
         '2024-01-15T00:00:00Z',
@@ -503,7 +447,7 @@ VALUES (11,
         'admin');
 
 
-INSERT INTO ruleset (id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby, editedat, editedby)
+INSERT INTO ruleset (id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby)
 VALUES (9,
         'BSE',
         12,
@@ -514,11 +458,9 @@ VALUES (9,
         true,
         false,
         17,
-        '[{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":["getcustdetails"],"properties":{"nextstep":"getcustdetails"}},"rulepattern":[{"op":"eq","val":"start","attr":"step"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":["aof","dpandbankaccvalid","kycvalid","nomauth"],"properties":{"nextstep":"aof"}},"rulepattern":[{"op":"eq","val":"getcustdetails","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"getcustdetails","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":["aof","kycvalid","nomauth","bankaccvalid"],"properties":{"nextstep":"aof"}},"rulepattern":[{"op":"eq","val":"getcustdetails","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"physical","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"getcustdetails","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":"physical","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":["sendauthlinktoclient"],"properties":{"nextstep":"sendauthlinktoclient"}},"rulepattern":[{"op":"eq","val":"kycvalid","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"kycvalid","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":["sendauthlinktoclient"],"properties":{"nextstep":"sendauthlinktoclient"}},"rulepattern":[{"op":"eq","val":"dpandbankvalidation","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"dpandbankvalidation","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":["sendauthlinktoclient"],"properties":{"nextstep":"sendauthlinktoclient"}},"rulepattern":[{"op":"eq","val":"bankaccvalid","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"bankaccvalid","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":["sendauthlinktoclient"],"properties":{"nextstep":"sendauthlinktoclient"}},"rulepattern":[{"op":"eq","val":"nomauth","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"nomauth","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":["sendauthlinktoclient"],"properties":{"nextstep":"sendauthlinktoclient"}},"rulepattern":[{"op":"eq","val":"aof","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"aof","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"sendauthlinktoclient","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]},{"NFailed":0,"NMatched":0,"ruleactions":{"tasks":[],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"sendauthlinktoclient","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":"demat","attr":"mode"}]}]',
-        '2024-01-28T00:00:00Z',
-        'admin',
-        '2024-01-15T00:00:00Z',
-        'admin');
+        '[{"ruleactions":{"tasks":["pan_verification","pan_aadhaar_linking","kyc_verification"],"properties":{"nextstep":"kyc_done"}},"rulepattern":[{"op":"eq","val":"start","attr":"step"},{"op":"eq","val":"broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"pan_verification","attr":"step"},{"op":"eq","val":"broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"pan_aadhaar_linking","attr":"step"},{"op":"eq","val":"broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"kyc_verification","attr":"step"},{"op":"eq","val":"broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":["bank_verification"],"properties":{"nextstep":"bank_verification"}},"rulepattern":[{"op":"eq","val":"kyc_done","attr":"step"},{"op":"eq","val":"broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":["nomination_authentication"],"properties":{"nextstep":"nomination_authentication"}},"rulepattern":[{"op":"eq","val":"bank_verification","attr":"step"},{"op":"eq","val":"broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":["aof"],"properties":{"nextstep":"aof"}},"rulepattern":[{"op":"eq","val":"nomination_authentication","attr":"step"},{"op":"eq","val":"broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":["fataca_ubo_verification"],"properties":{"nextstep":"fataca_ubo_verification"}},"rulepattern":[{"op":"eq","val":"aof","attr":"step"},{"op":"eq","val":"broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"fataca_ubo_verification","attr":"step"},{"op":"eq","val":"broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":["pan_verification","kyc_verification"],"properties":{"nextstep":"kyc_done"}},"rulepattern":[{"op":"eq","val":"start","attr":"step"},{"op":"eq","val":"broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"non-individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"pan_verification","attr":"step"},{"op":"eq","val":"broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"non-individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"kyc_verification","attr":"step"},{"op":"eq","val":"broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"non-individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":["bank_verification"],"properties":{"nextstep":"bank_verification"}},"rulepattern":[{"op":"eq","val":"kyc_done","attr":"step"},{"op":"eq","val":"broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"non-individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":["aof"],"properties":{"nextstep":"aof"}},"rulepattern":[{"op":"eq","val":"bank_verification","attr":"step"},{"op":"eq","val":"broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"non-individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":["fataca_ubo_verification"],"properties":{"nextstep":"fataca_ubo_verification"}},"rulepattern":[{"op":"eq","val":"aof","attr":"step"},{"op":"eq","val":"broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"non-individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"fataca_ubo_verification","attr":"step"},{"op":"eq","val":"broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"non-individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":["pan_verification","pan_aadhaar_linking","kyc_verification"],"properties":{"nextstep":"kyc_done"}},"rulepattern":[{"op":"eq","val":"start","attr":"step"},{"op":"eq","val":"broker","attr":"member_type"},{"op":"eq","val":"demat","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"pan_verification","attr":"step"},{"op":"eq","val":"broker","attr":"member_type"},{"op":"eq","val":"demat","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"pan_aadhaar_linking","attr":"step"},{"op":"eq","val":"broker","attr":"member_type"},{"op":"eq","val":"demat","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"kyc_verification","attr":"step"},{"op":"eq","val":"broker","attr":"member_type"},{"op":"eq","val":"demat","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":["bank_verification"],"properties":{"nextstep":"bank_verification"}},"rulepattern":[{"op":"eq","val":"kyc_done","attr":"step"},{"op":"eq","val":"broker","attr":"member_type"},{"op":"eq","val":"demat","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":["nomination_authentication"],"properties":{"nextstep":"nomination_authentication"}},"rulepattern":[{"op":"eq","val":"bank_verification","attr":"step"},{"op":"eq","val":"broker","attr":"member_type"},{"op":"eq","val":"demat","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"nomination_authentication","attr":"step"},{"op":"eq","val":"broker","attr":"member_type"},{"op":"eq","val":"demat","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":["pan_verification","kyc_verification"],"properties":{"nextstep":"kyc_done"}},"rulepattern":[{"op":"eq","val":"start","attr":"step"},{"op":"eq","val":"broker","attr":"member_type"},{"op":"eq","val":"demat","attr":"ucc_type"},{"op":"eq","val":"non-individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"pan_verification","attr":"step"},{"op":"eq","val":"broker","attr":"member_type"},{"op":"eq","val":"demat","attr":"ucc_type"},{"op":"eq","val":"non-individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"kyc_verification","attr":"step"},{"op":"eq","val":"broker","attr":"member_type"},{"op":"eq","val":"demat","attr":"ucc_type"},{"op":"eq","val":"non-individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":["bank_verification"],"properties":{"nextstep":"bank_verification"}},"rulepattern":[{"op":"eq","val":"kyc_done","attr":"step"},{"op":"eq","val":"broker","attr":"member_type"},{"op":"eq","val":"demat","attr":"ucc_type"},{"op":"eq","val":"non-individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"bank_verification","attr":"step"},{"op":"eq","val":"broker","attr":"member_type"},{"op":"eq","val":"demat","attr":"ucc_type"},{"op":"eq","val":"non-individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":["ucc_authentication"],"properties":{"nextstep":"ucc_authentication"}},"rulepattern":[{"op":"eq","val":"start","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":["pan_verification","pan_aadhaar_linking","kyc_verification"],"properties":{"nextstep":"kyc_done"}},"rulepattern":[{"op":"eq","val":"ucc_authentication","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"pan_verification","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"pan_aadhaar_linking","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"kyc_verification","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":["bank_verification"],"properties":{"nextstep":"bank_verification"}},"rulepattern":[{"op":"eq","val":"kyc_done","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":["nomination_authentication"],"properties":{"nextstep":"nomination_authentication"}},"rulepattern":[{"op":"eq","val":"bank_verification","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":["aof"],"properties":{"nextstep":"aof"}},"rulepattern":[{"op":"eq","val":"nomination_authentication","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":["fataca_ubo_verification"],"properties":{"nextstep":"fataca_ubo_verification"}},"rulepattern":[{"op":"eq","val":"aof","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"fataca_ubo_verification","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":["ucc_authentication"],"properties":{"nextstep":"ucc_authentication"}},"rulepattern":[{"op":"eq","val":"start","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"non-individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":["pan_verification","kyc_verification"],"properties":{"nextstep":"kyc_done"}},"rulepattern":[{"op":"eq","val":"ucc_authentication","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"non-individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"pan_verification","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"non-individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"kyc_verification","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"non-individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":["bank_verification"],"properties":{"nextstep":"bank_verification"}},"rulepattern":[{"op":"eq","val":"kyc_done","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"non-individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":["aof"],"properties":{"nextstep":"aof"}},"rulepattern":[{"op":"eq","val":"bank_verification","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"non-individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":["fataca_ubo_verification"],"properties":{"nextstep":"fataca_ubo_verification"}},"rulepattern":[{"op":"eq","val":"aof","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"non-individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"fataca_ubo_verification","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"physical","attr":"ucc_type"},{"op":"eq","val":"non-individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":["pan_verification","pan_aadhaar_linking","kyc_verification"],"properties":{"nextstep":"kyc_done"}},"rulepattern":[{"op":"eq","val":"start","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"demat","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"pan_verification","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"demat","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"pan_aadhaar_linking","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"demat","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"kyc_verification","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"demat","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":["dp_verification","bank_verification"],"properties":{"nextstep":"dp_bank_done"}},"rulepattern":[{"op":"eq","val":"kyc_done","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"demat","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"dp_verification","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"demat","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"bank_verification","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"demat","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":["nomination_authentication"],"properties":{"nextstep":"nomination_authentication"}},"rulepattern":[{"op":"eq","val":"dp_bank_done","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"demat","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"nomination_authentication","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"demat","attr":"ucc_type"},{"op":"eq","val":"individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":["pan_verification","kyc_verification"],"properties":{"nextstep":"kyc_done"}},"rulepattern":[{"op":"eq","val":"start","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"demat","attr":"ucc_type"},{"op":"eq","val":"non-individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"pan_verification","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"demat","attr":"ucc_type"},{"op":"eq","val":"non-individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"kyc_verification","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"demat","attr":"ucc_type"},{"op":"eq","val":"non-individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":["dp_verification","bank_verification"],"properties":{"nextstep":"dp_bank_done"}},"rulepattern":[{"op":"eq","val":"kyc_done","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"demat","attr":"ucc_type"},{"op":"eq","val":"non-individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"dp_verification","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"demat","attr":"ucc_type"},{"op":"eq","val":"non-individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"bank_verification","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"demat","attr":"ucc_type"},{"op":"eq","val":"non-individual","attr":"tax_status_type"}]},{"ruleactions":{"tasks":[""],"properties":{"done":"true"}},"rulepattern":[{"op":"eq","val":"dp_bank_done","attr":"step"},{"op":"eq","val":"non-broker","attr":"member_type"},{"op":"eq","val":"demat","attr":"ucc_type"},{"op":"eq","val":"non-individual","attr":"tax_status_type"}]}]',
+        CURRENT_TIMESTAMP,
+        'tushar');
 
 
 INSERT INTO ruleset (id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby, editedat, editedby)

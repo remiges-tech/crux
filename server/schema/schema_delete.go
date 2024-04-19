@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/remiges-tech/alya/service"
@@ -9,6 +11,7 @@ import (
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/types"
+	"github.com/remiges-tech/logharbour/logharbour"
 )
 
 // SchemaDelete will be responsible for processing the /WFschemaDelete request that comes through as a POST
@@ -59,18 +62,34 @@ func SchemaDelete(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
-	err = query.Wfschemadelete(c, sqlc.WfschemadeleteParams{
+	deletedSchemaData, err := query.Wfschemadelete(c, sqlc.WfschemadeleteParams{
 		Slice: request.Slice,
 		App:   request.App,
 		Class: request.Class,
 		Realm: realmName,
-		Brwf:  "W",
+		Brwf:  sqlc.BrwfEnumW,
 	})
 	if err != nil {
 		lh.Debug0().LogActivity("failed while deleting record:", err.Error())
 		errmsg := db.HandleDatabaseError(err)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
+	}
+
+	// data change log
+	for _, val := range deletedSchemaData {
+		dclog := lh.WithClass("WFSchema").WithInstanceId(strconv.Itoa(int(val.ID)))
+		dclog.LogDataChange("deleted WFSchema ", logharbour.ChangeInfo{
+			Entity: "WFSchema",
+			Op:     "delete",
+			Changes: []logharbour.ChangeDetail{
+				{
+					Field:  "row",
+					OldVal: val,
+					NewVal: nil,
+				},
+			},
+		})
 	}
 
 	lh.Debug0().Log("Record deleted finished execution of SchemaDelete()")

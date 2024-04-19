@@ -51,3 +51,9 @@ go tool cover -html=./coverage/coverage_config.out -o ./coverage/coverage_config
 go test -coverprofile=./coverage/coverage_capability.out -coverpkg=./... server/capability/test/cap_list_test.go server/capability/test/cap_get_test.go server/capability/test/cap_grant_test.go server/capability/test/main_test.go
 
 go tool cover -html=./coverage/coverage_capability.out -o ./coverage/coverage_capability.html
+
+
+9. coverage_markdone
+go test -coverprofile=./coverage/coverage_markdone.out -coverpkg=./... server/markdone/test/markdonewsc_test.go  server/markdone/test/main_test.go
+
+go tool cover -html=./coverage/coverage_markdone.out -o ./coverage/coverage_markdone.html

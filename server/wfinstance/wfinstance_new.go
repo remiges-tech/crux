@@ -8,7 +8,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
-	"github.com/remiges-tech/crux/db/sqlc-gen"
 	crux "github.com/remiges-tech/crux/matching-engine"
 	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/types"
@@ -16,11 +15,11 @@ import (
 
 // Incoming request format
 type WFInstanceNewRequest struct {
-	Slice    int32             `json:"slice" validate:"required,gt=0,lt=85"`
-	App      string            `json:"app" validate:"required,lt=15"`
+	Slice    int32             `json:"slice" validate:"required,gt=0"`
+	App      string            `json:"app" validate:"required,lt=50"`
 	EntityID string            `json:"entityid" validate:"required,gt=0,lt=40"`
 	Entity   map[string]string `json:"entity" validate:"required"`
-	Workflow string            `json:"workflow" validate:"required,gt=0,lt=20"`
+	Workflow string            `json:"workflow" validate:"required,gt=0,lt=50"`
 	Trace    *int              `json:"trace,omitempty"`
 	Parent   *int32            `json:"parent,omitempty"`
 }
@@ -28,13 +27,15 @@ type WFInstanceNewRequest struct {
 // WFInstanceNew response format
 type WFInstanceNewResponse struct {
 	Tasks     []map[string]int32 `json:"tasks,omitempty"`
-	Nextstep  *string            `json:"nextstep,omitempty"`
+	Nextstep  string            `json:"nextstep,omitempty"`
 	Loggedat  pgtype.Timestamp   `json:"loggedat,omitempty"`
-	Subflows  *map[string]string `json:"subflows,omitempty"`
-	Tracedata *map[string]string `json:"tracedata,omitempty"`
+	Subflows  map[string]string `json:"subflows,omitempty"`
+	Tracedata map[string]string `json:"tracedata,omitempty"`
 	Done      string             `json:"done,omitempty"`
 	ID        string             `json:"id,omitempty"` //wfinstance id
 }
+
+const WFE = "W"
 
 // GetWFinstanceNew will be responsible for processing the /wfinstanceNew request that comes through as a POST
 func GetWFinstanceNew(c *gin.Context, s *service.Service) {
@@ -99,7 +100,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	} else {
 		// Additional attributes to append
 		existingEntity[STEP] = START
-		existingEntity[STEPFALED] = FALSE
+		// existingEntity[STEPFALED] = FALSE
 	}
 	lh.Debug0().LogActivity("wfinstanceNewRequest after adding additional attributes :", wfinstanceNewreq)
 
@@ -115,33 +116,28 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_Invalid))
 	// }
 
-	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
+	// query, ok := s.Dependencies["queries"].(*sqlc.Queries)
+	// if !ok {
+	// 	lh.Debug0().Log("Error while getting query instance from service Dependencies")
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
+	// 	return
+	// }
+
+	cruxCache, ok := s.Dependencies["cruxCache"].(*crux.Cache)
 	if !ok {
-		lh.Debug0().Log("Error while getting query instance from service Dependencies")
+		lh.Debug0().Debug1().Log("Error while getting cruxCache instance from service Dependencies")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
 
-	var cacheData = crux.Cache{
-		Ctx:          c,
-		Query:        query,
-		Slice:        crux.Slice_t(wfinstanceNewreq.Slice),
-		App:          crux.App_t(wfinstanceNewreq.App),
-		Class:        crux.ClassName_t(wfinstanceNewreq.Entity[CLASS]),
-		Realm:        crux.Realm_t(realm),
-		WorkflowName: wfinstanceNewreq.Workflow,
-	}
-
-	schema, err := cacheData.RetrieveRuleSchemasFromCache("W")
-	if err != nil || schema == nil {
+	class := wfinstanceNewreq.Entity["class"]
+	schema, ruleset, err := cruxCache.RetriveRuleSchemasAndRuleSetsFromCache(WFE, wfinstanceNewreq.App, realm, class, wfinstanceNewreq.Workflow, wfinstanceNewreq.Slice)
+	if err != nil {
+		lh.Debug0().Error(err).Log("error while Retrieve RuleSchemas and RuleSets FromCache")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, err.Error()))
 		return
-	}
-
-	// ruleSets, err := crux.RetrieveWorkflowRulesetFromCache(REALM, wfinstanceNewreq.App, wfinstanceNewreq.Entity[CLASS], int(wfinstanceNewreq.Slice))
-	ruleSets, err := cacheData.RetrieveWorkflowRuleSetFromCache("W")
-	if err != nil {
-		lh.Error(err).Log("GetWFinstanceNew||error while getting workflow rulesets from RuleSetCache ")
+	} else if schema == nil || ruleset == nil {
+		lh.Debug0().Error(err).Log("didn't find any data in RuleSchemas or RuleSets cache")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, err.Error()))
 		return
 	}
@@ -154,7 +150,9 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	// }
 
 	// call DoMatch()
+
 	actionSet, _, err, _ = crux.DoMatch(entity, ruleSets, schema, actionSet, seenRuleSets, crux.Trace_t{})
+
 	if err != nil {
 		lh.Error(err).Log("GetWFinstanceNew||error while calling doMatch Method")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, err.Error()))
@@ -227,10 +225,7 @@ func getValidPropertyAttr(a crux.ActionSet) (map[string]string, error) {
 
 	isDoneOrNextStepPresent := false
 	for attr, val := range attributes {
-		if attr == DONE {
-			attribute[attr] = val
-			isDoneOrNextStepPresent = true
-		} else if attr == NEXTSTEP {
+		if attr == DONE || attr == NEXTSTEP {
 			attribute[attr] = val
 			isDoneOrNextStepPresent = true
 		}
