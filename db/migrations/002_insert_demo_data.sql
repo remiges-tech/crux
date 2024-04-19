@@ -142,6 +142,16 @@ VALUES (17,
         'mutual Fund',
         'admin',
         '2024-01-29 00:00:00');
+
+INSERT INTO "app"
+VALUES (18,
+        'Ecommerce',
+        'Myntra',
+        'myntra',
+        'American multinational technology company, engaged in e-commerce',
+        'kanchan',
+        CURRENT_TIMESTAMP);
+
 -- capgrant TABLE
 
 INSERT INTO "capgrant"
@@ -373,6 +383,20 @@ VALUES (20,
         'Marielle Strongitharm',
         '2021-06-07T02:28:17Z',
         'Therese Roselli');
+
+INSERT INTO "schema"
+VALUES (21,
+        'Ecommerce',
+        11,
+        'myntra',
+        'B',
+        'inventoryitems',
+        '[{"attr":"cat","valtype":"enum","vals":{"textbook":{},"notebook":{},"stationery":{},"refbooks":{}}},{"attr":"mrp","shortdesc":"Maximum retail price","longdesc":"The maximum retail price of the item in INR as declared by the manufacturer.","valtype":"float"},{"attr":"fullname","valtype":"str"},{"attr":"ageinstock","valtype":"int"},{"attr":"inventoryqty","valtype":"int"}]',
+        '{"tasks":["cat","mrp","fullname","ageinstock","inventoryqty"],"properties":["nextstep","done"]}',
+        '2021-01-03T06:02:41Z',
+        'Marielle Strongitharm',
+        '2021-06-07T02:28:17Z',
+        'kanchan');
 
 -- ruleset
 
