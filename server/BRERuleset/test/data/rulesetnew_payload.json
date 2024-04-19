@@ -1,0 +1,35 @@
+{
+    "data": {
+        "slice": 11,
+        "app": "myntra",
+        "class": "inventoryitems",
+        "name": "myntraruleset",
+        "is_internal": true,
+        "ruleset": [
+            {
+                "NFailed": 0,
+                "NMatched": 0,
+                "ruleactions": {
+                    "tasks": [
+                        "cat"
+                    ],
+                    "properties": {
+                        "nextstep": "done"
+                    }
+                },
+                "rulepattern": [
+                    {
+                        "op": "eq",
+                        "val": "textbook",
+                        "attr": "cat"
+                    },
+                    {
+                        "op": "ge",
+                        "val": 5000,
+                        "attr": "mrp"
+                    }
+                ]
+            }
+        ]
+    }
+}
