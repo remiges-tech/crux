@@ -61,7 +61,7 @@ where
     and class = $3
     and setname = $4
     and realm = @realm
-    AND brwf = 'W';
+    AND brwf = @brwf;
 
 -- name: WorkFlowNew :one
 INSERT INTO
@@ -106,19 +106,19 @@ select
     editedby
 from ruleset
 where
-    brwf = 'W'
-    AND realm = @realm
+    realm = @realm
     AND (sqlc.narg('slice')::INTEGER is null OR slice = sqlc.narg('slice')::INTEGER)
     AND (sqlc.narg('app')::text[] is null OR app = any( sqlc.narg('app')::text[]))
     AND (sqlc.narg('class')::text is null OR class = sqlc.narg('class')::text)
     AND (sqlc.narg('setname')::text is null OR setname = sqlc.narg('setname')::text)
     AND (sqlc.narg('is_active')::BOOLEAN is null OR is_active = sqlc.narg('is_active')::BOOLEAN)
-    AND (sqlc.narg('is_internal')::BOOLEAN is null OR is_internal = sqlc.narg('is_internal')::BOOLEAN);
+    AND (sqlc.narg('is_internal')::BOOLEAN is null OR is_internal = sqlc.narg('is_internal')::BOOLEAN)
+    and brwf =  @brwf;
 
 -- name: WorkflowDelete :execresult
 DELETE from ruleset
 where
-    brwf = 'W'
+    brwf = @brwf
     AND is_active = false
     and slice = $1
     and app = $2

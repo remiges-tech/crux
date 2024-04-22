@@ -1,41 +1,63 @@
-package workflow
+package breruleset
 
 import (
 	"encoding/json"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
+	crux "github.com/remiges-tech/crux/matching-engine"
 	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/types"
 )
 
-// WorkflowGet will be responsible for processing the /workflowget request that comes through as a POST
-func WorkflowGet(c *gin.Context, s *service.Service) {
-	lh := s.LogHarbour
-	lh.Debug0().Log("WorkflowGet request received")
-	var (
-		request WorkflowGetReq
-	)
-	// userID, err := server.ExtractUserNameFromJwt(c)
-	// if err != nil {
-	// 	lh.Info().Log("unable to extract userID from token")
-	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
-	// 	return
-	// }
+type RuleSetGetReq struct {
+	Slice int32  `json:"slice" validate:"required,gt=0,lt=15"`
+	App   string `json:"app" validate:"required,alpha,lt=15"`
+	Class string `json:"class" validate:"required,alpha,lt=15"`
+	Name  string `json:"name" validate:"required,lt=20"`
+}
+type rulesetGetRow struct {
+	ID         int32            `json:"id"`
+	Slice      int32            `json:"slice"`
+	App        string           `json:"app"`
+	Class      string           `json:"class"`
+	Name       string           `json:"name"`
+	IsActive   bool             `json:"is_active"`
+	IsInternal bool             `json:"is_internal"`
+	Flowrules  []crux.Rule_t    `json:"flowrules"`
+	Createdat  pgtype.Timestamp `json:"createdat"`
+	Createdby  string           `json:"createdby"`
+	Editedat   pgtype.Timestamp `json:"editedat"`
+	Editedby   pgtype.Text      `json:"editedby"`
+}
 
-	// realmName, err := server.ExtractRealmFromJwt(c)
-	// if err != nil {
-	// 	lh.Info().Log("unable to extract realm from token")
-	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
-	// 	return
-	// }
+func BRERuleSetGet(c *gin.Context, s *service.Service) {
+	lh := s.LogHarbour
+	lh.Debug0().Log(" BRERuleSetGet request received")
+	var (
+		request RuleSetGetReq
+	)
+	userID, err := server.ExtractUserNameFromJwt(c)
+	if err != nil {
+		lh.Info().Log("unable to extract userID from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
+		return
+	}
+
+	realmName, err := server.ExtractRealmFromJwt(c)
+	if err != nil {
+		lh.Info().Log("unable to extract realm from token")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
+		return
+	}
 	// implement the user realm and all here
 	var (
-		capForList = []string{"workflow"}
+		capForList = []string{"ruleset"}
 	)
 	isCapable, _ := server.Authz_check(types.OpReq{
 		User:      userID,
@@ -48,7 +70,7 @@ func WorkflowGet(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	err := wscutils.BindJSON(c, &request)
+	err = wscutils.BindJSON(c, &request)
 	if err != nil {
 		lh.Debug0().Error(err).Log("error while binding json request")
 		return
@@ -74,7 +96,7 @@ func WorkflowGet(c *gin.Context, s *service.Service) {
 		Class:   request.Class,
 		Setname: request.Name,
 		Realm:   realmName,
-		Brwf:    sqlc.BrwfEnumW,
+		Brwf:    sqlc.BrwfEnumB,
 	})
 	if err != nil {
 		lh.Debug0().Error(err).Log("failed to get data from db")
@@ -91,12 +113,13 @@ func WorkflowGet(c *gin.Context, s *service.Service) {
 		lh.Debug0().Error(err).Log("failed to unmarshal data")
 		return
 	}
-	lh.Debug0().Log("record found finished execution of WorkflowGet()")
+	lh.Debug0().Log("record found finished execution of BRERuleSetGet()")
 	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(actualResponse))
 }
 
-func responseBinding(dbResponse sqlc.WorkflowgetRow) WorkflowgetRow {
-	actualResponse := WorkflowgetRow{
+func responseBinding(dbResponse sqlc.WorkflowgetRow) rulesetGetRow {
+
+	actualResponse := rulesetGetRow{
 		ID:         dbResponse.ID,
 		Slice:      dbResponse.Slice,
 		App:        dbResponse.App,

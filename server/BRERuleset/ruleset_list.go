@@ -1,4 +1,4 @@
-package workflow
+package breruleset
 
 import (
 	"fmt"
@@ -15,19 +15,18 @@ import (
 	"github.com/remiges-tech/logharbour/logharbour"
 )
 
-type WorkflowListParams struct {
-	Slice      int32
-	App        string
-	Class      string
-	Name       string
-	IsActive   bool
-	IsInternal bool
+type RuleSetListReq struct {
+	Slice      int32  `json:"slice,omitempty" validate:"lt=15"`
+	App        string `json:"app,omitempty" validate:"lt=15"`
+	Class      string `json:"class,omitempty" validate:"lt=15"`
+	Name       string `json:"name,omitempty" validate:"lt=15"`
+	IsActive   *bool  `json:"is_active,omitempty"`
+	IsInternal *bool  `json:"is_internal,omitempty"`
 }
 
-// WorkflowList will be responsible for processing the /WorkflowList request that comes through as a POST
-func WorkflowList(c *gin.Context, s *service.Service) {
+func BRERuleSetList(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour
-	lh.Log("WorkflowList request received")
+	lh.Log("BRERuleSetList request received")
 
 	// userID, err := server.ExtractUserNameFromJwt(c)
 	// if err != nil {
@@ -43,9 +42,11 @@ func WorkflowList(c *gin.Context, s *service.Service) {
 	// 	return
 	// }
 
+	realmName := "Ecommerce"
+	userID := "kanchan"
 	// implement the user realm and all here
 	var (
-		capForList = []string{"workflow"}
+		capForList = []string{"ruleset"}
 	)
 	isCapable, _ := server.Authz_check(types.OpReq{
 		User:      userID,
@@ -59,7 +60,7 @@ func WorkflowList(c *gin.Context, s *service.Service) {
 	}
 
 	var (
-		request    WorkflowListReq
+		request    RuleSetListReq
 		dbResponse []sqlc.WorkflowListRow
 	)
 
@@ -85,10 +86,11 @@ func WorkflowList(c *gin.Context, s *service.Service) {
 	}
 
 	// Check if the caller has root capabilities
-	hasRootCapabilities := HasRootCapabilities()
+	// hasRootCapabilities := workflow.HasRootCapabilities()
+	hasRootCapabilities := false
 
 	// Process the request based on the provided BRD
-	dbResponse, err = processRequest(c, lh, hasRootCapabilities, query, &request)
+	dbResponse, err = processRequest(c, lh, hasRootCapabilities, query, &request, realmName)
 
 	if err != nil {
 		if err.Error() == AUTH_ERROR {
@@ -103,12 +105,12 @@ func WorkflowList(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	lh.Debug0().Log("record found finished execution of WorkflowList()")
-	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(map[string][]sqlc.WorkflowListRow{"workflows": dbResponse}))
+	lh.Debug0().Log("record found finished execution of BRERuleSetList()")
+	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(map[string][]sqlc.WorkflowListRow{"rulesets": dbResponse}))
 }
 
 // Function to process the request and get the workflows
-func processRequest(c *gin.Context, lh *logharbour.Logger, hasRootCapabilities bool, query *sqlc.Queries, request *WorkflowListReq) ([]sqlc.WorkflowListRow, error) {
+func processRequest(c *gin.Context, lh *logharbour.Logger, hasRootCapabilities bool, query *sqlc.Queries, request *RuleSetListReq, realmName string) ([]sqlc.WorkflowListRow, error) {
 	lh.Debug0().Log("processRequest request received")
 	var (
 		isAct, isIntr bool
@@ -124,11 +126,11 @@ func processRequest(c *gin.Context, lh *logharbour.Logger, hasRootCapabilities b
 		//  if app parameter is present then
 		if !server.IsStringEmpty(&request.App) {
 			lh.Debug0().Log("user has app params present")
-			// check if named app matches = user has "ruleset" rights
+			// check if named app matches = user has "rusleset" rights
 			if server.HasRulesetRights(request.App) {
 				lh.Debug0().Log("user has app rights")
 				return query.WorkflowList(c, sqlc.WorkflowListParams{
-					Brwf:       sqlc.BrwfEnumW,
+					Brwf:       sqlc.BrwfEnumB,
 					Slice:      pgtype.Int4{Int32: request.Slice, Valid: request.Slice > 0},
 					App:        []string{request.App},
 					Realm:      realmName,
@@ -142,24 +144,24 @@ func processRequest(c *gin.Context, lh *logharbour.Logger, hasRootCapabilities b
 			// if user doesn't have "ruleset" rights then -> "auth" error
 			return nil, fmt.Errorf(AUTH_ERROR)
 		}
-		// show the workflows of all the apps for which the user has "ruleset" rights
+		// show the rulesets of all the apps for which the user has "ruleset" rights
 		app := server.GetWorkflowsByRulesetRights()
 		lh.Debug0().LogActivity("app not present hence all user 'ruleset' rights:", app)
 		return query.WorkflowList(c, sqlc.WorkflowListParams{
 			App:   app,
+			Brwf:  sqlc.BrwfEnumB,
 			Realm: realmName,
-			Brwf:       sqlc.BrwfEnumW,
 		})
 	}
 
 	if !server.IsStringEmpty(&request.App) {
 		lh.Debug0().Log("user have root cap with 'app'")
-		// the workflows of that app
+		// the rulesets of that app
 		return query.WorkflowList(c, sqlc.WorkflowListParams{
-			Brwf:       sqlc.BrwfEnumW,
-			Realm:      realmName,
+			Brwf:       sqlc.BrwfEnumB,
 			Slice:      pgtype.Int4{Int32: request.Slice, Valid: request.Slice > 0},
 			App:        []string{request.App},
+			Realm:      realmName,
 			Class:      pgtype.Text{String: request.Class, Valid: !server.IsStringEmpty(&request.Class)},
 			Setname:    pgtype.Text{String: request.Name, Valid: !server.IsStringEmpty(&request.Name)},
 			IsActive:   pgtype.Bool{Valid: request.IsActive != nil, Bool: isAct},
@@ -167,6 +169,6 @@ func processRequest(c *gin.Context, lh *logharbour.Logger, hasRootCapabilities b
 		})
 	}
 	lh.Debug0().Log("user have root cap or 'app' is nil")
-	// the workflows of all the apps in the realm
-	return query.WorkflowList(c, sqlc.WorkflowListParams{Realm: realmName, Brwf: sqlc.BrwfEnumW})
+	// the rulesets  of all the apps in the realm
+	return query.WorkflowList(c, sqlc.WorkflowListParams{Realm: realmName, Brwf: sqlc.BrwfEnumB})
 }
