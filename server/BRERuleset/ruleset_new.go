@@ -23,7 +23,7 @@ type RuleSetNew struct {
 	Class      string        `json:"class" validate:"required,lowercase"`
 	Name       string        `json:"name" validate:"required,lowercase"`
 	IsInternal bool          `json:"is_internal" validate:"required"`
-	RulseSet   []crux.Rule_t `json:"ruleset" validate:"required,dive"`
+	RuleSet   []crux.Rule_t `json:"ruleset" validate:"required,dive"`
 }
 
 func BRERuleSetNew(c *gin.Context, s *service.Service) {
@@ -130,7 +130,7 @@ func BRERuleSetNew(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	ruleSetByte, err := json.Marshal(request.RulseSet)
+	ruleSetByte, err := json.Marshal(request.RuleSet)
 	if err != nil {
 		patternSchema := "RuleSet"
 		l.Debug1().Error(err).Log("Error while marshaling ruleset")
@@ -210,7 +210,7 @@ func BRERuleSetNew(c *gin.Context, s *service.Service) {
 			{
 				Field:  "request",
 				OldVal: nil,
-				NewVal: request.RulseSet,
+				NewVal: request.RuleSet,
 			},
 			{
 				Field:  "Createdby",
@@ -226,7 +226,7 @@ func BRERuleSetNew(c *gin.Context, s *service.Service) {
 
 func customValidationErrorsForRulesetNew(schema_t crux.Schema_t, r RuleSetNew) []wscutils.ErrorMessage {
 	var validationErrors []wscutils.ErrorMessage
-	if len(r.RulseSet) == 0 {
+	if len(r.RuleSet) == 0 {
 		fieldName := "RuleSet"
 		vErr := wscutils.BuildErrorMessage(server.MsgId_Empty, server.ErrCode_Empty, &fieldName)
 		validationErrors = append(validationErrors, vErr)
@@ -235,7 +235,7 @@ func customValidationErrorsForRulesetNew(schema_t crux.Schema_t, r RuleSetNew) [
 	ruleSet := crux.Ruleset_t{
 		Class:   r.Class,
 		SetName: r.Name,
-		Rules:   r.RulseSet,
+		Rules:   r.RuleSet,
 	}
 	err := crux.VerifyRulePatterns(&ruleSet, &schema_t, false)
 	if err != nil {

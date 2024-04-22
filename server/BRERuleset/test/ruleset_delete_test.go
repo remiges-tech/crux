@@ -13,15 +13,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestBRERuleSetNew(t *testing.T) {
-	testCases := RuleSetNewTestcase()
+//rulesetdelete_standard_val_error.json
+
+func TestBRERuleSetDelete(t *testing.T) {
+	testCases := RuleSetDeleteTestcase()
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			// Setting up buffer
 			payload := bytes.NewBuffer(server.MarshalJson(tc.RequestPayload))
 
 			res := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodPost, "/brerulesetnew", payload)
+			req, err := http.NewRequest(http.MethodPost, "/brerulesetdelete", payload)
 			require.NoError(t, err)
 
 			r.ServeHTTP(res, req)
@@ -37,22 +39,30 @@ func TestBRERuleSetNew(t *testing.T) {
 			}
 		})
 	}
+
 }
 
-func RuleSetNewTestcase() []testutils.TestCasesStruct {
+func RuleSetDeleteTestcase() []testutils.TestCasesStruct {
 	rulesetNewTestcase := []testutils.TestCasesStruct{
 
 		{
 			Name: "err- standard validation",
 			RequestPayload: wscutils.Request{
-				Data: breruleset.RuleSetNew{},
+				Data: breruleset.RuleSetDeleteReq{},
 			},
 			ExpectedHttpCode: http.StatusBadRequest,
-			TestJsonFile:     "./data/rulesetnew_standard_err.json",
+			TestJsonFile:     "./data/rulesetdelete_standard_val_error.json",
 		},
 		{
-			Name:             "Success - valid response",
-			PayloadFile:      "./data/rulesetnew_payload.json",
+			Name: "Success - valid response",
+			RequestPayload: wscutils.Request{
+				Data: breruleset.RuleSetDeleteReq{
+					Slice: (int32(11)),
+					App:   "amazon",
+					Class: "inventoryitems",
+					Name:  "amazonruleset",
+				},
+			},
 			ExpectedHttpCode: http.StatusOK,
 			ExpectedResult: &wscutils.Response{
 				Status:   wscutils.SuccessStatus,

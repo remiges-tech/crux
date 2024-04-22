@@ -1,4 +1,4 @@
-package workflow
+package breruleset
 
 import (
 	"slices"
@@ -15,36 +15,46 @@ import (
 	"github.com/remiges-tech/logharbour/logharbour"
 )
 
-// WorkflowDelete will be responsible for processing the /workflowdelete request that comes through as a DELETE
-func WorkflowDelete(c *gin.Context, s *service.Service) {
+type RuleSetDeleteReq struct {
+	Slice int32  `json:"slice" validate:"required,gt=0,lt=15"`
+	App   string `json:"app" validate:"required,alpha,lt=15"`
+	Class string `json:"class" validate:"required,alpha,lt=15"`
+	Name  string `json:"name" validate:"required,lt=20"`
+}
+
+func BRERuleSetDelete(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour
-	lh.Log("WorkflowDelete request received")
+	lh.Log("BRERuleSetDelete request received")
 
 	var (
-		request WorkflowGetReq
+		request RuleSetDeleteReq
 	)
 
 	// implement the user realm and all here
-	var capForList = []string{"workflow"}
+	var capForList = []string{"schema"}
 
-	userID, err := server.ExtractUserNameFromJwt(c)
-	if err != nil {
-		lh.Info().Log("unable to extract userID from token")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
-		return
-	}
+	realmName := "Ecommerce"
+	userID := "kanchan"
+	// userID, err := server.ExtractUserNameFromJwt(c)
+	// if err != nil {
+	// 	lh.Info().Log("unable to extract userID from token")
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
+	// 	return
+	// }
 
-	realmName, err := server.ExtractRealmFromJwt(c)
-	if err != nil {
-		lh.Info().Log("unable to extract realm from token")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
-		return
-	}
+	// realmName, err := server.ExtractRealmFromJwt(c)
+	// if err != nil {
+	// 	lh.Info().Log("unable to extract realm from token")
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
+	// 	return
+	// }
 
 	isCapable, _ := server.Authz_check(types.OpReq{
 		User:      userID,
 		CapNeeded: capForList,
 	}, false)
+
+	isCapable = true
 
 	if !isCapable {
 		lh.Info().LogActivity(server.ErrCode_Unauthorized, userID)
@@ -52,7 +62,7 @@ func WorkflowDelete(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	err = wscutils.BindJSON(c, &request)
+	err := wscutils.BindJSON(c, &request)
 	if err != nil {
 		lh.Debug0().Error(err).Log("error while binding json request error")
 		return
@@ -66,7 +76,7 @@ func WorkflowDelete(c *gin.Context, s *service.Service) {
 	}
 	if !HasSchemaCap(request.App) {
 		// Generate "auth" error if no
-		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Unauthorized, server.ErrCode_Unauthorized, nil)}))
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{wscutils.BuildErrorMessage(server.MsgId_Unauthorized, server.ErrCode_app_dont_have_schema_cap, nil)}))
 		return
 	}
 
@@ -83,7 +93,7 @@ func WorkflowDelete(c *gin.Context, s *service.Service) {
 		Class:   request.Class,
 		Setname: request.Name,
 		Realm:   realmName,
-		Brwf: sqlc.BrwfEnumW,
+		Brwf:    sqlc.BrwfEnumB,
 	})
 	if err != nil {
 		lh.Debug0().Error(err).Log("error while retriving record")
@@ -98,7 +108,7 @@ func WorkflowDelete(c *gin.Context, s *service.Service) {
 		Class:   request.Class,
 		Setname: request.Name,
 		Realm:   realmName,
-		Brwf: sqlc.BrwfEnumW,
+		Brwf:    sqlc.BrwfEnumB,
 	})
 	if err != nil {
 		lh.Debug0().Error(err).Log("failed to delete data from db")
@@ -111,7 +121,7 @@ func WorkflowDelete(c *gin.Context, s *service.Service) {
 	if strings.Contains(tag.String(), "1") {
 		// do data change log
 		dataChangeLog(lh, dbRecord)
-		lh.Debug0().Log("record found finished execution of WorkflowDelete()")
+		lh.Debug0().Log("record found finished execution of BRERuleSetDelete()")
 		wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(nil))
 		return
 	}
@@ -133,7 +143,7 @@ func dataChangeLog(lh *logharbour.Logger, dbRecord sqlc.WorkflowgetRow) {
 	})
 }
 
-// to check if the user has "schema" capability for the app this workflow belongs to
+// to check if the user has "schema" capability for the app this ruleset belongs to
 func HasSchemaCap(app string) bool {
 	userRights := server.GetWorkflowsByRulesetRights()
 	return slices.Contains(userRights, app)

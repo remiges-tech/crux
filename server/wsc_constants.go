@@ -35,6 +35,7 @@ const (
 	ErrCode_NotFound                                              = "not_found"
 	ErrCode_Schema_Not_Found                                      = "schema_not_found"
 	ErrCode_Unauthorized                                          = "Unauthorized"
+	ErrCode_app_dont_have_schema_cap                              = "App_dont_have_schema_cap"
 	ErrCode_TooEarly                                              = "tooearly"
 	ErrCode_Invalid_APP                                           = "invalid_app"
 	ErrCode_Invalid_Class                                         = "invalid_class"

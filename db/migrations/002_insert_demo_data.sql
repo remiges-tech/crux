@@ -142,7 +142,6 @@ VALUES (17,
         'mutual Fund',
         'admin',
         '2024-01-29 00:00:00');
-
 INSERT INTO "app"
 VALUES (18,
         'Ecommerce',
@@ -205,6 +204,16 @@ VALUES (19,
         '2023-12-29 00:00:00',
         'user');
 
+INSERT INTO "capgrant"
+VALUES (20,
+        'Ecommerce',
+        'Raj',
+        'amazon',
+        'schema',
+        '2024-01-29 00:00:00',
+        NULL,
+        '2023-12-29 00:00:00',
+        'kanchan');
 
 -- config TABLE
 

@@ -391,7 +391,7 @@ func (q *Queries) WorkFlowUpdate(ctx context.Context, arg WorkFlowUpdateParams) 
 const workflowDelete = `-- name: WorkflowDelete :execresult
 DELETE from ruleset
 where
-    brwf = 'W'
+    brwf = $6
     AND is_active = false
     and slice = $1
     and app = $2
@@ -401,11 +401,12 @@ where
 `
 
 type WorkflowDeleteParams struct {
-	Slice   int32  `json:"slice"`
-	App     string `json:"app"`
-	Class   string `json:"class"`
-	Setname string `json:"setname"`
-	Realm   string `json:"realm"`
+	Slice   int32    `json:"slice"`
+	App     string   `json:"app"`
+	Class   string   `json:"class"`
+	Setname string   `json:"setname"`
+	Realm   string   `json:"realm"`
+	Brwf    BrwfEnum `json:"brwf"`
 }
 
 func (q *Queries) WorkflowDelete(ctx context.Context, arg WorkflowDeleteParams) (pgconn.CommandTag, error) {
@@ -415,6 +416,7 @@ func (q *Queries) WorkflowDelete(ctx context.Context, arg WorkflowDeleteParams) 
 		arg.Class,
 		arg.Setname,
 		arg.Realm,
+		arg.Brwf,
 	)
 }
 
@@ -433,14 +435,14 @@ select
     editedby
 from ruleset
 where
-    brwf = 'W'
-    AND realm = $1
+    realm = $1
     AND ($2::INTEGER is null OR slice = $2::INTEGER)
     AND ($3::text[] is null OR app = any( $3::text[]))
     AND ($4::text is null OR class = $4::text)
     AND ($5::text is null OR setname = $5::text)
     AND ($6::BOOLEAN is null OR is_active = $6::BOOLEAN)
     AND ($7::BOOLEAN is null OR is_internal = $7::BOOLEAN)
+    and brwf =  $8
 `
 
 type WorkflowListParams struct {
@@ -451,6 +453,7 @@ type WorkflowListParams struct {
 	Setname    pgtype.Text `json:"setname"`
 	IsActive   pgtype.Bool `json:"is_active"`
 	IsInternal pgtype.Bool `json:"is_internal"`
+	Brwf       BrwfEnum    `json:"brwf"`
 }
 
 type WorkflowListRow struct {
@@ -476,6 +479,7 @@ func (q *Queries) WorkflowList(ctx context.Context, arg WorkflowListParams) ([]W
 		arg.Setname,
 		arg.IsActive,
 		arg.IsInternal,
+		arg.Brwf,
 	)
 	if err != nil {
 		return nil, err
@@ -528,15 +532,16 @@ where
     and class = $3
     and setname = $4
     and realm = $5
-    AND brwf = 'W'
+    AND brwf = $6
 `
 
 type WorkflowgetParams struct {
-	Slice   int32  `json:"slice"`
-	App     string `json:"app"`
-	Class   string `json:"class"`
-	Setname string `json:"setname"`
-	Realm   string `json:"realm"`
+	Slice   int32    `json:"slice"`
+	App     string   `json:"app"`
+	Class   string   `json:"class"`
+	Setname string   `json:"setname"`
+	Realm   string   `json:"realm"`
+	Brwf    BrwfEnum `json:"brwf"`
 }
 
 type WorkflowgetRow struct {
@@ -561,6 +566,7 @@ func (q *Queries) Workflowget(ctx context.Context, arg WorkflowgetParams) (Workf
 		arg.Class,
 		arg.Setname,
 		arg.Realm,
+		arg.Brwf,
 	)
 	var i WorkflowgetRow
 	err := row.Scan(
