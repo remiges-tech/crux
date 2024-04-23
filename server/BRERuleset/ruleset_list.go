@@ -11,6 +11,7 @@ import (
 	"github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	"github.com/remiges-tech/crux/server"
+	"github.com/remiges-tech/crux/server/workflow"
 	"github.com/remiges-tech/crux/types"
 	"github.com/remiges-tech/logharbour/logharbour"
 )
@@ -86,8 +87,8 @@ func BRERuleSetList(c *gin.Context, s *service.Service) {
 	}
 
 	// Check if the caller has root capabilities
-	// hasRootCapabilities := workflow.HasRootCapabilities()
-	hasRootCapabilities := false
+	hasRootCapabilities := workflow.HasRootCapabilities()
+	//hasRootCapabilities := false - for testing if root capbility is not present
 
 	// Process the request based on the provided BRD
 	dbResponse, err = processRequest(c, lh, hasRootCapabilities, query, &request, realmName)
@@ -109,7 +110,7 @@ func BRERuleSetList(c *gin.Context, s *service.Service) {
 	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(map[string][]sqlc.WorkflowListRow{"rulesets": dbResponse}))
 }
 
-// Function to process the request and get the workflows
+// Function to process the request and get the rulesets
 func processRequest(c *gin.Context, lh *logharbour.Logger, hasRootCapabilities bool, query *sqlc.Queries, request *RuleSetListReq, realmName string) ([]sqlc.WorkflowListRow, error) {
 	lh.Debug0().Log("processRequest request received")
 	var (
