@@ -1,0 +1,50 @@
+{
+    "class": "finance",
+    "patternschema": [
+        {
+            "attr": "step",
+            "shortdesc": "",
+            "longdesc": "",
+            "valtype": "enum",
+            "vals": [
+                "step1",
+                "step2",
+                "step3",
+                "step4",
+                "step5",
+                "step6"
+            ]
+        },
+        {
+            "attr": "stepfailed",
+            "shortdesc": "",
+            "longdesc": "",
+            "valtype": "bool"
+        },
+        {
+            "attr": "mode",
+            "shortdesc": "",
+            "longdesc": "",
+            "valtype": "enum",
+            "vals": {
+                "demat": { },
+                "physical": { }
+            }
+        }
+    ],
+    "actionschema": {
+        "tasks": [
+            "step1",
+            "step2",
+            "step3",
+            "step4",
+            "step5",
+            "step6"
+        ],
+        "properties": [
+            "nextstep",
+            "done"
+        ]
+    },
+    "n_checked": 0
+}

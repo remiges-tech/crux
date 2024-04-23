@@ -12,14 +12,14 @@ import (
 	"time"
 )
 
-// var (
-// 	trace trace_t
-// )
+func DoMatch(entity Entity, ruleset *Ruleset_t, ruleSchemasCache *Schema_t, actionSet ActionSet, seenRuleSets map[string]struct{}, trace Trace_t, trace_level int) (ActionSet, bool, error, Trace_t) {
 
-func DoMatch(entity Entity, ruleset *Ruleset_t, ruleSchemasCache *Schema_t, actionSet ActionSet, seenRuleSets map[string]struct{}, trace Trace_t) (ActionSet, bool, error, Trace_t) {
-
-	// byt, _ := json.Marshal(ruleset)
-	// fmt.Println(">>>>>>>byt:", string(byt))
+	if !(-1 < trace_level && trace_level < 4) {
+		return ActionSet{
+			Tasks:      []string{},
+			Properties: make(map[string]string),
+		}, false, fmt.Errorf("Trace level out of bounds"), trace
+	}
 
 	if trace.TraceData == nil {
 		// time_s := time.Now()
@@ -44,7 +44,6 @@ func DoMatch(entity Entity, ruleset *Ruleset_t, ruleSchemasCache *Schema_t, acti
 		}
 		l2data.Tasks = rule.RuleActions.Task
 		l2data.Properties = rule.RuleActions.Properties
-
 		if len(l2data.ActionSet.Properties) == 0 {
 			l2data.ActionSet.Properties = rule.RuleActions.Properties
 		} else {
@@ -52,107 +51,94 @@ func DoMatch(entity Entity, ruleset *Ruleset_t, ruleSchemasCache *Schema_t, acti
 				l2data.ActionSet.Properties[k] = v
 			}
 		}
-
 		//*********************************************************************************************
 		DoExit := false
-
 		matched, err := matchPattern(entity, rule.RulePatterns, actionSet, ruleSchemasCache)
-
 		if err != nil {
 			return ActionSet{
 				Tasks:      []string{},
 				Properties: make(map[string]string),
 			}, false, err, trace
 		}
-		//*********************************************************************************************
-		// if not match then set mismatch
-		eachRule.Res = Mismatch
-		//*********************************************************************************************
-		if matched {
-			//*********************************************************************************************
-			// if match then set Match
-			eachRule.Res = Match
-			//*********************************************************************************************
-			actionSet = collectActions(actionSet, rule.RuleActions)
+		eachRule.Res = Mismatch // set mismatch as `-`
 
+		if matched {
+			eachRule.Res = Match // if match then set Match as `+`
+
+			actionSet = collectActions(actionSet, rule.RuleActions)
 			if len(rule.RuleActions.ThenCall) > 0 {
-				eachRule.Res = ThenCall
+				eachRule.Res = ThenCall // if ThenCall then set Match as `+c`
+				eachRule.NextSet = rule.RuleActions.ThenCall
 
 				// setToCall, exists := findRefRuleSetByName(ruleset, rule.RuleActions.ThenCall)
-
 				// if !exists {
 				// 	return ActionSet{}, false, errors.New("set not found")
 				// }
-
+				trace.End = time.Date(2024, time.April, 10, 23, 0, 0, 0, time.UTC)
+				traceData.add_rule(&eachRule, l2data, trace_level)
+				trace.add_tracedata(&traceData)
 				if ruleset.Class != entity.Class {
 					return inconsistentRuleSet(ruleset.SetName, ruleset.SetName, ruleset, trace)
 				}
-
-				var err error
-				actionSet, DoExit, err, trace = DoMatch(entity, ruleset, ruleSchemasCache, actionSet, seenRuleSets, trace)
+				actionSet, DoExit, err, trace = DoMatch(entity, ruleset, ruleSchemasCache, actionSet, seenRuleSets, trace, trace_level)
 				if err != nil {
 					return ActionSet{
 						Tasks:      []string{},
 						Properties: make(map[string]string),
 					}, false, err, trace
 				}
-
 			} else if DoExit || rule.RuleActions.DoExit {
-				eachRule.Res = Exit
-
-				// eachRule.add_L2data(actionSet)
-				// traceData.Rules = append(traceData.Rules, eachRule)
-				// trace.add_tracedata(&traceData)
-
+				eachRule.Res = Exit // if Exit then set Match as `<<`
+				trace.End = time.Date(2024, time.April, 10, 23, 0, 0, 0, time.UTC)
+				traceData.add_rule(&eachRule, l2data, trace_level)
+				trace.add_tracedata(&traceData)
 				return actionSet, true, nil, trace
 			} else if rule.RuleActions.DoReturn {
-				eachRule.Res = Return
-
+				eachRule.Res = Return // if Return then set Match as `<`
 				delete(seenRuleSets, ruleset.SetName)
+				trace.End = time.Date(2024, time.April, 10, 23, 0, 0, 0, time.UTC)
+				traceData.add_rule(&eachRule, l2data, trace_level)
+				trace.add_tracedata(&traceData)
 				return actionSet, false, nil, trace
 			} else if len(rule.RuleActions.ElseCall) > 0 {
-				eachRule.Res = ElseCall
+				eachRule.Res = ElseCall // if ElseCall then set Match as `-c`
+				eachRule.NextSet = rule.RuleActions.ElseCall
 
 				// setToCall, exists := findRefRuleSetByName(ruleSetsCache, rule.RuleActions.ElseCall)
 				// if !exists {
 				// 	return ActionSet{}, false, errors.New("set not found")
 				// }
-
+				trace.End = time.Date(2024, time.April, 10, 23, 0, 0, 0, time.UTC)
+				traceData.add_rule(&eachRule, l2data, trace_level)
+				trace.add_tracedata(&traceData)
 				if ruleset.Class != entity.Class {
 					return inconsistentRuleSet(ruleset.SetName, ruleset.SetName, ruleset, trace)
 				}
-
-				var err error
-				actionSet, DoExit, err, trace = DoMatch(entity, ruleset, ruleSchemasCache, actionSet, seenRuleSets, trace)
+				// var err error
+				actionSet, DoExit, err, trace = DoMatch(entity, ruleset, ruleSchemasCache, actionSet, seenRuleSets, trace, trace_level)
 				if err != nil {
 					return ActionSet{
 						Tasks:      []string{},
 						Properties: make(map[string]string),
 					}, false, err, trace
 				} else if DoExit {
+					eachRule.Res = Exit
+					traceData.add_rule(&eachRule, l2data, trace_level)
+					trace.End = time.Date(2024, time.April, 10, 23, 0, 0, 0, time.UTC)
+					trace.add_tracedata(&traceData)
 					return actionSet, true, nil, trace
 				}
 			}
 			//return actionSet, false, nil
 		}
-		// if ruleNumber == (len(ruleset.Rules) - 1) {
-		// 	eachRule.Res = Exit
-		// }
-		//*********************************************************************************************
-		eachRule.L2Data = l2data
-		traceData.Rules = append(traceData.Rules, eachRule)
-		//*********************************************************************************************
+		traceData.add_rule(&eachRule, l2data, trace_level) // collect eachRule & l2data
 	}
-	trace.add_tracedata(&traceData)
-
 	delete(seenRuleSets, ruleset.SetName)
 
-	//*********************************************************************************************
-	// trace.End = time.Now()
+	// trace.End = time.Now() // set end time of trace
 	// this `time` is used for testing purposee revert with above in dev
 	trace.End = time.Date(2024, time.April, 10, 23, 0, 0, 0, time.UTC)
-	//*********************************************************************************************
-
+	trace.add_tracedata(&traceData) // append collected tracedata to trace
 	return actionSet, true, nil, trace
 }
 
@@ -200,3 +186,10 @@ func (traced_data *Trace_t) add_tracedata(record_to_add *TraceData_t) {
 // func (traced_data_rules *TraceData_t) add_rule(rule_to_add *TraceDataRule_t) {
 // 	traced_data_rules.Rules = append(traced_data_rules.Rules, *rule_to_add)
 // }
+
+func (traced_data_rules *TraceData_t) add_rule(each_rule *TraceDataRule_t, l2_data_to_add TraceDataRuleL2_t, trace_level int) {
+	if trace_level == 2 {
+		each_rule.L2Data = &l2_data_to_add
+	}
+	traced_data_rules.Rules = append(traced_data_rules.Rules, *each_rule)
+}

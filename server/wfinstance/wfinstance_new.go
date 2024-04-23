@@ -27,10 +27,10 @@ type WFInstanceNewRequest struct {
 // WFInstanceNew response format
 type WFInstanceNewResponse struct {
 	Tasks     []map[string]int32 `json:"tasks,omitempty"`
-	Nextstep  string            `json:"nextstep,omitempty"`
+	Nextstep  string             `json:"nextstep,omitempty"`
 	Loggedat  pgtype.Timestamp   `json:"loggedat,omitempty"`
-	Subflows  map[string]string `json:"subflows,omitempty"`
-	Tracedata map[string]string `json:"tracedata,omitempty"`
+	Subflows  map[string]string  `json:"subflows,omitempty"`
+	Tracedata map[string]string  `json:"tracedata,omitempty"`
 	Done      string             `json:"done,omitempty"`
 	ID        string             `json:"id,omitempty"` //wfinstance id
 }
@@ -151,7 +151,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 
 	// call DoMatch()
 
-	actionSet, _, err, _ = crux.DoMatch(entity, ruleSets, schema, actionSet, seenRuleSets, crux.Trace_t{})
+	actionSet, _, err, _ = crux.DoMatch(entity, ruleset, schema, actionSet, seenRuleSets, crux.Trace_t{}, 0)
 
 	if err != nil {
 		lh.Error(err).Log("GetWFinstanceNew||error while calling doMatch Method")

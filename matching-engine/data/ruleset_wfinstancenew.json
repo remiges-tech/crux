@@ -34,7 +34,10 @@
         { "attr": "stepfailed", "op": "eq", "val": true },
         { "attr": "mode", "op": "eq", "val": "demat" }
       ],
-      "ruleActions": { "tasks": [], "properties": { "done": "true" } },
+      "ruleActions": {
+        "tasks": [],
+        "properties": { "done": "true" }
+      },
       "NMatched": 0,
       "NFailed": 0
     },
@@ -57,7 +60,10 @@
         { "attr": "stepfailed", "op": "eq", "val": true },
         { "attr": "mode", "op": "eq", "val": "physical" }
       ],
-      "ruleActions": { "tasks": [], "properties": { "done": "true" } },
+      "ruleActions": {
+        "tasks": [],
+        "properties": { "done": "true" }
+      },
       "NMatched": 0,
       "NFailed": 0
     },
@@ -80,7 +86,10 @@
         { "attr": "stepfailed", "op": "eq", "val": true },
         { "attr": "mode", "op": "eq", "val": "demat" }
       ],
-      "ruleActions": { "tasks": [], "properties": { "done": "true" } },
+      "ruleActions": {
+        "tasks": [],
+        "properties": { "done": "true" }
+      },
       "NMatched": 0,
       "NFailed": 0
     },
@@ -103,7 +112,10 @@
         { "attr": "stepfailed", "op": "eq", "val": true },
         { "attr": "mode", "op": "eq", "val": "demat" }
       ],
-      "ruleActions": { "tasks": [], "properties": { "done": "true" } },
+      "ruleActions": {
+        "tasks": [],
+        "properties": { "done": "true" }
+      },
       "NMatched": 0,
       "NFailed": 0
     },
@@ -126,7 +138,10 @@
         { "attr": "stepfailed", "op": "eq", "val": true },
         { "attr": "mode", "op": "eq", "val": "demat" }
       ],
-      "ruleActions": { "tasks": [], "properties": { "done": "true" } },
+      "ruleActions": {
+        "tasks": [],
+        "properties": { "done": "true" }
+      },
       "NMatched": 0,
       "NFailed": 0
     },
@@ -149,7 +164,10 @@
         { "attr": "stepfailed", "op": "eq", "val": true },
         { "attr": "mode", "op": "eq", "val": "demat" }
       ],
-      "ruleActions": { "tasks": [], "properties": { "done": "true" } },
+      "ruleActions": {
+        "tasks": [],
+        "properties": { "done": "true" }
+      },
       "NMatched": 0,
       "NFailed": 0
     },
@@ -172,7 +190,10 @@
         { "attr": "stepfailed", "op": "eq", "val": true },
         { "attr": "mode", "op": "eq", "val": "demat" }
       ],
-      "ruleActions": { "tasks": [], "properties": { "done": "true" } },
+      "ruleActions": {
+        "tasks": [],
+        "properties": { "done": "true" }
+      },
       "NMatched": 0,
       "NFailed": 0
     },
@@ -182,7 +203,10 @@
         { "attr": "stepfailed", "op": "eq", "val": false },
         { "attr": "mode", "op": "eq", "val": "demat" }
       ],
-      "ruleActions": { "tasks": [], "properties": { "done": "true" } },
+      "ruleActions": {
+        "tasks": [],
+        "properties": { "done": "true" }
+      },
       "NMatched": 0,
       "NFailed": 0
     },
@@ -192,7 +216,10 @@
         { "attr": "stepfailed", "op": "eq", "val": true },
         { "attr": "mode", "op": "eq", "val": "demat" }
       ],
-      "ruleActions": { "tasks": [], "properties": { "done": "true" } },
+      "ruleActions": {
+        "tasks": [],
+        "properties": { "done": "true" }
+      },
       "NMatched": 0,
       "NFailed": 0
     }

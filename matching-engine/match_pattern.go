@@ -32,10 +32,13 @@ const (
 
 func matchPattern(entity Entity, rulePattern []RulePatternBlock_t, actionSet ActionSet, rSchema *Schema_t) (bool, error) {
 
+	if len(rulePattern) != len(entity.Attrs) {
+		return false, fmt.Errorf("size of entity attrs is not equal to rulePattern")
+	}
+
 	for _, term := range rulePattern {
 		valType := ""
 		entityAttrVal := ""
-
 		// Check whether the attribute name in the pattern term exists in the entity attrs map
 		if val, ok := entity.Attrs[term.Attr]; ok {
 
