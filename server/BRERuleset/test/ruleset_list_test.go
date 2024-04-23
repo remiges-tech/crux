@@ -14,7 +14,7 @@ import (
 )
 
 func TestBRERuleSetList(t *testing.T) {
-	testCases := RuleSetDeleteTestcase()
+	testCases := RuleSetListTestcase()
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			// Setting up buffer
@@ -40,21 +40,21 @@ func TestBRERuleSetList(t *testing.T) {
 
 }
 
-func RuleSetTestListcase() []testutils.TestCasesStruct {
+func RuleSetListTestcase() []testutils.TestCasesStruct {
 	rulesetListTestcase := []testutils.TestCasesStruct{
 
 		{
-			Name: "err- standard validation",
+			Name: "success - no parameter present",
 			RequestPayload: wscutils.Request{
 				Data: breruleset.RuleSetListReq{},
 			},
-			ExpectedHttpCode: http.StatusBadRequest,
+			ExpectedHttpCode: http.StatusOK,
 			TestJsonFile:     "./data/rulesetlist_resp.json",
 		},
 		{
 			Name: "Success - valid response - root capability",
 			RequestPayload: wscutils.Request{
-				Data: breruleset.RuleSetDeleteReq{
+				Data: breruleset.RuleSetListReq{
 					Slice: (int32(11)),
 					App:   "amazon",
 				},
