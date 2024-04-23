@@ -93,7 +93,7 @@ func VerifyPatternSchema(rs Schema_t, isWF bool) []error {
 			err := CruxError{Keyword: "Empty", FieldName: fieldName, Messages: "no valid values for enum"} //fmt.Errorf("no valid values for enum %v", attrSchema.Attr)
 			errs = append(errs, err)
 		}
-		for val := range attrSchema.EnumVals {
+		for _, val := range attrSchema.EnumVals {
 			if !re.MatchString(val) && val != start {
 				fieldName := fmt.Sprintf("patternSchema[%d].Vals", i)
 				err := CruxError{Keyword: "Invalid", FieldName: fieldName, Vals: val, Messages: "enum value is not a valid CruxID"} //fmt.Errorf("enum value %v is not a valid CruxID", val)
@@ -106,7 +106,7 @@ func VerifyPatternSchema(rs Schema_t, isWF bool) []error {
 			stepFound = true
 		}
 
-		if isWF && attrSchema.Attr == step && attrSchema.EnumVals[start] != struct{}{} {
+		if isWF && attrSchema.Attr == step && slices.Contains(attrSchema.EnumVals, start) { // attrSchema.EnumVals[start] {
 			fieldName := fmt.Sprintf("patternSchema[%d].Vals", i)
 			err := CruxError{Keyword: "NotAllowed", FieldName: fieldName, Vals: "Start", Messages: "workflow schema doesn't allow step=START"} //fmt.Errorf("workflow schema for %v doesn't allow step=START", rs.Class)
 			errs = append(errs, err)
@@ -187,7 +187,7 @@ func getTasksMapForWF(tasks []string) map[string]struct{} {
 	return tm
 }
 
-func getStepAttrVals(rs Schema_t) map[string]struct{} {
+func getStepAttrVals(rs Schema_t) []string {
 
 	for _, ps := range rs.PatternSchema {
 		if ps.Attr == step {

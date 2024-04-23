@@ -31,7 +31,7 @@ type PatternSchema_t struct {
 	ShortDesc string              `json:"shortdesc" validate:"required"`
 	LongDesc  string              `json:"longdesc" validate:"required"`
 	ValType   string              `json:"valtype" validate:"required"`
-	EnumVals  map[string]struct{} `json:"vals,omitempty"`
+	EnumVals  []string            `json:"vals,omitempty"`
 	ValMin    float64             `json:"valmin,omitempty"`
 	ValMax    float64             `json:"valmax,omitempty"`
 	LenMin    int                 `json:"lenmin,omitempty"`

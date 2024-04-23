@@ -41,10 +41,10 @@ type TraceDataRuleL2_t struct {
 	ActionSet  ActionSet_t                `json:"actionset,omitempty"`
 }
 type TraceDataRule_t struct {
-	RuleNo  int               `json:"r"`
-	Res     string            `json:"res"`
-	NextSet int               `json:"nextset,omitempty"`
-	L2Data  TraceDataRuleL2_t `json:"l2data,omitempty"`
+	RuleNo  int                `json:"r"`
+	Res     string             `json:"res"`
+	NextSet string             `json:"nextset,omitempty"`
+	L2Data  *TraceDataRuleL2_t `json:"l2data,omitempty"`
 }
 type TraceData_t struct {
 	SetID   int               `json:"id"`

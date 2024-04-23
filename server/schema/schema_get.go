@@ -150,8 +150,8 @@ func (response *wfschemagetRow) bindSchemaGetResp(s *service.Service, dbResponse
 	for _, v := range pattrn {
 		var t patternSchema_t
 		t.bindPattrnSchemaResp(v)
-		for k, _ := range v.EnumVals {
-			t.EnumVals = append(t.EnumVals, k)
+		for _, v := range v.EnumVals {
+			t.EnumVals = append(t.EnumVals, v)
 		}
 		response.Patternschema = append(response.Patternschema, t)
 	}

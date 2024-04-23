@@ -155,8 +155,8 @@ func (response *BREwfschemagetRow) bindBRESchemaGetResp(s *service.Service, dbRe
 	for _, v := range pattrn {
 		var t patternSchema_t
 		t.bindPattrnSchemaResp(v)
-		for k, _ := range v.EnumVals {
-			t.EnumVals = append(t.EnumVals, k)
+		for _, val := range v.EnumVals {
+			t.EnumVals = append(t.EnumVals, val)
 		}
 		response.Patternschema = append(response.Patternschema, t)
 	}

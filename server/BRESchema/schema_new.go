@@ -200,21 +200,22 @@ func convertPatternSchema(oldPatternSchema []PatternSchema) []crux.PatternSchema
 		if patternSchema.IsEmpty() {
 			return newPatternSchema
 		}
-		newEnumVals := make(map[string]struct{})
-		for _, val := range patternSchema.EnumVals {
-			newEnumVals[val] = struct{}{}
-		}
+		// newEnumVals := make(map[string]struct{})
+		// for _, val := range patternSchema.EnumVals {
+		// 	newEnumVals[val] = struct{}{}
+		// }
 
 		patternSchema := crux.PatternSchema_t{
 			Attr:      patternSchema.Attr,
 			ShortDesc: patternSchema.ShortDesc,
 			LongDesc:  patternSchema.LongDesc,
 			ValType:   patternSchema.ValType,
-			EnumVals:  newEnumVals,
-			ValMin:    patternSchema.ValMin,
-			ValMax:    patternSchema.ValMax,
-			LenMin:    patternSchema.LenMin,
-			LenMax:    patternSchema.LenMax,
+			// EnumVals:  newEnumVals,
+			EnumVals: patternSchema.EnumVals,
+			ValMin:   patternSchema.ValMin,
+			ValMax:   patternSchema.ValMax,
+			LenMin:   patternSchema.LenMin,
+			LenMax:   patternSchema.LenMax,
 		}
 		newPatternSchema = append(newPatternSchema, patternSchema)
 	}
