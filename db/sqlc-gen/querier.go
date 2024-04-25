@@ -45,6 +45,7 @@ type Querier interface {
 	GetCapGrantForUser(ctx context.Context, arg GetCapGrantForUserParams) ([]Capgrant, error)
 	GetClass(ctx context.Context, arg GetClassParams) (string, error)
 	GetRealmSliceListByRealm(ctx context.Context, realm string) ([]GetRealmSliceListByRealmRow, error)
+	GetRuleSetCapabilityForApp(ctx context.Context, arg GetRuleSetCapabilityForAppParams) (int64, error)
 	GetSchemaWithLock(ctx context.Context, arg GetSchemaWithLockParams) (GetSchemaWithLockRow, error)
 	GetUserCapsAndAppsByRealm(ctx context.Context, arg GetUserCapsAndAppsByRealmParams) ([]GetUserCapsAndAppsByRealmRow, error)
 	GetUserCapsByRealm(ctx context.Context, arg GetUserCapsByRealmParams) ([]string, error)

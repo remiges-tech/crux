@@ -215,6 +215,17 @@ VALUES (20,
         '2023-12-29 00:00:00',
         'kanchan');
 
+        INSERT INTO "capgrant"
+VALUES (21,
+        'Ecommerce',
+        'Raj',
+        'amazon',
+        'ruleset',
+        '2024-01-29 00:00:00',
+        NULL,
+        '2023-12-29 00:00:00',
+        'kanchan');
+
 -- config TABLE
 
 INSERT INTO config (realm, slice, name, descr, val, setby)

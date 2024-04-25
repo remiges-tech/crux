@@ -99,3 +99,6 @@ SELECT  cap  FROM capgrant  WHERE "user" = @userId and realm = @realm;
 
 -- name: GetUserCapsAndAppsByRealm :many
 SELECT  cap ,app FROM capgrant  WHERE "user" = @userId and realm = @realm and app= any(@app::text[]);
+
+-- name: GetRuleSetCapabilityForApp :one
+SELECT count(*) FROM capgrant WHERE "user" = @userId and realm = @realm and app = @app AND cap = @cap;

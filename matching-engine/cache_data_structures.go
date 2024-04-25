@@ -96,7 +96,9 @@ type Ruleset_t struct {
 	Rules         []Rule_t `json:"rule"`
 	NCalled       int32
 	ReferenceType string
+	IsActive      bool `json:"isactive" validate:"required"`
 }
+
 type PerSlice_t struct {
 	LoadedAt   time.Time
 	BRSchema   map[ClassName_t]Schema_t

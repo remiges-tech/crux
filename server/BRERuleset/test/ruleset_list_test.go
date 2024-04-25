@@ -44,7 +44,7 @@ func RuleSetListTestcase() []testutils.TestCasesStruct {
 	rulesetListTestcase := []testutils.TestCasesStruct{
 
 		{
-			Name: "success - standard validation",
+			Name: "success - no parameter present",
 			RequestPayload: wscutils.Request{
 				Data: breruleset.RuleSetListReq{},
 			},
@@ -54,7 +54,7 @@ func RuleSetListTestcase() []testutils.TestCasesStruct {
 		{
 			Name: "Success - valid response - root capability",
 			RequestPayload: wscutils.Request{
-				Data: breruleset.RuleSetDeleteReq{
+				Data: breruleset.RuleSetListReq{
 					Slice: (int32(11)),
 					App:   "amazon",
 				},
