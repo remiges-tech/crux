@@ -130,7 +130,6 @@ func hasRulesetCapability(app string, query *sqlc.Queries, c *gin.Context) (bool
 	if err != nil {
 		return false, err
 	}
-fmt.Println(">>>>>>>>>>>>>>.count ",count ," userid",userID," App: ",app," cap: ",RULESET," realm",realmName)
 	if count > 0 {
 		return true, nil
 	} else {
@@ -138,36 +137,3 @@ fmt.Println(">>>>>>>>>>>>>>.count ",count ," userid",userID," App: ",app," cap: 
 	}
 }
 
-//================================================================================================================================================
-// func retrieveAndCheckIsActive(cruxCache *crux.Cache, request BRERuleSetActivateReq) {
-// 	applc := strings.ToLower(request.App)
-// 	currentRuleset, res := cruxCache.GetRulesetsFromCacheWithName(B, applc, realmName, request.Class, request.Name, request.Slice)
-// 	actionBlocks := currentRuleset.Rules
-
-// 	for _, rule := range actionBlocks {
-// 		if rule.RuleActions.ThenCall != "" {
-// 			thenRuleset, res := cruxCache.GetRulesetsFromCacheWithName(B, applc, realmName, request.Class, rule.RuleActions.ThenCall, request.Slice)
-// 			// for _, rule := range thenRuleset.Rules {
-// 			// 	if rule.IsActive == true
-// 		}
-// 	}
-//==========================================================================================================================================================================
-
-// 	currentRulesetName = ruleset in the request
-
-//	retrieveAndCheckIsActive(rulesetName string) {
-//	    currentRuleset = retrieve from cache (currentRulesetName)
-//	    actionBlocks = currentRuleset.RuleActions
-//	    for each action in actionBlocks
-//	        if action.thencall != nil
-//	            thenRuleset = retrieve the target ruleset
-//	            if thenRuleset.active == false
-//	                return error
-//	            endif
-//	            retrieveAndCheck(thenRuleset)
-//	        endif
-//	    endfo
-//	}
-//==================================================================================================================================================================
-
-//}
