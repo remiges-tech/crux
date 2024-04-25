@@ -192,6 +192,8 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/brerulesetget", breruleset.BRERuleSetGet)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/brerulesetlist", breruleset.BRERuleSetList)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/brerulesetdelete", breruleset.BRERuleSetDelete)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/brerulesetactivate", breruleset.BRERuleSetActivate)
+
 
 	appServerPortStr := "8084"
 	err = r.Run(":" + appServerPortStr)

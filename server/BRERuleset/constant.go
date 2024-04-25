@@ -1,7 +1,7 @@
 package breruleset
 
 var (
-	userID    string = "123"
+	userID    string = "Raj"
 	realmName string = "Ecommerce"
 	brwf      string = "B"
 )
@@ -12,4 +12,6 @@ const (
 	MARK         = "%"
 	DB_ERROR     = "failed to get data from DB"
 	AUTH_ERROR   = "authorization_error"
+	RULESET      = "ruleset"
+	B            = "B"
 )

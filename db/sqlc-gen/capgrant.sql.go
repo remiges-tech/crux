@@ -260,6 +260,29 @@ func (q *Queries) GetCapGrantForUser(ctx context.Context, arg GetCapGrantForUser
 	return items, nil
 }
 
+const getRuleSetCapabilityForApp = `-- name: GetRuleSetCapabilityForApp :one
+SELECT count(*) FROM capgrant WHERE "user" = $1 and realm = $2 and app = $3 AND cap = $4
+`
+
+type GetRuleSetCapabilityForAppParams struct {
+	Userid string      `json:"userid"`
+	Realm  string      `json:"realm"`
+	App    pgtype.Text `json:"app"`
+	Cap    string      `json:"cap"`
+}
+
+func (q *Queries) GetRuleSetCapabilityForApp(ctx context.Context, arg GetRuleSetCapabilityForAppParams) (int64, error) {
+	row := q.db.QueryRow(ctx, getRuleSetCapabilityForApp,
+		arg.Userid,
+		arg.Realm,
+		arg.App,
+		arg.Cap,
+	)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const getUserCapsAndAppsByRealm = `-- name: GetUserCapsAndAppsByRealm :many
 SELECT  cap ,app FROM capgrant  WHERE "user" = $1 and realm = $2 and app= any($3::text[])
 `
