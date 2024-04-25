@@ -14,6 +14,7 @@ type tracingTestCasesStruct struct {
 	rulesetFilePath    string
 	trace_lev          int
 	ExpectedResultFile string
+	ExpectedTrace      Trace_t
 	Url                string
 	ruleSchemasCache   string
 }
@@ -21,7 +22,17 @@ type tracingTestCasesStruct struct {
 //***********************************  Entity  ****************************************
 
 var (
-	entity_test_1 = Entity{
+	entity_return = Entity{
+		Realm: "Remiges",
+		App:   "tnt",
+		Slice: 12,
+		Class: "finance",
+		Attrs: map[string]string{
+			"step": "step2",
+			"mode": "demat",
+		},
+	}
+	entity_match = Entity{
 		Realm: "Remiges",
 		App:   "tnt",
 		Slice: 12,
@@ -29,8 +40,17 @@ var (
 		Attrs: map[string]string{
 			"step": "step1",
 			"mode": "demat",
-			// 		"stepfailed": "false",
-
+		},
+	}
+	entity_attrs = Entity{
+		Realm: "Remiges",
+		App:   "tnt",
+		Slice: 12,
+		Class: "finance",
+		Attrs: map[string]string{
+			"step":       "step1",
+			"mode":       "demat",
+			"stepfailed": "true",
 		},
 	}
 

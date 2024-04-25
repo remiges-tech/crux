@@ -1,1 +1,0 @@
-{ "start": "2024-04-10T23:00:00Z", "end": "2024-04-10T23:00:00Z", "realm": "Remiges", "app": "tnt", "entryRulesetID": 1, "entryRulesetName": "finance", "tracedata": [ { "id": 1, "setName": "finance", "rules": [ { "r": 0, "res": "+" }, { "r": 1, "res": "+" }, { "r": 2, "res": "\u003c" } ] } ] }

@@ -1,1 +1,48 @@
-{ "class": "ucc", "patternschema": [ { "attr": "step", "shortdesc": "", "longdesc": "", "valtype": "enum", "vals": { "aof": { }, "auth_done": { }, "bankaccvalid": { }, "dpandbankaccvalid": { }, "getcustdetails": { }, "kycvalid": { }, "nomauth": { }, "sendauthlinktoclient": { } } }, { "attr": "stepfailed", "shortdesc": "", "longdesc": "", "valtype": "bool" }, { "attr": "mode", "shortdesc": "", "longdesc": "", "valtype": "enum", "vals": { "demat": { }, "physical": { } } } ], "actionschema": { "tasks": [ "getcustdetails", "aof", "dpandbankaccvalid", "kycvalid", "nomauth", "bankaccvalid", "auth_done", "sendauthlinktoclient" ], "properties": [ "nextstep", "done" ] }, "n_checked": 0 }
+{
+  "class": "ucc",
+  "patternschema": [
+    {
+      "attr": "step",
+      "shortdesc": "",
+      "longdesc": "",
+      "valtype": "enum",
+      "vals": [
+        "aof",
+        "auth_done",
+        "bankaccvalid",
+        "dpandbankaccvalid",
+        "getcustdetails",
+        "kycvalid",
+        "nomauth",
+        "sendauthlinktoclient"
+      ]
+    },
+    {
+      "attr": "stepfailed",
+      "shortdesc": "",
+      "longdesc": "",
+      "valtype": "bool"
+    },
+    {
+      "attr": "mode",
+      "shortdesc": "",
+      "longdesc": "",
+      "valtype": "enum",
+      "vals": [ "demat", "physical" ]
+    }
+  ],
+  "actionschema": {
+    "tasks": [
+      "getcustdetails",
+      "aof",
+      "dpandbankaccvalid",
+      "kycvalid",
+      "nomauth",
+      "bankaccvalid",
+      "auth_done",
+      "sendauthlinktoclient"
+    ],
+    "properties": ["nextstep", "done"]
+  },
+  "n_checked": 0
+}

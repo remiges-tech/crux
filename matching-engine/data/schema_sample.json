@@ -26,10 +26,10 @@
             "shortdesc": "",
             "longdesc": "",
             "valtype": "enum",
-            "vals": {
-                "demat": { },
-                "physical": { }
-            }
+            "vals": [
+                "demat",
+                "physical"
+            ]
         }
     ],
     "actionschema": {

@@ -21,7 +21,7 @@ func DoMatch(entity Entity, ruleset *Ruleset_t, ruleSchemasCache *Schema_t, acti
 		}, false, fmt.Errorf("Trace level out of bounds"), trace
 	}
 
-	if trace.TraceData == nil {
+	if trace.TraceData == nil && trace_level > 0 {
 		// time_s := time.Now()
 		// this `time` is used for testing purposee revert with above in dev
 		time_s := time.Date(2024, time.April, 10, 23, 0, 0, 0, time.UTC)
@@ -74,9 +74,11 @@ func DoMatch(entity Entity, ruleset *Ruleset_t, ruleSchemasCache *Schema_t, acti
 				// if !exists {
 				// 	return ActionSet{}, false, errors.New("set not found")
 				// }
-				trace.End = time.Date(2024, time.April, 10, 23, 0, 0, 0, time.UTC)
-				traceData.add_rule(&eachRule, l2data, trace_level)
-				trace.add_tracedata(&traceData)
+				if trace_level > 0 {
+					trace.End = time.Date(2024, time.April, 10, 23, 0, 0, 0, time.UTC)
+					traceData.add_rule(&eachRule, l2data, trace_level)
+					trace.add_tracedata(&traceData)
+				}
 				if ruleset.Class != entity.Class {
 					return inconsistentRuleSet(ruleset.SetName, ruleset.SetName, ruleset, trace)
 				}
@@ -88,29 +90,34 @@ func DoMatch(entity Entity, ruleset *Ruleset_t, ruleSchemasCache *Schema_t, acti
 					}, false, err, trace
 				}
 			} else if DoExit || rule.RuleActions.DoExit {
-				eachRule.Res = Exit // if Exit then set Match as `<<`
-				trace.End = time.Date(2024, time.April, 10, 23, 0, 0, 0, time.UTC)
-				traceData.add_rule(&eachRule, l2data, trace_level)
-				trace.add_tracedata(&traceData)
+				if trace_level > 0 {
+					eachRule.Res = Exit // if Exit then set Match as `<<`
+					trace.End = time.Date(2024, time.April, 10, 23, 0, 0, 0, time.UTC)
+					traceData.add_rule(&eachRule, l2data, trace_level)
+					trace.add_tracedata(&traceData)
+				}
 				return actionSet, true, nil, trace
 			} else if rule.RuleActions.DoReturn {
-				eachRule.Res = Return // if Return then set Match as `<`
-				delete(seenRuleSets, ruleset.SetName)
-				trace.End = time.Date(2024, time.April, 10, 23, 0, 0, 0, time.UTC)
-				traceData.add_rule(&eachRule, l2data, trace_level)
-				trace.add_tracedata(&traceData)
+				if trace_level > 0 {
+					eachRule.Res = Return // if Return then set Match as `<`
+					delete(seenRuleSets, ruleset.SetName)
+					trace.End = time.Date(2024, time.April, 10, 23, 0, 0, 0, time.UTC)
+					traceData.add_rule(&eachRule, l2data, trace_level)
+					trace.add_tracedata(&traceData)
+				}
 				return actionSet, false, nil, trace
 			} else if len(rule.RuleActions.ElseCall) > 0 {
-				eachRule.Res = ElseCall // if ElseCall then set Match as `-c`
-				eachRule.NextSet = rule.RuleActions.ElseCall
-
 				// setToCall, exists := findRefRuleSetByName(ruleSetsCache, rule.RuleActions.ElseCall)
 				// if !exists {
 				// 	return ActionSet{}, false, errors.New("set not found")
 				// }
-				trace.End = time.Date(2024, time.April, 10, 23, 0, 0, 0, time.UTC)
-				traceData.add_rule(&eachRule, l2data, trace_level)
-				trace.add_tracedata(&traceData)
+				if trace_level > 0 {
+					eachRule.Res = ElseCall // if ElseCall then set Match as `-c`
+					eachRule.NextSet = rule.RuleActions.ElseCall
+					trace.End = time.Date(2024, time.April, 10, 23, 0, 0, 0, time.UTC)
+					traceData.add_rule(&eachRule, l2data, trace_level)
+					trace.add_tracedata(&traceData)
+				}
 				if ruleset.Class != entity.Class {
 					return inconsistentRuleSet(ruleset.SetName, ruleset.SetName, ruleset, trace)
 				}
@@ -122,10 +129,12 @@ func DoMatch(entity Entity, ruleset *Ruleset_t, ruleSchemasCache *Schema_t, acti
 						Properties: make(map[string]string),
 					}, false, err, trace
 				} else if DoExit {
-					eachRule.Res = Exit
-					traceData.add_rule(&eachRule, l2data, trace_level)
-					trace.End = time.Date(2024, time.April, 10, 23, 0, 0, 0, time.UTC)
-					trace.add_tracedata(&traceData)
+					if trace_level > 0 {
+						eachRule.Res = Exit
+						traceData.add_rule(&eachRule, l2data, trace_level)
+						trace.End = time.Date(2024, time.April, 10, 23, 0, 0, 0, time.UTC)
+						trace.add_tracedata(&traceData)
+					}
 					return actionSet, true, nil, trace
 				}
 			}
@@ -134,11 +143,12 @@ func DoMatch(entity Entity, ruleset *Ruleset_t, ruleSchemasCache *Schema_t, acti
 		traceData.add_rule(&eachRule, l2data, trace_level) // collect eachRule & l2data
 	}
 	delete(seenRuleSets, ruleset.SetName)
-
-	// trace.End = time.Now() // set end time of trace
-	// this `time` is used for testing purposee revert with above in dev
-	trace.End = time.Date(2024, time.April, 10, 23, 0, 0, 0, time.UTC)
-	trace.add_tracedata(&traceData) // append collected tracedata to trace
+	if trace_level > 0 {
+		// trace.End = time.Now() // set end time of trace
+		// this `time` is used for testing purposee revert with above in dev
+		trace.End = time.Date(2024, time.April, 10, 23, 0, 0, 0, time.UTC)
+		trace.add_tracedata(&traceData) // append collected tracedata to trace
+	}
 	return actionSet, true, nil, trace
 }
 
@@ -188,6 +198,9 @@ func (traced_data *Trace_t) add_tracedata(record_to_add *TraceData_t) {
 // }
 
 func (traced_data_rules *TraceData_t) add_rule(each_rule *TraceDataRule_t, l2_data_to_add TraceDataRuleL2_t, trace_level int) {
+	if trace_level == 0 {
+		return
+	}
 	if trace_level == 2 {
 		each_rule.L2Data = &l2_data_to_add
 	}
