@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/remiges-tech/alya/wscutils"
+	crux "github.com/remiges-tech/crux/matching-engine"
 	"github.com/remiges-tech/crux/server"
 	breruleset "github.com/remiges-tech/crux/server/BRERuleset"
 	"github.com/remiges-tech/crux/testutils"
@@ -51,8 +52,40 @@ func RuleSetNewTestcase() []testutils.TestCasesStruct {
 			TestJsonFile:     "./data/rulesetnew_standard_err.json",
 		},
 		{
-			Name:             "Success - valid response",
-			PayloadFile:      "./data/rulesetnew_payload.json",
+			Name: "Success - valid response",
+			RequestPayload: wscutils.Request{
+				Data: breruleset.RuleSetNew{
+					Slice:      11,
+					App:        "myntra",
+					Class:      "inventoryitems",
+					Name:       "myntraruleset",
+					IsInternal: true,
+					RuleSet: []crux.Rule_t{
+						{
+							RuleActions: crux.RuleActionBlock_t{
+								Task: []string{"cat"},
+								Properties: map[string]string{
+									"nextstep": "done",
+								},
+							},
+							RulePatterns: []crux.RulePatternBlock_t{
+								{
+									Op:   "eq",
+									Val:  "textbook",
+									Attr: "cat",
+								},
+								{
+									Op:   "ge",
+									Val:  5000,
+									Attr: "mrp",
+								},
+							},
+							NFailed:  0,
+							NMatched: 0,
+						},
+					},
+				},
+			},
 			ExpectedHttpCode: http.StatusOK,
 			ExpectedResult: &wscutils.Response{
 				Status:   wscutils.SuccessStatus,
