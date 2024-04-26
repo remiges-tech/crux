@@ -222,6 +222,7 @@ func (c Cache) loadInternalRuleSet(dbResponseRuleSet sqlc.Ruleset) error {
 		Class:   dbResponseRuleSet.Class,
 		SetName: dbResponseRuleSet.Setname,
 		Rules:   rules,
+		IsActive: false,
 	}
 	if dbResponseRuleSet.Brwf == BRE {
 		perApp[sliceKey].BRRulesets[classNameKey] = append(perApp[sliceKey].BRRulesets[classNameKey], newRuleset)
@@ -435,7 +436,10 @@ func (c Cache) getRulesetsFromCacheWithName(brwf, app, realm, class, ruleSetName
 	}
 	return nil, false
 }
-func (c Cache) RetrieveAndCheckIsActiveRuleSet(brwf, app, realm, class, ruleSetName string, slice int32) (ntraversed int, nactivated int,err error) {
+
+// This fuction is used to retrieve a specific ruleset from cache and checks whether it is active if not then make it active.
+// It also checks whether it has thencall then it recursively retrive all child rulesets and make all of them active.
+func (c Cache) RetrieveAndCheckIsActiveRuleSet(brwf, app, realm, class, ruleSetName string, slice int32) (ntraversed int, nactivated int, err error) {
 
 	// Retrieve the rule set from cache
 	currentRuleset, exists, err := c.GetRulesetName(brwf, app, realm, class, ruleSetName, slice)
@@ -466,4 +470,24 @@ func (c Cache) RetrieveAndCheckIsActiveRuleSet(brwf, app, realm, class, ruleSetN
 	}
 
 	return ntraversed, nactivated, nil
+}
+
+// This function is used to retrieve a specific ruleset from cache and make it inactive
+func (c Cache) RetrieveAndDeActiveRuleSet(brwf, app, realm, class, ruleSetName string, slice int32) error {
+
+	// Retrieve the rule set from cache
+	currentRuleset, exists, err := c.GetRulesetName(brwf, app, realm, class, ruleSetName, slice)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return fmt.Errorf("rule set not found in cache: %s", ruleSetName)
+	}
+
+	// Check if the current rule set is active
+	if currentRuleset.IsActive {
+		currentRuleset.IsActive = false
+	}
+
+	return nil
 }
