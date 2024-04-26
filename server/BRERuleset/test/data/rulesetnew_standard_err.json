@@ -30,7 +30,7 @@
         {
             "msgid": 101,
             "errcode": "required",
-            "field": "RulseSet"
+            "field": "RuleSet"
         }
     ]
 }
