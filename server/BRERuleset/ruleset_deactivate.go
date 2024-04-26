@@ -1,12 +1,10 @@
 package breruleset
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
@@ -15,31 +13,26 @@ import (
 	"github.com/remiges-tech/crux/types"
 )
 
-type BRERuleSetActivateReq struct {
+type BRERuleSetDeActivateReq struct {
 	Slice int32  `json:"slice" validate:"required,gt=0"`
 	App   string `json:"app" validate:"required,alpha,lt=15"`
 	Class string `json:"class" validate:"required,alpha,lt=15"`
 	Name  string `json:"name" validate:"required,lt=20"`
 }
 
-type BRERuleSetActivateRes struct {
-	Ntraversed int32 `json:"ntraversed"`
-	Nactivated int32 `json:"nactivated"`
-}
-
-func BRERuleSetActivate(c *gin.Context, s *service.Service) {
+func BRERuleSetDeActivate(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour
-	lh.Log("BRERuleSetActivate request received")
+	lh.Log("BRERuleSetDeActivate request received")
 
 	var (
-		request BRERuleSetActivateReq
+		request BRERuleSetDeActivateReq
 	)
 
 	// implement the user realm and all here
 	var capForList = []string{"ruleset"}
 
-	realmName := "Ecommerce"
-	userID := "Raj"
+	// realmName := "Ecommerce"
+	// userID := "Raj"
 	// userID, err := server.ExtractUserNameFromJwt(c)
 	// if err != nil {
 	// 	lh.Info().Log("unable to extract userID from token")
@@ -106,33 +99,14 @@ func BRERuleSetActivate(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	ntraversed, nactivated, err := cruxCache.RetrieveAndCheckIsActiveRuleSet(B, applc, realmName, request.Class, request.Name, request.Slice)
+	err = cruxCache.RetrieveAndDeActiveRuleSet(B, applc, realmName, request.Class, request.Name, request.Slice)
 	if err != nil {
-		lh.Debug0().Error(err).Log("error while retriving and verifying whether all ruleset must be active ")
+		lh.Debug0().Error(err).Log("error while retriving and deactivating a rulesets ")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, err.Error()))
 		return
 	}
 
-	response := BRERuleSetActivateRes{
-		Ntraversed: int32(ntraversed),
-		Nactivated: int32(nactivated),
-	}
-	lh.Debug0().Log(" finished execution of BRERuleSetActivate()")
-	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(response))
-}
-func hasRulesetCapability(app string, query *sqlc.Queries, c *gin.Context) (bool, error) {
-	count, err := query.GetRuleSetCapabilityForApp(c, sqlc.GetRuleSetCapabilityForAppParams{
-		Userid: userID,
-		Realm:  realmName,
-		App:    pgtype.Text{String: app, Valid: true},
-		Cap:    RULESET,
-	})
-	if err != nil {
-		return false, err
-	}
-	if count > 0 {
-		return true, nil
-	} else {
-		return false, fmt.Errorf("caller does not have ruleset capability for the specified app : %v", app)
-	}
+	lh.Debug0().Log(" finished execution of BRERuleSetDeActivate()")
+	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})
+
 }
