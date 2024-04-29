@@ -29,8 +29,8 @@ type tracingTestCasesStruct struct {
 
 var (
 	sampleEntity = Entity{
-		Realm: "BSE",
-		App:   "starmf",
+		Realm: "Nova",
+		App:   "fundify",
 		Slice: 12,
 		Class: "ucctest",
 		Attrs: map[string]string{
@@ -40,7 +40,7 @@ var (
 		},
 	}
 	sampleEntityWfinstancenew = Entity{
-		Realm: "BSE",
+		Realm: "Nova",
 		App:   "uccapp",
 		Slice: 12,
 		Class: "ucc",

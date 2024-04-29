@@ -60,9 +60,12 @@ func matchPattern(entity Entity, rulePattern []RulePatternBlock_t, actionSet Act
 			valType = typeBool
 		}
 
-		termval, _ := convertTermAttrVal(term.Val, valType)
-		matched, err := makeComparison(entityAttrVal, termval, valType, term.Op)
+		termval, err := convertTermAttrVal(term.Val, valType)
+		if err != nil {
+			return false, err
+		}
 
+		matched, err := makeComparison(entityAttrVal, termval, valType, term.Op)
 		if err != nil {
 			return false, fmt.Errorf("error making comparison %w", err)
 		}

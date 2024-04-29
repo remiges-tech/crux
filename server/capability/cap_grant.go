@@ -42,7 +42,7 @@ func CapGrant(c *gin.Context, s *service.Service) {
 		appMap     = make(map[string][]string, 0)
 	)
 	// userID := "Admin"
-	// realmName := "BSE"
+	// realmName := "Nova"
 	userID, err := server.ExtractUserNameFromJwt(c)
 	if err != nil {
 		lh.Info().Log("unable to extract userID from token")

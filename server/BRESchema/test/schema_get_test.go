@@ -47,7 +47,7 @@ func TestBRESchemaGet(t *testing.T) {
 }
 
 func schemaGetTestcase() []testutils.TestCasesStruct {
-	
+
 	var slice int32 = -1
 	schemaNewTestcase := []testutils.TestCasesStruct{
 		// 1st test case
@@ -85,9 +85,9 @@ func schemaGetTestcase() []testutils.TestCasesStruct {
 			Name: TestSchemaGet_2,
 			RequestPayload: wscutils.Request{
 				Data: breschema.BRESchemaGetReq{
-					Slice: 12,
-					App:   "starmf",
-					Class: "custonboarding",
+					Slice: 11,
+					App:   "amazon",
+					Class: "inventoryitems",
 				},
 			},
 

@@ -42,7 +42,7 @@ func TestBRESchemaDelete(t *testing.T) {
 
 func breschemaDeleteTestCase() []testutils.TestCasesStruct {
 	var validSlice int32 = 12
-	app := "starmf"
+	app := "fundify"
 	class := "custonboarding"
 	var slice int32 = -1
 	schemaNewTestcase := []testutils.TestCasesStruct{

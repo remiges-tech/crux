@@ -118,7 +118,7 @@ func VerifyPatternSchema(rs Schema_t, isWF bool) []error {
 
 	// Workflows only
 	if isWF && (!stepFound || !stepFailedFound) {
-		err := CruxError{Keyword: "Required", FieldName: "attr", Vals: "step/stepfailed", Messages: "necessary attributes absent in schema"} //fmt.Errorf("necessary workflow attributes absent in schema for class %v", rs.Class)
+		err := CruxError{Keyword: "Required", FieldName: "attr", Vals: "step/stepfailed", Messages: "necessary attributes aNovant in schema"} //fmt.Errorf("necessary workflow attributes aNovant in schema for class %v", rs.Class)
 		errs = append(errs, err)
 	}
 

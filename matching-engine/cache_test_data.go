@@ -209,7 +209,7 @@ var mockSchemasets = []sqlc.Schema{
 		]`),
 		Actionschema: []byte(`{
 			"tasks": ["unitstoamc", "unitstorta"],
-			"properties": ["amfiordercutoff", "bseordercutoff", "fundscutoff", "unitscutoff"]
+			"properties": ["amfiordercutoff", "Novaordercutoff", "fundscutoff", "unitscutoff"]
 		}`),
 		Createdat: pgtype.Timestamp{Time: time.Now()},
 		Createdby: "user4",

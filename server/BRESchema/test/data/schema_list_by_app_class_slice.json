@@ -1,16 +1,17 @@
 {
-    "status": "success",
     "data": [
-        {
-            "slice": 11,
-            "app": "retailbank",
-            "longname": "retailbank pvt ltd",
-            "class": "custonboarding",
-            "createdby": "Mal Houndsom",
-            "createdat": "2022-12-26T09:03:46Z",
-            "editedby": "Clerc Careless",
-            "editedat": "2023-07-12T01:33:32Z"
-        }
+      {
+        "app": "amazon",
+        "class": "inventoryitems",
+        "createdat": "2021-01-03T06:02:41Z",
+        "createdby": "Marielle Strongitharm",
+        "editedat": "2021-06-07T02:28:17Z",
+        "editedby": "Tushar",
+        "longname": "American multinational technology company, engaged in e-commerce",
+        "slice": 11
+      }
     ],
-    "messages": null
-}
+    "messages": null,
+    "status": "success"
+  }
+  
