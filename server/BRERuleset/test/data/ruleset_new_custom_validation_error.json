@@ -1,0 +1,12 @@
+{
+    "data": null,
+    "messages": [
+      {
+        "errcode": "required",
+        "field": "RuleSet",
+        "msgid": 101
+      }
+    ],
+    "status": "error"
+  }
+  

@@ -29,7 +29,7 @@ func main() {
 
 	//logger setup
 	fallbackWriter := logharbour.NewFallbackWriter(os.Stdout, os.Stdout)
-	lctx := logharbour.NewLoggerContext(logharbour.Debug1)
+	lctx := logharbour.NewLoggerContext(logharbour.Debug0)
 	l := logharbour.NewLogger(lctx, "crux", fallbackWriter)
 
 	// rigelAppName := flag.String("appName", "crux", "The name of the application")
@@ -174,6 +174,7 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmslicedeactivate", realmslice.RealmSliceDeactivate)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/realmsliceapps/:id", realmslice.RealmSliceApps)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmslicepurge", realmslice.RealmSlicePurge)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmslicelist", realmslice.RealmSliceList)
 
 	// capabilities
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/capgrant", capability.CapGrant)
@@ -194,8 +195,6 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/brerulesetdelete", breruleset.BRERuleSetDelete)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/brerulesetactivate", breruleset.BRERuleSetActivate)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/brerulesetdeactivate", breruleset.BRERuleSetActivate)
-
-
 
 	appServerPortStr := "8084"
 	err = r.Run(":" + appServerPortStr)

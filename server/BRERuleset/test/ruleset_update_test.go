@@ -51,7 +51,7 @@ func RuleSetUpdateTestcase() []testutils.TestCasesStruct {
 			RequestPayload: wscutils.Request{
 				Data: nil,
 			},
-    
+
 			ExpectedHttpCode: http.StatusBadRequest,
 			ExpectedResult: &wscutils.Response{
 				Status: wscutils.ErrorStatus,
@@ -66,19 +66,19 @@ func RuleSetUpdateTestcase() []testutils.TestCasesStruct {
 		},
 		{
 			Name:             "err- standard validation",
-			PayloadFile:      "/server/workflow/test/data/workflowNew/workFlow_new_validation_payload.json",
+			PayloadFile:      "./data/ruleset_new_validation_payload.json",
 			ExpectedHttpCode: http.StatusBadRequest,
-			TestJsonFile:     "/server/workflow/test/data/workflowNew/workflow_new_validation_error.json",
+			TestJsonFile:     "./data/ruleset_new_validation_error.json",
 		},
 		{
 			Name:             "err- custom validation",
-			PayloadFile:      "/server/workflow/test/data/workflowNew/workflow_new_custom_validation_payload.json",
+			PayloadFile:      "./data/ruleset_new_custom_validation_payload.json",
 			ExpectedHttpCode: http.StatusBadRequest,
-			TestJsonFile:     "/server/workflow/test/data/workflowNew/workflow_new_custom_validation_error.json",
+			TestJsonFile:     "./data/ruleset_new_custom_validation_error.json",
 		},
 		{
-			Name:             "Success- update workflow",
-			PayloadFile:      "/server/workflow/test/data/workflowNew/workflow_update_success_payload.json",
+			Name:             "Success- update ruleset",
+			PayloadFile:      "./data/ruleset_new_success_payload.json",
 			ExpectedHttpCode: http.StatusOK,
 			ExpectedResult: &wscutils.Response{
 				Status:   wscutils.SuccessStatus,
