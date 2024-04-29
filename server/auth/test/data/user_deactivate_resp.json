@@ -2,7 +2,7 @@
   "status": "success",
   "data": {
     "id": 1,
-    "realm": "BSE",
+    "realm": "Nova",
     "user": "john",
     "app": "hdfcbank",
     "cap": "root",

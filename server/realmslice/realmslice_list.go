@@ -16,23 +16,23 @@ func RealmSliceList(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour
 	lh.Log("RealmSliceList request received")
 
-	userID, err := server.ExtractUserNameFromJwt(c)
-	if err != nil {
-		lh.Info().Log("unable to extract userID from token")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
-		return
-	}
+	// userID, err := server.ExtractUserNameFromJwt(c)
+	// if err != nil {
+	// 	lh.Info().Log("unable to extract userID from token")
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
+	// 	return
+	// }
 
-	realmName, err := server.ExtractRealmFromJwt(c)
-	if err != nil {
-		lh.Info().Log("unable to extract realm from token")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
-		return
-	}
+	// realmName, err := server.ExtractRealmFromJwt(c)
+	// if err != nil {
+	// 	lh.Info().Log("unable to extract realm from token")
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
+	// 	return
+	// }
 
 	var (
 		// userId     = "1234"
-		// realm_name = "BSE"
+		// realm_name = "Nova"
 		reportCap = []string{"report"}
 	)
 	isCapable, _ := server.Authz_check(types.OpReq{

@@ -1756,7 +1756,7 @@ package crux
 // 			{"ordertype", opNE, "sip"},
 // 		},
 // 		RuleActions: RuleActionBlock_t{
-// 			Properties: map[string]string{"amfiordercutoff": "1500", "bseordercutoff": "1500"},
+// 			Properties: map[string]string{"amfiordercutoff": "1500", "Novaordercutoff": "1500"},
 // 			ThenCall:   "otherordertypes",
 // 		},
 // 	}
@@ -1778,7 +1778,7 @@ package crux
 // 			{"overnightscheme", opEQ, false},
 // 		},
 // 		RuleActions: RuleActionBlock_t{
-// 			Properties: map[string]string{"amfiordercutoff": "1500", "bseordercutoff": "1430",
+// 			Properties: map[string]string{"amfiordercutoff": "1500", "Novaordercutoff": "1430",
 // 				"fundscutoff": "1430"},
 // 			DoReturn: true,
 // 		},
@@ -1786,7 +1786,7 @@ package crux
 // 	rule2 := Rule_t{
 // 		RulePatterns: []RulePatternBlock_t{},
 // 		RuleActions: RuleActionBlock_t{
-// 			Properties: map[string]string{"amfiordercutoff": "1330", "bseordercutoff": "1300",
+// 			Properties: map[string]string{"amfiordercutoff": "1330", "Novaordercutoff": "1300",
 // 				"fundscutoff": "1230"},
 // 		},
 // 	}
@@ -1861,7 +1861,7 @@ package crux
 // 	rule2 := Rule_t{
 // 		RulePatterns: []RulePatternBlock_t{},
 // 		RuleActions: RuleActionBlock_t{
-// 			Properties: map[string]string{"amfiordercutoff": "1500", "bseordercutoff": "1430",
+// 			Properties: map[string]string{"amfiordercutoff": "1500", "Novaordercutoff": "1430",
 // 				"fundscutoff": "1430"},
 // 		},
 // 	}
@@ -1875,7 +1875,7 @@ package crux
 // 	}
 
 // 	want := ActionSet{
-// 		Properties: map[string]string{"amfiordercutoff": "1500", "bseordercutoff": "1430",
+// 		Properties: map[string]string{"amfiordercutoff": "1500", "Novaordercutoff": "1430",
 // 			"fundscutoff": "1430"},
 // 	}
 // 	*tests = append(*tests, doMatchTest{
@@ -1910,7 +1910,7 @@ package crux
 // 	rule2 := Rule_t{
 // 		RulePatterns: []RulePatternBlock_t{},
 // 		RuleActions: RuleActionBlock_t{
-// 			Properties: map[string]string{"amfiordercutoff": "1500", "bseordercutoff": "1500",
+// 			Properties: map[string]string{"amfiordercutoff": "1500", "Novaordercutoff": "1500",
 // 				"unitscutoff": "1630"},
 // 		},
 // 	}
@@ -1924,7 +1924,7 @@ package crux
 // 	}
 
 // 	want := ActionSet{
-// 		Properties: map[string]string{"amfiordercutoff": "1500", "bseordercutoff": "1500",
+// 		Properties: map[string]string{"amfiordercutoff": "1500", "Novaordercutoff": "1500",
 // 			"unitscutoff": "1630"},
 // 	}
 // 	*tests = append(*tests, doMatchTest{
@@ -1957,7 +1957,7 @@ package crux
 // 	rule2 := Rule_t{
 // 		RulePatterns: []RulePatternBlock_t{},
 // 		RuleActions: RuleActionBlock_t{
-// 			Properties: map[string]string{"amfiordercutoff": "1500", "bseordercutoff": "1500",
+// 			Properties: map[string]string{"amfiordercutoff": "1500", "Novaordercutoff": "1500",
 // 				"unitscutoff": "1730"},
 // 		},
 // 	}
@@ -1971,7 +1971,7 @@ package crux
 // 	}
 
 // 	want := ActionSet{
-// 		Properties: map[string]string{"amfiordercutoff": "1500", "bseordercutoff": "1500",
+// 		Properties: map[string]string{"amfiordercutoff": "1500", "Novaordercutoff": "1500",
 // 			"unitscutoff": "1730"},
 // 	}
 // 	*tests = append(*tests, doMatchTest{
@@ -2005,7 +2005,7 @@ package crux
 // 	rule2 := Rule_t{
 // 		RulePatterns: []RulePatternBlock_t{},
 // 		RuleActions: RuleActionBlock_t{
-// 			Properties: map[string]string{"amfiordercutoff": "1500", "bseordercutoff": "1500",
+// 			Properties: map[string]string{"amfiordercutoff": "1500", "Novaordercutoff": "1500",
 // 				"unitscutoff": "1730"},
 // 		},
 // 	}
@@ -2019,7 +2019,7 @@ package crux
 // 	}
 
 // 	want := ActionSet{
-// 		Properties: map[string]string{"amfiordercutoff": "1500", "bseordercutoff": "1500",
+// 		Properties: map[string]string{"amfiordercutoff": "1500", "Novaordercutoff": "1500",
 // 			"unitscutoff": "1730"},
 // 	}
 // 	*tests = append(*tests, doMatchTest{
@@ -2052,7 +2052,7 @@ package crux
 // 	rule2 := Rule_t{
 // 		RulePatterns: []RulePatternBlock_t{},
 // 		RuleActions: RuleActionBlock_t{
-// 			Properties: map[string]string{"amfiordercutoff": "1330", "bseordercutoff": "1300",
+// 			Properties: map[string]string{"amfiordercutoff": "1330", "Novaordercutoff": "1300",
 // 				"fundscutoff": "1230"},
 // 		},
 // 	}
@@ -2066,7 +2066,7 @@ package crux
 // 	}
 
 // 	want := ActionSet{
-// 		Properties: map[string]string{"amfiordercutoff": "1330", "bseordercutoff": "1300",
+// 		Properties: map[string]string{"amfiordercutoff": "1330", "Novaordercutoff": "1300",
 // 			"fundscutoff": "1230"},
 // 	}
 // 	*tests = append(*tests, doMatchTest{
@@ -2099,7 +2099,7 @@ package crux
 // 	rule2 := Rule_t{
 // 		RulePatterns: []RulePatternBlock_t{},
 // 		RuleActions: RuleActionBlock_t{
-// 			Properties: map[string]string{"amfiordercutoff": "1330", "bseordercutoff": "1300",
+// 			Properties: map[string]string{"amfiordercutoff": "1330", "Novaordercutoff": "1300",
 // 				"fundscutoff": "1230"},
 // 		},
 // 	}
@@ -2113,7 +2113,7 @@ package crux
 // 	}
 // 	ruleSetsTests = append(ruleSetsTests, &rs)
 // 	want := ActionSet{
-// 		Properties: map[string]string{"amfiordercutoff": "1330", "bseordercutoff": "1300",
+// 		Properties: map[string]string{"amfiordercutoff": "1330", "Novaordercutoff": "1300",
 // 			"fundscutoff": "1230"},
 // 	}
 // 	*tests = append(*tests, doMatchTest{

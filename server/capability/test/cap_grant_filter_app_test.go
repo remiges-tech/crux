@@ -36,15 +36,15 @@ func TestFilterApp(t *testing.T) {
 			name: "Test case 2 - one entry is already present in db",
 			args: args{
 				appCapDb: []sqlc.GetUserCapsAndAppsByRealmRow{
-					{Cap: "schema", App: pgtype.Text{String: "starmf", Valid: true}},
+					{Cap: "schema", App: pgtype.Text{String: "fundify", Valid: true}},
 				},
 				appcaps: []string{"schema", "rules"},
-				apps:    &[]string{"nedbank1", "retailbank", "starmf"},
+				apps:    &[]string{"nedbank1", "retailbank", "fundify"},
 			},
 			want: map[string][]string{
 				"nedbank1":   {"schema", "rules"},
 				"retailbank": {"schema", "rules"},
-				"starmf":     {"rules"},
+				"fundify":    {"rules"},
 			},
 		},
 	}

@@ -27,12 +27,12 @@ func RealmSliceActivate(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
 	l.Debug0().Log("starting execution of RealmSliceActivate()")
 
-	userID, err := server.ExtractUserNameFromJwt(c)
-	if err != nil {
-		l.Info().Log("unable to extract userID from token")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
-		return
-	}
+	// userID, err := server.ExtractUserNameFromJwt(c)
+	// if err != nil {
+	// 	l.Info().Log("unable to extract userID from token")
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
+	// 	return
+	// }
 
 	isCapable, _ := server.Authz_check(types.OpReq{
 		User:      userID,
@@ -51,7 +51,7 @@ func RealmSliceActivate(c *gin.Context, s *service.Service) {
 		fromt    time.Time
 	)
 
-	err = wscutils.BindJSON(c, &req)
+	err := wscutils.BindJSON(c, &req)
 	if err != nil {
 		l.Error(err).Log("error unmarshalling query parameters to struct:")
 		return

@@ -2,8 +2,8 @@
 
 INSERT INTO realm
 VALUES (11,
-        'BSE',
-        'BSE',
+        'Nova',
+        'Nova',
         'Bombay Stock Exchange',
         'colty',
         '2022-12-26T09:03:46Z',
@@ -46,7 +46,7 @@ VALUES (11,
 
 INSERT INTO realmslice
 VALUES (12,
-        'BSE',
+        'Nova',
         'Stock Market',
         true,
         NULL,
@@ -59,7 +59,7 @@ VALUES (12,
 
 INSERT INTO realmslice
 VALUES (13,
-        'BSE',
+        'Nova',
         'Stock Market',
         true,
         NULL,
@@ -86,7 +86,7 @@ VALUES (14,
 
 INSERT INTO "app"
 VALUES (11,
-        'BSE',
+        'Nova',
         'retailBANK',
         'retailbank',
         'retailbank pvt ltd',
@@ -107,7 +107,7 @@ VALUES (12,
 
 INSERT INTO "app"
 VALUES (14,
-        'BSE',
+        'Nova',
         'nedBank1',
         'nedbank1',
         'netbank pvt ltd',
@@ -117,7 +117,7 @@ VALUES (14,
 
 INSERT INTO "app"
 VALUES (15,
-        'BSE',
+        'Nova',
         'HDFCBank',
         'hdfcbank',
         'hdfcbank pvt ltd',
@@ -127,16 +127,16 @@ VALUES (15,
 
 INSERT INTO "app"
 VALUES (16,
-        'BSE',
-        'starMF',
-        'starmf',
+        'Nova',
+        'fundify',
+        'fundify',
         'mutual Fund',
         'admin',
         '2024-01-29 00:00:00');
 
 INSERT INTO "app"
 VALUES (17,
-        'BSE',
+        'Nova',
         'uccapp',
         'uccapp',
         'mutual Fund',
@@ -155,7 +155,7 @@ VALUES (18,
 
 INSERT INTO "capgrant"
 VALUES (10,
-        'BSE',
+        'Nova',
         'Raj',
         NULL,
         'root',
@@ -167,7 +167,7 @@ VALUES (10,
 
 INSERT INTO "capgrant"
 VALUES (12,
-        'BSE',
+        'Nova',
         'Raj',
         'hdfcbank',
         'rules',
@@ -179,7 +179,7 @@ VALUES (12,
 
 INSERT INTO "capgrant"
 VALUES (14,
-        'BSE',
+        'Nova',
         'Raj',
         NULL,
         'auth',
@@ -190,14 +190,14 @@ VALUES (14,
 
 
 INSERT INTO capgrant (id,realm, "user", app, cap, "from", "to", setby) VALUES
-(15,'BSE', 'john_doe', 'starmf', 'read', '2023-01-01', '2023-12-31', 'admin'),
-(16,'BSE', 'jane_smith', 'hdfcbank', 'write', '2023-02-15', NULL, 'manager'),
-(18,'BSE', 'neha_gupta', 'uccapp', 'admin', '2023-01-01', '2024-01-01', 'admin');
+(15,'Nova', 'john_doe', 'fundify', 'read', '2023-01-01', '2023-12-31', 'admin'),
+(16,'Nova', 'jane_smith', 'hdfcbank', 'write', '2023-02-15', NULL, 'manager'),
+(18,'Nova', 'neha_gupta', 'uccapp', 'admin', '2023-01-01', '2024-01-01', 'admin');
 INSERT INTO "capgrant"
 VALUES (19,
-        'BSE',
+        'Nova',
         'Raj',
-        'starmf',
+        'fundify',
         'schema',
         '2024-01-29 00:00:00',
         NULL,
@@ -229,7 +229,7 @@ VALUES (21,
 -- config TABLE
 
 INSERT INTO config (realm, slice, name, descr, val, setby)
-VALUES ('BSE',
+VALUES ('Nova',
         11,
         'CONFIG_A',
         'Description for CONFIG_A',
@@ -247,7 +247,7 @@ VALUES ('BSE',
 
 INSERT INTO "schema"
 VALUES (10,
-        'BSE',
+        'Nova',
         11,
         'retailbank',
         'B',
@@ -277,7 +277,7 @@ VALUES (11,
 
 insert into "schema"
 VALUES (12,
-        'BSE',
+        'Nova',
         12,
         'retailbank',
         'W',
@@ -307,7 +307,7 @@ VALUES (13,
 
 insert into "schema"
 VALUES (14,
-        'BSE',
+        'Nova',
         11,
         'retailbank',
         'B',
@@ -322,7 +322,7 @@ VALUES (14,
 
 insert into "schema"
 VALUES (15,
-        'BSE',
+        'Nova',
         13,
         'retailbank',
         'W',
@@ -337,7 +337,7 @@ VALUES (15,
 
 INSERT INTO "schema"
 VALUES (16,
-        'BSE',
+        'Nova',
         13,
         'uccapp',
         'W',
@@ -352,9 +352,9 @@ VALUES (16,
 
 INSERT INTO "schema"
 VALUES (17,
-        'BSE',
+        'Nova',
         12,
-        'starmf',
+        'fundify',
         'W',
         'ucc',
         '[{"attr": "step", "vals": {"aof": {}, "start": {}, "kyc_done": {}, "dp_bank_done": {}, "dp_verification": {}, "kyc_verification": {}, "pan_verification": {}, "bank_verification": {}, "ucc_authentication": {}, "pan_aadhaar_linking": {}, "fataca_ubo_verification": {}, "nomination_authentication": {}}, "valtype": "enum", "longdesc": "", "shortdesc": ""}, {"attr": "stepfailed", "valtype": "bool", "longdesc": "", "shortdesc": ""}, {"attr": "member_type", "vals": {"broker": {}, "non-broker": {}}, "valtype": "enum", "longdesc": "", "shortdesc": ""}, {"attr": "ucc_type", "vals": {"demat": {}, "physical": {}}, "valtype": "enum", "longdesc": "", "shortdesc": ""}, {"attr": "tax_status_type", "vals": {"individual": {}, "non_individual": {}}, "valtype": "enum", "longdesc": "", "shortdesc": ""}]',
@@ -364,9 +364,9 @@ VALUES (17,
 
 INSERT INTO "schema"
 VALUES (18,
-        'BSE',
+        'Nova',
         12,
-        'starmf',
+        'fundify',
         'W',
         'ucctest',
         '[{"attr":"step","vals":{"step1":{},"step2":{}},"valtype":"enum","longdesc":"","shortdesc":""},{"attr":"stepfailed","valtype":"bool","longdesc":"","shortdesc":""},{"attr":"mode","vals":{"demat":{},"physical":{}},"valtype":"enum","longdesc":"","shortdesc":""}]',
@@ -378,7 +378,7 @@ VALUES (18,
 
 INSERT INTO "schema"
 VALUES (19,
-        'BSE',
+        'Nova',
         13,
         'uccapp',
         'W',
@@ -392,9 +392,9 @@ VALUES (19,
 
         INSERT INTO "schema"
 VALUES (20,
-        'BSE',
+        'Nova',
         12,
-        'starmf',
+        'fundify',
         'B',
         'custonboarding',
         '[{"attr": "cat", "valtype": "str"}, {"attr": "mrp", "valtype": "float"}, {"attr": "fullname", "valtype": "str"}, {"attr": "ageinstock", "valtype": "int"}, {"attr": "inventoryqty", "valtype": "int"}]',
@@ -440,7 +440,7 @@ VALUES (5,
 
 INSERT INTO ruleset (id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby, editedat, editedby)
 VALUES (6,
-        'BSE',
+        'Nova',
         14,
         'retailbank',
         'members',
@@ -458,7 +458,7 @@ VALUES (6,
 
 INSERT INTO ruleset (id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby, editedat, editedby)
 VALUES (8,
-       'BSE',
+       'Nova',
         13,
         'uccapp',
         'ucc',
@@ -475,7 +475,7 @@ VALUES (8,
 
 INSERT INTO ruleset (id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby, editedat, editedby)
 VALUES (11,
-       'BSE',
+       'Nova',
         13,
         'uccapp',
         'ucc_aof',
@@ -493,9 +493,9 @@ VALUES (11,
 
 INSERT INTO ruleset (id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby)
 VALUES (9,
-        'BSE',
+        'Nova',
         12,
-        'starmf',
+        'fundify',
         'ucc',
         'W',
         'ucc_user_cr',
@@ -509,9 +509,9 @@ VALUES (9,
 
 INSERT INTO ruleset (id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby, editedat, editedby)
 VALUES (10,
-        'BSE',
+        'Nova',
         12,
-        'starmf',
+        'fundify',
         'ucctest',
         'W',
         'ucctest',
@@ -540,7 +540,7 @@ VALUES (12,
         'dodiscountcheck');
 
 insert into stepworkflow values (13, 'uccapp', 'aof', 'aofworkflow');
--- insert into stepworkflow values (13, 'starmf', 'dpandbankaccvalid', 'dpandbankaccvalidWorkflow');
+-- insert into stepworkflow values (13, 'fundify', 'dpandbankaccvalid', 'dpandbankaccvalidWorkflow');
 
 --  for test case
 

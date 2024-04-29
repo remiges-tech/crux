@@ -1,7 +1,7 @@
 package auth
 
 var (
-	// userID    = "1234"
+	userID    = "1234"
 	authCaps = []string{"auth"}
-	// realmName = "BSE"
+	realmName = "Nova"
 )

@@ -15,7 +15,7 @@ import (
 
 var (
 	userID    = "1234"
-	realmName = "BSE"
+	realmName = "Nova"
 )
 
 type WFInstanceMarkDoneReq struct {

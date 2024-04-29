@@ -67,4 +67,5 @@ const (
 	ErrCode_Invalid_User                                          = "invalid_user"
 	ErrCode_Capability_Does_Not_Exist                             = "cap_does_not_exist"
 	ErrCode_App_Does_Not_Exist                                    = "app_does_not_exist"
+	Errode_Workflow_Is_Active                                     = "workflow_is_active"
 )

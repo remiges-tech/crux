@@ -12,11 +12,11 @@ const (
 	START     = "start"
 	FALSE     = "false"
 	TRUE      = "true"
-	realm     = "BSE"
+	realm     = "Nova"
 	userID    = "1234"
 )
 
-//var ENTITYREALM = "BSE"
+//var ENTITYREALM = "Nova"
 
 // feilds for error messages
 var APP, CLASS, SLICE, ENTITY, WORKFLOW, ENTITYID string = "app", "class", "slice", "entity", "workflow", "entityid"

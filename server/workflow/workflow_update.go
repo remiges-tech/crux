@@ -160,6 +160,12 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 		return
 	}
 
+	if ruleset.IsActive.Bool {
+		l.Log("can't update active workflow")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid_Request, server.Errode_Workflow_Is_Active))
+		return
+	}
+
 	tag, err := qtx.WorkFlowUpdate(c, sqlc.WorkFlowUpdateParams{
 		RealmName: realmName,
 		Slice:     wf.Slice,
@@ -186,6 +192,14 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
+	var oldwf *[]crux.Rule_t
+	err = json.Unmarshal(ruleset.Ruleset, &oldwf)
+	if err != nil {
+		l.LogActivity("Error while Unmarshal flowrules", err.Error())
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
+		return
+	}
+
 	dclog := l.WithClass("ruleset").WithInstanceId(string(ruleset.ID))
 	dclog.LogDataChange("Updated ruleset", logharbour.ChangeInfo{
 		Entity: "ruleset",
@@ -193,7 +207,7 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 		Changes: []logharbour.ChangeDetail{
 			{
 				Field:  "ruleset",
-				OldVal: string(ruleset.Ruleset),
+				OldVal: oldwf,
 				NewVal: wf.Flowrules},
 		},
 	})

@@ -1,8 +1,8 @@
 {
     "start": "2024-04-10T23:00:00Z",
     "end": "2024-04-10T23:00:00Z",
-    "realm": "BSE",
-    "app": "starmf",
+    "realm": "Nova",
+    "app": "fundify",
     "entryRulesetID": 10,
     "entryRulesetName": "ucctest", "tracedata": [
         {

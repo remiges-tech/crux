@@ -47,10 +47,9 @@ func TestBRESchemaList(t *testing.T) {
 }
 
 func schemaListTestcase() []testutils.TestCasesStruct {
-	slice1 := int32(12)
 	slice2 := int32(11)
-	app1 := "retailbank"
-	class1 := "custonboarding"
+	app1 := "amazon"
+	class1 := "inventoryitems"
 	schemaListTestcase := []testutils.TestCasesStruct{
 
 		{
@@ -81,7 +80,7 @@ func schemaListTestcase() []testutils.TestCasesStruct {
 			Name: "Success- get schema by slice",
 			RequestPayload: wscutils.Request{
 				Data: breschema.BRESchemaListStruct{
-					Slice: &slice1,
+					Slice: &slice2,
 				},
 			},
 
