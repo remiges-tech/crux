@@ -1,0 +1,38 @@
+{
+  "status": "error",
+  "data": null,
+  "messages": [
+    {
+      "msgid": 1003,
+      "errcode": "invalid_app",
+      "field": "app",
+      "vals": [
+        "fundify"
+      ]
+    },
+    {
+      "msgid": 1003,
+      "errcode": "invalid_class",
+      "field": "class",
+      "vals": [
+        "ucc_aof"
+      ]
+    },
+    {
+      "msgid": 1003,
+      "errcode": "invalid_workflow_active_status",
+      "field": "workflow",
+      "vals": [
+        "false"
+      ]
+    },
+    {
+      "msgid": 1003,
+      "errcode": "invalid_workflow_internal_status",
+      "field": "workflow",
+      "vals": [
+        "false"
+      ]
+    }
+  ]
+}

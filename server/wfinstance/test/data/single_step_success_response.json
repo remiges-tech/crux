@@ -3,14 +3,13 @@
   "data": {
     "tasks": [
       {
-        "diwalisale": 1
+        "getsigneddocument": 1
       }
     ],
-    "loggedat": "2024-02-16T18:28:45.855894Z",
+    "loggedat": "2024-04-29T15:59:33.311907Z",
     "subflows": {
-      "diwalisale": "dodiscountcheck"
-    },
-    "tracedata": null
+      "getsigneddocument": "aofworkflow"
+    }
   },
   "messages": null
 }

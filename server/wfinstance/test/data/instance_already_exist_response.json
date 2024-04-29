@@ -2,13 +2,13 @@
     "status": "error",
     "data": null,
     "messages": [
-        {
-            "msgid": 1008,
-            "errcode": "already_exist",
-            "field": "entityid",
-            "vals": [
-                "0eb8da50-aece-11ee-b168-3b192f7cd2b667"
-            ]
-        }
+      {
+        "msgid": 1008,
+        "errcode": "already_exist",
+        "field": "entityid",
+        "vals": [
+          "0eb8da50-aece-11ee-b168-3b192f7cd2b6"
+        ]
+      }
     ]
-}
+  }
