@@ -1,0 +1,34 @@
+{
+    "data": {
+        "slice": 11,
+        "app": "amazon",
+        "class": "inventoryitems",
+        "name": "amazonruleset",
+        "ruleset": [
+            {
+                "NFailed": 0,
+                "NMatched": 0,
+                "ruleactions": {
+                    "tasks": [
+                        "inventoryqty"
+                    ],
+                    "properties": {
+                        "nextstep": "done"
+                    }
+                },
+                "rulepattern": [
+                    {
+                        "op": "eq",
+                        "val": "textbook",
+                        "attr": "cat"
+                    },
+                    {
+                        "op": "ge",
+                        "val": 5000,
+                        "attr": "mrp"
+                    }
+                ]
+            }
+        ]
+    }
+}
