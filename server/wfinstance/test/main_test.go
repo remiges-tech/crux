@@ -18,6 +18,7 @@ import (
 	"github.com/remiges-tech/alya/wscutils"
 	pg "github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
+	crux "github.com/remiges-tech/crux/matching-engine"
 	"github.com/remiges-tech/crux/server/wfinstance"
 	"github.com/remiges-tech/logharbour/logharbour"
 	"github.com/testcontainers/testcontainers-go"
@@ -138,12 +139,13 @@ func registerRoutes(databaseUrl string) (*gin.Engine, error) {
 		log.Fatalln("Failed to establishes a connection with database", err)
 	}
 	queries := sqlc.New(connPool)
+	cruxCache := crux.NewCache(context.Background(), queries)
 
 	// schema services
 	s := service.NewService(r).
 		WithLogHarbour(l).
 		WithDatabase(connPool).
-		WithDependency("queries", queries)
+		WithDependency("queries", queries).WithDependency("cruxCache", cruxCache)
 
 	s.RegisterRoute(http.MethodPost, "/wfinstancenew", wfinstance.GetWFinstanceNew)
 	s.RegisterRoute(http.MethodPost, "/wfinstanceabort", wfinstance.GetWFInstanceAbort)

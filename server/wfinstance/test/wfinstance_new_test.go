@@ -19,30 +19,6 @@ func TestWFinstanceNew(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 
-			//switch tc.Name {
-			// 			case "SUCCESS- Multiple steps":
-			// 				wfinstance.SWITCH = wfinstance.ActionSet{
-			// 					Tasks:      []string{"diwalisale", "yearendsale"},
-			// 					Properties: map[string]string{"nextstep": "coupondistribution"},
-			// 				}
-			// 			case "ERROR- Invalid property attributes":
-			// 				wfinstance.SWITCH = wfinstance.ActionSet{
-			// 					Tasks:      []string{"discount"},
-			// 					Properties: map[string]string{"shipby": "fedex"},
-			// 				}
-
-			// 			case "SUCCESS- done attribute present in domatch() response":
-			// 				wfinstance.SWITCH = wfinstance.ActionSet{
-			// 					Tasks:      []string{"discount", "yearendsale"},
-			// 					Properties: map[string]string{"done": "true"},
-			// 				}
-			// 			default:
-			// 				wfinstance.SWITCH = wfinstance.ActionSet{
-			// 					Tasks:      []string{"diwalisale"},
-			// 					Properties: map[string]string{"nextstep": "coupondistribution"},
-			// 				}
-			// 			}
-
 			// Setting up buffer
 			payload := bytes.NewBuffer(server.MarshalJson(tc.RequestPayload))
 
@@ -87,23 +63,20 @@ func wfInstanceNewTestcase() []testutils.TestCasesStruct {
 			Name: "ERROR- Invalid request",
 			RequestPayload: wscutils.Request{
 				Data: wfinstance.WFInstanceNewRequest{
-					Slice:    slice,
-					App:      app,
+					Slice:    int32(13),
+					App:      "fundify",
 					EntityID: entityID,
 					Entity: map[string]string{
-						"class":        "inventoryitemss",
-						"mrp":          "200.00",
-						"fullname":     "belampally",
-						"ageinstock":   "2",
-						"inventoryqty": "2",
+						"class": "ucc_aof",
+						"step":  "sendtorta",
+						"mode":  "demat",
 					},
-					Workflow: workflow,
+					Workflow: "aofworkflow",
 					Trace:    &trace,
-					Parent:   &parent,
 				},
 			},
 			ExpectedHttpCode: http.StatusBadRequest,
-			TestJsonFile:     "./data/invalid_wfinstancenew_request_response.json",
+			TestJsonFile:     "./data/wfinstancenew_invalid_request_response.json",
 		},
 
 		// 2nd test case
@@ -135,19 +108,16 @@ func wfInstanceNewTestcase() []testutils.TestCasesStruct {
 			Name: "ERROR- Invalid property attributes",
 			RequestPayload: wscutils.Request{
 				Data: wfinstance.WFInstanceNewRequest{
-					Slice:    slice,
-					App:      app,
+					Slice:    int32(13),
+					App:      "uccapp",
 					EntityID: entityID,
 					Entity: map[string]string{
-						"class":        "inventoryitems",
-						"mrp":          "200.00",
-						"fullname":     "belampally",
-						"ageinstock":   "2",
-						"inventoryqty": "2",
+						"class": "ucc_aof",
+						"step":  "sendtorta",
+						"mode":  "demat",
 					},
-					Workflow: workflow,
+					Workflow: "ucc_user_cr",
 					Trace:    &trace,
-					Parent:   &parent,
 				},
 			},
 			ExpectedHttpCode: http.StatusBadRequest,
@@ -158,19 +128,16 @@ func wfInstanceNewTestcase() []testutils.TestCasesStruct {
 			Name: "SUCCESS- Single step",
 			RequestPayload: wscutils.Request{
 				Data: wfinstance.WFInstanceNewRequest{
-					Slice:    slice,
-					App:      app,
+					Slice:    int32(13),
+					App:      "uccapp",
 					EntityID: entityID,
 					Entity: map[string]string{
-						"class":        "inventoryitems",
-						"mrp":          "200.00",
-						"fullname":     "belampally",
-						"ageinstock":   "2",
-						"inventoryqty": "2",
+						"class": "ucc_aof",
+						"step":  "sendtorta",
+						"mode":  "demat",
 					},
-					Workflow: workflow,
+					Workflow: "aofworkflow",
 					Trace:    &trace,
-					Parent:   &parent,
 				},
 			},
 			ExpectedHttpCode: http.StatusOK,
@@ -205,19 +172,16 @@ func wfInstanceNewTestcase() []testutils.TestCasesStruct {
 			Name: "ERROR- Instance already exist in database",
 			RequestPayload: wscutils.Request{
 				Data: wfinstance.WFInstanceNewRequest{
-					Slice:    slice,
-					App:      app,
-					EntityID: entityID1,
+					Slice:    int32(13),
+					App:      "uccapp",
+					EntityID: entityID,
 					Entity: map[string]string{
-						"class":        "members",
-						"mrp":          "200.00",
-						"fullname":     "belampally",
-						"ageinstock":   "2",
-						"inventoryqty": "2",
+						"class": "ucc_aof",
+						"step":  "sendtorta",
+						"mode":  "demat",
 					},
-					Workflow: workflow1,
+					Workflow: "aofworkflow",
 					Trace:    &trace,
-					Parent:   &parent,
 				},
 			},
 			ExpectedHttpCode: http.StatusBadRequest,

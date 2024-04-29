@@ -2,9 +2,9 @@
     "status": "error",
     "data": null,
     "messages": [
-        {
-            "msgid": 1003,
-            "errcode": "invalid_property_attributes"
-        }
+      {
+        "msgid": 1003,
+        "errcode": "invalid_property_attributes"
+      }
     ]
-}
+  }
