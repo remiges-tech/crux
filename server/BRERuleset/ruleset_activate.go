@@ -1,16 +1,14 @@
 package breruleset
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
+	"github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
-	crux "github.com/remiges-tech/crux/matching-engine"
 	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/types"
 )
@@ -99,40 +97,34 @@ func BRERuleSetActivate(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_app_does_not_have_ruleset_cap))
 		return
 	}
-	cruxCache, ok := s.Dependencies["cruxCache"].(*crux.Cache)
-	if !ok {
-		lh.Debug0().Debug1().Log("Error while getting cruxCache instance from service Dependencies")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
-		return
-	}
 
-	ntraversed, nactivated, err := cruxCache.RetrieveAndCheckIsActiveRuleSet(B, applc, realmName, request.Class, request.Name, request.Slice)
-	if err != nil {
-		lh.Debug0().Error(err).Log("error while retriving and verifying whether all ruleset must be active ")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, err.Error()))
-		return
-	}
-
-	response := BRERuleSetActivateRes{
-		Ntraversed: int32(ntraversed),
-		Nactivated: int32(nactivated),
-	}
-	lh.Debug0().Log(" finished execution of BRERuleSetActivate()")
-	wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(response))
-}
-func hasRulesetCapability(app string, query *sqlc.Queries, c *gin.Context) (bool, error) {
-	count, err := query.GetRuleSetCapabilityForApp(c, sqlc.GetRuleSetCapabilityForAppParams{
-		Userid: userID,
-		Realm:  realmName,
-		App:    pgtype.Text{String: app, Valid: true},
-		Cap:    RULESET,
+	// first activate given ruleset in db
+	err = query.ActivateBRERuleSet(c, sqlc.ActivateBRERuleSetParams{
+		Realm:   realmName,
+		Slice:   request.Slice,
+		App:     applc,
+		Class:   request.Class,
+		Setname: request.Name,
+		Brwf:    sqlc.BrwfEnumB,
 	})
 	if err != nil {
-		return false, err
+		lh.Error(err).Log("error while activating a ruleset ")
+		errmsg := db.HandleDatabaseError(err)
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+		return
 	}
-	if count > 0 {
-		return true, nil
-	} else {
-		return false, fmt.Errorf("caller does not have ruleset capability for the specified app : %v", app)
-	}
+
+	// ntraversed, nactivated, err := cruxCache.RetrieveAndCheckIsActiveRuleSet(B, applc, realmName, request.Class, request.Name, request.Slice)
+	// if err != nil {
+	// 	lh.Debug0().Error(err).Log("error while retriving and verifying whether all ruleset must be active ")
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, err.Error()))
+	// 	return
+	// }
+
+	// response := BRERuleSetActivateRes{
+	// 	Ntraversed: int32(ntraversed),
+	// 	Nactivated: int32(nactivated),
+	// }
+	lh.Debug0().Log(" finished execution of BRERuleSetActivate()")
+	//wscutils.SendSuccessResponse(c, wscutils.NewSuccessResponse(response))
 }
