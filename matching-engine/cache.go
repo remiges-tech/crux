@@ -222,7 +222,6 @@ func (c Cache) loadInternalRuleSet(dbResponseRuleSet sqlc.Ruleset) error {
 		Class:    dbResponseRuleSet.Class,
 		SetName:  dbResponseRuleSet.Setname,
 		Rules:    rules,
-		IsActive: dbResponseRuleSet.IsActive.Bool,
 	}
 	if dbResponseRuleSet.Brwf == BRE {
 		perApp[sliceKey].BRRulesets[classNameKey] = append(perApp[sliceKey].BRRulesets[classNameKey], newRuleset)
@@ -443,57 +442,3 @@ func (c Cache) getRulesetsFromCacheWithName(brwf, app, realm, class, ruleSetName
 	return nil, false
 }
 
-// This fuction is used to retrieve a specific ruleset from cache and checks whether it is active if not then make it active.
-// It also checks whether it has thencall then it recursively retrive all child rulesets and make all of them active.
-func (c Cache) RetrieveAndCheckIsActiveRuleSet(brwf, app, realm, class, ruleSetName string, slice int32) (ntraversed int, nactivated int, err error) {
-
-	// Retrieve the rule set from cache
-	currentRuleset, exists, err := c.GetRulesetName(brwf, app, realm, class, ruleSetName, slice)
-	if err != nil {
-		return 0, 0, err
-	}
-	if !exists {
-		return 0, 0, fmt.Errorf("rule set not found in cache: %s", ruleSetName)
-	}
-
-	// Check if the current rule set is active
-	if !currentRuleset.IsActive {
-		currentRuleset.IsActive = true
-		nactivated++
-	}
-
-	// Iterate over the rules in the current rule set
-	for _, rule := range currentRuleset.Rules {
-		// Check if the rule has a then call
-		if rule.RuleActions.ThenCall != "" {
-			// Recursively retrieve and check the next rule set
-			if _, _, err := c.RetrieveAndCheckIsActiveRuleSet(brwf, app, realm, class, rule.RuleActions.ThenCall, slice); err != nil {
-				return 0, 0, err
-			} else {
-				ntraversed++
-			}
-		}
-	}
-
-	return ntraversed, nactivated, nil
-}
-
-// This function is used to retrieve a specific ruleset from cache and make it inactive
-func (c Cache) RetrieveAndDeActiveRuleSet(brwf, app, realm, class, ruleSetName string, slice int32) error {
-
-	// Retrieve the rule set from cache
-	currentRuleset, exists, err := c.GetRulesetName(brwf, app, realm, class, ruleSetName, slice)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return fmt.Errorf("rule set not found in cache: %s", ruleSetName)
-	}
-
-	// Check if the current rule set is active
-	if currentRuleset.IsActive {
-		currentRuleset.IsActive = false
-	}
-
-	return nil
-}
