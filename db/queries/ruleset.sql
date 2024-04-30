@@ -168,3 +168,35 @@ AND slice = $2
 AND app = $3
 AND class = $4
 AND is_active = true;
+
+-- name: ActivateBRERuleSet :exec
+UPDATE ruleset
+SET is_active = true
+WHERE realm = @realm
+AND slice = @slice
+AND app = @app
+AND class = @class
+AND setname = @setname
+AND brwf = @brwf;
+
+-- name: DeActivateBRERuleSet :exec
+UPDATE ruleset
+SET is_active = false
+WHERE realm = @realm
+AND slice = @slice
+AND app = @app
+AND class = @class
+AND setname = @setname
+AND brwf = @brwf;
+
+
+-- name: GetBRERuleSetCount :one
+SELECT count(*) FROM ruleset
+WHERE realm = @realm
+AND slice = @slice
+AND app = @app
+AND class = @class
+AND setname = @setname
+AND brwf = @brwf;
+
+

@@ -7,6 +7,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/remiges-tech/alya/service"
 	"github.com/remiges-tech/alya/wscutils"
+	"github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 	crux "github.com/remiges-tech/crux/matching-engine"
 	"github.com/remiges-tech/crux/server"
@@ -52,7 +53,6 @@ func BRERuleSetDeActivate(c *gin.Context, s *service.Service) {
 		CapNeeded: capForList,
 	}, false)
 
-	isCapable = true
 
 	if !isCapable {
 		lh.Info().LogActivity(server.ErrCode_Unauthorized, userID)
@@ -80,6 +80,13 @@ func BRERuleSetDeActivate(c *gin.Context, s *service.Service) {
 		return
 	}
 
+	cruxCache, ok := s.Dependencies["cruxCache"].(*crux.Cache)
+	if !ok {
+		lh.Debug0().Debug1().Log("error while getting cruxCache instance from service Dependencies")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
+		return
+	}
+
 	// verifying whether user has ruleset capability for app
 	applc := strings.ToLower(request.App)
 	isValidUser, err := hasRulesetCapability(applc, query, c)
@@ -92,19 +99,48 @@ func BRERuleSetDeActivate(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_app_does_not_have_ruleset_cap))
 		return
 	}
-	cruxCache, ok := s.Dependencies["cruxCache"].(*crux.Cache)
-	if !ok {
-		lh.Debug0().Debug1().Log("Error while getting cruxCache instance from service Dependencies")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
+
+	// check if a given ruleset exist in db
+	count, err := query.GetBRERuleSetCount(c, sqlc.GetBRERuleSetCountParams{
+		Slice:   request.Slice,
+		App:     applc,
+		Class:   request.Class,
+		Setname: request.Name,
+		Realm:   realmName,
+		Brwf:    sqlc.BrwfEnumB,
+	})
+	if err != nil {
+		lh.Error(err).Log("error while getting a ruleset")
+		errmsg := db.HandleDatabaseError(err)
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
+		return
+
+	}
+
+	if count == 0 {
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ErrCode_NotFound))
 		return
 	}
 
-	err = cruxCache.RetrieveAndDeActiveRuleSet(B, applc, realmName, request.Class, request.Name, request.Slice)
+	// deactive a ruleset in db
+	err = query.DeActivateBRERuleSet(c, sqlc.DeActivateBRERuleSetParams{
+		Realm:   realmName,
+		Slice:   request.Slice,
+		App:     applc,
+		Class:   request.Class,
+		Setname: request.Name,
+		Brwf:    sqlc.BrwfEnumB,
+	})
 	if err != nil {
-		lh.Debug0().Error(err).Log("error while retriving and deactivating a rulesets ")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, err.Error()))
+		lh.Error(err).Log("error while deactivating ruleset")
+		errmsg := db.HandleDatabaseError(err)
+		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
 		return
+
 	}
+
+	// deactivating ruleset in cache
+	cruxCache.Purge(B, applc, realmName, request.Class, "ruleset", request.Name, request.Slice)
 
 	lh.Debug0().Log(" finished execution of BRERuleSetDeActivate()")
 	wscutils.SendSuccessResponse(c, &wscutils.Response{Status: wscutils.SuccessStatus, Data: nil, Messages: nil})

@@ -218,11 +218,11 @@ func (c Cache) loadInternalRuleSet(dbResponseRuleSet sqlc.Ruleset) error {
 
 	classNameKey := ClassName_t(dbResponseRuleSet.Class)
 	newRuleset := &Ruleset_t{
-		Id:      dbResponseRuleSet.ID,
-		Class:   dbResponseRuleSet.Class,
-		SetName: dbResponseRuleSet.Setname,
-		Rules:   rules,
-		IsActive: false,
+		Id:       dbResponseRuleSet.ID,
+		Class:    dbResponseRuleSet.Class,
+		SetName:  dbResponseRuleSet.Setname,
+		Rules:    rules,
+		IsActive: dbResponseRuleSet.IsActive.Bool,
 	}
 	if dbResponseRuleSet.Brwf == BRE {
 		perApp[sliceKey].BRRulesets[classNameKey] = append(perApp[sliceKey].BRRulesets[classNameKey], newRuleset)
@@ -237,22 +237,28 @@ func (c Cache) loadInternalRuleSet(dbResponseRuleSet sqlc.Ruleset) error {
 	return nil
 }
 
-// func (c Cache) Purge(brwf, field string) {
-// 	lockCache()
-// 	defer unlockCache()
+func (c Cache) Purge(brwf, app, realm, class ,rulesetName ,field string, slice int32) {
+	lockCache()
+	defer unlockCache()
 
-// 	if brwf == "B" && field == "schema" {
-// 		SchemaCache[c.Realm][c.App][c.Slice].BRSchema[ClassName_t(c.Class)] = Schema_t{}
-// 		RulesetCache[c.Realm][c.App][c.Slice].BRRulesets[c.Class] = nil
-// 	} else if brwf == "B" && field == "rule" {
-// 		RulesetCache[c.Realm][c.App][c.Slice].BRRulesets[c.Class] = nil
-// 	} else if brwf == "w" && field == "schema" {
-// 		SchemaCache[c.Realm][c.App][c.Slice].WFSchema[ClassName_t(c.Class)] = Schema_t{}
-// 		RulesetCache[c.Realm][c.App][c.Slice].Workflows[c.Class] = nil
-// 	} else if brwf == "W" && field == "rule" {
-// 		RulesetCache[c.Realm][c.App][c.Slice].Workflows[c.Class] = nil
-// 	}
-// }
+	if brwf == "B" && field == "schema" {
+		c.SchemaCache[Realm_t(realm)][App_t(app)][Slice_t(slice)].BRSchema[ClassName_t(class)] = Schema_t{}
+		c.RulesetCache[Realm_t(realm)][App_t(app)][Slice_t(slice)].BRRulesets[ClassName_t(class)] = nil
+	} else if brwf == "B" && field == "rule" {
+		c.RulesetCache[Realm_t(realm)][App_t(app)][Slice_t(slice)].BRRulesets[ClassName_t(class)] = nil
+	} else if brwf == "w" && field == "schema" {
+		c.SchemaCache[Realm_t(realm)][App_t(app)][Slice_t(slice)].WFSchema[ClassName_t(class)] = Schema_t{}
+		c.RulesetCache[Realm_t(realm)][App_t(app)][Slice_t(slice)].Workflows[ClassName_t(class)] = nil
+	} else if brwf == "W" && field == "rule" {
+		c.RulesetCache[Realm_t(realm)][App_t(app)][Slice_t(slice)].Workflows[ClassName_t(class)] = nil
+	}else if brwf == "B" && field == "ruleset"{
+		ruleset := c.RulesetCache[Realm_t(realm)][App_t(app)][Slice_t(slice)].BRRulesets[ClassName_t(class)]
+		 for _,r := range ruleset{
+			r.SetName = rulesetName
+			c.RulesetCache[Realm_t(realm)][App_t(app)][Slice_t(slice)].BRRulesets[ClassName_t(class)]= nil
+		 }
+	} 
+}
 
 // func Reload(ctx context.Context, query sqlc.Querier, slice int32, app, class, realm, workflowName string) error {
 // 	lockCache()

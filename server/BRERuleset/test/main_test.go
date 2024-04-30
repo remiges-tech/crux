@@ -22,6 +22,7 @@ import (
 	"github.com/remiges-tech/alya/wscutils"
 	pg "github.com/remiges-tech/crux/db"
 	"github.com/remiges-tech/crux/db/sqlc-gen"
+	crux "github.com/remiges-tech/crux/matching-engine"
 	breruleset "github.com/remiges-tech/crux/server/BRERuleset"
 	"github.com/remiges-tech/logharbour/logharbour"
 )
@@ -139,22 +140,19 @@ func registerRoutes(databaseUrl string) (*gin.Engine, error) {
 		log.Fatalln("Failed to establishes a connection with database", err)
 	}
 	queries := sqlc.New(connPool)
+	cruxCache := crux.NewCache(context.Background(), queries)
 
 	// schema services
 	s := service.NewService(r).
 		WithLogHarbour(l).
 		WithDatabase(connPool).
-		WithDependency("queries", queries)
-
+		WithDependency("queries", queries).WithDependency("cruxCache", cruxCache)
 	s.RegisterRoute(http.MethodPost, "/BRErulesetUpdate", breruleset.RuleSetUpdate)
 	s.RegisterRoute(http.MethodPost, "/brerulesetnew", breruleset.BRERuleSetNew)
 	s.RegisterRoute(http.MethodPost, "/brerulesetget", breruleset.BRERuleSetGet)
 	s.RegisterRoute(http.MethodPost, "/brerulesetdelete", breruleset.BRERuleSetDelete)
 	s.RegisterRoute(http.MethodPost, "/brerulesetlist", breruleset.BRERuleSetList)
-
-
-
-
+	s.RegisterRoute(http.MethodPost, "/brerulesetdeactivate", breruleset.BRERuleSetDeActivate)
 	return r, nil
 
 }

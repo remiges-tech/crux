@@ -12,6 +12,7 @@ import (
 )
 
 type Querier interface {
+	ActivateBRERuleSet(ctx context.Context, arg ActivateBRERuleSetParams) error
 	ActivateRecord(ctx context.Context, arg ActivateRecordParams) error
 	AddWFNewInstances(ctx context.Context, arg AddWFNewInstancesParams) ([]Wfinstance, error)
 	AllRuleset(ctx context.Context) ([]Ruleset, error)
@@ -32,6 +33,7 @@ type Querier interface {
 	ConfigGet(ctx context.Context, realm string) ([]ConfigGetRow, error)
 	ConfigSet(ctx context.Context, arg ConfigSetParams) error
 	CountOfRootCapUser(ctx context.Context) (int64, error)
+	DeActivateBRERuleSet(ctx context.Context, arg DeActivateBRERuleSetParams) error
 	DeactivateRecord(ctx context.Context, arg DeactivateRecordParams) error
 	DeleteCapGranForApp(ctx context.Context, arg DeleteCapGranForAppParams) error
 	DeleteWFInstanceListByParents(ctx context.Context, arg DeleteWFInstanceListByParentsParams) ([]Wfinstance, error)
@@ -41,6 +43,7 @@ type Querier interface {
 	GetAppList(ctx context.Context, realm string) ([]GetAppListRow, error)
 	GetAppName(ctx context.Context, arg GetAppNameParams) ([]App, error)
 	GetAppNames(ctx context.Context, realm string) ([]string, error)
+	GetBRERuleSetCount(ctx context.Context, arg GetBRERuleSetCountParams) (int64, error)
 	GetCapGrantForApp(ctx context.Context, arg GetCapGrantForAppParams) ([]Capgrant, error)
 	GetCapGrantForUser(ctx context.Context, arg GetCapGrantForUserParams) ([]Capgrant, error)
 	GetClass(ctx context.Context, arg GetClassParams) (string, error)
