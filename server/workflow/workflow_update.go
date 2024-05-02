@@ -2,6 +2,7 @@ package workflow
 
 import (
 	"encoding/json"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -199,8 +200,8 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_DatabaseError))
 		return
 	}
-
-	dclog := l.WithClass("ruleset").WithInstanceId(string(ruleset.ID))
+	id := strconv.Itoa(int(ruleset.ID))
+	dclog := l.WithClass("ruleset").WithInstanceId(id)
 	dclog.LogDataChange("Updated ruleset", logharbour.ChangeInfo{
 		Entity: "ruleset",
 		Op:     "Update",

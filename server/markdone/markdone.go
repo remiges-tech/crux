@@ -149,6 +149,11 @@ func DoMarkDone(c *gin.Context, s *service.Service, qtx *sqlc.Queries, instanceI
 	}
 	step := entity["step"]
 
+	if step != wfinst.Step {
+		l.Debug0().Log("instance id and step are mismatched")
+		return wfinstance.WFInstanceNewResponse{}, fmt.Errorf("instance id and step are mismatched")
+	}
+
 	schema, ruleset, err := cruxCache.RetriveRuleSchemasAndRuleSetsFromCache(WFE, wfinst.App, realmName, wfinst.Class, wfinst.Workflow, wfinst.Slice)
 	if err != nil {
 		l.Debug0().Error(err).Log("error while Retrieve RuleSchemas and RuleSets FromCache")
@@ -245,7 +250,6 @@ func DoMarkDone(c *gin.Context, s *service.Service, qtx *sqlc.Queries, instanceI
 		// actionset and seenrulesets: empty
 		actionSet := crux.ActionSet{}
 		seenRuleSets := make(map[string]struct{})
-
 
 		actionset, match, err, _ := crux.DoMatch(entity_t, ruleset, schema, actionSet, seenRuleSets, crux.Trace_t{})
 
@@ -392,7 +396,6 @@ func DoMarkDone(c *gin.Context, s *service.Service, qtx *sqlc.Queries, instanceI
 			seenRuleSets := make(map[string]struct{})
 
 			entity_t.Attrs["step"] = wfinst.Nextstep
-
 
 			actionset, _, err, _ := crux.DoMatch(entity_t, ruleset, schema, actionSet, seenRuleSets, crux.Trace_t{})
 

@@ -93,6 +93,21 @@ func WFInstanceMarkDoneTestcase() []testutils.TestCasesStruct {
 			}, Messages: nil},
 		},
 		{
+			Name: "error wrong step insert",
+			RequestPayload: wscutils.Request{Data: markdone.WFInstanceMarkDoneReq{
+				ID:         3,
+				Entity:     map[string]string{"mode": "demat"},
+				Step:       "wrong_step",
+				Stepfailed: false,
+			}},
+			ExpectedHttpCode: http.StatusBadRequest,
+			ExpectedResult: &wscutils.Response{
+				Status:   wscutils.ErrorStatus,
+				Data:     "instance id and step are mismatched",
+				Messages: nil,
+			},
+		},
+		{
 			Name: "mark done dpandbankaccvalid",
 			RequestPayload: wscutils.Request{Data: markdone.WFInstanceMarkDoneReq{
 				ID:         3,
