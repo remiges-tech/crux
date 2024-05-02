@@ -19,7 +19,7 @@ var (
 )
 
 type WFInstanceMarkDoneReq struct {
-	ID         int32             `json:"id" validate:"required,lt=50"`
+	ID         int32             `json:"id" validate:"required"`
 	Entity     map[string]string `json:"entity" validate:"required,lt=50"`
 	Step       string            `json:"step" validate:"required,lt=50"`
 	Stepfailed bool              `json:"stepfailed,omitempty"`
