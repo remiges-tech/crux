@@ -33,7 +33,7 @@ cd crux
 ### Step 3: synchronize  Dependencies
 
 ```bash
-`go mod tidy` 
+go mod tidy
 ```
 
 ### Step 4: Run Database Migrations
