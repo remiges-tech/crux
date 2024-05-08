@@ -3,7 +3,6 @@ module github.com/remiges-tech/crux
 go 1.21.6
 
 require (
-	github.com/elastic/go-elasticsearch/v8 v8.12.1
 	github.com/gin-gonic/gin v1.9.1
 	github.com/golang-jwt/jwt/v4 v4.4.2
 	github.com/jackc/pgx/v4 v4.18.1
@@ -41,6 +40,7 @@ require (
 	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/elastic/elastic-transport-go/v8 v8.4.0 // indirect
+	github.com/elastic/go-elasticsearch/v8 v8.12.1 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/go-jose/go-jose/v3 v3.0.0 // indirect
 	github.com/go-logr/logr v1.3.0 // indirect
@@ -100,7 +100,7 @@ require (
 )
 
 require (
-	github.com/IBM/sarama v1.42.1
+	github.com/IBM/sarama v1.42.1 // indirect
 	github.com/bytedance/sonic v1.9.1 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
