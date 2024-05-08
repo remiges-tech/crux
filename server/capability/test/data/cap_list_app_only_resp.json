@@ -1,0 +1,17 @@
+{
+  "status": "success",
+  "data": {
+    "capabilities": [
+      {
+        "user": "Raj",
+        "app": "nedbank",
+        "cap": "user",
+        "from": "2024-01-29T00:00:00Z",
+        "to": null,
+        "setat": "2023-12-29T00:00:00Z",
+        "setby": "user"
+      }
+    ]
+  },
+  "messages": null
+}

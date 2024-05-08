@@ -1,0 +1,11 @@
+{
+    "status": "error",
+    "data": null,
+    "messages": [
+        {
+            "msgid": 1012,
+            "errcode": "non_empty",
+            "field": "name"
+        }
+    ]
+}

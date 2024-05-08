@@ -1,0 +1,8 @@
+{
+    "db_host": "localhost",
+    "db_port": 5432,
+    "app_server_port": "8085",
+    "db_user": "cruxtest",
+    "db_password": "cruxtest",
+    "db_name":"cruxtest"
+}

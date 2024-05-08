@@ -1,0 +1,21 @@
+{
+    "status": "success",
+    "data": {
+        "tasks": [
+            {
+                "diwalisale": 2
+            },
+            {
+                "yearendsale": 3
+            }
+        ],
+        "nextstep": "coupondistribution",
+        "loggedat": "2024-02-16T18:32:06.582654Z",
+        "subflows": {
+            "diwalisale": "dodiscountcheck",
+            "yearendsale": "doyearendsalechk"
+        },
+        "tracedata": null
+    },
+    "messages": null
+}

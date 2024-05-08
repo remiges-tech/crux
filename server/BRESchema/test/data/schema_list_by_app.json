@@ -1,0 +1,17 @@
+{
+    "data": [
+      {
+        "app": "amazon",
+        "class": "inventoryitems",
+        "createdat": "2021-01-03T06:02:41Z",
+        "createdby": "Marielle Strongitharm",
+        "editedat": "2021-06-07T02:28:17Z",
+        "editedby": "Tushar",
+        "longname": "American multinational technology company, engaged in e-commerce",
+        "slice": 11
+      }
+    ],
+    "messages": null,
+    "status": "success"
+  }
+  

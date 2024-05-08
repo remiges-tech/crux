@@ -1,0 +1,10 @@
+{
+    "status": "error",
+    "data": null,
+    "messages": [
+        {
+            "msgid": 1007,
+            "errcode": "required_one_field"
+        }
+    ]
+}

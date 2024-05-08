@@ -1,0 +1,35 @@
+{
+    "status": "success",
+    "data": {
+      "apps": [
+        {
+          "name": "retailbank",
+          "descr": "retailbank pvt ltd",
+          "createdat": "2024-01-29T00:00:00Z",
+          "createdby": "admin",
+          "nusers": 0,
+          "nrulesetsbre": 0,
+          "nrulesetswfe": 3
+        },
+        {
+          "name": "nedbank1",
+          "descr": "netbank pvt ltd",
+          "createdat": "2024-01-29T00:00:00Z",
+          "createdby": "admin",
+          "nusers": 0,
+          "nrulesetsbre": 0,
+          "nrulesetswfe": 0
+        },
+        {
+          "name": "hdfcbank",
+          "descr": "hdfcbank pvt ltd",
+          "createdat": "2024-01-29T00:00:00Z",
+          "createdby": "admin",
+          "nusers": 2,
+          "nrulesetsbre": 0,
+          "nrulesetswfe": 0
+        }
+      ]
+    },
+    "messages": null
+  }

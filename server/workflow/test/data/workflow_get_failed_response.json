@@ -1,0 +1,11 @@
+{
+    "status": "error",
+    "data": null,
+    "messages": [
+        {
+            "msgid": 1006,
+            "errcode": "invalid_request",
+            "field": "slice/app/class"
+        }
+    ]
+}
