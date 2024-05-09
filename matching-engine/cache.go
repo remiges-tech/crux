@@ -373,51 +373,6 @@ func (c Cache) RetrieveWorkflowRuleSetFromCache(brwf, app, realm, class, ruleSet
 	}
 }
 
-func (c Cache) GetRulesetName(brwf, app, realm, class, ruleSetName string, slice int32) (*Ruleset_t, bool, error) {
-	if brwf == BRE {
-		brRulesets, exist := c.RulesetCache[Realm_t(realm)][App_t(app)][Slice_t(slice)].Workflows[ClassName_t(class)]
-		if exist {
-			for _, r := range brRulesets {
-				if r.SetName == ruleSetName {
-					return r, true, nil
-				}
-			}
-		} else {
-			if err := c.loadRuleSet(realm, app, class, ruleSetName, slice); err != nil {
-				return nil, false, fmt.Errorf("error while loading cache in GetRulesetName: %v", err)
-			} else {
-				ruleSets, exists := c.getRulesetsFromCacheWithName(brwf, app, realm, class, ruleSetName, slice)
-				if exists {
-					return ruleSets, true, nil
-				} else {
-					return nil, false, fmt.Errorf("rule set not exist for given specification")
-				}
-			}
-		}
-	} else if brwf == WFE {
-		workflows, exist := c.RulesetCache[Realm_t(realm)][App_t(app)][Slice_t(slice)].Workflows[ClassName_t(class)]
-		if exist {
-			for _, w := range workflows {
-				if w.SetName == ruleSetName {
-					return w, true, nil
-				}
-			}
-		} else {
-			if err := c.loadRuleSet(realm, app, class, ruleSetName, slice); err != nil {
-				return nil, false, fmt.Errorf("error while loading cache in RetrieveWorkflowRulesetFromCache: %v", err)
-			} else {
-				ruleSets, exists := c.getRulesetsFromCacheWithName(brwf, app, realm, class, ruleSetName, slice)
-				if exists {
-					return ruleSets, true, nil
-				} else {
-					return nil, false, fmt.Errorf("rule set not exist for given specification")
-				}
-			}
-		}
-	}
-	return nil, false, fmt.Errorf("no ruleset found ")
-}
-
 func (c Cache) getRulesetsFromCacheWithName(brwf, app, realm, class, ruleSetName string, slice int32) (*Ruleset_t, bool) {
 
 	if brwf == BRE {
