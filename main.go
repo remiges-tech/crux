@@ -144,7 +144,7 @@ func main() {
 	// router
 	r := gin.Default()
 
-	// r.Use(corsMiddleware())
+	r.Use(corsMiddleware())
 
 	// schema services
 	s := service.NewService(r).
@@ -212,4 +212,17 @@ func main() {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 
+}
+
+func corsMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+		c.Next()
+	}
 }
