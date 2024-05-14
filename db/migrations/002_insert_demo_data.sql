@@ -226,6 +226,20 @@ VALUES (21,
         '2023-12-29 00:00:00',
         'kanchan');
 
+
+        INSERT INTO "capgrant"
+VALUES (
+        22,
+        'Nova',
+        'Raj',
+        'amazon',
+        'ruleset',
+        '2024-01-29 00:00:00',
+        NULL,
+        '2023-12-29 00:00:00',
+        'kanchan');
+
+
 -- config TABLE
 
 INSERT INTO config (realm, slice, name, descr, val, setby)
@@ -418,6 +432,21 @@ VALUES (21,
         '2021-06-07T02:28:17Z',
         'kanchan');
 
+        INSERT INTO "schema"
+VALUES (22,
+        'Nova',
+        13,
+        'amazon',
+        'B',
+        'ucc_aof',
+        '[{"attr":"step","vals":{"sendtorta":{},"getsigneddocument":{}},"valtype":"enum","longdesc":"","shortdesc":""},{"attr":"stepfailed","valtype":"bool","longdesc":"","shortdesc":""},{"attr":"aofexists","valtype":"bool","longdesc":"","shortdesc":""},{"attr":"mode","vals":{"demat":{},"physical":{}},"valtype":"enum","longdesc":"","shortdesc":""}]',
+        '{"tasks":["getsigneddocument","sendtorta"],"properties":["nextstep","done"]}',
+        '2020-03-10T12:06:40Z',
+        'Marigold Sherwin',
+        '2023-10-21T17:39:11Z',
+        'Brunhilde Bampkin');
+
+
 -- ruleset
 
 INSERT INTO ruleset (id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby, editedat, editedby)
@@ -574,6 +603,57 @@ VALUES (14,
         '2024-01-15T00:00:00Z',
         'admin');
 
+         INSERT INTO ruleset (id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby, editedat, editedby)
+VALUES (15,
+       'Nova',
+        13,
+        'amazon',
+        'ucc_aof',
+        'B',
+        'step_one',
+        false,
+        false,
+        22,
+        '[{"ruleActions":{"tasks":["getsigneddocument","getadhaardocuments"],"properties":{"nextstep":"sendtorta"},"thencall":"step_two"},"rulePattern":[{"op":"eq","val":"start","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":false,"attr":"aofexists"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":["sendtorta"],"properties":{"nextstep":"sendtorta"}},"rulePattern":[{"op":"eq","val":"getsigneddocument","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":false,"attr":"aofexists"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":[],"properties":{"done":"true"}},"rulePattern":[{"op":"eq","val":"getsigneddocument","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":false,"attr":"aofexists"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":[],"properties":{"done":"true"}},"rulePattern":[{"op":"eq","val":"getsigneddocument","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":true,"attr":"aofexists"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":[],"properties":{"done":"true"}},"rulePattern":[{"op":"eq","val":"sendtorta","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":[],"properties":{"done":"true"}},"rulePattern":[{"op":"eq","val":"sendtorta","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"}]}]',
+        '2024-01-28T00:00:00Z',
+        'admin',
+        '2024-01-15T00:00:00Z',
+        'admin');
+         INSERT INTO ruleset (id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby, editedat, editedby)
+        VALUES (
+        16,
+       'Nova',
+        13,
+        'amazon',
+        'ucc_aof',
+        'B',
+        'step_two',
+        false,
+        false,
+        22,
+        '[{"ruleActions":{"tasks":["getsigneddocument","getadhaardocuments"],"properties":{"nextstep":"sendtorta"},"thencall":"step_three"},"rulePattern":[{"op":"eq","val":"start","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":false,"attr":"aofexists"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":["sendtorta"],"properties":{"nextstep":"sendtorta"}},"rulePattern":[{"op":"eq","val":"getsigneddocument","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":false,"attr":"aofexists"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":[],"properties":{"done":"true"}},"rulePattern":[{"op":"eq","val":"getsigneddocument","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":false,"attr":"aofexists"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":[],"properties":{"done":"true"}},"rulePattern":[{"op":"eq","val":"getsigneddocument","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":true,"attr":"aofexists"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":[],"properties":{"done":"true"}},"rulePattern":[{"op":"eq","val":"sendtorta","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":[],"properties":{"done":"true"}},"rulePattern":[{"op":"eq","val":"sendtorta","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"}]}]',
+        '2024-01-28T00:00:00Z',
+        'admin',
+        '2024-01-15T00:00:00Z',
+        'admin');
+        INSERT INTO ruleset (id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby, editedat, editedby)
+        VALUES (
+        17,
+       'Nova',
+        13,
+        'amazon',
+        'ucc_aof',
+        'B',
+        'step_three',
+        false,
+        false,
+        22,
+        '[{"ruleActions":{"tasks":["getsigneddocument","getadhaardocuments"],"properties":{"nextstep":"sendtorta"}},"rulePattern":[{"op":"eq","val":"start","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":false,"attr":"aofexists"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":["sendtorta"],"properties":{"nextstep":"sendtorta"}},"rulePattern":[{"op":"eq","val":"getsigneddocument","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":false,"attr":"aofexists"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":[],"properties":{"done":"true"}},"rulePattern":[{"op":"eq","val":"getsigneddocument","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":false,"attr":"aofexists"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":[],"properties":{"done":"true"}},"rulePattern":[{"op":"eq","val":"getsigneddocument","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":true,"attr":"aofexists"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":[],"properties":{"done":"true"}},"rulePattern":[{"op":"eq","val":"sendtorta","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":[],"properties":{"done":"true"}},"rulePattern":[{"op":"eq","val":"sendtorta","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"}]}]',
+        '2024-01-28T00:00:00Z',
+        'admin',
+        '2024-01-15T00:00:00Z',
+        'admin');
+        
 -- stepworkflow
 INSERT INTO stepworkflow
 VALUES (13,
