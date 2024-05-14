@@ -38,7 +38,7 @@ func BRERuleSetActivate(c *gin.Context, s *service.Service) {
 
 	// implement the user realm and all here
 	var capForList = []string{"ruleset"}
-
+	realmName = "Nova"
 	// userID, err := server.ExtractUserNameFromJwt(c)
 	// if err != nil {
 	// 	lh.Info().Log("unable to extract userID from token")
@@ -97,27 +97,6 @@ func BRERuleSetActivate(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	// first check if ruleset exist in db
-	count, err := query.GetBRERuleSetCount(c, sqlc.GetBRERuleSetCountParams{
-		Slice:   request.Slice,
-		App:     applc,
-		Class:   request.Class,
-		Setname: request.Name,
-		Realm:   realmName,
-		Brwf:    sqlc.BrwfEnumB,
-	})
-	if err != nil {
-		lh.Error(err).Log("error while getting a ruleset")
-		errmsg := db.HandleDatabaseError(err)
-		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, []wscutils.ErrorMessage{errmsg}))
-		return
-
-	}
-	if count == 0 {
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_NotFound, server.ErrCode_NotFound))
-		return
-	}
-
 	//  activate  rulesets in db
 	ntraversed, nactivated, err := activateAllRulesets(query, lh, request.Slice, applc, request.Class, request.Name, c)
 	if err != nil {
@@ -137,8 +116,9 @@ func BRERuleSetActivate(c *gin.Context, s *service.Service) {
 func activateAllRulesets(query *sqlc.Queries, lh *logharbour.Logger, slice int32, app, class, rulesetName string, c *gin.Context) (ntraversed, nactivated int, err error) {
 
 	var (
-		rule            crux.Rule_t
+		rules           []crux.Rule_t
 		thenRulesetName string
+		thenRulesetArr  []string
 	)
 
 	// First check if ruleset exist in db
@@ -177,11 +157,11 @@ func activateAllRulesets(query *sqlc.Queries, lh *logharbour.Logger, slice int32
 		return ntraversed, nactivated, err
 	}
 
-	// Unmarshalling into Rule_t
-	err = json.Unmarshal(rulesetData.Ruleset, &rule)
+	// Unmarshalling into []Rule_t
+	err = json.Unmarshal(rulesetData.Ruleset, &rules)
 	if err != nil {
 		lh.Error(err).Log("error while unmarshalling ruleset into crux.Rule_t")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_InvalidJson))
+		//wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.ErrCode_InvalidJson))
 		return ntraversed, nactivated, err
 	}
 
@@ -202,22 +182,28 @@ func activateAllRulesets(query *sqlc.Queries, lh *logharbour.Logger, slice int32
 			return
 		}
 		nactivated++
+
 	}
 
-	if rule.RuleActions.ThenCall != "" {
-		ntraversed++
-		thenRulesetName = rule.RuleActions.ThenCall
-	} else {
-		return ntraversed, nactivated, nil
+	for _, rule := range rules {
+		if rule.RuleActions.ThenCall != "" {
+			ntraversed++
+			thenRulesetName = rule.RuleActions.ThenCall
+			thenRulesetArr = append(thenRulesetArr, thenRulesetName)
+		}
 	}
 
 	// Recursive call
-	ntrav, nact, err := activateAllRulesets(query, lh, slice, app, class, thenRulesetName, c)
-	if err != nil {
-		return 0, 0, err
+	if len(thenRulesetArr) > 0 {
+		for _, thenRulesetName := range thenRulesetArr {
+			ntrav, nact, err := activateAllRulesets(query, lh, slice, app, class, thenRulesetName, c)
+			if err != nil {
+				return 0, 0, err
+			}
+			ntraversed += ntrav
+			nactivated += nact
+		}
 	}
-	ntraversed += ntrav
-	nactivated += nact
 
 	return ntraversed, nactivated, nil
 }
