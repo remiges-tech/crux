@@ -229,7 +229,7 @@ func VerifyRulePatterns(ruleset *Ruleset_t, schema *Schema_t, isWF bool) []error
 
 			if !verifyType(term.Val, valType) {
 				fieldName := fmt.Sprintf("rule[%d].term[%d]val", i, j)
-				err := CruxError{Keyword: "NotMatch", FieldName: fieldName, Messages: "value of this attribute does not match schema"} // fmt.Errorf("value of this attribute does not match schema type: %v", term.Attr)
+				err := CruxError{Keyword: "NotMatch", FieldName: fieldName, Vals: term.Val.(string), Messages: "value of this attribute does not match schema"} // fmt.Errorf("value of this attribute does not match schema type: %v", term.Attr)
 				errs = append(errs, err)
 			}
 			if !validOps[term.Op] {
@@ -349,7 +349,7 @@ func VerifyRuleActions(ruleset *Ruleset_t, schema *Schema_t, isWF bool) []error 
 
 			if !found {
 				fieldName := fmt.Sprintf("rule[%d].ruleActions[%d].task", i, j)
-				err := CruxError{Keyword: "NotExist", FieldName: fieldName, Messages: "task not found in any action-schema"} // fmt.Errorf("task %v not found in any action-schema", t)
+				err := CruxError{Keyword: "NotExist", FieldName: fieldName, Vals: t, Messages: "task not found in any action-schema"} // fmt.Errorf("task %v not found in any action-schema", t)
 				errs = append(errs, err)
 			}
 		}

@@ -74,7 +74,7 @@ func WFInstanceMarkDoneTestcase() []testutils.TestCasesStruct {
 						"nomauth": 5,
 					}},
 				Nextstep: "auth_done",
-				Loggedat: pgtype.Timestamp{Time: time.Now(), Valid: true},
+				Loggedat: &pgtype.Timestamp{Time: time.Now(), Valid: true},
 				Subflows: map[string]string{"aof": "aofworkflow"},
 			}, Messages: nil},
 		},
@@ -89,7 +89,7 @@ func WFInstanceMarkDoneTestcase() []testutils.TestCasesStruct {
 			ExpectedHttpCode: http.StatusOK,
 			ExpectedResult: &wscutils.Response{Status: wscutils.SuccessStatus, Data: wfinstance.WFInstanceNewResponse{
 				ID:       "2",
-				Loggedat: pgtype.Timestamp{Time: time.Now(), Valid: true},
+				Loggedat: &pgtype.Timestamp{Time: time.Now(), Valid: true},
 			}, Messages: nil},
 		},
 		{
@@ -118,7 +118,7 @@ func WFInstanceMarkDoneTestcase() []testutils.TestCasesStruct {
 			ExpectedHttpCode: http.StatusOK,
 			ExpectedResult: &wscutils.Response{Status: wscutils.SuccessStatus, Data: wfinstance.WFInstanceNewResponse{
 				ID:       "3",
-				Loggedat: pgtype.Timestamp{Time: time.Now(), Valid: true},
+				Loggedat: &pgtype.Timestamp{Time: time.Now(), Valid: true},
 			}, Messages: nil},
 		},
 		{
@@ -132,7 +132,7 @@ func WFInstanceMarkDoneTestcase() []testutils.TestCasesStruct {
 			ExpectedHttpCode: http.StatusOK,
 			ExpectedResult: &wscutils.Response{Status: wscutils.SuccessStatus, Data: wfinstance.WFInstanceNewResponse{
 				ID:       "4",
-				Loggedat: pgtype.Timestamp{Time: time.Now(), Valid: true},
+				Loggedat: &pgtype.Timestamp{Time: time.Now(), Valid: true},
 			}, Messages: nil},
 		},
 		{
@@ -148,7 +148,7 @@ func WFInstanceMarkDoneTestcase() []testutils.TestCasesStruct {
 				Tasks: []map[string]int32{{
 					"sendauthlinktoclient": 6,
 				}},
-				Loggedat: pgtype.Timestamp{Time: time.Now(), Valid: true},
+				Loggedat: &pgtype.Timestamp{Time: time.Now(), Valid: true},
 				Subflows: map[string]string{},
 			}, Messages: nil},
 		},
@@ -162,7 +162,7 @@ func WFInstanceMarkDoneTestcase() []testutils.TestCasesStruct {
 			}},
 			ExpectedHttpCode: http.StatusOK,
 			ExpectedResult: &wscutils.Response{Status: wscutils.SuccessStatus, Data: wfinstance.WFInstanceNewResponse{
-				Loggedat: pgtype.Timestamp{Time: time.Now(), Valid: true},
+				Loggedat: &pgtype.Timestamp{Time: time.Now(), Valid: true},
 				Done:     "true",
 			}, Messages: nil},
 		},

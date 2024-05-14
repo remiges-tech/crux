@@ -234,7 +234,7 @@ func DoMarkDone(c *gin.Context, s *service.Service, qtx *sqlc.Queries, instanceI
 			}
 			response = wfinstance.WFInstanceNewResponse{
 				Tasks:    []map[string]int32{{step: instanceID}},
-				Loggedat: pgtype.Timestamp{Time: wfinst.Loggedat.Time, Valid: true},
+				Loggedat: &pgtype.Timestamp{Time: wfinst.Loggedat.Time, Valid: true},
 			}
 			return response, nil
 		}
@@ -350,8 +350,8 @@ func DoMarkDone(c *gin.Context, s *service.Service, qtx *sqlc.Queries, instanceI
 			step = actionset.Tasks[0]
 			UpdateWFInstanceStep(qtx, instanceID, entity_t, actionset.Tasks[0], ruleset.SetName)
 			response = wfinstance.WFInstanceNewResponse{
-				Tasks:    []map[string]int32{{step: instanceID}},
-				Loggedat: pgtype.Timestamp{Time: wfinst.Doneat.Time, Valid: true},
+				Tasks:  []map[string]int32{{step: instanceID}},
+				Doneat: &wfinst.Doneat.Time,
 			}
 			return response, nil
 		}
@@ -486,8 +486,8 @@ func DoMarkDone(c *gin.Context, s *service.Service, qtx *sqlc.Queries, instanceI
 				step = actionset.Tasks[0]
 				UpdateWFInstanceStep(qtx, instanceID, entity_t, actionset.Tasks[0], ruleset.SetName)
 				response = wfinstance.WFInstanceNewResponse{
-					Tasks:    []map[string]int32{{step: instanceID}},
-					Loggedat: pgtype.Timestamp{Time: wfinst.Doneat.Time, Valid: true},
+					Tasks:  []map[string]int32{{step: instanceID}},
+					Doneat: &wfinst.Doneat.Time,
 				}
 				return response, nil
 			}
@@ -501,8 +501,8 @@ func DoMarkDone(c *gin.Context, s *service.Service, qtx *sqlc.Queries, instanceI
 			// Return with details of success of mark-done.
 			id := strconv.Itoa(int(instanceID))
 			response := wfinstance.WFInstanceNewResponse{
-				ID:       id,
-				Loggedat: pgtype.Timestamp{Time: wfinst.Doneat.Time, Valid: true},
+				ID:     id,
+				Doneat: &doneAtTimeStamp,
 			}
 			return response, nil
 		}

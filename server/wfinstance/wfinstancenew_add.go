@@ -134,14 +134,14 @@ func getResponse(r GetResponse) WFInstanceNewResponse {
 		response = WFInstanceNewResponse{
 			Tasks:    tasks,
 			Nextstep: r.NextStep,
-			Loggedat: loggedDate,
+			Loggedat: &loggedDate,
 			Subflows: r.Subflow,
 		}
 	} else {
 		//response for single task step
 		response = WFInstanceNewResponse{
 			Tasks:    tasks,
-			Loggedat: loggedDate,
+			Loggedat: &loggedDate,
 			Subflows: r.Subflow,
 		}
 	}

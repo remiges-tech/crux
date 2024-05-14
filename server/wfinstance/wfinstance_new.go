@@ -2,6 +2,7 @@ package wfinstance
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -28,11 +29,12 @@ type WFInstanceNewRequest struct {
 type WFInstanceNewResponse struct {
 	Tasks     []map[string]int32 `json:"tasks,omitempty"`
 	Nextstep  string             `json:"nextstep,omitempty"`
-	Loggedat  pgtype.Timestamp   `json:"loggedat,omitempty"`
+	Loggedat  *pgtype.Timestamp  `json:"loggedat,omitempty"`
 	Subflows  map[string]string  `json:"subflows,omitempty"`
 	Tracedata map[string]string  `json:"tracedata,omitempty"`
 	Done      string             `json:"done,omitempty"`
 	ID        string             `json:"id,omitempty"` //wfinstance id
+	Doneat    *time.Time         `json:"doneat,omitempty"`
 }
 
 const WFE = "W"
