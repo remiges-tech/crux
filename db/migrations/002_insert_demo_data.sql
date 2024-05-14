@@ -524,7 +524,62 @@ VALUES (10,
         '2024-01-15T00:00:00Z',
         'admin');
 
+        INSERT INTO ruleset (id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby, editedat, editedby)
+VALUES (12,
+       'Nova',
+        13,
+        'uccapp',
+        'ucc_aof',
+        'W',
+        'uccworkflow',
+        true,
+        false,
+        19,
+        '[{"ruleActions":{"tasks":["getsigneddocument"],"properties":{"nextstep1":"getsigneddocument"}},"rulePattern":[{"op":"eq","val":"start","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":false,"attr":"aofexists"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":["sendtorta"],"properties":{"nextstep":"sendtorta"}},"rulePattern":[{"op":"eq","val":"getsigneddocument","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":false,"attr":"aofexists"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":[],"properties":{"done":"true"}},"rulePattern":[{"op":"eq","val":"getsigneddocument","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":false,"attr":"aofexists"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":[],"properties":{"done":"true"}},"rulePattern":[{"op":"eq","val":"getsigneddocument","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":true,"attr":"aofexists"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":[],"properties":{"done":"true"}},"rulePattern":[{"op":"eq","val":"sendtorta","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":[],"properties":{"done":"true"}},"rulePattern":[{"op":"eq","val":"sendtorta","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"}]}]',
+        '2024-01-28T00:00:00Z',
+        'admin',
+        '2024-01-15T00:00:00Z',
+        'admin');
+  INSERT INTO ruleset (id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby, editedat, editedby)
+VALUES (13,
+       'Nova',
+        13,
+        'uccapp',
+        'ucc_aof',
+        'W',
+        'uccdoneworkflow',
+        true,
+        false,
+        19,
+        '[{"ruleActions":{"tasks":["getsigneddocument"],"properties":{"done":"true"}},"rulePattern":[{"op":"eq","val":"start","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":false,"attr":"aofexists"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":["sendtorta"],"properties":{"nextstep":"sendtorta"}},"rulePattern":[{"op":"eq","val":"getsigneddocument","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":false,"attr":"aofexists"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":[],"properties":{"done":"true"}},"rulePattern":[{"op":"eq","val":"getsigneddocument","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":false,"attr":"aofexists"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":[],"properties":{"done":"true"}},"rulePattern":[{"op":"eq","val":"getsigneddocument","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":true,"attr":"aofexists"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":[],"properties":{"done":"true"}},"rulePattern":[{"op":"eq","val":"sendtorta","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":[],"properties":{"done":"true"}},"rulePattern":[{"op":"eq","val":"sendtorta","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"}]}]',
+        '2024-01-28T00:00:00Z',
+        'admin',
+        '2024-01-15T00:00:00Z',
+        'admin');
+
+          INSERT INTO ruleset (id, realm, slice, app, class, brwf, setname, is_active, is_internal, schemaid, ruleset, createdat, createdby, editedat, editedby)
+VALUES (14,
+       'Nova',
+        13,
+        'uccapp',
+        'ucc_aof',
+        'W',
+        'uccmultiplestepsworkflow',
+        true,
+        false,
+        19,
+        '[{"ruleActions":{"tasks":["getsigneddocument","getadhaardocuments"],"properties":{"nextstep":"sendtorta"}},"rulePattern":[{"op":"eq","val":"start","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":false,"attr":"aofexists"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":["sendtorta"],"properties":{"nextstep":"sendtorta"}},"rulePattern":[{"op":"eq","val":"getsigneddocument","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":false,"attr":"aofexists"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":[],"properties":{"done":"true"}},"rulePattern":[{"op":"eq","val":"getsigneddocument","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"},{"op":"eq","val":false,"attr":"aofexists"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":[],"properties":{"done":"true"}},"rulePattern":[{"op":"eq","val":"getsigneddocument","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"},{"op":"eq","val":true,"attr":"aofexists"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":[],"properties":{"done":"true"}},"rulePattern":[{"op":"eq","val":"sendtorta","attr":"step"},{"op":"eq","val":false,"attr":"stepfailed"}]},{"NFailed":0,"NMatched":0,"ruleActions":{"tasks":[],"properties":{"done":"true"}},"rulePattern":[{"op":"eq","val":"sendtorta","attr":"step"},{"op":"eq","val":true,"attr":"stepfailed"}]}]',
+        '2024-01-28T00:00:00Z',
+        'admin',
+        '2024-01-15T00:00:00Z',
+        'admin');
+
 -- stepworkflow
+INSERT INTO stepworkflow
+VALUES (13,
+        'uccapp',
+        'getsigneddocument',
+        'aofworkflow');
 
 INSERT INTO stepworkflow
 VALUES (12,
