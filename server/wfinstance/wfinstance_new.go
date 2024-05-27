@@ -91,7 +91,8 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	}
 	// Validate request
 	existingEntity := wfinstanceNewreq.Entity
-	isValidReq, errStr := validateWFInstanceNewReq(wfinstanceNewreq, realm, s, c)
+	emptyStep := ""
+	isValidReq, errStr := validateWFInstanceNewReq(wfinstanceNewreq, emptyStep, realm, s, c)
 	if len(errStr) > 0 || !isValidReq {
 		lh.Debug0().LogActivity("GetWFinstanceNew||request validation error:", errStr)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, errStr))
@@ -137,8 +138,8 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, err.Error()))
 		return
 	} else if schema == nil || ruleset == nil {
-		lh.Debug0().Error(err).Log("didn't find any data in RuleSchemas or RuleSets cache")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, err.Error()))
+		lh.Debug0().Log("didn't find any data in RuleSchemas or RuleSets cache")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Invalid, server.Errode_RuleSchemas_Or_Rulests_Not_Found))
 		return
 	}
 
@@ -159,6 +160,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 		return
 	}
 
+	fmt.Println("Actionset>>", actionSet)
 	//To verify actionSet Properties and get their values
 	attribute, error := getValidPropertyAttr(actionSet)
 	if error != nil {

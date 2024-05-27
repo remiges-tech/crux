@@ -14,10 +14,11 @@ import (
 	"github.com/remiges-tech/crux/server"
 )
 
-func validateWFInstanceNewReq(r WFInstanceNewRequest, realm string, s *service.Service, c *gin.Context) (bool, []wscutils.ErrorMessage) {
+func validateWFInstanceNewReq(r WFInstanceNewRequest, step string, realm string, s *service.Service, c *gin.Context) (bool, []wscutils.ErrorMessage) {
 	lh := s.LogHarbour.WithClass("wfinstance")
 	entity := r.Entity
 	var errRes []wscutils.ErrorMessage
+	var flag int32
 
 	lh.Debug0().Log("Inside ValidateWFInstaceNewReq()")
 	query, ok := s.Dependencies["queries"].(*sqlc.Queries)
@@ -58,21 +59,56 @@ func validateWFInstanceNewReq(r WFInstanceNewRequest, realm string, s *service.S
 	}
 
 	// Unmarshalling byte data to schemapatten struct
-	schemaPattern, err := byteToPatternSchema(pattern)
+	schemaPattern, err := byteToPatternSchema(pattern.Patternschema)
 	lh.Debug0().LogActivity("GetWFinstanceNew||validateWFInstanceNewReq()||patternschema :", schemaPattern)
 	if err != nil {
 		lh.Debug0().LogActivity("GetWFinstanceNew||validateWFInstanceNewReq()|| error while converting byte patternschema to struct:", err)
 		errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_NoSchemaFound, server.ErrCode_Invalid_pattern_schema, nil))
 		return false, errRes
 	}
+	// schema := crux.Schema_t{
+	// 	Class:         class,
+	// 	PatternSchema: *schemaPattern,
+	// }
+
+	// Unmarshalling byte data to schemapatten struct
+	actionSchema, err := byteToActionSchema(pattern.Actionschema)
+	lh.Debug0().LogActivity("GetWFinstanceNew||validateWFInstanceNewReq()||actionschema :", actionSchema)
+	if err != nil {
+		lh.Debug0().LogActivity("GetWFinstanceNew||validateWFInstanceNewReq()|| error while converting byte actionschema to struct:", err)
+		errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_NoSchemaFound, server.ErrCode_Invalid_pattern_schema, nil))
+		return false, errRes
+	}
 	schema := crux.Schema_t{
 		Class:         class,
 		PatternSchema: *schemaPattern,
+		ActionSchema:  *actionSchema,
 	}
 
 	// Forming  requested entity  into proper Entity struct
 	EntityStruct := getEntityStructure(r, realm)
 	lh.Debug1().LogActivity("GetWFinstanceNew||validateWFInstanceNewReq()||entity stucture:", EntityStruct)
+
+	// verifying whether step in the request has valid value
+
+
+	if step != "" {
+		tasks := actionSchema.Tasks
+		if len(tasks) > 0 {
+			for _, task := range tasks {
+				if task == step {
+					flag = 1
+				}
+
+			}
+		}
+		if flag != 1 {
+			lh.Debug0().Log(" GetWFinstanceNew||validateWFInstanceNewReq()| inavalid step:")
+			errRes = append(errRes, wscutils.BuildErrorMessage(server.MsgId_Invalid, server.ErrCode_Invalid_Step, &step))
+			return false, errRes
+
+		}
+	}
 
 	//  To match entity against patternschema
 	isValidEntity, err := ValidateEntity(EntityStruct, &schema, s)
@@ -194,7 +230,7 @@ func ValidateEntity(e crux.Entity, ps *crux.Schema_t, s *service.Service) (bool,
 	// Check if the entity class matches the expected class from the schema
 	if e.Class != ps.Class {
 		lh.Debug0().Log("GetWFinstanceNew||validateEntity()||entity class does not match the expected class in the schema")
-		return false, errors.New("Entity class does not match the expected class in the schema")
+		return false, errors.New("entity class does not match the expected class in the schema")
 	}
 
 	// Validate attributes
@@ -228,12 +264,22 @@ func getType(rs crux.Schema_t, name string) string {
 
 // To convert byte data to patternschema struct
 func byteToPatternSchema(byteData []byte) (*[]crux.PatternSchema_t, error) {
-	var ptternSchema *[]crux.PatternSchema_t
-	err := json.Unmarshal(byteData, &ptternSchema)
+	var patternSchema *[]crux.PatternSchema_t
+	err := json.Unmarshal(byteData, &patternSchema)
 	if err != nil {
 		return nil, fmt.Errorf("error decoding JSON: %v", err)
 	}
-	return ptternSchema, nil
+	return patternSchema, nil
+}
+
+// To convert byte data to actionnschema struct
+func byteToActionSchema(byteData []byte) (*crux.ActionSchema_t, error) {
+	var actionschema *crux.ActionSchema_t
+	err := json.Unmarshal(byteData, &actionschema)
+	if err != nil {
+		return nil, fmt.Errorf("error decoding JSON: %v", err)
+	}
+	return actionschema, nil
 }
 
 // To convert request entity into proper Entity structure
