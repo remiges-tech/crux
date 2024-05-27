@@ -20,6 +20,8 @@ pg-drop-all:
 
 jaadu: pg-drop-all generate tern
 
+run-dev: go run -tags dev main.go middleware_dev.go 
+
 db-migrate-generate: pg-drop-all tern generate
 
 test-all:
