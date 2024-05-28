@@ -38,6 +38,13 @@ func CapRevoke(c *gin.Context, s *service.Service) {
 	// 	return
 	// }
 
+	// realmName, ok := s.Dependencies["realmName"].(string)
+	// if !ok {
+	// 	l.Debug0().Log("error while getting realmName instance from service dependencies")
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
+	// 	return
+	// }
+
 	reqCaps := []string{"auth"}
 	isCapable, userCapabilities := server.Authz_check(types.OpReq{
 		User:      userID,

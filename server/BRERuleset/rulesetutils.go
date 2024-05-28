@@ -8,7 +8,7 @@ import (
 	"github.com/remiges-tech/crux/db/sqlc-gen"
 )
 
-func hasRulesetCapability(app string, query *sqlc.Queries, c *gin.Context) (bool, error) {
+func hasRulesetCapability(app string, query *sqlc.Queries, c *gin.Context, realmName string) (bool, error) {
 	count, err := query.GetRuleSetCapabilityForApp(c, sqlc.GetRuleSetCapabilityForAppParams{
 		Userid: userID,
 		Realm:  realmName,

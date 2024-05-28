@@ -44,6 +44,13 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 	// 	return
 	// }
 
+	realmName, ok := s.Dependencies["realmName"].(string)
+	if !ok {
+		l.Debug0().Log("error while getting realmName instance from service dependencies")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
+		return
+	}
+
 	capNeeded := []string{"ruleset"}
 	isCapable, _ := server.Authz_check(types.OpReq{
 		User:      userID,
@@ -97,7 +104,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 		Slice:     wf.Slice,
 		App:       strings.ToLower(wf.App),
 		Class:     wf.Class,
-		Brwf: sqlc.BrwfEnumW,
+		Brwf:      sqlc.BrwfEnumW,
 	})
 	if err != nil {
 		l.Info().Error(err).Log("failed to get schema from DB:")

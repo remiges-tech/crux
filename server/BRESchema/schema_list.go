@@ -31,7 +31,6 @@ func BRESchemaList(c *gin.Context, s *service.Service) {
 	l := s.LogHarbour
 	l.Debug0().Log("starting execution of BRESchemaList()")
 
-	
 	// userID, err := server.ExtractUserNameFromJwt(c)
 	// if err != nil {
 	// 	l.Info().Log("unable to extract userID from token")
@@ -45,6 +44,16 @@ func BRESchemaList(c *gin.Context, s *service.Service) {
 	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
 	// 	return
 	// }
+
+	realmName, ok := s.Dependencies["realmName"].(string)
+	if !ok {
+		l.Debug0().Log("error while getting realmName instance from service dependencies")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
+		return
+	}
+
+	// delete below line whie actual implementation (reason: kept for testing while writting api)
+	realmName = "Ecommerce"
 
 	isCapable, capList := server.Authz_check(types.OpReq{
 		User:      userID,
@@ -80,10 +89,10 @@ func BRESchemaList(c *gin.Context, s *service.Service) {
 	}
 
 	if slices.Contains(capList, "root") || slices.Contains(capList, "report") {
-		schemaList, err = getSchemaList(c, sh, query,realmName)
+		schemaList, err = getSchemaList(c, sh, query, realmName)
 	} else if slices.Contains(capList, "ruleset") || slices.Contains(capList, "schema") {
 		if sh.App != "" {
-			schemaList, err = getSchemaList(c, sh, query,realmName)
+			schemaList, err = getSchemaList(c, sh, query, realmName)
 		} else {
 			l.Info().LogActivity(server.ErrCode_Unauthorized, userID)
 			wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
@@ -108,7 +117,7 @@ func BRESchemaList(c *gin.Context, s *service.Service) {
 	l.Debug0().Log("finished execution of BRESchemaList()")
 }
 
-func getSchemaList(c *gin.Context, sh BRESchemaStruct, query *sqlc.Queries,realmName string) ([]sqlc.WfSchemaListRow, error) {
+func getSchemaList(c *gin.Context, sh BRESchemaStruct, query *sqlc.Queries, realmName string) ([]sqlc.WfSchemaListRow, error) {
 	return query.WfSchemaList(c, sqlc.WfSchemaListParams{
 		Relam: realmName,
 		Slice: pgtype.Int4{Int32: sh.Slice, Valid: sh.Slice > 0},

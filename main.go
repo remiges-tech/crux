@@ -33,6 +33,7 @@ type AppConfig struct {
 	DBPassword    string `json:"db_password"`
 	DBName        string `json:"db_name"`
 	AppServerPort string `json:"app_server_port"`
+	RealmName     string `json:"realm"`
 }
 
 func main() {
@@ -151,6 +152,7 @@ func main() {
 		WithLogHarbour(l).
 		WithDatabase(connPool).
 		WithDependency("queries", queries).
+		WithDependency("realmName", appConfig.RealmName).
 		WithDependency("cruxCache", cruxCache)
 
 	apiV1Group := r.Group("/api/v1/")

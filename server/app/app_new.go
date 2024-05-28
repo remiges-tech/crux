@@ -29,7 +29,7 @@ type GetAppNewRequest struct {
 func AppNew(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour.WithClass("app")
 	lh.Log("AppNew request received")
-	
+
 	userID, err := server.ExtractUserNameFromJwt(c)
 	if err != nil {
 		lh.Info().Log("unable to extract userID from token")
@@ -37,10 +37,17 @@ func AppNew(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	realmName, err := server.ExtractRealmFromJwt(c)
-	if err != nil {
-		lh.Info().Log("unable to extract realm from token")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
+	// realmName, err := server.ExtractRealmFromJwt(c)
+	// if err != nil {
+	// 	lh.Info().Log("unable to extract realm from token")
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
+	// 	return
+	// }
+
+	realmName, ok := s.Dependencies["realmName"].(string)
+	if !ok {
+		lh.Debug0().Log("error while getting realmName instance from service dependencies")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
 		return
 	}
 

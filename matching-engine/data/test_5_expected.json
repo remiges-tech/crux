@@ -1,0 +1,41 @@
+{
+    "start": "2024-04-10T23:00:00Z",
+    "end": "2024-04-10T23:00:00Z",
+    "realm": "Remiges",
+    "app": "tnt",
+    "entryRulesetID": 3,
+    "entryRulesetName": "third",
+    "tracedata": [
+        {
+            "id": 3,
+            "setName": "third",
+            "rules": [
+                {
+                    "r": 0,
+                    "res": "-c",
+                    "nextset": "second"
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "setName": "second",
+            "rules": [
+                {
+                    "r": 0,
+                    "res": "-"
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "setName": "third",
+            "rules": [
+                {
+                    "r": 1,
+                    "res": "<"
+                }
+            ]
+        }
+    ]
+}

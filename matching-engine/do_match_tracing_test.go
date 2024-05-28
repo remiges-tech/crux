@@ -1,161 +1,64 @@
 package crux
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"os"
 	"testing"
 
+	"github.com/remiges-tech/crux/db/sqlc-gen"
 	"github.com/stretchr/testify/require"
 )
 
 const (
-	TestTracing_1 = "L1 trace: only `match` and `mismatch`"
-	TestTracing_2 = "wfinstancenew matching"
-)
-
-type tracingTestCasesStruct struct {
-	entity  Entity
-	ruleset *Ruleset_t
-	// TestJsonFile       string
-	TestCaseName       string
-	entityFilePath     string
-	rulesetFilePath    string
-	ruleSchemasCache   *Schema_t
-	ExpectedResultFile string
-	Url                string
-}
-
-var (
-	sampleEntity = Entity{
-		Realm: "Nova",
-		App:   "fundify",
-		Slice: 12,
-		Class: "ucctest",
-		Attrs: map[string]string{
-			"mode":       "demat",
-			"step":       "start",
-			"stepfailed": "false",
-		},
-	}
-	sampleEntityWfinstancenew = Entity{
-		Realm: "Nova",
-		App:   "uccapp",
-		Slice: 12,
-		Class: "ucc",
-		Attrs: map[string]string{
-			"mode":       "demat",
-			"step":       "start",
-			"stepfailed": "false",
-		},
-	}
-	sampleRuleset = Ruleset_t{
-		Id:      10,
-		Class:   "ucctest",
-		SetName: "ucctest",
-		Rules: []Rule_t{
-			{
-				RulePatterns: []RulePatternBlock_t{
-					{
-						Attr: "step",
-						Op:   "eq",
-						Val:  "start",
-					},
-					{
-						Attr: "mode",
-						Op:   "eq",
-						Val:  "demat",
-					},
-				},
-				RuleActions: RuleActionBlock_t{
-					Task: []string{
-						"step1",
-					},
-					Properties: map[string]string{
-						"nextstep": "step1",
-					},
-				},
-				NMatched: 0,
-				NFailed:  0,
-			},
-			{
-				RulePatterns: []RulePatternBlock_t{
-					{
-						Attr: "step",
-						Op:   "eq",
-						Val:  "step1",
-					},
-					{
-						Attr: "mode",
-						Op:   "eq",
-						Val:  "demat",
-					},
-				},
-				RuleActions: RuleActionBlock_t{
-					Task: []string{
-						"step2",
-					},
-					Properties: map[string]string{
-						"nextstep": "step2",
-					},
-				},
-				NMatched: 0,
-				NFailed:  0,
-			},
-			{
-				RulePatterns: []RulePatternBlock_t{
-					{
-						Attr: "step",
-						Op:   "eq",
-						Val:  "step2",
-					},
-					{
-						Attr: "mode",
-						Op:   "eq",
-						Val:  "demat",
-					},
-				},
-				RuleActions: RuleActionBlock_t{
-					Task: []string{},
-					Properties: map[string]string{
-						"done": "true",
-					},
-				},
-				NMatched: 0,
-				NFailed:  0,
-			},
-		},
-		NCalled:       0,
-		ReferenceType: "",
-	}
+	schemaCachePath     = "./data/schema_sample.json"
+	schemaCacheThencall = "./data/schema_thencall.json"
+	TestTracing_1       = "1. L0: with trace_level 0"
+	TestTracing_2       = "2. L1: Match rule with return"
+	TestTracing_3       = "3. L1: Match 1st rule & other mismatch"
+	TestTracing_4       = "4. L2: Then_Call"
+	TestTracing_5       = "5. L1: Else_Call & Return call"
 )
 
 func TestDoMatchTracee(t *testing.T) {
+
 	testCases := testcase()
 	for _, tc := range testCases {
+		var schema *Schema_t
 		if tc.rulesetFilePath != "" {
-			var temp_ruleset Ruleset_t
+			var tm Ruleset_t
 			rulesetFile, err := readJsonFromFile(tc.rulesetFilePath)
 			require.NoError(t, err)
-
-			err = json.Unmarshal(rulesetFile, &temp_ruleset)
+			err = json.Unmarshal(rulesetFile, &tm)
 			require.NoError(t, err)
-			tc.ruleset = &temp_ruleset
+			tc.ruleset = &tm
 		}
-
-		t.Run(tc.TestCaseName, func(t *testing.T) {
-			_, _, err, trace := DoMatch(tc.entity, tc.ruleset, tc.ruleSchemasCache, ActionSet{}, map[string]struct{}{}, Trace_t{})
+		if tc.ruleSchemasCache != "" {
+			ruleSchemasCache, err := readJsonFromFile(tc.ruleSchemasCache)
 			require.NoError(t, err)
-
+			err = json.Unmarshal(ruleSchemasCache, &schema)
+			require.NoError(t, err)
+		}
+		// setting wfschema
+		cruxCache.Ctx = context.Background()
+		cruxCache.Query = &sqlc.Queries{}
+		cruxCache.RulesetCache = RulesetCache_t{"Remiges": PerRealm_t{"tnt": PerApp_t{12: PerSlice_t{Workflows: map[ClassName_t][]*Ruleset_t{"sale": set_rules}}}}}
+		cruxCache.SchemaCache = SchemaCache_t{"Remiges": PerRealm_t{"tnt": PerApp_t{12: PerSlice_t{WFSchema: map[ClassName_t]Schema_t{"sale": *schema}}}}}
+		t.Run(tc.TestCaseName, func(t *testing.T) {
+			var expected []byte
+			_, _, err, trace := DoMatch(tc.entity, tc.ruleset, schema, ActionSet{}, map[string]struct{}{}, emptyTrace, tc.trace_lev, cruxCache)
 			traceByt, _ := json.Marshal(trace)
 			fmt.Println("<<<<<<<<<<<<<<<<<<< traceByt:", string(traceByt))
-
-			expected, err := readJsonFromFile(tc.ExpectedResultFile)
 			require.NoError(t, err)
 			actual, err := json.Marshal(trace)
-			// fmt.Println(">>>>>> actual:", string(actual))
 			require.NoError(t, err)
+			if tc.ExpectedResultFile != "" {
+				expected, err = readJsonFromFile(tc.ExpectedResultFile)
+				require.NoError(t, err)
+			} else {
+				expected, err = json.Marshal(tc.ExpectedTrace)
+				require.NoError(t, err)
+			}
 			require.JSONEq(t, string(expected), string(actual))
 		})
 	}
@@ -167,36 +70,52 @@ func testcase() []tracingTestCasesStruct {
 		// 1st test case
 		{
 			TestCaseName:     TestTracing_1,
-			entity:           sampleEntity,
+			entity:           entity_return,
 			ruleset:          &sampleRuleset,
-			ruleSchemasCache: &Schema_t{},
-			// TestJsonFile:       "./data/action_.json",
-			ExpectedResultFile: "./data/expected_trace.json",
+			trace_lev:        0,
+			ruleSchemasCache: schemaCachePath,
+			ExpectedTrace:    emptyTrace,
 		},
+
 		// 2nd test case
 		{
-			TestCaseName: TestTracing_2,
-			entity:       sampleEntityWfinstancenew,
-			// ruleset:          &sampleRuleset,
-			rulesetFilePath:  "./data/ruleset_wfinstancenew.json",
-			ruleSchemasCache: &Schema_t{},
-			// TestJsonFile:       "./data/action_.json",
-			ExpectedResultFile: "./data/expected_trace2.json",
+			TestCaseName:       TestTracing_2,
+			entity:             entity_return,
+			ruleset:            &sampleRuleset,
+			trace_lev:          1,
+			ruleSchemasCache:   schemaCachePath,
+			ExpectedResultFile: "./data/test_2_expected.json",
+		},
+
+		// 3rd test case
+		{
+			TestCaseName:       TestTracing_3,
+			entity:             entity_match,
+			ruleset:            &sampleRuleset,
+			trace_lev:          1,
+			ruleSchemasCache:   schemaCachePath,
+			ExpectedResultFile: "./data/test_3_expected.json",
+		},
+
+		// 4th test case
+		{
+			TestCaseName:       TestTracing_4,
+			entity:             entity_thencall,
+			ruleset:            &thenCallRuleset,
+			trace_lev:          2,
+			ruleSchemasCache:   schemaCacheThencall,
+			ExpectedResultFile: "./data/test_4_expected.json",
+		},
+
+		// 5th test case : Else_Call
+		{
+			TestCaseName:       TestTracing_5,
+			entity:             entity_elsecall,
+			ruleset:            &elseCallRuleset,
+			trace_lev:          1,
+			ruleSchemasCache:   schemaCachePath,
+			ExpectedResultFile: "./data/test_5_expected.json",
 		},
 	}
 	return tracingTestcases
-}
-
-func readJsonFromFile(filepath string) ([]byte, error) {
-	// var err error
-	file, err := os.Open(filepath)
-	if err != nil {
-		return nil, fmt.Errorf("testFile path is not exist")
-	}
-	defer file.Close()
-	jsonData, err := io.ReadAll(file)
-	if err != nil {
-		return nil, err
-	}
-	return jsonData, nil
 }

@@ -1,0 +1,115 @@
+{
+    "start": "2024-04-10T23:00:00Z",
+    "end": "2024-04-10T23:00:00Z",
+    "realm": "Remiges",
+    "app": "tnt",
+    "entryRulesetID": 3,
+    "entryRulesetName": "third",
+    "tracedata": [
+        {
+            "id": 3,
+            "setName": "third",
+            "rules": [
+                {
+                    "r": 0,
+                    "res": "+c",
+                    "nextset": "second",
+                    "tasks": [
+                        "yearendsale"
+                    ],
+                    "properties": {
+                        "discount": "15"
+                    },
+                    "actionset": {
+                        "tasks": [
+                            "yearendsale"
+                        ],
+                        "properties": {
+                            "discount": "15"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "setName": "second",
+            "rules": [
+                {
+                    "r": 0,
+                    "res": "+",
+                    "tasks": [
+                        "summersale",
+                        "wintersale"
+                    ],
+                    "properties": {
+                        "freegift": "mug"
+                    },
+                    "actionset": {
+                        "tasks": [
+                            "summersale",
+                            "wintersale",
+                            "yearendsale"
+                        ],
+                        "properties": {
+                            "discount": "15",
+                            "freegift": "mug"
+                        }
+                    }
+                },
+                {
+                    "r": 1,
+                    "res": "-",
+                    "pattern": [
+                        {
+                            "step": [
+                                "step2",
+                                "eq",
+                                "",
+                                "-"
+                            ]
+                        },
+                        {
+                            "mode": [
+                                "demat",
+                                "eq",
+                                "",
+                                "-"
+                            ]
+                        }
+                    ],
+                    "actionset": { }
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "setName": "third",
+            "rules": [
+                {
+                    "r": 1,
+                    "res": "-",
+                    "pattern": [
+                        {
+                            "step": [
+                                "step1",
+                                "eq",
+                                "",
+                                "-"
+                            ]
+                        },
+                        {
+                            "mode": [
+                                "demat",
+                                "eq",
+                                "",
+                                "-"
+                            ]
+                        }
+                    ],
+                    "actionset": { }
+                }
+            ]
+        }
+    ]
+}

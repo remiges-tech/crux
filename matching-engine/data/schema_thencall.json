@@ -1,0 +1,38 @@
+{
+    "class": "sale",
+    "patternschema": [
+        {
+            "attr": "cat",
+            "shortdesc": "",
+            "longdesc": "",
+            "valtype": "enum",
+            "vals": {
+                "textbook":{},
+                "second":{},
+                "third":{},
+                "notebook":{},
+                "step3":{},
+                "step4":{},
+                "step5":{}
+            }
+        },
+        {
+            "attr": "mrp",
+            "shortdesc": "",
+            "longdesc": "",
+            "valtype": "int"
+        }
+    ],
+    "actionschema": {
+        "tasks": [
+            "yearendsale",
+            "summersale",
+            "wintersale"
+        ],
+        "properties": [
+            "discount",
+            "freegift"
+        ]
+    },
+    "n_checked": 0
+}

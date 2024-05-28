@@ -68,6 +68,13 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	// 	return
 	// }
 
+	realm, ok := s.Dependencies["realmName"].(string)
+	if !ok {
+		lh.Debug0().Log("error while getting realmName instance from service dependencies")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
+		return
+	}
+
 	isCapable, _ := server.Authz_check(types.OpReq{
 		User: userID,
 	}, false)
@@ -153,7 +160,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 
 	// call DoMatch()
 
-	actionSet, _, err, _ = crux.DoMatch(entity, ruleset, schema, actionSet, seenRuleSets, crux.Trace_t{})
+	actionSet, _, err, _ = crux.DoMatch(entity, ruleset, schema, actionSet, seenRuleSets, crux.Trace_t{}, *wfinstanceNewreq.Trace, cruxCache)
 
 	if err != nil {
 		lh.Error(err).Log("GetWFinstanceNew||error while calling doMatch Method")

@@ -30,6 +30,13 @@ func RealmSliceList(c *gin.Context, s *service.Service) {
 	// 	return
 	// }
 
+	realmName, ok := s.Dependencies["realmName"].(string)
+	if !ok {
+		lh.Debug0().Log("error while getting realmName instance from service dependencies")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
+		return
+	}
+
 	var (
 		// userId     = "1234"
 		// realm_name = "Nova"

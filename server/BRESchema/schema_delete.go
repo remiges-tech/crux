@@ -32,6 +32,16 @@ func BRESchemaDelete(c *gin.Context, s *service.Service) {
 	// 	return
 	// }
 
+	realmName, ok := s.Dependencies["realmName"].(string)
+	if !ok {
+		lh.Debug0().Log("error while getting realmName instance from service dependencies")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
+		return
+	}
+
+	// delete below line whie actual implementation (reason: kept for testing while writting api)
+	realmName = "Ecommerce"
+
 	isCapable, _ := server.Authz_check(types.OpReq{
 		User:      userID,
 		CapNeeded: CapForList,
