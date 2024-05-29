@@ -6,23 +6,23 @@ import (
 	"os"
 )
 
-type tracingTestCasesStruct struct {
-	TestCaseName       string
-	entity             Entity
-	ruleset            *Ruleset_t
-	entityFilePath     string
-	rulesetFilePath    string
-	trace_lev          int
+type TracingTestCasesStruct struct {
+	TestCaseName string
+	Entity
+	*Ruleset_t
+	EntityFilePath     string
+	RulesetFilePath    string
+	Trace_lev          int
 	ExpectedResultFile string
 	ExpectedTrace      Trace_t
 	Url                string
-	ruleSchemasCache   string
+	RuleSchemasCache   string
 }
 
 //Entity
 
 var (
-	entity_return = Entity{
+	Entity_return = Entity{
 		Realm: "Remiges",
 		App:   "tnt",
 		Slice: 12,
@@ -32,7 +32,7 @@ var (
 			"mode": "demat",
 		},
 	}
-	entity_match = Entity{
+	Entity_match = Entity{
 		Realm: "Remiges",
 		App:   "tnt",
 		Slice: 12,
@@ -43,7 +43,7 @@ var (
 		},
 	}
 
-	entity_elsecall = Entity{
+	Entity_elsecall = Entity{
 		Realm: "Remiges",
 		App:   "tnt",
 		Slice: 12,
@@ -54,7 +54,7 @@ var (
 		},
 	}
 
-	entity_thencall = Entity{
+	Entity_thencall = Entity{
 		Realm: "Remiges",
 		App:   "tnt",
 		Slice: 12,
@@ -68,8 +68,8 @@ var (
 
 // Ruleset_t
 var (
-	emptyTrace      Trace_t
-	thenCallRuleset = Ruleset_t{
+	EmptyTrace      Trace_t
+	ThenCallRuleset = Ruleset_t{
 		Id:      3,
 		Class:   "sale",
 		SetName: "third",
@@ -133,7 +133,7 @@ var (
 			},
 		},
 	}
-	elseCallRuleset = Ruleset_t{
+	ElseCallRuleset = Ruleset_t{
 		Id:      3,
 		Class:   "sale",
 		SetName: "third",
@@ -245,7 +245,7 @@ var (
 		},
 	}
 
-	thenCall2Ruleset = Ruleset_t{
+	ThenCall2Ruleset = Ruleset_t{
 		Id:      2,
 		Class:   "sale",
 		SetName: "second",
@@ -356,7 +356,7 @@ var (
 		},
 	}
 
-	sampleRuleset = Ruleset_t{
+	SampleRuleset = Ruleset_t{
 		Id:      1,
 		Class:   "finance",
 		SetName: "finance",
@@ -531,10 +531,10 @@ var (
 		ReferenceType: "",
 	}
 
-	set_rules = []*Ruleset_t{&thenCallRuleset, &thenCall2Ruleset}
+	Set_rules = []*Ruleset_t{&ThenCallRuleset, &ThenCall2Ruleset}
 
-	cruxCache = &Cache{
-		RulesetCache: RulesetCache_t{"Remiges": PerRealm_t{"tnt": PerApp_t{12: PerSlice_t{Workflows: map[ClassName_t][]*Ruleset_t{"sale": set_rules}}}}},
+	CruxCacheTest = &Cache{
+		RulesetCache: RulesetCache_t{"Remiges": PerRealm_t{"tnt": PerApp_t{12: PerSlice_t{Workflows: map[ClassName_t][]*Ruleset_t{"sale": Set_rules}}}}},
 	}
 )
 

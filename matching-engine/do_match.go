@@ -15,13 +15,11 @@ import (
 func DoMatch(entity Entity, ruleset *Ruleset_t, ruleSchemasCache *Schema_t, actionSet ActionSet, seenRuleSets map[string]struct{}, trace Trace_t, trace_level int, cruxCache *Cache) (ActionSet, bool, error, Trace_t) {
 
 	if !(-1 < trace_level && trace_level < 3) {
-		return ActionSet{}, false, fmt.Errorf("trace_level out of bound"), trace
+		return ActionSet{}, false, fmt.Errorf("invalid trace_level"), trace
 	}
 	is_trace_enable := trace_level > 0
 
 	if trace.Start == nil && trace_level > 0 {
-		// this `time` is used for testing purposee revert with Now() in dev
-		// time_s := time.Date(2024, time.April, 10, 23, 0, 0, 0, time.UTC)
 		time_s := time.Now()
 		trace = create_trace_level_one(&time_s, entity.Realm, entity.App, ruleset.SetName, int(ruleset.Id), []TraceData_t{})
 	}
@@ -32,15 +30,10 @@ func DoMatch(entity Entity, ruleset *Ruleset_t, ruleSchemasCache *Schema_t, acti
 	}
 	for ruleNumber, rule := range ruleset.Rules {
 		var (
-			l2data = TraceDataRuleL2_t{
-				Pattern:    []map[string][]string{},
-				Tasks:      []string{},
-				Properties: map[string]string{},
-				NextSet:    0,
-				ActionSet:  &ActionSet_t{},
-			}
+			l2data   TraceDataRuleL2_t
 			eachRule TraceDataRule_t
 		)
+		l2data.ActionSet = &ActionSet_t{}
 		DoExit := false
 		matched, err := matchPattern(entity, rule.RulePatterns, actionSet, ruleSchemasCache)
 		if err != nil {
@@ -102,7 +95,6 @@ func DoMatch(entity Entity, ruleset *Ruleset_t, ruleSchemasCache *Schema_t, acti
 					eachRule.Res = Exit // if Exit then set Match as `<<`
 					traceData.add_rule(&eachRule, l2data, trace_level)
 					trace.add_tracedata(&traceData)
-					// trace.End = time.Date(2024, time.April, 10, 23, 0, 0, 0, time.UTC)
 					trace.End = time.Now()
 					// traceData.Rules = []TraceDataRule_t{}
 				}
@@ -113,7 +105,6 @@ func DoMatch(entity Entity, ruleset *Ruleset_t, ruleSchemasCache *Schema_t, acti
 					eachRule.Res = Return // if Return then set Match as `<`
 					traceData.add_rule(&eachRule, l2data, trace_level)
 					trace.add_tracedata(&traceData)
-					// trace.End = time.Date(2024, time.April, 10, 23, 0, 0, 0, time.UTC)
 					trace.End = time.Now()
 
 				}
@@ -133,7 +124,6 @@ func DoMatch(entity Entity, ruleset *Ruleset_t, ruleSchemasCache *Schema_t, acti
 				eachRule.NextSet = rule.RuleActions.ElseCall
 				traceData.add_rule(&eachRule, l2data, trace_level)
 				trace.add_tracedata(&traceData)
-				// trace.End = time.Date(2024, time.April, 10, 23, 0, 0, 0, time.UTC)
 				trace.End = time.Now()
 				traceData.Rules = []TraceDataRule_t{}
 			}
@@ -148,7 +138,6 @@ func DoMatch(entity Entity, ruleset *Ruleset_t, ruleSchemasCache *Schema_t, acti
 					eachRule.Res = Exit
 					traceData.add_rule(&eachRule, l2data, trace_level)
 					trace.add_tracedata(&traceData)
-					// trace.End = time.Date(2024, time.April, 10, 23, 0, 0, 0, time.UTC)
 					trace.End = time.Now()
 				}
 				return actionSet, true, nil, trace
@@ -164,7 +153,6 @@ func DoMatch(entity Entity, ruleset *Ruleset_t, ruleSchemasCache *Schema_t, acti
 				}
 				traceData.add_rule(&eachRule, l2data, trace_level)
 				trace.add_tracedata(&traceData) // append collected tracedata to trace
-				// trace.End = time.Date(2024, time.April, 10, 23, 0, 0, 0, time.UTC)
 				trace.End = time.Now()
 			}
 			return actionSet, false, nil, trace
@@ -174,8 +162,6 @@ func DoMatch(entity Entity, ruleset *Ruleset_t, ruleSchemasCache *Schema_t, acti
 	if is_trace_enable && (len(traceData.Rules) > 0) {
 		trace.add_tracedata(&traceData) // append collected tracedata to trace
 		// set end time of trace
-		// this `time` is used for testing purposee revert with Now() in dev
-		// trace.End = time.Date(2024, time.April, 10, 23, 0, 0, 0, time.UTC)
 		trace.End = time.Now()
 	}
 	return actionSet, false, nil, trace
