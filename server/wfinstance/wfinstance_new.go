@@ -76,11 +76,11 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	}
 
 	isCapable, _ := server.Authz_check(types.OpReq{
-		User: userID,
+		User: adminUser,
 	}, false)
 
 	if !isCapable {
-		lh.Info().LogActivity("unauthorized user:", userID)
+		lh.Info().LogActivity("unauthorized user:", adminUser)
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
 		return
 	}

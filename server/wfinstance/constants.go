@@ -13,7 +13,7 @@ const (
 	FALSE     = "false"
 	TRUE      = "true"
 	// realm     = "Nova"
-	userID = "Admin"
+	adminUser = "Admin"
 )
 
 //var ENTITYREALM = "Nova"

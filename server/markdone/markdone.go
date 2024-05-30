@@ -130,7 +130,7 @@ endif
 func DoMarkDone(c *gin.Context, s *service.Service, qtx *sqlc.Queries, instanceID int32, entity map[string]string) (wfinstance.WFInstanceNewResponse, error) {
 	l := s.LogHarbour.WithClass("DoMarkDone")
 	l.Debug1().Log("DoMarkDone function execution started")
-
+	trace_level := 0
 	wfinst, err := qtx.GetWFInstanceFromId(c, instanceID)
 	if err != nil {
 		l.Debug1().Error(err)
@@ -184,7 +184,7 @@ func DoMarkDone(c *gin.Context, s *service.Service, qtx *sqlc.Queries, instanceI
 		seenRuleSets := make(map[string]struct{})
 
 		// Call the doMatch function passing the entity.entity, ruleset, and the empty actionSet and seenRuleSets
-		actionset, _, err, _ := crux.DoMatch(entity_t, ruleset, schema, actionSet, seenRuleSets, crux.Trace_t{}, 0, cruxCache)
+		actionset, _, err, _ := crux.DoMatch(entity_t, ruleset, schema, actionSet, seenRuleSets, crux.Trace_t{}, trace_level, cruxCache)
 
 		if err != nil {
 			l.Debug0().Error(err).Log("error while performing DoMatch")
@@ -251,7 +251,7 @@ func DoMarkDone(c *gin.Context, s *service.Service, qtx *sqlc.Queries, instanceI
 		actionSet := crux.ActionSet{}
 		seenRuleSets := make(map[string]struct{})
 
-		actionset, match, err, _ := crux.DoMatch(entity_t, ruleset, schema, actionSet, seenRuleSets, crux.Trace_t{}, 0, cruxCache)
+		actionset, match, err, _ := crux.DoMatch(entity_t, ruleset, schema, actionSet, seenRuleSets, crux.Trace_t{}, trace_level, cruxCache)
 
 		if err != nil {
 			l.Info().Error(err).Log("error while performing DoMatch")
@@ -397,7 +397,7 @@ func DoMarkDone(c *gin.Context, s *service.Service, qtx *sqlc.Queries, instanceI
 
 			entity_t.Attrs["step"] = wfinst.Nextstep
 
-			actionset, _, err, _ := crux.DoMatch(entity_t, ruleset, schema, actionSet, seenRuleSets, crux.Trace_t{}, 0, cruxCache)
+			actionset, _, err, _ := crux.DoMatch(entity_t, ruleset, schema, actionSet, seenRuleSets, crux.Trace_t{}, trace_level, cruxCache)
 
 			if err != nil {
 				l.Info().Error(err).Log("error while performing DoMatch")
