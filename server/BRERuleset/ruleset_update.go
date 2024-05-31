@@ -52,7 +52,7 @@ func RuleSetUpdate(c *gin.Context, s *service.Service) {
 	}
 
 	// delete below line whie actual implementation (reason: kept for testing while writting api)
-	realmName = "Ecommerce"
+	// realmName = "Ecommerce"
 
 	capNeeded := []string{"ruleset"}
 	isCapable, _ := server.Authz_check(types.OpReq{

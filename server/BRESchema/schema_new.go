@@ -66,9 +66,6 @@ func BRESchemaNew(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	// delete below line whie actual implementation (reason: kept for testing while writting api)
-	realmName = "Ecommerce"
-
 	caps := []string{"schema"}
 	isCapable, _ := server.Authz_check(types.OpReq{
 		User:      userID,

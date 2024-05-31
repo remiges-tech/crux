@@ -63,8 +63,6 @@ func BRERuleSetGet(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	// delete below line whie actual implementation (reason: kept for testing while writting api)
-	realmName = "Ecommerce"
 
 	// implement the user realm and all here
 	var (

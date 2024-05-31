@@ -50,9 +50,9 @@ func BRERuleSetList(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	// delete below line whie actual implementation (reason: kept for testing while writting api)
-	realmName = "Ecommerce"
-	userID := "kanchan"
+	// // delete below line whie actual implementation (reason: kept for testing while writting api)
+	// realmName = "Ecommerce"
+	// userID := "kanchan"
 	// implement the user realm and all here
 	var (
 		capForList = []string{"ruleset"}

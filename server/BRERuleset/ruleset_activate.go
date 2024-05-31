@@ -43,9 +43,6 @@ func BRERuleSetActivate(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	// delete below line whie actual implementation (reason: kept for testing while writting api)
-	realmName = "Ecommerce"
-	userID := "Raj"
 	// userID, err := server.ExtractUserNameFromJwt(c)
 	// if err != nil {
 	// 	lh.Info().Log("unable to extract userID from token")

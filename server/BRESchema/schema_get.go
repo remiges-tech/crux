@@ -71,9 +71,6 @@ func BRESchemaGet(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	// delete below line whie actual implementation (reason: kept for testing while writting api)
-	realmName = "Ecommerce"
-
 	var (
 		request  BRESchemaGetReq
 		response BREwfschemagetRow
