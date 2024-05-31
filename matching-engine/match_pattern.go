@@ -35,7 +35,6 @@ func matchPattern(entity Entity, rulePattern []RulePatternBlock_t, actionSet Act
 	for _, term := range rulePattern {
 		valType := ""
 		entityAttrVal := ""
-
 		// Check whether the attribute name in the pattern term exists in the entity attrs map
 		if val, ok := entity.Attrs[term.Attr]; ok {
 
@@ -60,12 +59,9 @@ func matchPattern(entity Entity, rulePattern []RulePatternBlock_t, actionSet Act
 			valType = typeBool
 		}
 
-		termval, err := convertTermAttrVal(term.Val, valType)
-		if err != nil {
-			return false, err
-		}
-
+		termval, _ := convertTermAttrVal(term.Val, valType)
 		matched, err := makeComparison(entityAttrVal, termval, valType, term.Op)
+
 		if err != nil {
 			return false, fmt.Errorf("error making comparison %w", err)
 		}

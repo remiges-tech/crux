@@ -43,6 +43,17 @@ func RuleSetUpdate(c *gin.Context, s *service.Service) {
 	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
 	// 	return
 	// }
+
+	realmName, ok := s.Dependencies["realmName"].(string)
+	if !ok {
+		l.Debug0().Log("error while getting realmName instance from service dependencies")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
+		return
+	}
+
+	// delete below line whie actual implementation (reason: kept for testing while writting api)
+	// realmName = "Ecommerce"
+
 	capNeeded := []string{"ruleset"}
 	isCapable, _ := server.Authz_check(types.OpReq{
 		User:      userID,
@@ -97,7 +108,7 @@ func RuleSetUpdate(c *gin.Context, s *service.Service) {
 		Slice:     req.Slice,
 		App:       strings.ToLower(req.App),
 		Class:     req.Class,
-		Brwf:      sqlc.BrwfEnumB,	
+		Brwf:      sqlc.BrwfEnumB,
 	})
 	if err != nil {
 		l.LogActivity("failed to get schema from DB:", err.Error())

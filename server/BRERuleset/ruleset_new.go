@@ -23,7 +23,7 @@ type RuleSetNew struct {
 	Class      string        `json:"class" validate:"required,lowercase"`
 	Name       string        `json:"name" validate:"required,lowercase"`
 	IsInternal bool          `json:"is_internal" validate:"required"`
-	RuleSet   []crux.Rule_t `json:"ruleset" validate:"required,dive"`
+	RuleSet    []crux.Rule_t `json:"ruleset" validate:"required,dive"`
 }
 
 func BRERuleSetNew(c *gin.Context, s *service.Service) {
@@ -43,6 +43,16 @@ func BRERuleSetNew(c *gin.Context, s *service.Service) {
 	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
 	// 	return
 	// }
+
+	realmName, ok := s.Dependencies["realmName"].(string)
+	if !ok {
+		l.Debug0().Log("error while getting realmName instance from service dependencies")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
+		return
+	}
+
+	// // delete below line whie actual implementation (reason: kept for testing while writting api)
+	// realmName = "Ecommerce"
 
 	capNeeded := []string{"ruleset"}
 	isCapable, _ := server.Authz_check(types.OpReq{

@@ -33,8 +33,14 @@ func BRERuleSetDelete(c *gin.Context, s *service.Service) {
 	// implement the user realm and all here
 	var capForList = []string{"schema"}
 
-	realmName := "Ecommerce"
-	userID := "kanchan"
+	realmName, ok := s.Dependencies["realmName"].(string)
+	if !ok {
+		lh.Debug0().Log("error while getting realmName instance from service dependencies")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
+		return
+	}
+
+	// userID := "kanchan"
 	// userID, err := server.ExtractUserNameFromJwt(c)
 	// if err != nil {
 	// 	lh.Info().Log("unable to extract userID from token")

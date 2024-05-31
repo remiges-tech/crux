@@ -12,148 +12,159 @@ import (
 	"time"
 )
 
-// var (
-// 	trace trace_t
-// )
+func DoMatch(entity Entity, ruleset *Ruleset_t, ruleSchemasCache *Schema_t, actionSet ActionSet, seenRuleSets map[string]struct{}, trace Trace_t, trace_level int, cruxCache *Cache) (ActionSet, bool, error, Trace_t) {
 
-func DoMatch(entity Entity, ruleset *Ruleset_t, ruleSchemasCache *Schema_t, actionSet ActionSet, seenRuleSets map[string]struct{}, trace Trace_t) (ActionSet, bool, error, Trace_t) {
+	if !(-1 < trace_level && trace_level < 3) {
+		return ActionSet{}, false, fmt.Errorf("invalid trace_level"), trace
+	}
+	is_trace_enable := trace_level > 0
 
-	// byt, _ := json.Marshal(ruleset)
-	// fmt.Println(">>>>>>>byt:", string(byt))
-
-	if trace.TraceData == nil {
-		// time_s := time.Now()
-		// this `time` is used for testing purposee revert with above in dev
-		time_s := time.Date(2024, time.April, 10, 23, 0, 0, 0, time.UTC)
-		trace = create_trace_level_one(time_s, entity.Realm, entity.App, ruleset.SetName, int(ruleset.Id), []TraceData_t{})
+	if trace.Start == nil && trace_level > 0 {
+		time_s := time.Now()
+		trace = create_trace_level_one(&time_s, entity.Realm, entity.App, ruleset.SetName, int(ruleset.Id), []TraceData_t{})
 	}
 
 	traceData := TraceData_t{
 		SetID:   int(ruleset.Id),
 		SetName: ruleset.SetName,
 	}
-
 	for ruleNumber, rule := range ruleset.Rules {
 		var (
-			eachRule = TraceDataRule_t{}
-			l2data   = TraceDataRuleL2_t{}
+			l2data   TraceDataRuleL2_t
+			eachRule TraceDataRule_t
 		)
-		eachRule.RuleNo = ruleNumber
-		if len(l2data.ActionSet.Tasks) == 0 {
-			l2data.ActionSet.Tasks = append(l2data.ActionSet.Tasks, rule.RuleActions.Task...)
-		}
-		l2data.Tasks = rule.RuleActions.Task
-		l2data.Properties = rule.RuleActions.Properties
-
-		if len(l2data.ActionSet.Properties) == 0 {
-			l2data.ActionSet.Properties = rule.RuleActions.Properties
-		} else {
-			for k, v := range rule.RuleActions.Properties {
-				l2data.ActionSet.Properties[k] = v
-			}
-		}
-
-		//*********************************************************************************************
+		l2data.ActionSet = &ActionSet_t{}
 		DoExit := false
-
 		matched, err := matchPattern(entity, rule.RulePatterns, actionSet, ruleSchemasCache)
-
 		if err != nil {
-			return ActionSet{
-				Tasks:      []string{},
-				Properties: make(map[string]string),
-			}, false, err, trace
+			return ActionSet{}, false, err, trace
 		}
-		//*********************************************************************************************
-		// if not match then set mismatch
-		eachRule.Res = Mismatch
-		//*********************************************************************************************
+		/*
+			This part contains trace data for thencall and it is same for elsecall and return call,
+			in which when there is a thencall/elsecall then all rules data will be saved into the `trace` then rules
+			within running process will be set to empty coz we need to show rules after saved rules when it comes back
+			from thencal ruleset.
+				For e.g. in a DB ruleset if there is thencall for 2nd rule then we save that data object till 2nd rule in
+			tracing and it will keep adding data for given 2nd ruleset within thencall consider there are 5 entries and then
+			it will come back to main entry ruleset, now from here it will start to add rules data in entry Ruleset from 3rd onward.
+			refer ( https://github.com/remiges-tech/crux/wiki/Traversal-trace-structure#trace-level-1 )
+
+			Note: Please change time.End & ...Start with `time.Date(2024, time.April, 10, 23, 0, 0, 0, time.UTC)` while running test cases
+		*/
+		eachRule.RuleNo = ruleNumber
+		eachRule.Res = Mismatch // set mismatch as `-`
 		if matched {
-			//*********************************************************************************************
-			// if match then set Match
-			eachRule.Res = Match
-			//*********************************************************************************************
+			eachRule.Res = Match // if match then set Match as `+`
+			if trace_level > 1 {
+				l2data.Tasks = rule.RuleActions.Task
+				l2data.Properties = rule.RuleActions.Properties
+				l2data.ActionSet.Tasks = append(l2data.ActionSet.Tasks, rule.RuleActions.Task...)
+				for k, v := range rule.RuleActions.Properties {
+					l2data.ActionSet.Properties = map[string]string{k: v}
+				}
+				if trace.TraceData != nil {
+					l2data.ActionSet.Tasks = append(l2data.ActionSet.Tasks, actionSet.Tasks...)
+					for k, v := range actionSet.Properties {
+						l2data.ActionSet.Properties[k] = v
+					}
+				}
+			}
 			actionSet = collectActions(actionSet, rule.RuleActions)
-
 			if len(rule.RuleActions.ThenCall) > 0 {
-				eachRule.Res = ThenCall
-
-				// setToCall, exists := findRefRuleSetByName(ruleset, rule.RuleActions.ThenCall)
-
-				// if !exists {
-				// 	return ActionSet{}, false, errors.New("set not found")
-				// }
-
+				newRulesetSchema, thencallRuleset, err := cruxCache.RetriveRuleSchemasAndRuleSetsFromCache(WFE, entity.App, entity.Realm, entity.Class, rule.RuleActions.ThenCall, entity.Slice)
+				if err != nil {
+					return ActionSet{}, false, err, trace
+				}
+				if is_trace_enable {
+					eachRule.Res = ThenCall // if ThenCall then set Match as `+c`
+					eachRule.NextSet = rule.RuleActions.ThenCall
+					traceData.add_rule(&eachRule, l2data, trace_level)
+					trace.add_tracedata(&traceData)
+					trace.End = time.Now()
+					traceData.Rules = []TraceDataRule_t{}
+				}
 				if ruleset.Class != entity.Class {
 					return inconsistentRuleSet(ruleset.SetName, ruleset.SetName, ruleset, trace)
 				}
-
-				var err error
-				actionSet, DoExit, err, trace = DoMatch(entity, ruleset, ruleSchemasCache, actionSet, seenRuleSets, trace)
+				actionSet, DoExit, err, trace = DoMatch(entity, thencallRuleset, newRulesetSchema, actionSet, seenRuleSets, trace, trace_level, cruxCache)
 				if err != nil {
-					return ActionSet{
-						Tasks:      []string{},
-						Properties: make(map[string]string),
-					}, false, err, trace
+					return ActionSet{}, false, err, trace
 				}
-
 			} else if DoExit || rule.RuleActions.DoExit {
-				eachRule.Res = Exit
-
-				// eachRule.add_L2data(actionSet)
-				// traceData.Rules = append(traceData.Rules, eachRule)
-				// trace.add_tracedata(&traceData)
-
+				if is_trace_enable {
+					eachRule.Res = Exit // if Exit then set Match as `<<`
+					traceData.add_rule(&eachRule, l2data, trace_level)
+					trace.add_tracedata(&traceData)
+					trace.End = time.Now()
+					// traceData.Rules = []TraceDataRule_t{}
+				}
 				return actionSet, true, nil, trace
 			} else if rule.RuleActions.DoReturn {
-				eachRule.Res = Return
-
 				delete(seenRuleSets, ruleset.SetName)
-				return actionSet, false, nil, trace
-			} else if len(rule.RuleActions.ElseCall) > 0 {
-				eachRule.Res = ElseCall
+				if is_trace_enable {
+					eachRule.Res = Return // if Return then set Match as `<`
+					traceData.add_rule(&eachRule, l2data, trace_level)
+					trace.add_tracedata(&traceData)
+					trace.End = time.Now()
 
-				// setToCall, exists := findRefRuleSetByName(ruleSetsCache, rule.RuleActions.ElseCall)
-				// if !exists {
-				// 	return ActionSet{}, false, errors.New("set not found")
-				// }
-
-				if ruleset.Class != entity.Class {
-					return inconsistentRuleSet(ruleset.SetName, ruleset.SetName, ruleset, trace)
 				}
-
-				var err error
-				actionSet, DoExit, err, trace = DoMatch(entity, ruleset, ruleSchemasCache, actionSet, seenRuleSets, trace)
-				if err != nil {
-					return ActionSet{
-						Tasks:      []string{},
-						Properties: make(map[string]string),
-					}, false, err, trace
-				} else if DoExit {
-					return actionSet, true, nil, trace
+				return actionSet, false, nil, trace
+			} else {
+				if is_trace_enable {
+					traceData.add_rule(&eachRule, l2data, trace_level)
 				}
 			}
-			//return actionSet, false, nil
+		} else if len(rule.RuleActions.ElseCall) > 0 {
+			newRulesetSchema, elsecallRuleset, err := cruxCache.RetriveRuleSchemasAndRuleSetsFromCache(WFE, entity.App, entity.Realm, entity.Class, rule.RuleActions.ElseCall, entity.Slice)
+			if err != nil {
+				return ActionSet{}, false, err, trace
+			}
+			if is_trace_enable {
+				eachRule.Res = ElseCall // if ElseCall then set Match as `-c`
+				eachRule.NextSet = rule.RuleActions.ElseCall
+				traceData.add_rule(&eachRule, l2data, trace_level)
+				trace.add_tracedata(&traceData)
+				trace.End = time.Now()
+				traceData.Rules = []TraceDataRule_t{}
+			}
+			if ruleset.Class != entity.Class {
+				return inconsistentRuleSet(ruleset.SetName, ruleset.SetName, ruleset, trace)
+			}
+			actionSet, DoExit, err, trace = DoMatch(entity, elsecallRuleset, newRulesetSchema, actionSet, seenRuleSets, trace, trace_level, cruxCache)
+			if err != nil {
+				return ActionSet{}, false, err, trace
+			} else if DoExit {
+				if is_trace_enable {
+					eachRule.Res = Exit
+					traceData.add_rule(&eachRule, l2data, trace_level)
+					trace.add_tracedata(&traceData)
+					trace.End = time.Now()
+				}
+				return actionSet, true, nil, trace
+			}
+		} else {
+			if is_trace_enable {
+				if trace_level > 1 {
+					for _, val := range rule.RulePatterns {
+						l2data.Pattern = append(l2data.Pattern, map[string][]string{val.Attr: {
+							val.Val.(string), val.Op, entity.Attrs[val.Attr], returnRespSymbol(val.Val.(string), entity.Attrs[val.Attr]),
+						}})
+					}
+				}
+				traceData.add_rule(&eachRule, l2data, trace_level)
+				trace.add_tracedata(&traceData) // append collected tracedata to trace
+				trace.End = time.Now()
+			}
+			return actionSet, false, nil, trace
 		}
-		// if ruleNumber == (len(ruleset.Rules) - 1) {
-		// 	eachRule.Res = Exit
-		// }
-		//*********************************************************************************************
-		eachRule.L2Data = l2data
-		traceData.Rules = append(traceData.Rules, eachRule)
-		//*********************************************************************************************
 	}
-	trace.add_tracedata(&traceData)
-
 	delete(seenRuleSets, ruleset.SetName)
-
-	//*********************************************************************************************
-	// trace.End = time.Now()
-	// this `time` is used for testing purposee revert with above in dev
-	trace.End = time.Date(2024, time.April, 10, 23, 0, 0, 0, time.UTC)
-	//*********************************************************************************************
-
-	return actionSet, true, nil, trace
+	if is_trace_enable && (len(traceData.Rules) > 0) {
+		trace.add_tracedata(&traceData) // append collected tracedata to trace
+		// set end time of trace
+		trace.End = time.Now()
+	}
+	return actionSet, false, nil, trace
 }
 
 func findRefRuleSetByName(ruleSets []*Ruleset_t, setName string) (*Ruleset_t, bool) {
@@ -180,23 +191,35 @@ func inconsistentRuleSet(calledSetName string, currSetName string, ruleSets *Rul
 	), trace
 }
 
-func create_trace_level_one(start_t time.Time, realm, app, entryRulesetName string, entryRulesetID int, tracedata []TraceData_t) Trace_t {
-	traced_data := Trace_t{
+func create_trace_level_one(start_t *time.Time, realm, app, entryRulesetName string, entryRulesetID int, tracedata []TraceData_t) Trace_t {
+	return Trace_t{
 		Start:            start_t,
 		End:              time.Time{},
 		Realm:            realm,
 		App:              app,
 		EntryRulesetID:   entryRulesetID,
 		EntryRulesetName: entryRulesetName,
-		TraceData:        &tracedata,
+		TraceData:        tracedata,
 	}
-	return traced_data
 }
 
 func (traced_data *Trace_t) add_tracedata(record_to_add *TraceData_t) {
-	*traced_data.TraceData = append(*traced_data.TraceData, *record_to_add)
+	traced_data.TraceData = append(traced_data.TraceData, *record_to_add)
 }
 
-// func (traced_data_rules *TraceData_t) add_rule(rule_to_add *TraceDataRule_t) {
-// 	traced_data_rules.Rules = append(traced_data_rules.Rules, *rule_to_add)
-// }
+func (traced_data_rules *TraceData_t) add_rule(each_rule *TraceDataRule_t, l2_data_to_add TraceDataRuleL2_t, trace_level int) {
+	if trace_level == 2 {
+		each_rule.TraceDataRuleL2_t = l2_data_to_add
+	}
+	if trace_level >= 1 {
+		traced_data_rules.Rules = append(traced_data_rules.Rules, *each_rule)
+	}
+}
+
+func returnRespSymbol(rulAttr, entyAttr string) string {
+	res := "-"
+	if rulAttr == entyAttr {
+		res = "+"
+	}
+	return res
+}

@@ -43,6 +43,13 @@ func WorkflowList(c *gin.Context, s *service.Service) {
 	// 	return
 	// }
 
+	realmName, ok := s.Dependencies["realmName"].(string)
+	if !ok {
+		lh.Debug0().Log("error while getting realmName instance from service dependencies")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
+		return
+	}
+
 	// implement the user realm and all here
 	var (
 		capForList = []string{"workflow"}
@@ -88,7 +95,7 @@ func WorkflowList(c *gin.Context, s *service.Service) {
 	hasRootCapabilities := HasRootCapabilities()
 
 	// Process the request based on the provided BRD
-	dbResponse, err = processRequest(c, lh, hasRootCapabilities, query, &request)
+	dbResponse, err = processRequest(c, lh, hasRootCapabilities, query, &request, realmName)
 
 	if err != nil {
 		if err.Error() == AUTH_ERROR {
@@ -108,7 +115,7 @@ func WorkflowList(c *gin.Context, s *service.Service) {
 }
 
 // Function to process the request and get the workflows
-func processRequest(c *gin.Context, lh *logharbour.Logger, hasRootCapabilities bool, query *sqlc.Queries, request *WorkflowListReq) ([]sqlc.WorkflowListRow, error) {
+func processRequest(c *gin.Context, lh *logharbour.Logger, hasRootCapabilities bool, query *sqlc.Queries, request *WorkflowListReq, realmName string) ([]sqlc.WorkflowListRow, error) {
 	lh.Debug0().Log("processRequest request received")
 	var (
 		isAct, isIntr bool
@@ -148,7 +155,7 @@ func processRequest(c *gin.Context, lh *logharbour.Logger, hasRootCapabilities b
 		return query.WorkflowList(c, sqlc.WorkflowListParams{
 			App:   app,
 			Realm: realmName,
-			Brwf:       sqlc.BrwfEnumW,
+			Brwf:  sqlc.BrwfEnumW,
 		})
 	}
 

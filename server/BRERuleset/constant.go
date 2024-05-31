@@ -1,9 +1,9 @@
 package breruleset
 
 var (
-	userID    string = "Raj"
-	realmName string = "Ecommerce"
-	brwf      string = "B"
+	userID string = "Raj"
+	// realmName string = "Ecommerce"
+	brwf string = "B"
 )
 
 const (

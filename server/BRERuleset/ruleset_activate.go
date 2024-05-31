@@ -36,8 +36,13 @@ func BRERuleSetActivate(c *gin.Context, s *service.Service) {
 	// implement the user realm and all here
 	var capForList = []string{"ruleset"}
 
-	realmName := "Ecommerce"
-	userID := "Raj"
+	realmName, ok := s.Dependencies["realmName"].(string)
+	if !ok {
+		lh.Debug0().Log("error while getting realmName instance from service dependencies")
+		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_InternalErr, server.ErrCode_Internal))
+		return
+	}
+
 	// userID, err := server.ExtractUserNameFromJwt(c)
 	// if err != nil {
 	// 	lh.Info().Log("unable to extract userID from token")
@@ -87,7 +92,7 @@ func BRERuleSetActivate(c *gin.Context, s *service.Service) {
 
 	// verifying whether user has ruleset capability for app
 	applc := strings.ToLower(request.App)
-	isValidUser, err := hasRulesetCapability(applc, query, c)
+	isValidUser, err := hasRulesetCapability(applc, query, c, realmName)
 	if err != nil {
 		lh.Error(err).Log("error while verifying whether caller has ruleset cap for app")
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, err.Error()))
