@@ -171,6 +171,8 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstancenew", wfinstance.GetWFinstanceNew)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstanceabort", wfinstance.GetWFInstanceAbort)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstancelist", wfinstance.GetWFInstanceList)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstancetry", wfinstance.GetWFInstanceTry)
+
 	// markdone
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wFinstancemarkdone", markdone.WFInstanceMarkDone)
 	//app
