@@ -48,8 +48,14 @@ func TestWFinstanceNew(t *testing.T) {
 }
 
 func wfInstanceNewTestcase() []testutils.TestCasesStruct {
+	var slice int32 = 12
 	entityID := "0eb8da50-aece-11ee-b168-3b192f7cd2b6"
+	entityID1 := "0eb8da50-aece-11ee-b168-3b192f7cd2b667"
+	workflow := "discountcheck"
+	workflow1 := "temp"
 	trace := 0
+	parent := int32(917)
+	app := "retailBANK"
 	wfInstanceNewTestcase := []testutils.TestCasesStruct{
 
 		// 1st test case
@@ -75,6 +81,50 @@ func wfInstanceNewTestcase() []testutils.TestCasesStruct {
 
 		// 2nd test case
 		{
+			Name: "SUCCESS- done attribute present in domatch() response",
+			RequestPayload: wscutils.Request{
+				Data: wfinstance.WFInstanceNewRequest{
+					Slice:    slice,
+					App:      app,
+					EntityID: entityID,
+					Entity: map[string]string{
+						"class":        "inventoryitems",
+						"mrp":          "200.00",
+						"fullname":     "belampally",
+						"ageinstock":   "2",
+						"inventoryqty": "2",
+					},
+					Workflow: workflow,
+					Trace:    &trace,
+					Parent:   &parent,
+				},
+			},
+			ExpectedHttpCode: http.StatusOK,
+			TestJsonFile:     "./data/done_attribute_response.json",
+		},
+
+		// 3rd test case
+		{
+			Name: "ERROR- Invalid property attributes",
+			RequestPayload: wscutils.Request{
+				Data: wfinstance.WFInstanceNewRequest{
+					Slice:    int32(13),
+					App:      "uccapp",
+					EntityID: entityID,
+					Entity: map[string]string{
+						"class": "ucc_aof",
+						"step":  "sendtorta",
+						"mode":  "demat",
+					},
+					Workflow: "ucc_user_cr",
+					Trace:    &trace,
+				},
+			},
+			ExpectedHttpCode: http.StatusBadRequest,
+			TestJsonFile:     "./data/invalid_property_attributes_response.json",
+		},
+		// 4th test case
+		{
 			Name: "SUCCESS- Single step",
 			RequestPayload: wscutils.Request{
 				Data: wfinstance.WFInstanceNewRequest{
@@ -94,27 +144,30 @@ func wfInstanceNewTestcase() []testutils.TestCasesStruct {
 			TestJsonFile:     "./data/single_step_success_response.json",
 		},
 
-		// 3rd test case
+		// 5th test case
 		{
 			Name: "SUCCESS- Multiple steps",
 			RequestPayload: wscutils.Request{
 				Data: wfinstance.WFInstanceNewRequest{
-					Slice:    int32(13),
-					App:      "uccapp",
-					EntityID: entityID,
+					Slice:    slice,
+					App:      app,
+					EntityID: entityID1,
 					Entity: map[string]string{
-						"class": "ucc_aof",
-						"step":  "sendtorta",
-						"mode":  "demat",
+						"class":        "members",
+						"mrp":          "200.00",
+						"fullname":     "belampally",
+						"ageinstock":   "2",
+						"inventoryqty": "2",
 					},
-					Workflow: "uccmultiplestepsworkflow",
+					Workflow: workflow1,
 					Trace:    &trace,
+					Parent:   &parent,
 				},
 			},
 			ExpectedHttpCode: http.StatusOK,
 			TestJsonFile:     "./data/multiple_steps_success_response.json",
 		},
-		// 4th test case
+		// 6th test case
 		{
 			Name: "ERROR- Instance already exist in database",
 			RequestPayload: wscutils.Request{
@@ -133,47 +186,6 @@ func wfInstanceNewTestcase() []testutils.TestCasesStruct {
 			},
 			ExpectedHttpCode: http.StatusBadRequest,
 			TestJsonFile:     "./data/instance_already_exist_response.json",
-		},
-		// 5th test case
-		{
-			Name: "SUCCESS- done attribute present in domatch() response",
-			RequestPayload: wscutils.Request{
-				Data: wfinstance.WFInstanceNewRequest{
-					Slice:    int32(13),
-					App:      "uccapp",
-					EntityID: entityID,
-					Entity: map[string]string{
-						"class": "ucc_aof",
-						"step":  "sendtorta",
-						"mode":  "demat",
-					},
-					Workflow: "uccdoneworkflow",
-					Trace:    &trace,
-				},
-			},
-			ExpectedHttpCode: http.StatusOK,
-			TestJsonFile:     "./data/done_attribute_response.json",
-		},
-
-		// 6th test case
-		{
-			Name: "ERROR- Invalid property attributes",
-			RequestPayload: wscutils.Request{
-				Data: wfinstance.WFInstanceNewRequest{
-					Slice:    int32(13),
-					App:      "uccapp",
-					EntityID: entityID,
-					Entity: map[string]string{
-						"class": "ucc_aof",
-						"step":  "sendtorta",
-						"mode":  "demat",
-					},
-					Workflow: "uccworkflow",
-					Trace:    &trace,
-				},
-			},
-			ExpectedHttpCode: http.StatusBadRequest,
-			TestJsonFile:     "./data/invalid_property_attributes_response.json",
 		},
 	}
 	return wfInstanceNewTestcase

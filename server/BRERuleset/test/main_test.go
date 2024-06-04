@@ -153,8 +153,6 @@ func registerRoutes(databaseUrl string) (*gin.Engine, error) {
 	s.RegisterRoute(http.MethodPost, "/brerulesetdelete", breruleset.BRERuleSetDelete)
 	s.RegisterRoute(http.MethodPost, "/brerulesetlist", breruleset.BRERuleSetList)
 	s.RegisterRoute(http.MethodPost, "/brerulesetdeactivate", breruleset.BRERuleSetDeActivate)
-	s.RegisterRoute(http.MethodPost, "/brerulesetactivate", breruleset.BRERuleSetDeActivate)
-
 	return r, nil
 
 }

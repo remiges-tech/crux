@@ -3,17 +3,19 @@
     "data": {
         "tasks": [
             {
-                "getsigneddocument": 2
+                "diwalisale": 2
             },
             {
-                "getadhaardocuments": 3
+                "yearendsale": 3
             }
         ],
-        "nextstep": "sendtorta",
-        "loggedat": "2024-05-14T13:01:03.807027Z",
+        "nextstep": "coupondistribution",
+        "loggedat": "2024-02-16T18:32:06.582654Z",
         "subflows": {
-            "getsigneddocument": "aofworkflow"
-        }
+            "diwalisale": "dodiscountcheck",
+            "yearendsale": "doyearendsalechk"
+        },
+        "tracedata": null
     },
     "messages": null
 }

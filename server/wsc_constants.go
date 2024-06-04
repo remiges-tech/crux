@@ -44,7 +44,6 @@ const (
 	ErrCode_Invalid_workflow_active_status                        = "invalid_workflow_active_status"
 	ErrCode_Invalid_workflow_Internal_status                      = "invalid_workflow_internal_status"
 	ErrCode_Invalid_Entity                                        = "invalid_entity"
-	ErrCode_Invalid_Step                                          = "invalid_step"
 	ErrCode_Invalid_pattern_schema                                = "invalid_pattern_schema"
 	ErrCode_Invalid_action_schema                                 = "invalid_action_schema"
 	ErrCode_Invalid_property_attributes                           = "invalid_property_attributes"
@@ -69,5 +68,4 @@ const (
 	ErrCode_Capability_Does_Not_Exist                             = "cap_does_not_exist"
 	ErrCode_App_Does_Not_Exist                                    = "app_does_not_exist"
 	Errode_Workflow_Is_Active                                     = "workflow_is_active"
-	Errode_RuleSchemas_Or_Rulests_Not_Found                       = "no_ruleSchemas_or_ruleSets_found"
 )

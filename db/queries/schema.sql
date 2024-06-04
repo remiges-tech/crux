@@ -80,7 +80,7 @@ and app = @app and class = @class and brwf = @brwf)) RETURNING *;
 
 
 -- name: WfPatternSchemaGet :one
-SELECT patternschema ,actionschema
+SELECT patternschema
 FROM public.schema
 WHERE
     realm = $1

@@ -93,7 +93,7 @@ func GetWFinstanceNew(c *gin.Context, s *service.Service) {
 	}
 	// Validate request
 	existingEntity := wfinstanceNewreq.Entity
-	isValidReq, errStr := validateWFInstanceNewReq(wfinstanceNewreq, "", realm, s, c)
+	isValidReq, errStr := validateWFInstanceNewReq(wfinstanceNewreq, realm, s, c)
 	if len(errStr) > 0 || !isValidReq {
 		lh.Debug0().LogActivity("GetWFinstanceNew||request validation error:", errStr)
 		wscutils.SendErrorResponse(c, wscutils.NewResponse(wscutils.ErrorStatus, nil, errStr))

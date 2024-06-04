@@ -308,7 +308,7 @@ func (q *Queries) SchemaUpdate(ctx context.Context, arg SchemaUpdateParams) erro
 }
 
 const wfPatternSchemaGet = `-- name: WfPatternSchemaGet :one
-SELECT patternschema ,actionschema
+SELECT patternschema
 FROM public.schema
 WHERE
     realm = $1
@@ -325,21 +325,16 @@ type WfPatternSchemaGetParams struct {
 	App   string `json:"app"`
 }
 
-type WfPatternSchemaGetRow struct {
-	Patternschema []byte `json:"patternschema"`
-	Actionschema  []byte `json:"actionschema"`
-}
-
-func (q *Queries) WfPatternSchemaGet(ctx context.Context, arg WfPatternSchemaGetParams) (WfPatternSchemaGetRow, error) {
+func (q *Queries) WfPatternSchemaGet(ctx context.Context, arg WfPatternSchemaGetParams) ([]byte, error) {
 	row := q.db.QueryRow(ctx, wfPatternSchemaGet,
 		arg.Realm,
 		arg.Slice,
 		arg.Class,
 		arg.App,
 	)
-	var i WfPatternSchemaGetRow
-	err := row.Scan(&i.Patternschema, &i.Actionschema)
-	return i, err
+	var patternschema []byte
+	err := row.Scan(&patternschema)
+	return patternschema, err
 }
 
 const wfSchemaGet = `-- name: WfSchemaGet :one
