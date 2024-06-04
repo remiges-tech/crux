@@ -150,6 +150,8 @@ func registerRoutes(databaseUrl string) (*gin.Engine, error) {
 	s.RegisterRoute(http.MethodPost, "/wfinstancenew", wfinstance.GetWFinstanceNew)
 	s.RegisterRoute(http.MethodPost, "/wfinstanceabort", wfinstance.GetWFInstanceAbort)
 	s.RegisterRoute(http.MethodPost, "/wfinstancelist", wfinstance.GetWFInstanceList)
+	s.RegisterRoute(http.MethodPost, "/wfinstancetry", wfinstance.GetWFInstanceTry)
+
 
 	return r, nil
 
