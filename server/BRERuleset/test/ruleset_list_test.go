@@ -60,7 +60,7 @@ func RuleSetListTestcase() []testutils.TestCasesStruct {
 				},
 			},
 			ExpectedHttpCode: http.StatusOK,
-			TestJsonFile: "./data/rulesetlist_resp.json",
+			TestJsonFile:     "./data/rulesetlist_resp.json",
 		},
 	}
 	return rulesetListTestcase

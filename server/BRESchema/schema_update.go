@@ -43,6 +43,7 @@ func BRESchemaUpdate(c *gin.Context, s *service.Service) {
 	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
 	// 	return
 	// }
+
 	capForUpdate := []string{"schema"}
 	isCapable, _ := server.Authz_check(types.OpReq{
 		User:      userID,
@@ -123,6 +124,7 @@ func BRESchemaUpdate(c *gin.Context, s *service.Service) {
 	defer tx.Rollback(c)
 	qtx := query.WithTx(tx)
 	getSchema, err := qtx.GetSchemaWithLock(c, sqlc.GetSchemaWithLockParams{
+		Brwf:      sqlc.BrwfEnumB,
 		RealmName: realmName,
 		Slice:     req.Slice,
 		Class:     req.Class,

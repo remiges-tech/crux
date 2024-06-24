@@ -3,20 +3,44 @@
   "data": {
     "capabilities": [
       {
-        "app": "hdfcbank",
-        "cap": "user",
+        "app": "amazon",
+        "cap": "ruleset",
+        "setby": "kanchan",
+        "setat": "2023-12-29T00:00:00Z",
+        "from": "2024-01-29T00:00:00Z",
+        "to": null
+      },
+      {
+        "app": "fundify",
+        "cap": "schema",
         "setby": "user",
+        "setat": "2023-12-29T00:00:00Z",
+        "from": "2024-01-29T00:00:00Z",
+        "to": null
+      },
+      {
+        "app": "hdfcbank",
+        "cap": "auth",
+        "setby": "user",
+        "setat": "2023-12-29T00:00:00Z",
+        "from": "2024-01-29T00:00:00Z",
+        "to": null
+      },
+      {
+        "app": "hdfcbank",
+        "cap": "root",
+        "setby": "admin",
         "setat": "2023-12-29T00:00:00Z",
         "from": "2024-01-29T00:00:00Z",
         "to": "2024-02-29T00:00:00Z"
       },
       {
-        "app": "nedbank",
-        "cap": "user",
+        "app": "hdfcbank",
+        "cap": "rules",
         "setby": "user",
         "setat": "2023-12-29T00:00:00Z",
         "from": "2024-01-29T00:00:00Z",
-        "to": null
+        "to": "2024-02-29T00:00:00Z"
       }
     ]
   },

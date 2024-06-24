@@ -17,6 +17,7 @@ import (
 	breruleset "github.com/remiges-tech/crux/server/BRERuleset"
 	breschema "github.com/remiges-tech/crux/server/BRESchema"
 	"github.com/remiges-tech/crux/server/app"
+	"github.com/remiges-tech/crux/server/auth"
 	"github.com/remiges-tech/crux/server/capability"
 	"github.com/remiges-tech/crux/server/markdone"
 	"github.com/remiges-tech/crux/server/realmslice"
@@ -177,6 +178,11 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/appnew", app.AppNew)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/appupdate", app.AppUpdate)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/appdelete/:name", app.AppDelete)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/applist", app.AppList)
+
+	//auth
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/useractivate/:userid", auth.UserActivate)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/userdeactivate/:userid", auth.UserDeactivate)
 
 	// Realm-slice management
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/realmslicenew", realmslice.RealmSliceNew)
@@ -189,6 +195,8 @@ func main() {
 	// capabilities
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/capgrant", capability.CapGrant)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/caprevoke", capability.CapRevoke)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/capget/:userid", capability.CapGet)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodGet, "/caplist", capability.CapList)
 
 	//BRESchema
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/breschemanew", breschema.BRESchemaNew)

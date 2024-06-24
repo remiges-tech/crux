@@ -29,20 +29,20 @@ type GetAppNewRequest struct {
 func AppNew(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour.WithClass("app")
 	lh.Log("AppNew request received")
-	
-	userID, err := server.ExtractUserNameFromJwt(c)
-	if err != nil {
-		lh.Info().Log("unable to extract userID from token")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
-		return
-	}
 
-	realmName, err := server.ExtractRealmFromJwt(c)
-	if err != nil {
-		lh.Info().Log("unable to extract realm from token")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
-		return
-	}
+	// userID, err := server.ExtractUserNameFromJwt(c)
+	// if err != nil {
+	// 	lh.Info().Log("unable to extract userID from token")
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
+	// 	return
+	// }
+
+	// realmName, err := server.ExtractRealmFromJwt(c)
+	// if err != nil {
+	// 	lh.Info().Log("unable to extract realm from token")
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
+	// 	return
+	// }
 
 	var (
 		request GetAppNewRequest
@@ -60,7 +60,7 @@ func AppNew(c *gin.Context, s *service.Service) {
 	}
 
 	// Bind request
-	err = wscutils.BindJSON(c, &request)
+	err := wscutils.BindJSON(c, &request)
 	if err != nil {
 		lh.Error(err).Log("AppNew() || error while binding json request ")
 		return

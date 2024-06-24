@@ -49,7 +49,7 @@ func TestCapList(t *testing.T) {
 
 func testCapList() []testutils.TestCasesStruct {
 	app := []string{"hdfcbank", "nedbank"}
-	appOnly := []string{"nedbank"}
+	appOnly := []string{"amazon"}
 	cap := []string{"root"}
 	testUsrAct := []testutils.TestCasesStruct{
 		// test 1 : bad req

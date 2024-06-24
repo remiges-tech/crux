@@ -78,9 +78,8 @@ AND  s.id not in( SELECT schemaid FROM ruleset where realm = @realm and slice = 
 and app = @app and class = @class and brwf = @brwf)) RETURNING *;
 
 
-
 -- name: WfPatternSchemaGet :one
-SELECT patternschema
+SELECT patternschema ,actionschema
 FROM public.schema
 WHERE
     realm = $1
@@ -88,7 +87,6 @@ WHERE
     AND class = $3
     AND app = $4
     AND brwf = 'W';
-
 -- name: WfSchemaGet :one
 SELECT *
 FROM public.schema

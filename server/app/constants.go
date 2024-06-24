@@ -1,7 +1,9 @@
 package app
 
 const (
-	REALMID = 11
+	REALMID   = 11
+	userID    = "kanchan"
+	realmName = "Nova"
 )
 
 var (

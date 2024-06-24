@@ -56,9 +56,9 @@ func schemaUpdateTestcase() []testutils.TestCasesStruct {
 		{
 			Name: "Success- Update schema",
 			RequestPayload: wscutils.Request{
-				Data: breschema.BRESchemaNewReq{
+				Data: breschema.BREUpdateSchemaRequest{
 					Slice: 12,
-					App:   "startmf",
+					App:   "retailBANK",
 					Class: "custonboarding",
 					PatternSchema: []breschema.PatternSchema{
 						{
@@ -83,12 +83,11 @@ func schemaUpdateTestcase() []testutils.TestCasesStruct {
 						},
 					},
 					ActionSchema: crux.ActionSchema_t{
-						Tasks:      []string{"getcustdetails", "aof", "dpandbankaccvalid", "kycvalid"},
+						Tasks:      []string{"getcustdetails", "aof", "dpandbankaccvalid", "kycvalid", "nomauth"},
 						Properties: []string{"nextstep", "done"},
 					},
 				},
 			},
-
 			ExpectedHttpCode: http.StatusOK,
 			ExpectedResult: &wscutils.Response{
 				Status:   wscutils.SuccessStatus,

@@ -84,7 +84,7 @@ type Querier interface {
 	UserActivate(ctx context.Context, arg UserActivateParams) (Capgrant, error)
 	UserDeactivate(ctx context.Context, arg UserDeactivateParams) (Capgrant, error)
 	UserExists(ctx context.Context, user string) (int64, error)
-	WfPatternSchemaGet(ctx context.Context, arg WfPatternSchemaGetParams) ([]byte, error)
+	WfPatternSchemaGet(ctx context.Context, arg WfPatternSchemaGetParams) (WfPatternSchemaGetRow, error)
 	WfSchemaGet(ctx context.Context, arg WfSchemaGetParams) (Schema, error)
 	WfSchemaList(ctx context.Context, arg WfSchemaListParams) ([]WfSchemaListRow, error)
 	Wfschemadelete(ctx context.Context, arg WfschemadeleteParams) ([]Schema, error)

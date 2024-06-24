@@ -48,9 +48,9 @@ func testUserActivate() []testutils.TestCasesStruct {
 		},
 		{
 			Name:             "SUCCESS: Valid request",
-			Url:              "/useractivate/john",
+			Url:              "/useractivate/john_doe",
 			ExpectedHttpCode: http.StatusOK,
-			TestJsonFile:     "../test/data/user_activate_resp.json",
+			TestJsonFile:     "../test/data/success_resp.json",
 		},
 	}
 	return testUsrAct

@@ -58,9 +58,9 @@ func RuleSetDeleteTestcase() []testutils.TestCasesStruct {
 			RequestPayload: wscutils.Request{
 				Data: breruleset.RuleSetDeleteReq{
 					Slice: (int32(11)),
-					App:   "amazon",
+					App:   "myntra",
 					Class: "inventoryitems",
-					Name:  "amazonruleset",
+					Name:  "myntraruleset",
 				},
 			},
 			ExpectedHttpCode: http.StatusOK,

@@ -48,9 +48,9 @@ func testUserDeactivate() []testutils.TestCasesStruct {
 		},
 		{
 			Name:             "SUCCESS: Valid request",
-			Url:              "/userdeactivate/john",
+			Url:              "/userdeactivate/john_doe",
 			ExpectedHttpCode: http.StatusOK,
-			TestJsonFile:     "../test/data/user_deactivate_resp.json",
+			TestJsonFile:     "../test/data/success_resp.json",
 		},
 	}
 	return testUsrDeact

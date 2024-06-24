@@ -41,21 +41,20 @@ func CapGrant(c *gin.Context, s *service.Service) {
 		appCapDb   []sqlc.GetUserCapsAndAppsByRealmRow
 		appMap     = make(map[string][]string, 0)
 	)
-	// userID := "Admin"
-	// realmName := "Nova"
-	userID, err := server.ExtractUserNameFromJwt(c)
-	if err != nil {
-		lh.Info().Log("unable to extract userID from token")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
-		return
-	}
+	
+	// userID, err := server.ExtractUserNameFromJwt(c)
+	// if err != nil {
+	// 	lh.Info().Log("unable to extract userID from token")
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
+	// 	return
+	// }
 
-	realmName, err := server.ExtractRealmFromJwt(c)
-	if err != nil {
-		lh.Info().Log("unable to extract realm from token")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
-		return
-	}
+	// realmName, err := server.ExtractRealmFromJwt(c)
+	// if err != nil {
+	// 	lh.Info().Log("unable to extract realm from token")
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
+	// 	return
+	// }
 
 	capNeeded := []string{"auth"}
 	isCapable, capList := server.Authz_check(types.OpReq{
@@ -71,7 +70,7 @@ func CapGrant(c *gin.Context, s *service.Service) {
 	}
 
 	// json request binding with a struct
-	err = wscutils.BindJSON(c, &request)
+	err := wscutils.BindJSON(c, &request)
 	if err != nil {
 		lh.Debug0().Error(err).Log("error while binding json request error:")
 		return

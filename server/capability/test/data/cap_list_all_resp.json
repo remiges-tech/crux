@@ -3,31 +3,76 @@
   "data": {
     "capabilities": [
       {
-        "user": "Raj",
-        "app": "hdfcbank",
-        "cap": "user",
+        "app": "amazon",
+        "cap": "ruleset",
         "from": "2024-01-29T00:00:00Z",
-        "to": "2024-02-29T00:00:00Z",
         "setat": "2023-12-29T00:00:00Z",
-        "setby": "user"
-      },
-      {
-        "user": "Raj",
-        "app": "nedbank",
-        "cap": "user",
-        "from": "2024-01-29T00:00:00Z",
+        "setby": "kanchan",
         "to": null,
-        "setat": "2023-12-29T00:00:00Z",
-        "setby": "user"
+        "user": "Raj"
       },
       {
-        "user": "john",
+        "app": "fundify",
+        "cap": "schema",
+        "from": "2024-01-29T00:00:00Z",
+        "setat": "2023-12-29T00:00:00Z",
+        "setby": "user",
+        "to": null,
+        "user": "Raj"
+      },
+      {
+        "app": "hdfcbank",
+        "cap": "auth",
+        "from": "2024-01-29T00:00:00Z",
+        "setat": "2023-12-29T00:00:00Z",
+        "setby": "user",
+        "to": null,
+        "user": "Raj"
+      },
+      {
         "app": "hdfcbank",
         "cap": "root",
         "from": "2024-01-29T00:00:00Z",
-        "to": "2024-02-29T00:00:00Z",
         "setat": "2023-12-29T00:00:00Z",
-        "setby": "admin"
+        "setby": "admin",
+        "to": "2024-02-29T00:00:00Z",
+        "user": "Raj"
+      },
+      {
+        "app": "hdfcbank",
+        "cap": "rules",
+        "from": "2024-01-29T00:00:00Z",
+        "setat": "2023-12-29T00:00:00Z",
+        "setby": "user",
+        "to": "2024-02-29T00:00:00Z",
+        "user": "Raj"
+      },
+      {
+        "app": "hdfcbank",
+        "cap": "write",
+        "from": "2023-02-15T00:00:00Z",
+        "setat": "2024-06-24T15:27:43.329323Z",
+        "setby": "manager",
+        "to": null,
+        "user": "jane_smith"
+      },
+      {
+        "app": "fundify",
+        "cap": "read",
+        "from": "2023-01-01T00:00:00Z",
+        "setat": "2024-06-24T15:24:41.161065Z",
+        "setby": "admin",
+        "to": "2023-12-31T00:00:00Z",
+        "user": "john_doe"
+      },
+      {
+        "app": "uccapp",
+        "cap": "admin",
+        "from": "2023-01-01T00:00:00Z",
+        "setat": "2024-06-24T15:24:41.161065Z",
+        "setby": "admin",
+        "to": "2024-01-01T00:00:00Z",
+        "user": "neha_gupta"
       }
     ]
   },

@@ -1,7 +1,7 @@
 package capability
 
 var (
-	userID    = "1234"
+	userID    = "admin"
 	authCaps  = []string{"auth"}
 	realmName = "Nova"
 	capALL    = "ALL"

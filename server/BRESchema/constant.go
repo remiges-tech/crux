@@ -2,7 +2,7 @@ package breschema
 
 var (
 	userID    string = "Raj"
-	realmName string = "Ecommerce"
+	realmName string = "Nova"
 	brwf      string = "B"
 )
 

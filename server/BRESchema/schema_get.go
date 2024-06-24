@@ -50,6 +50,7 @@ func BRESchemaGet(c *gin.Context, s *service.Service) {
 	lh := s.LogHarbour
 	lh.Log("BRESchemaGet request received")
 
+	realmName := "Ecommerce"
 	// userID, err := server.ExtractUserNameFromJwt(c)
 	// if err != nil {
 	// 	lh.Info().Log("unable to extract userID from token")
@@ -155,7 +156,7 @@ func (response *BREwfschemagetRow) bindBRESchemaGetResp(s *service.Service, dbRe
 	for _, v := range pattrn {
 		var t patternSchema_t
 		t.bindPattrnSchemaResp(v)
-		for k, _ := range v.EnumVals {
+		for k := range v.EnumVals {
 			t.EnumVals = append(t.EnumVals, k)
 		}
 		response.Patternschema = append(response.Patternschema, t)

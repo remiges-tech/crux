@@ -30,12 +30,12 @@ func GetWFInstanceAbort(c *gin.Context, s *service.Service) {
 		id       int32
 		entityid string
 	)
-	userID, err := server.ExtractUserNameFromJwt(c)
-	if err != nil {
-		lh.Info().Log("unable to extract userID from token")
-		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
-		return
-	}
+	// userID, err := server.ExtractUserNameFromJwt(c)
+	// if err != nil {
+	// 	lh.Info().Log("unable to extract userID from token")
+	// 	wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Missing, server.ErrCode_Token_Data_Missing))
+	// 	return
+	// }
 
 	// realm, err := server.ExtractRealmFromJwt(c)
 	// if err != nil {
@@ -55,7 +55,7 @@ func GetWFInstanceAbort(c *gin.Context, s *service.Service) {
 	}
 
 	// Bind request
-	err = wscutils.BindJSON(c, &request)
+	err := wscutils.BindJSON(c, &request)
 	if err != nil {
 		lh.Error(err).Log("GetWFInstanceAbort||error while binding json request error:")
 		return

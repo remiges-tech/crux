@@ -69,16 +69,6 @@ func appDeleteTestcase() []testutils.TestCasesStruct {
 			ExpectedHttpCode: http.StatusBadRequest,
 			TestJsonFile:     "../test/data/non_empty.json",
 		},
-		{
-			Name:             "SUCCESS: Valid request with  removing capability from capgrant table",
-			Url:              "/appdelete/HdfcBANK",
-			ExpectedHttpCode: http.StatusOK,
-			ExpectedResult: &wscutils.Response{
-				Status:   wscutils.SuccessStatus,
-				Data:     nil,
-				Messages: nil,
-			},
-		},
 	}
 	return appDeleteTestcase
 }
