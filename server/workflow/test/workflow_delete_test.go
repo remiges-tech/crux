@@ -47,12 +47,14 @@ func TestWorkflowDelete(t *testing.T) {
 }
 
 func workflowDeleteTestCase() []TestCasesStruct {
-	var sliceStr int32 = 3
-	app := "nedbank"
-	class := "calls"
-	tname := "vip"
+	var sliceStr int32 = 13
+	app := "uccapp"
+	class := "ucc"
+	tname := "ucc_user_cr_inactive"
 	wrongName := "tempse"
 	var slice int32 = -1
+
+
 	schemaNewTestcase := []TestCasesStruct{
 		// 1st test case
 		{
@@ -107,7 +109,7 @@ func workflowDeleteTestCase() []TestCasesStruct {
 				Messages: []wscutils.ErrorMessage{
 					{
 						MsgID:   1006,
-						ErrCode: "invalid_request",
+						ErrCode: "no_record_found",
 					},
 				},
 			},

@@ -2,14 +2,14 @@
     "status": "success",
     "data": [
         {
-            "slice": 1,
+            "slice": 13,
             "app": "retailbank",
             "longname": "retailbank pvt ltd",
-            "class": "custonboarding",
-            "createdby": "Mal Houndsom",
-            "createdat": "2022-12-26T09:03:46Z",
-            "editedby": "Clerc Careless",
-            "editedat": "2023-07-12T01:33:32Z"
+            "class": "members",
+            "createdby": "Marigold Sherwin",
+            "createdat": "2020-03-10T12:06:40Z",
+            "editedby": "Brunhilde Bampkin",
+            "editedat": "2023-10-21T17:39:11Z"
         }
     ],
     "messages": null

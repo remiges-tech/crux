@@ -159,19 +159,21 @@ func main() {
 	// Schema
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfschemaget", schema.SchemaGet)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodDelete, "/wfschemadelete", schema.SchemaDelete)
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfschemaList", schema.SchemaList)
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfschemaNew", schema.SchemaNew)
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/wfschemaUpdate", schema.SchemaUpdate)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfschemalist", schema.SchemaList)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfschemanew", schema.SchemaNew)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/wfschemaupdate", schema.SchemaUpdate)
 	// Workflow
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/workflowget", workflow.WorkflowGet)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/workflowlist", workflow.WorkflowList)
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/workflowNew", workflow.WorkFlowNew)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/workflownew", workflow.WorkFlowNew)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/workflowUpdate", workflow.WorkFlowUpdate)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodDelete, "/workflowdelete", workflow.WorkflowDelete)
 	//wfinstance
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstancenew", wfinstance.GetWFinstanceNew)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstanceabort", wfinstance.GetWFInstanceAbort)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstancelist", wfinstance.GetWFInstanceList)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstancetry", wfinstance.GetWFInstanceTry)
+
 	// markdone
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wFinstancemarkdone", markdone.WFInstanceMarkDone)
 	//app

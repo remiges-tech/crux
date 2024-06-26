@@ -46,7 +46,7 @@ func workFlowUpdateTestcase() []testutils.TestCasesStruct {
 	if err != nil {
 		log.Fatalln("Error reading JSON file:", err)
 	}
-	var valPayload workflow.WorkflowNew
+	var valPayload workflow.WorkflowNewRequest
 	if err := json.Unmarshal(valTestJson, &valPayload); err != nil {
 		log.Fatalln("Error unmarshalling JSON:", err)
 	}
@@ -55,7 +55,7 @@ func workFlowUpdateTestcase() []testutils.TestCasesStruct {
 	if err != nil {
 		log.Fatalln("Error reading JSON file:", err)
 	}
-	var cusValPayload workflow.WorkflowNew
+	var cusValPayload workflow.WorkflowNewRequest
 	if err := json.Unmarshal(cusValTestJson, &cusValPayload); err != nil {
 		log.Fatalln("Error unmarshalling JSON:", err)
 	}
@@ -64,7 +64,7 @@ func workFlowUpdateTestcase() []testutils.TestCasesStruct {
 	if err != nil {
 		log.Fatalln("Error reading JSON file:", err)
 	}
-	var successPayload workflow.WorkflowNew
+	var successPayload workflow.WorkflowNewRequest
 	if err := json.Unmarshal(successTestJson, &successPayload); err != nil {
 		log.Fatalln("Error unmarshalling JSON:", err)
 	}

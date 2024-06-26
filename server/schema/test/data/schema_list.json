@@ -1,46 +1,66 @@
 {
-    "status": "success",
     "data": [
         {
-            "slice": 1,
+            "app": "fundify",
+            "class": "ucc",
+            "createdat": "2024-06-26T09:11:10.499875Z",
+            "createdby": "tushar",
+            "editedat": null,
+            "editedby": null,
+            "longname": "mutual Fund",
+            "slice": 12
+        },
+        {
+            "app": "fundify",
+            "class": "ucctest",
+            "createdat": "2020-03-10T12:06:40Z",
+            "createdby": "Marigold Sherwin",
+            "editedat": "2023-10-21T17:39:11Z",
+            "editedby": "Brunhilde Bampkin",
+            "longname": "mutual Fund",
+            "slice": 12
+        },
+        {
             "app": "retailbank",
-            "longname": "retailbank pvt ltd",
-            "class": "custonboarding",
-            "createdby": "Mal Houndsom",
-            "createdat": "2022-12-26T09:03:46Z",
-            "editedby": "Clerc Careless",
-            "editedat": "2023-07-12T01:33:32Z"
-        },
-        {
-            "slice": 1,
-            "app": "retailBANK",
-            "longname": "retailbank pvt ltd",
-            "class": "temp",
-            "createdby": "Olly Gerrish",
-            "createdat": "2022-12-24T19:38:52Z",
-            "editedby": "Ronni Matson",
-            "editedat": "2021-04-28T20:39:09Z"
-        },
-        {
-            "slice": 2,
-            "app": "retailBANK",
-            "longname": "retailbank pvt ltd",
             "class": "inventoryitems",
-            "createdby": "Marigold Sherwin",
             "createdat": "2020-03-10T12:06:40Z",
+            "createdby": "Marigold Sherwin",
+            "editedat": "2023-10-21T17:39:11Z",
             "editedby": "Brunhilde Bampkin",
-            "editedat": "2023-10-21T17:39:11Z"
+            "longname": "retailbank pvt ltd",
+            "slice": 12
         },
         {
-            "slice": 2,
-            "app": "retailBANK",
-            "longname": "retailbank pvt ltd",
+            "app": "retailbank",
             "class": "members",
-            "createdby": "Marigold Sherwin",
             "createdat": "2020-03-10T12:06:40Z",
+            "createdby": "Marigold Sherwin",
+            "editedat": "2023-10-21T17:39:11Z",
             "editedby": "Brunhilde Bampkin",
-            "editedat": "2023-10-21T17:39:11Z"
+            "longname": "retailbank pvt ltd",
+            "slice": 13
+        },
+        {
+            "app": "uccapp",
+            "class": "ucc",
+            "createdat": "2020-03-10T12:06:40Z",
+            "createdby": "Marigold Sherwin",
+            "editedat": "2023-10-21T17:39:11Z",
+            "editedby": "Brunhilde Bampkin",
+            "longname": "mutual Fund",
+            "slice": 13
+        },
+        {
+            "app": "uccapp",
+            "class": "ucc_aof",
+            "createdat": "2020-03-10T12:06:40Z",
+            "createdby": "Marigold Sherwin",
+            "editedat": "2023-10-21T17:39:11Z",
+            "editedby": "Brunhilde Bampkin",
+            "longname": "mutual Fund",
+            "slice": 13
         }
     ],
-    "messages": null
+    "messages": null,
+    "status": "success"
 }

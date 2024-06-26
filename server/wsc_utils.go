@@ -74,7 +74,7 @@ func HasRulesetRights(app string) bool {
 
 // to get workflows for all apps for which the user has "ruleset" rights
 func GetWorkflowsByRulesetRights() []string {
-	return []string{"retailBANK", "nedbank", "amazon", "myntra"}
+	return []string{"retailBANK", "nedbank", "amazon", "myntra", "uccapp"}
 }
 
 func Authz_check(op types.OpReq, trace bool) (bool, []string) {

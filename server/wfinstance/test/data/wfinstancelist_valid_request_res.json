@@ -5,8 +5,8 @@
             {
                 "id": 77,
                 "entityid": "tempentityid",
-                "slice": 2,
-                "app": "retailBANK",
+                "slice": 12,
+                "app": "retailbank",
                 "class": "inventoryitems",
                 "workflow": "temp",
                 "step": "tempstep",
@@ -18,8 +18,8 @@
             {
                 "id": 78,
                 "entityid": "tempentityid",
-                "slice": 2,
-                "app": "retailBANK",
+                "slice": 12,
+                "app": "retailbank",
                 "class": "inventoryitems",
                 "workflow": "temp",
                 "step": "tempstep",

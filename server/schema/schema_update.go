@@ -18,7 +18,7 @@ import (
 	"github.com/remiges-tech/logharbour/logharbour"
 )
 
-type updateSchema struct {
+type UpdateSchema struct {
 	Slice         int32               `json:"slice" validate:"required,gt=0,lt=50"`
 	App           string              `json:"App" validate:"required,alpha,lt=50"`
 	Class         string              `json:"class" validate:"required,lowercase,lt=50"`
@@ -48,7 +48,7 @@ func SchemaUpdate(c *gin.Context, s *service.Service) {
 		return
 	}
 
-	var req updateSchema
+	var req UpdateSchema
 
 	err = wscutils.BindJSON(c, &req)
 	if err != nil {

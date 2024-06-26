@@ -20,7 +20,7 @@ func TestRealmSliceNew(t *testing.T) {
 			payload := bytes.NewBuffer(testutils.MarshalJson(tc.RequestPayload))
 
 			res := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodPost, "/realmSliceNew", payload)
+			req, err := http.NewRequest(http.MethodPost, "/realmslicenew", payload)
 			require.NoError(t, err)
 
 			r.ServeHTTP(res, req)
@@ -68,7 +68,7 @@ func RealmSliceNewTestcase() []testutils.TestCasesStruct {
 			Name: "Success- create new copy of realmSlice by old realmSlice id",
 			RequestPayload: wscutils.Request{
 				Data: realmslice.RealmSliceNewRequest{
-					CopyOf: 11,
+					CopyOf: 12,
 				},
 			},
 
@@ -83,7 +83,8 @@ func RealmSliceNewTestcase() []testutils.TestCasesStruct {
 			Name: "Success- create new copy of realmSlice by old realmSlice id with only the listed apps",
 			RequestPayload: wscutils.Request{
 				Data: realmslice.RealmSliceNewRequest{
-					CopyOf: 11,
+					CopyOf: 1,
+					App: []string{"amazon"},
 				},
 			},
 
@@ -98,7 +99,7 @@ func RealmSliceNewTestcase() []testutils.TestCasesStruct {
 			Name: "Success- create new of realmSlice with description",
 			RequestPayload: wscutils.Request{
 				Data: realmslice.RealmSliceNewRequest{
-					CopyOf: 11,
+					CopyOf: 2,
 					Descr:  "description for new app",
 				},
 			},

@@ -40,14 +40,19 @@ func RealmSliceAppsTestcase() []testutils.TestCasesStruct {
 	realmSliceNeTestcase := []testutils.TestCasesStruct{
 		{
 			Name:             "Success- app list by id exist",
-			Url:              "/realmSliceApps/11",
+			Url:              "/realmsliceapps/11",
 			ExpectedHttpCode: http.StatusOK,
 			ExpectedResult: &wscutils.Response{
 				Status: wscutils.SuccessStatus,
 				Data: []sqlc.RealmSliceAppsListRow{
 					{
-						Shortname: "retailbank1",
-						Longname:  "retailbank pvt ltd",
+						Shortname: "Amazon",
+						Longname:  "American multinational technology company, engaged in e-commerce",
+					},
+					{
+
+						Shortname: "Myntra",
+						Longname:  "American multinational technology company, engaged in e-commerce",
 					},
 				},
 				Messages: nil,
@@ -55,7 +60,7 @@ func RealmSliceAppsTestcase() []testutils.TestCasesStruct {
 		},
 		{
 			Name:             "Success- app list by id not exist ",
-			Url:              "/realmSliceApps/111",
+			Url:              "/realmsliceapps/111",
 			ExpectedHttpCode: http.StatusOK,
 			ExpectedResult: &wscutils.Response{
 				Status:   wscutils.SuccessStatus,

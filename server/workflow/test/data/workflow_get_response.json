@@ -1,75 +1,287 @@
 {
     "status": "success",
     "data": {
-        "id": 5,
-        "slice": 2,
-        "app": "retailbank",
-        "class": "members",
-        "name": "goldstatus",
+        "id": 8,
+        "slice": 13,
+        "app": "uccapp",
+        "class": "ucc",
+        "name": "ucc_user_cr",
         "is_active": true,
-        "is_internal": true,
+        "is_internal": false,
         "flowrules": [
             {
-                "ruleactions": {
-                    "properties": [
-                        {
-                            "name": "nextstep",
-                            "val": "aadhaarcheck"
-                        }
-                    ],
-                    "tasks": [
-                        "aadhaarcheck"
-                    ]
-                },
                 "rulepattern": [
                     {
-                        "attr": "step",
+                        "attr": "stepfailed",
                         "op": "eq",
-                        "val": "initialdoc"
-                    },
-                    {
-                        "attr": "branchtype",
-                        "op": "eq",
-                        "val": "rural"
-                    },
-                    {
-                        "attr": "accttype",
-                        "op": "eq",
-                        "val": "savings"
+                        "val": true
                     }
-                ]
+                ],
+                "ruleactions": {
+                    "tasks": [],
+                    "properties": {
+                        "done": "true"
+                    }
+                }
             },
             {
-                "ruleactions": {
-                    "properties": [
-                        {
-                            "name": "nextstep",
-                            "val": "creditbureauchk"
-                        }
-                    ],
-                    "tasks": [
-                        "creditbureauchk",
-                        "bankdetails",
-                        "panchk"
-                    ]
-                },
                 "rulepattern": [
                     {
                         "attr": "step",
                         "op": "eq",
-                        "val": "initialdoc"
+                        "val": "start"
                     },
                     {
-                        "attr": "branchtype",
+                        "attr": "mode",
                         "op": "eq",
-                        "val": "semirural"
+                        "val": "demat"
+                    }
+                ],
+                "ruleactions": {
+                    "tasks": [
+                        "getcustdetails"
+                    ],
+                    "properties": {
+                        "nextstep": "getcustdetails"
+                    }
+                }
+            },
+            {
+                "rulepattern": [
+                    {
+                        "attr": "step",
+                        "op": "eq",
+                        "val": "getcustdetails"
                     },
                     {
-                        "attr": "accttype",
-                        "op": "ne",
-                        "val": "ppf"
+                        "attr": "stepfailed",
+                        "op": "eq",
+                        "val": false
+                    },
+                    {
+                        "attr": "mode",
+                        "op": "eq",
+                        "val": "demat"
                     }
-                ]
+                ],
+                "ruleactions": {
+                    "tasks": [
+                        "aof",
+                        "dpandbankaccvalid",
+                        "kycvalid",
+                        "nomauth"
+                    ],
+                    "properties": {
+                        "nextstep": "auth_done"
+                    }
+                }
+            },
+            {
+                "rulepattern": [
+                    {
+                        "attr": "step",
+                        "op": "eq",
+                        "val": "getcustdetails"
+                    },
+                    {
+                        "attr": "stepfailed",
+                        "op": "eq",
+                        "val": false
+                    },
+                    {
+                        "attr": "mode",
+                        "op": "eq",
+                        "val": "physical"
+                    }
+                ],
+                "ruleactions": {
+                    "tasks": [
+                        "aof",
+                        "kycvalid",
+                        "nomauth",
+                        "bankaccvalid"
+                    ],
+                    "properties": {
+                        "nextstep": "aof"
+                    }
+                }
+            },
+            {
+                "rulepattern": [
+                    {
+                        "attr": "step",
+                        "op": "eq",
+                        "val": "kycvalid"
+                    },
+                    {
+                        "attr": "stepfailed",
+                        "op": "eq",
+                        "val": false
+                    },
+                    {
+                        "attr": "mode",
+                        "op": "eq",
+                        "val": "demat"
+                    }
+                ],
+                "ruleactions": {
+                    "tasks": [],
+                    "properties": {
+                        "done": "true"
+                    }
+                }
+            },
+            {
+                "rulepattern": [
+                    {
+                        "attr": "step",
+                        "op": "eq",
+                        "val": "dpandbankaccvalid"
+                    },
+                    {
+                        "attr": "stepfailed",
+                        "op": "eq",
+                        "val": false
+                    },
+                    {
+                        "attr": "mode",
+                        "op": "eq",
+                        "val": "demat"
+                    }
+                ],
+                "ruleactions": {
+                    "tasks": [],
+                    "properties": {
+                        "done": "true"
+                    }
+                }
+            },
+            {
+                "rulepattern": [
+                    {
+                        "attr": "step",
+                        "op": "eq",
+                        "val": "bankaccvalid"
+                    },
+                    {
+                        "attr": "stepfailed",
+                        "op": "eq",
+                        "val": false
+                    },
+                    {
+                        "attr": "mode",
+                        "op": "eq",
+                        "val": "demat"
+                    }
+                ],
+                "ruleactions": {
+                    "tasks": [],
+                    "properties": {
+                        "done": "true"
+                    }
+                }
+            },
+            {
+                "rulepattern": [
+                    {
+                        "attr": "step",
+                        "op": "eq",
+                        "val": "nomauth"
+                    },
+                    {
+                        "attr": "stepfailed",
+                        "op": "eq",
+                        "val": false
+                    },
+                    {
+                        "attr": "mode",
+                        "op": "eq",
+                        "val": "demat"
+                    }
+                ],
+                "ruleactions": {
+                    "tasks": [],
+                    "properties": {
+                        "done": "true"
+                    }
+                }
+            },
+            {
+                "rulepattern": [
+                    {
+                        "attr": "step",
+                        "op": "eq",
+                        "val": "aof"
+                    },
+                    {
+                        "attr": "stepfailed",
+                        "op": "eq",
+                        "val": false
+                    },
+                    {
+                        "attr": "mode",
+                        "op": "eq",
+                        "val": "demat"
+                    }
+                ],
+                "ruleactions": {
+                    "tasks": [],
+                    "properties": {
+                        "done": "true"
+                    }
+                }
+            },
+            {
+                "rulepattern": [
+                    {
+                        "attr": "step",
+                        "op": "eq",
+                        "val": "auth_done"
+                    },
+                    {
+                        "attr": "stepfailed",
+                        "op": "eq",
+                        "val": false
+                    },
+                    {
+                        "attr": "mode",
+                        "op": "eq",
+                        "val": "demat"
+                    }
+                ],
+                "ruleactions": {
+                    "tasks": [
+                        "sendauthlinktoclient"
+                    ],
+                    "properties": {
+                        "nextstep": "sendauthlinktoclient"
+                    }
+                }
+            },
+            {
+                "rulepattern": [
+                    {
+                        "attr": "step",
+                        "op": "eq",
+                        "val": "sendauthlinktoclient"
+                    },
+                    {
+                        "attr": "stepfailed",
+                        "op": "eq",
+                        "val": false
+                    },
+                    {
+                        "attr": "mode",
+                        "op": "eq",
+                        "val": "demat"
+                    }
+                ],
+                "ruleactions": {
+                    "tasks": [],
+                    "properties": {
+                        "done": "true"
+                    }
+                }
             }
         ],
         "createdat": "2024-01-28T00:00:00Z",

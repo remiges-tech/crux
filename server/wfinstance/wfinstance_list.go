@@ -1,6 +1,8 @@
 package wfinstance
 
 import (
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -103,10 +105,11 @@ func GetWFInstanceList(c *gin.Context, s *service.Service) {
 	}
 
 	// To get requested wfinstance list
+	applc := strings.ToLower(params.App)
 	wfinstanceList, error := query.GetWFInstanceList(c, sqlc.GetWFInstanceListParams{
 		Slice:    pgtype.Int4{Int32: params.Slice, Valid: params.Slice != 0},
 		Entityid: pgtype.Text{String: params.EntityID, Valid: !server.IsStringEmpty(&params.EntityID)},
-		App:      pgtype.Text{String: params.App, Valid: !server.IsStringEmpty(&params.App)},
+		App:      pgtype.Text{String: applc, Valid: !server.IsStringEmpty(&params.App)},
 		Workflow: pgtype.Text{String: params.Workflow, Valid: !server.IsStringEmpty(&params.Workflow)},
 		Parent:   pgtype.Int4{Int32: params.Parent, Valid: params.Parent != 0},
 	})

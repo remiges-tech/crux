@@ -146,9 +146,9 @@ func registerRoutes(databaseUrl string) (*gin.Engine, error) {
 		WithDatabase(connPool).
 		WithDependency("queries", queries)
 
-	s.RegisterRoute(http.MethodPost, "/realmSliceNew", realmslice.RealmSliceNew)
-	s.RegisterRoute(http.MethodGet, "/realmSliceApps/:id", realmslice.RealmSliceApps)
-	s.RegisterRoute(http.MethodPost, "/RealmSlicePurge", realmslice.RealmSlicePurge)
+	s.RegisterRoute(http.MethodPost, "/realmslicenew", realmslice.RealmSliceNew)
+	s.RegisterRoute(http.MethodGet, "/realmsliceapps/:id", realmslice.RealmSliceApps)
+	s.RegisterRoute(http.MethodPost, "/realmslicepurge", realmslice.RealmSlicePurge)
 	s.RegisterRoute(http.MethodPost, "/realmsliceactivate", realmslice.RealmSliceActivate)
 	s.RegisterRoute(http.MethodPost, "/realmslicedeactivate", realmslice.RealmSliceDeactivate)
 	s.RegisterRoute(http.MethodGet, "/realmslicelist", realmslice.RealmSliceList)

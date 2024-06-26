@@ -47,10 +47,10 @@ func TestWorkflowList(t *testing.T) {
 }
 
 func workflowListTestCase() []TestCasesStruct {
-	var sliceStr int32 = 2
+	var sliceStr int32 = 14
 	app := "retailbank"
 	class := "members"
-	tname := "goldstatus"
+	tname := "temp"
 	isActive := true
 	schemaNewTestcase := []TestCasesStruct{
 		// 1st test case

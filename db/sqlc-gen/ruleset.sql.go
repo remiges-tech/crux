@@ -149,6 +149,45 @@ func (q *Queries) GetApp(ctx context.Context, arg GetAppParams) (string, error) 
 	return app, err
 }
 
+const getBRERuleSetActiveStatus = `-- name: GetBRERuleSetActiveStatus :one
+SELECT ruleset, is_active ,setname FROM ruleset
+WHERE realm = $1
+AND slice = $2
+AND app = $3
+AND class = $4
+AND setname = $5
+AND brwf = $6
+`
+
+type GetBRERuleSetActiveStatusParams struct {
+	Realm   string   `json:"realm"`
+	Slice   int32    `json:"slice"`
+	App     string   `json:"app"`
+	Class   string   `json:"class"`
+	Setname string   `json:"setname"`
+	Brwf    BrwfEnum `json:"brwf"`
+}
+
+type GetBRERuleSetActiveStatusRow struct {
+	Ruleset  []byte      `json:"ruleset"`
+	IsActive pgtype.Bool `json:"is_active"`
+	Setname  string      `json:"setname"`
+}
+
+func (q *Queries) GetBRERuleSetActiveStatus(ctx context.Context, arg GetBRERuleSetActiveStatusParams) (GetBRERuleSetActiveStatusRow, error) {
+	row := q.db.QueryRow(ctx, getBRERuleSetActiveStatus,
+		arg.Realm,
+		arg.Slice,
+		arg.App,
+		arg.Class,
+		arg.Setname,
+		arg.Brwf,
+	)
+	var i GetBRERuleSetActiveStatusRow
+	err := row.Scan(&i.Ruleset, &i.IsActive, &i.Setname)
+	return i, err
+}
+
 const getBRERuleSetCount = `-- name: GetBRERuleSetCount :one
 SELECT count(*) FROM ruleset
 WHERE realm = $1

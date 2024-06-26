@@ -55,10 +55,10 @@ func TestWorkflowGet(t *testing.T) {
 }
 
 func workflowGetTestCase() []TestCasesStruct {
-	var sliceStr int32 = 2
-	app := "retailbank"
-	class := "members"
-	tname := "goldstatus"
+	var sliceStr int32 = 13
+	app := "uccapp"
+	class := "ucc"
+	tname := "ucc_user_cr"
 	var slice int32 = -1
 	schemaNewTestcase := []TestCasesStruct{
 		// 1st test case

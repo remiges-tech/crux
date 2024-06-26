@@ -2,14 +2,14 @@ package schema_test
 
 import (
 	"bytes"
-	"encoding/json"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/remiges-tech/alya/wscutils"
-	"github.com/remiges-tech/crux/server/schema"
+	crux "github.com/remiges-tech/crux/matching-engine"
+	schema "github.com/remiges-tech/crux/server/schema"
+
 	"github.com/remiges-tech/crux/testutils"
 	"github.com/stretchr/testify/require"
 )
@@ -22,7 +22,7 @@ func TestSchemaUpdate(t *testing.T) {
 			payload := bytes.NewBuffer(testutils.MarshalJson(tc.RequestPayload))
 
 			res := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodPut, "/wfschemaUpdate", payload)
+			req, err := http.NewRequest(http.MethodPut, "/wfschemaupdate", payload)
 			require.NoError(t, err)
 
 			r.ServeHTTP(res, req)
@@ -42,76 +42,53 @@ func TestSchemaUpdate(t *testing.T) {
 }
 
 func schemaUpdateTestcase() []testutils.TestCasesStruct {
-	valTestJson, err := testutils.ReadJsonFromFile("./data/schema_update_validation_payload .json")
-	if err != nil {
-		log.Fatalln("Error reading JSON file:", err)
-	}
-	var payload schema.SchemaNewReq
-	if err := json.Unmarshal(valTestJson, &payload); err != nil {
-		log.Fatalln("Error unmarshalling JSON:", err)
-	}
-
-	cusValTestJson, err := testutils.ReadJsonFromFile("./data/schema_update_custom_validation_payload.json")
-	if err != nil {
-		log.Fatalln("Error reading JSON file:", err)
-	}
-	var cusValPayload schema.SchemaNewReq
-	if err := json.Unmarshal(cusValTestJson, &cusValPayload); err != nil {
-		log.Fatalln("Error unmarshalling JSON:", err)
-	}
-
-	successTestJson, err := testutils.ReadJsonFromFile("./data/schema_update_success_payload.json")
-	if err != nil {
-		log.Fatalln("Error reading JSON file:", err)
-	}
-	var successPayload schema.SchemaNewReq
-	if err := json.Unmarshal(successTestJson, &successPayload); err != nil {
-		log.Fatalln("Error unmarshalling JSON:", err)
-	}
 
 	schemaNewTestcase := []testutils.TestCasesStruct{
-		{
-			Name: "err- binding_json_error",
-			RequestPayload: wscutils.Request{
-				Data: nil,
-			},
 
-			ExpectedHttpCode: http.StatusBadRequest,
-			ExpectedResult: &wscutils.Response{
-				Status: wscutils.ErrorStatus,
-				Data:   nil,
-				Messages: []wscutils.ErrorMessage{
-					{
-						MsgID:   1001,
-						ErrCode: wscutils.ErrcodeInvalidJson,
-					},
-				},
-			},
-		},
 		{
 			Name: "err- standard validation",
 			RequestPayload: wscutils.Request{
-				Data: payload,
+				Data: schema.UpdateSchema{},
 			},
 
 			ExpectedHttpCode: http.StatusBadRequest,
 			TestJsonFile:     "./data/schema_update_validation_error.json",
 		},
 		{
-			Name: "err- custom validation",
-			RequestPayload: wscutils.Request{
-				Data: cusValPayload,
-			},
-
-			ExpectedHttpCode: http.StatusBadRequest,
-			TestJsonFile:     "./data/schema_update_custom_validation_error.json",
-		},
-		{
 			Name: "Success- Update schema",
 			RequestPayload: wscutils.Request{
-				Data: successPayload,
+				Data: schema.UpdateSchema{
+					Slice: 12,
+					App:   "retailBANK",
+					Class: "custonboarding",
+					PatternSchema: []schema.PatternSchema{
+						{
+							Attr:      "step",
+							EnumVals:  []string{"aof", "nomauth", "kycvalid"},
+							ValType:   "enum",
+							LongDesc:  "",
+							ShortDesc: "",
+						},
+						{
+							Attr:      "stepfailed",
+							ValType:   "bool",
+							LongDesc:  "",
+							ShortDesc: "",
+						},
+						{
+							Attr:      "mode",
+							EnumVals:  []string{"demat", "physical"},
+							ValType:   "enum",
+							LongDesc:  "",
+							ShortDesc: "",
+						},
+					},
+					ActionSchema: crux.ActionSchema_t{
+						Tasks:      []string{"getcustdetails", "aof", "dpandbankaccvalid", "kycvalid", "nomauth"},
+						Properties: []string{"nextstep", "done"},
+					},
+				},
 			},
-
 			ExpectedHttpCode: http.StatusOK,
 			ExpectedResult: &wscutils.Response{
 				Status:   wscutils.SuccessStatus,

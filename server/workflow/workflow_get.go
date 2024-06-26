@@ -2,6 +2,7 @@ package workflow
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -68,9 +69,10 @@ func WorkflowGet(c *gin.Context, s *service.Service) {
 		return
 	}
 
+	applc :=   strings.ToLower(request.App)
 	dbResponse, err := query.Workflowget(c, sqlc.WorkflowgetParams{
 		Slice:   request.Slice,
-		App:     request.App,
+		App:     applc,
 		Class:   request.Class,
 		Setname: request.Name,
 		Realm:   realmName,

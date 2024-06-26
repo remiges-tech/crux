@@ -30,6 +30,7 @@ func TestWFInstanceMarkDone(t *testing.T) {
 			require.Equal(t, tc.ExpectedHttpCode, res.Code)
 			if tc.ExpectedResult != nil {
 				jsonData := testutils.MarshalJson(tc.ExpectedResult)
+
 				if strings.HasPrefix(tc.Name, "err") {
 					require.JSONEq(t, string(jsonData), res.Body.String())
 				} else {
@@ -222,12 +223,16 @@ func compareJSON(t *testing.T, expected, actual []byte) {
 		t.Fatalf("Error unmarshaling actual JSON: %v", err)
 	}
 
-	// Remove the "Loggedat" field
+	// Remove the "loggedat" field
 	delete(expectedMap["data"].(map[string]interface{}), "loggedat")
-
 	delete(actualMap["data"].(map[string]interface{}), "loggedat")
 
+	// Remove the "doneat" field if present
+	delete(expectedMap["data"].(map[string]interface{}), "doneat")
+	delete(actualMap["data"].(map[string]interface{}), "doneat")
+
 	if !reflect.DeepEqual(expectedMap, actualMap) {
+
 		t.Errorf("Expected JSON does not match actual JSON")
 	}
 }

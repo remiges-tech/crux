@@ -126,7 +126,7 @@ func WorkFlowUpdate(c *gin.Context, s *service.Service) {
 	}
 
 	// custom Validation
-	customValidationErrors := customValidationErrors(schema_t, WorkflowNew{
+	customValidationErrors := customValidationErrors(schema_t, WorkflowNewRequest{
 		Slice:     wf.Slice,
 		App:       strings.ToLower(wf.App),
 		Class:     wf.Class,

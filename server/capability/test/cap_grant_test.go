@@ -41,10 +41,10 @@ func TestCapGrant(t *testing.T) {
 }
 
 func capGrantTestcase() []testutils.TestCasesStruct {
-	fromTS := time.Date(2024, 5, 20, 10, 5, 0, 0, time.UTC)
-	toTS := time.Date(2024, 5, 31, 10, 5, 0, 0, time.UTC)
+	fromTS := time.Date(2024, 6, 25, 10, 5, 0, 0, time.UTC)
+	toTS := time.Date(2024, 6, 30, 10, 5, 0, 0, time.UTC)
 	InvalidfromTS := time.Date(2022, 5, 20, 10, 5, 0, 0, time.UTC)
-
+	
 	fromTSPtr := &fromTS
 	toTSPtr := &toTS
 	invalidfromTSPtr := &InvalidfromTS
@@ -99,7 +99,7 @@ func capGrantTestcase() []testutils.TestCasesStruct {
 				Data: capability.CapGrantRequest{
 					User: "kanchan@gmail.com",
 					App:  &[]string{"nedbank"},
-					Cap:  []string{"schema","root"},
+					Cap:  []string{"schema", "root"},
 					From: fromTSPtr,
 					To:   toTSPtr,
 				},

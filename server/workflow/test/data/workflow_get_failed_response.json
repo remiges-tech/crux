@@ -4,8 +4,7 @@
     "messages": [
         {
             "msgid": 1006,
-            "errcode": "invalid_request",
-            "field": "slice/app/class"
+            "errcode": "no_record_found"
         }
     ]
 }

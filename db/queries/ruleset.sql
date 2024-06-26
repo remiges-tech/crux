@@ -200,3 +200,12 @@ AND setname = @setname
 AND brwf = @brwf;
 
 
+-- name: GetBRERuleSetActiveStatus :one
+SELECT ruleset, is_active ,setname FROM ruleset
+WHERE realm = @realm
+AND slice = @slice
+AND app = @app
+AND class = @class
+AND setname = @setname
+AND brwf = @brwf;
+

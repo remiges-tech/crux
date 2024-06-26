@@ -1,7 +1,7 @@
 package realmslice
 
 var (
-	userID    = "1234"
+	userID    = "aniket"
 	rootCaps  = []string{"root"}
 	realmName = "Nova"
 )

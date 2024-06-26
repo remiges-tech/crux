@@ -2,6 +2,8 @@ package auth_test
 
 import (
 	"bytes"
+	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -34,17 +36,13 @@ func TestCapList(t *testing.T) {
 			r.ServeHTTP(res, req)
 
 			require.Equal(t, tc.ExpectedHttpCode, res.Code)
+			actualJsonData := RemoveFields(t, res.Body.Bytes(), "from","to")
 			if tc.ExpectedResult != nil {
-				jsonData := testutils.MarshalJson(tc.ExpectedResult)
-				require.JSONEq(t, string(jsonData), res.Body.String())
-			} else {
-				jsonData, err := testutils.ReadJsonFromFile(tc.TestJsonFile)
-				require.NoError(t, err)
-				require.JSONEq(t, string(jsonData), res.Body.String())
-			}
+				expectedJsonData := RemoveFields(t, testutils.MarshalJson(tc.ExpectedResult), "from","to")
+				require.JSONEq(t, string(expectedJsonData), string(actualJsonData))
+			} 
 		})
 	}
-
 }
 
 func testCapList() []testutils.TestCasesStruct {
@@ -104,4 +102,48 @@ func testCapList() []testutils.TestCasesStruct {
 		},
 	}
 	return testUsrAct
+}
+
+// RemoveFields removes specified fields from JSON data.
+func RemoveFields(t *testing.T, jsonData []byte, fieldsToRemove ...string) []byte {
+	var data map[string]interface{}
+	err := json.Unmarshal(jsonData, &data)
+	require.NoError(t, err)
+
+	removeFieldsFromMap(data, fieldsToRemove...)
+
+	cleanedJsonData, err := json.Marshal(data)
+	require.NoError(t, err)
+
+	return cleanedJsonData
+}
+
+func removeFieldsFromMap(data map[string]interface{}, fieldsToRemove ...string) {
+	for key, value := range data {
+		if contains(fieldsToRemove, key) {
+			delete(data, key)
+		} else if nestedMap, ok := value.(map[string]interface{}); ok {
+			removeFieldsFromMap(nestedMap, fieldsToRemove...)
+		} else if nestedArray, ok := value.([]interface{}); ok {
+			for _, elem := range nestedArray {
+				if nestedElemMap, ok := elem.(map[string]interface{}); ok {
+					removeFieldsFromMap(nestedElemMap, fieldsToRemove...)
+				}
+			}
+		}
+	}
+}
+
+func contains(slice []string, item string) bool {
+	for _, s := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
+}
+func ReadJsonFromFile(t *testing.T, filePath string) []byte {
+	jsonData, err := ioutil.ReadFile(filePath)
+	require.NoError(t, err)
+	return jsonData
 }

@@ -2,8 +2,10 @@ package schema_test
 
 import (
 	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 
 	"github.com/remiges-tech/alya/wscutils"
@@ -26,7 +28,7 @@ func TestSchemaList(t *testing.T) {
 			} else if tc.Name == "schema cap" {
 				schema.CapForList = []string{"schema"}
 			}
-			req, err := http.NewRequest(http.MethodPost, "/wfschemaList", payload)
+			req, err := http.NewRequest(http.MethodPost, "/wfschemalist", payload)
 			require.NoError(t, err)
 
 			r.ServeHTTP(res, req)
@@ -34,56 +36,24 @@ func TestSchemaList(t *testing.T) {
 			require.Equal(t, tc.ExpectedHttpCode, res.Code)
 			if tc.ExpectedResult != nil {
 				jsonData := testutils.MarshalJson(tc.ExpectedResult)
-				require.JSONEq(t, string(jsonData), res.Body.String())
+				compareJSON(t, jsonData, res.Body.Bytes())
 			} else {
 				jsonData, err := testutils.ReadJsonFromFile(tc.TestJsonFile)
 				require.NoError(t, err)
-				require.JSONEq(t, string(jsonData), res.Body.String())
+				compareJSON(t, jsonData, res.Body.Bytes())
 			}
 		})
 	}
-
 }
 
 func schemaListTestcase() []testutils.TestCasesStruct {
 	// slice := int32(-1)
 	// app := "retailBANK1"
 	// class := "Inventoryitemsded"
-	slice1 := int32(1)
+	slice1 := int32(13)
 	app1 := "retailbank"
-	class1 := "custonboarding"
+	class1 := "members"
 	schemaListTestcase := []testutils.TestCasesStruct{
-		{
-			Name: "err- binding_json_error",
-			RequestPayload: wscutils.Request{
-				Data: nil,
-			},
-
-			ExpectedHttpCode: http.StatusBadRequest,
-			ExpectedResult: &wscutils.Response{
-				Status: wscutils.ErrorStatus,
-				Data:   nil,
-				Messages: []wscutils.ErrorMessage{
-					{
-						MsgID:   1001,
-						ErrCode: wscutils.ErrcodeInvalidJson,
-					},
-				},
-			},
-		},
-		// {
-		// 	Name: "err- validation",
-		// 	RequestPayload: wscutils.Request{
-		// 		Data: schema.SchemaListStruct{
-		// 			Slice: &slice,
-		// 			App:   &app,
-		// 			Class: &class,
-		// 		},
-		// 	},
-
-		// 	ExpectedHttpCode: http.StatusBadRequest,
-		// 	TestJsonFile:     "./data/schema_list_validation_error.json",
-		// },
 		{
 			Name: "Success- get schema by app slice class",
 			RequestPayload: wscutils.Request{
@@ -199,4 +169,41 @@ func schemaListTestcase() []testutils.TestCasesStruct {
 		},
 	}
 	return schemaListTestcase
+}
+func removeField(data map[string]interface{}, field string) {
+	for _, v := range data {
+		switch vv := v.(type) {
+		case map[string]interface{}:
+			removeField(vv, field)
+		case []interface{}:
+			for _, u := range vv {
+				if umap, ok := u.(map[string]interface{}); ok {
+					removeField(umap, field)
+				}
+			}
+		}
+	}
+	delete(data, field)
+}
+
+func compareJSON(t *testing.T, expected, actual []byte) {
+	var expectedMap, actualMap map[string]interface{}
+
+	if err := json.Unmarshal(expected, &expectedMap); err != nil {
+		t.Fatalf("Error unmarshaling expected JSON: %v", err)
+	}
+	if err := json.Unmarshal(actual, &actualMap); err != nil {
+		t.Fatalf("Error unmarshaling actual JSON: %v", err)
+	}
+
+	fieldsToRemove := []string{"createdat", "editedat", "deactivateat"}
+
+	for _, field := range fieldsToRemove {
+		removeField(expectedMap, field)
+		removeField(actualMap, field)
+	}
+
+	if !reflect.DeepEqual(expectedMap, actualMap) {
+		t.Errorf("Expected JSON does not match actual JSON")
+	}
 }

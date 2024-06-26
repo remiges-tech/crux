@@ -17,7 +17,7 @@ import (
 	"github.com/remiges-tech/logharbour/logharbour"
 )
 
-type WorkflowNew struct {
+type WorkflowNewRequest struct {
 	Slice      int32         `json:"slice" validate:"required,gt=0,lt=15"`
 	App        string        `json:"app" validate:"required,alpha,lt=15"`
 	Class      string        `json:"class" validate:"required,lowercase,lt=15"`
@@ -55,7 +55,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 		wscutils.SendErrorResponse(c, wscutils.NewErrorResponse(server.MsgId_Unauthorized, server.ErrCode_Unauthorized))
 		return
 	}
-	var wf WorkflowNew
+	var wf WorkflowNewRequest
 
 	err := wscutils.BindJSON(c, &wf)
 	if err != nil {
@@ -97,7 +97,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 		Slice:     wf.Slice,
 		App:       strings.ToLower(wf.App),
 		Class:     wf.Class,
-		Brwf: sqlc.BrwfEnumW,
+		Brwf:      sqlc.BrwfEnumW,
 	})
 	if err != nil {
 		l.Info().Error(err).Log("failed to get schema from DB:")
@@ -224,7 +224,7 @@ func WorkFlowNew(c *gin.Context, s *service.Service) {
 	l.Debug0().Log("Finished execution of WorkFlowNew()")
 }
 
-func customValidationErrors(schema_t crux.Schema_t, wf WorkflowNew) []wscutils.ErrorMessage {
+func customValidationErrors(schema_t crux.Schema_t, wf WorkflowNewRequest) []wscutils.ErrorMessage {
 	var validationErrors []wscutils.ErrorMessage
 	if len(wf.Flowrules) == 0 {
 		fieldName := "flowrules"

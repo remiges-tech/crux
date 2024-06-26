@@ -143,9 +143,9 @@ func registerRoutes(databaseUrl string) (*gin.Engine, error) {
 		WithDatabase(connPool).
 		WithDependency("queries", queries)
 
-	s.RegisterRoute(http.MethodPost, "/wfschemaList", schema.SchemaList)
-	s.RegisterRoute(http.MethodPost, "/wfschemaNew", schema.SchemaNew)
-	s.RegisterRoute(http.MethodPut, "/wfschemaUpdate", schema.SchemaUpdate)
+	s.RegisterRoute(http.MethodPost, "/wfschemalist", schema.SchemaList)
+	s.RegisterRoute(http.MethodPost, "/wfschemanew", schema.SchemaNew)
+	s.RegisterRoute(http.MethodPut, "/wfschemaupdate", schema.SchemaUpdate)
 	s.RegisterRoute(http.MethodPost, "/wfschemaget", schema.SchemaGet)
 	s.RegisterRoute(http.MethodDelete, "/wfschemadelete", schema.SchemaDelete)
 

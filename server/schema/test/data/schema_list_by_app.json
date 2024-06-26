@@ -1,16 +1,26 @@
 {
-    "status": "success",
     "data": [
         {
-            "slice": 1,
             "app": "retailbank",
+            "class": "inventoryitems",
+            "createdat": "2020-03-10T12:06:40Z",
+            "createdby": "Marigold Sherwin",
+            "editedat": "2023-10-21T17:39:11Z",
+            "editedby": "Brunhilde Bampkin",
             "longname": "retailbank pvt ltd",
-            "class": "custonboarding",
-            "createdby": "Mal Houndsom",
-            "createdat": "2022-12-26T09:03:46Z",
-            "editedby": "Clerc Careless",
-            "editedat": "2023-07-12T01:33:32Z"
+            "slice": 12
+        },
+        {
+            "app": "retailbank",
+            "class": "members",
+            "createdat": "2020-03-10T12:06:40Z",
+            "createdby": "Marigold Sherwin",
+            "editedat": "2023-10-21T17:39:11Z",
+            "editedby": "Brunhilde Bampkin",
+            "longname": "retailbank pvt ltd",
+            "slice": 13
         }
     ],
-    "messages": null
+    "messages": null,
+    "status": "success"
 }

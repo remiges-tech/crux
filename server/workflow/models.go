@@ -78,7 +78,7 @@ type WorkflowGetReq struct {
 	Slice int32  `json:"slice" validate:"required,gt=0,lt=15"`
 	App   string `json:"app" validate:"required,alpha,lt=15"`
 	Class string `json:"class" validate:"required,alpha,lt=15"`
-	Name  string `json:"name" validate:"required,lt=20"`
+	Name  string `json:"name" validate:"required,lt=30"`
 }
 
 type WorkflowgetRow struct {

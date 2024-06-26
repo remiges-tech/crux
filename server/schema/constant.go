@@ -1,6 +1,6 @@
 package schema
 
 var (
-	userID    = "1234"
+	userID    = "admin"
 	realmName = "Nova"
 )

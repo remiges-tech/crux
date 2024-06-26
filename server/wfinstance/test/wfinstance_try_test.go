@@ -52,6 +52,7 @@ func wfInstanceTryTestcase() []testutils.TestCasesStruct {
 	app := "uccapp"
 	workflow := "aofworkflow"
 	InvalidStep := "sendtortaaa"
+	step := "getsigneddocument"
 	wfInstanceNewTestcase := []testutils.TestCasesStruct{
 
 		// 1st test case
@@ -78,7 +79,7 @@ func wfInstanceTryTestcase() []testutils.TestCasesStruct {
 						"aofexists": "false",
 					},
 					Workflow:   workflow,
-					Step:       "sendtorta",
+					Step:       step,
 					StepFailed: &stepfailed,
 					Trace:      &trace,
 				},

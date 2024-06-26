@@ -42,7 +42,7 @@ func TestSchemaDelete(t *testing.T) {
 }
 
 func schemaDeleteTestCase() []testutils.TestCasesStruct {
-	var sliceStr int32 = 2
+	var sliceStr int32 = 12
 	app := "retailBANK"
 	class := "inventoryitems"
 	var slice int32 = -1

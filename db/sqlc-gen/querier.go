@@ -43,6 +43,7 @@ type Querier interface {
 	GetAppList(ctx context.Context, realm string) ([]GetAppListRow, error)
 	GetAppName(ctx context.Context, arg GetAppNameParams) ([]App, error)
 	GetAppNames(ctx context.Context, realm string) ([]string, error)
+	GetBRERuleSetActiveStatus(ctx context.Context, arg GetBRERuleSetActiveStatusParams) (GetBRERuleSetActiveStatusRow, error)
 	GetBRERuleSetCount(ctx context.Context, arg GetBRERuleSetCountParams) (int64, error)
 	GetCapGrantForApp(ctx context.Context, arg GetCapGrantForAppParams) ([]Capgrant, error)
 	GetCapGrantForUser(ctx context.Context, arg GetCapGrantForUserParams) ([]Capgrant, error)

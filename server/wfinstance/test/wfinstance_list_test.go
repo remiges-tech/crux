@@ -50,7 +50,7 @@ func TestGetWFInstanceList(t *testing.T) {
 func wfInstanceListTestcase() []testutils.TestCasesStruct {
 	var (
 		InvalidSlice int32  = 1
-		Slice        int32  = 2
+		Slice        int32  = 12
 		entityID     string = "tempentityid"
 		App          string = "retailBANK"
 		Workflow     string = "temp"

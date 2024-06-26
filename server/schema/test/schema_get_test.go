@@ -47,8 +47,8 @@ func TestSchemaGet(t *testing.T) {
 }
 
 func schemaGetTestcase() []testutils.TestCasesStruct {
-	var sliceStr int32 = 2
-	app := "retailBANK"
+	var sliceStr int32 = 13
+	app := "retailbank"
 	class := "members"
 	var slice int32 = -1
 	schemaNewTestcase := []testutils.TestCasesStruct{

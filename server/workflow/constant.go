@@ -1,6 +1,6 @@
 package workflow
 
 var (
-	userID    string = "123"
+	userID    string = "admin"
 	realmName string = "Nova"
 )
