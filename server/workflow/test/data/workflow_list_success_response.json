@@ -1,0 +1,34 @@
+{
+    "status": "success",
+    "data": {
+        "workflows": [
+            {
+                "id": 9,
+                "slice": 12,
+                "app": "fundify",
+                "class": "ucc",
+                "name": "ucc_user_cr",
+                "is_active": true,
+                "is_internal": false,
+                "createdat": "2024-06-27T11:22:33.656841Z",
+                "createdby": "tushar",
+                "editedat": null,
+                "editedby": null
+            },
+            {
+                "id": 10,
+                "slice": 12,
+                "app": "fundify",
+                "class": "ucctest",
+                "name": "ucctest",
+                "is_active": true,
+                "is_internal": false,
+                "createdat": "2024-01-28T00:00:00Z",
+                "createdby": "admin",
+                "editedat": "2024-01-15T00:00:00Z",
+                "editedby": "admin"
+            }
+        ]
+    },
+    "messages": null
+}

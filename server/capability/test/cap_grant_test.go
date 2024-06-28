@@ -41,10 +41,11 @@ func TestCapGrant(t *testing.T) {
 }
 
 func capGrantTestcase() []testutils.TestCasesStruct {
-	fromTS := time.Date(2024, 6, 25, 10, 5, 0, 0, time.UTC)
-	toTS := time.Date(2024, 6, 30, 10, 5, 0, 0, time.UTC)
+	currentTime := time.Now()
+	fromTS := currentTime.AddDate(0, 0, 1)
+	toTS := currentTime.AddDate(0, 0, 10)
 	InvalidfromTS := time.Date(2022, 5, 20, 10, 5, 0, 0, time.UTC)
-	
+
 	fromTSPtr := &fromTS
 	toTSPtr := &toTS
 	invalidfromTSPtr := &InvalidfromTS
