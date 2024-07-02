@@ -55,29 +55,39 @@ func WorkflowNewTestcase() []testutils.TestCasesStruct {
 			Name: "Success - valid response",
 			RequestPayload: wscutils.Request{
 				Data: workflow.WorkflowNewRequest{
-					Slice:      11,
-					App:        "myntra",
-					Class:      "inventoryitems",
-					Name:       "myntraruleset",
+					Slice:      12,
+					App:        "fundify",
+					Class:      "ucc",
+					Name:       "temps",
 					IsInternal: true,
 					Flowrules: []crux.Rule_t{
 						{
 							RuleActions: crux.RuleActionBlock_t{
-								Task: []string{"cat"},
+								Task:[]string{"pan_verification", "pan_aadhaar_linking", "kyc_verification"},
 								Properties: map[string]string{
-									"nextstep": "done",
+									"nextstep": "kyc_done",
 								},
 							},
 							RulePatterns: []crux.RulePatternBlock_t{
 								{
 									Op:   "eq",
-									Val:  "textbook",
-									Attr: "cat",
+									Val:  "start",
+									Attr: "step",
 								},
 								{
-									Op:   "ge",
-									Val:  5000,
-									Attr: "mrp",
+									Op:   "eq",
+									Val:  "broker",
+									Attr: "member_type",
+								},
+								{
+									Op:   "eq",
+									Val:  "physical",
+									Attr: "ucc_type",
+								},
+								{
+									Op:   "eq",
+									Val:  "individual",
+									Attr: "tax_status_type",
 								},
 							},
 							NFailed:  0,

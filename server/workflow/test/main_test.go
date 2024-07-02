@@ -146,7 +146,7 @@ func registerRoutes(databaseUrl string) (*gin.Engine, error) {
 		WithDatabase(connPool).
 		WithDependency("queries", queries)
 
-	s.RegisterRoute(http.MethodPut, "/workflowUpdate", workflow.WorkFlowUpdate)
+	s.RegisterRoute(http.MethodPut, "/workflowupdate", workflow.WorkFlowUpdate)
 	s.RegisterRoute(http.MethodDelete, "/workflowdelete", workflow.WorkflowDelete)
 	s.RegisterRoute(http.MethodPost, "/workflowlist", workflow.WorkflowList)
 	s.RegisterRoute(http.MethodPost, "/workflowget", workflow.WorkflowGet)
@@ -176,5 +176,3 @@ func ternMigrate(databaseUrl string) {
 		log.Fatal("Error loading data:", err)
 	}
 }
-
-

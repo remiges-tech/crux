@@ -166,7 +166,7 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/workflowget", workflow.WorkflowGet)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/workflowlist", workflow.WorkflowList)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/workflownew", workflow.WorkFlowNew)
-	s.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/workflowUpdate", workflow.WorkFlowUpdate)
+	s.RegisterRouteWithGroup(apiV1Group, http.MethodPut, "/workflowupdate", workflow.WorkFlowUpdate)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodDelete, "/workflowdelete", workflow.WorkflowDelete)
 	//wfinstance
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/wfinstancenew", wfinstance.GetWFinstanceNew)

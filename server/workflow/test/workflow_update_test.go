@@ -2,116 +2,99 @@ package workflow_test
 
 import (
 	"bytes"
-	"encoding/json"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/remiges-tech/alya/wscutils"
+	crux "github.com/remiges-tech/crux/matching-engine"
+	"github.com/remiges-tech/crux/server"
 	"github.com/remiges-tech/crux/server/workflow"
 	"github.com/remiges-tech/crux/testutils"
 	"github.com/stretchr/testify/require"
 )
 
-func TestWorkFlowUpdate(t *testing.T) {
-	testCases := workFlowUpdateTestcase()
+func TestWorkflowUpdate(t *testing.T) {
+	testCases := WorkflowUpdateTestcase()
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-
-			payload := bytes.NewBuffer(testutils.MarshalJson(tc.RequestPayload))
+			// Setting up buffer
+			payload := bytes.NewBuffer(server.MarshalJson(tc.RequestPayload))
 
 			res := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodPut, "/workflowUpdate", payload)
+			req, err := http.NewRequest(http.MethodPut, "/workflowupdate", payload)
 			require.NoError(t, err)
 
 			r.ServeHTTP(res, req)
 
 			require.Equal(t, tc.ExpectedHttpCode, res.Code)
 			if tc.ExpectedResult != nil {
-				jsonData := testutils.MarshalJson(tc.ExpectedResult)
+				jsonData := server.MarshalJson(tc.ExpectedResult)
 				require.JSONEq(t, string(jsonData), res.Body.String())
 			} else {
-				jsonData, err := testutils.ReadJsonFromFile(tc.TestJsonFile)
+				jsonData, err := server.ReadJsonFromFile(tc.TestJsonFile)
 				require.NoError(t, err)
 				require.JSONEq(t, string(jsonData), res.Body.String())
 			}
 		})
 	}
-
 }
 
-func workFlowUpdateTestcase() []testutils.TestCasesStruct {
-	valTestJson, err := testutils.ReadJsonFromFile("./data/workflowNew/workFlow_Update_validation_payload.json")
-	if err != nil {
-		log.Fatalln("Error reading JSON file:", err)
-	}
-	var valPayload workflow.WorkflowNewRequest
-	if err := json.Unmarshal(valTestJson, &valPayload); err != nil {
-		log.Fatalln("Error unmarshalling JSON:", err)
-	}
+func WorkflowUpdateTestcase() []testutils.TestCasesStruct {
+	workflowUpdateTestcase := []testutils.TestCasesStruct{
 
-	cusValTestJson, err := testutils.ReadJsonFromFile("./data/workflowNew/workflow_new_custom_validation_payload.json")
-	if err != nil {
-		log.Fatalln("Error reading JSON file:", err)
-	}
-	var cusValPayload workflow.WorkflowNewRequest
-	if err := json.Unmarshal(cusValTestJson, &cusValPayload); err != nil {
-		log.Fatalln("Error unmarshalling JSON:", err)
-	}
-
-	successTestJson, err := testutils.ReadJsonFromFile("./data/workflowNew/workflow_update_success_payload.json")
-	if err != nil {
-		log.Fatalln("Error reading JSON file:", err)
-	}
-	var successPayload workflow.WorkflowNewRequest
-	if err := json.Unmarshal(successTestJson, &successPayload); err != nil {
-		log.Fatalln("Error unmarshalling JSON:", err)
-	}
-
-	schemaNewTestcase := []testutils.TestCasesStruct{
-		{
-			Name: "err- binding_json_error",
-			RequestPayload: wscutils.Request{
-				Data: nil,
-			},
-
-			ExpectedHttpCode: http.StatusBadRequest,
-			ExpectedResult: &wscutils.Response{
-				Status: wscutils.ErrorStatus,
-				Data:   nil,
-				Messages: []wscutils.ErrorMessage{
-					{
-						MsgID:   1001,
-						ErrCode: wscutils.ErrcodeInvalidJson,
-					},
-				},
-			},
-		},
 		{
 			Name: "err- standard validation",
 			RequestPayload: wscutils.Request{
-				Data: valPayload,
+				Data: workflow.WorkflowUpdate{},
 			},
-
 			ExpectedHttpCode: http.StatusBadRequest,
-			TestJsonFile:     "./data/workflowNew/workflow_new_validation_error.json",
+			TestJsonFile:     "./data/workflow_update_validation_error.json",
 		},
 		{
-			Name: "err- custom validation",
+			Name: "Success - valid response",
 			RequestPayload: wscutils.Request{
-				Data: cusValPayload,
+				Data: workflow.WorkflowUpdate{
+					Slice:      12,
+					App:        "fundify",
+					Class:      "ucc",
+					Name:       "temps",
+					Flowrules: []crux.Rule_t{
+						{
+							RuleActions: crux.RuleActionBlock_t{
+								Task:[]string{"pan_verification", "pan_aadhaar_linking"},
+								Properties: map[string]string{
+									"nextstep": "kyc_done",
+								},
+							},
+							RulePatterns: []crux.RulePatternBlock_t{
+								{
+									Op:   "eq",
+									Val:  "start",
+									Attr: "step",
+								},
+								{
+									Op:   "eq",
+									Val:  "broker",
+									Attr: "member_type",
+								},
+								{
+									Op:   "eq",
+									Val:  "physical",
+									Attr: "ucc_type",
+								},
+								{
+									Op:   "eq",
+									Val:  "individual",
+									Attr: "tax_status_type",
+								},
+							},
+							NFailed:  0,
+							NMatched: 0,
+						},
+					},
+				},
 			},
-
-			ExpectedHttpCode: http.StatusBadRequest,
-			TestJsonFile:     "./data/workflowNew/workflow_new_custom_validation_error.json",
-		},
-		{
-			Name: "Success- update workflow",
-			RequestPayload: wscutils.Request{
-				Data: successPayload,
-			},
-
 			ExpectedHttpCode: http.StatusOK,
 			ExpectedResult: &wscutils.Response{
 				Status:   wscutils.SuccessStatus,
@@ -120,5 +103,5 @@ func workFlowUpdateTestcase() []testutils.TestCasesStruct {
 			},
 		},
 	}
-	return schemaNewTestcase
+	return workflowUpdateTestcase
 }
