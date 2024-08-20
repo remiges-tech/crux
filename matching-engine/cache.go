@@ -323,7 +323,7 @@ func (c Cache) RetrieveRuleSchemasFromCache(brwf, app, realm, class string, slic
 		}
 		if !brExists {
 			if err := c.loadSchema(realm, app, class, slice); err != nil {
-				return nil, fmt.Errorf("error while loading cache in RetrieveWorkflowRulesetFromCache: %v", err)
+				return nil, fmt.Errorf("error while loading cache in RetrieveRuleSchemasFromCache: %v", err)
 			} else {
 				brSchemas, brExists := c.SchemaCache[Realm_t(realm)][App_t(app)][Slice_t(slice)].BRSchema[ClassName_t(class)]
 				if brExists {
@@ -421,7 +421,7 @@ func (c Cache) GetRulesetName(brwf, app, realm, class, ruleSetName string, slice
 func (c Cache) getRulesetsFromCacheWithName(brwf, app, realm, class, ruleSetName string, slice int32) (*Ruleset_t, bool) {
 
 	if brwf == BRE {
-		brRulesets, exist := c.RulesetCache[Realm_t(realm)][App_t(app)][Slice_t(slice)].Workflows[ClassName_t(class)]
+		brRulesets, exist := c.RulesetCache[Realm_t(realm)][App_t(app)][Slice_t(slice)].BRRulesets[ClassName_t(class)]
 		if exist {
 			for _, r := range brRulesets {
 				if r.SetName == ruleSetName {

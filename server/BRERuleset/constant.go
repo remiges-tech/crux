@@ -2,7 +2,7 @@ package breruleset
 
 var (
 	userID    string = "Raj"
-	realmName string = "Ecommerce"
+	realmName string = "REMIGES"
 	brwf      string = "B"
 )
 

@@ -68,4 +68,6 @@ const (
 	ErrCode_Capability_Does_Not_Exist                             = "cap_does_not_exist"
 	ErrCode_App_Does_Not_Exist                                    = "app_does_not_exist"
 	Errode_Workflow_Is_Active                                     = "workflow_is_active"
+	Errcode_DoMatch_Failed                                        = "do_match_failed"
+	Errcode_cache                                                 = "cache"
 )
