@@ -31,14 +31,18 @@ const (
 )
 
 func matchPattern(entity Entity, rulePattern []RulePatternBlock_t, actionSet ActionSet, rSchema *Schema_t) (bool, error) {
-
+	var (
+		// inPattern bool
+		termval interface{}
+		err     error
+	)
 	for _, term := range rulePattern {
 		valType := ""
 		entityAttrVal := ""
 
 		// Check whether the attribute name in the pattern term exists in the entity attrs map
 		if val, ok := entity.Attrs[term.Attr]; ok {
-
+			// inPattern = true
 			entityAttrVal = val
 			valType = getTypeFromSchema(entity.Class, term.Attr, rSchema)
 			incrementStatsSchemaCounterNChecked(entity.Class, rSchema)
@@ -60,10 +64,12 @@ func matchPattern(entity Entity, rulePattern []RulePatternBlock_t, actionSet Act
 			valType = typeBool
 		}
 
-		termval, err := convertTermAttrVal(term.Val, valType)
+		// if inPattern {
+		termval, err = convertTermAttrVal(term.Val, valType)
 		if err != nil {
 			return false, err
 		}
+		// }
 
 		matched, err := makeComparison(entityAttrVal, termval, valType, term.Op)
 		if err != nil {
@@ -160,7 +166,7 @@ func makeComparison(entityAttrVal string, termAttrVal any, valType string, op st
 		}
 		return true, nil
 	}
-	orderedTypes := map[string]bool{typeInt: true, typeFloat: true, typeTS: true, typeStr: true}
+	orderedTypes := map[string]bool{typeInt: true, typeFloat: true, typeTS: true, typeStr: true, typeBool: true}
 	if !orderedTypes[valType] {
 		return false, errors.New("not an ordered type")
 	}

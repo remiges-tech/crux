@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/remiges-tech/crux/db/sqlc-gen"
@@ -151,15 +150,14 @@ func (c Cache) loadInternalSchema(dbResponseSchema []sqlc.Schema) error {
 		var patterns []PatternSchema_t
 
 		if err := json.Unmarshal(row.Patternschema, &patterns); err != nil {
-			log.Println("Error unmarshaling Patternschema:", err)
-			continue
+			return fmt.Errorf("error unmarshaling Patternschema:%v", err)
+
 		}
 
 		var actions ActionSchema_t
 
 		if err := json.Unmarshal(row.Actionschema, &actions); err != nil {
-			log.Println("Error parsing ActionSchema JSON:", err)
-			continue
+			return fmt.Errorf("error parsing ActionSchema JSON:%v", err)
 		}
 
 		schemaData := Schema_t{
@@ -218,10 +216,10 @@ func (c Cache) loadInternalRuleSet(dbResponseRuleSet sqlc.Ruleset) error {
 
 	classNameKey := ClassName_t(dbResponseRuleSet.Class)
 	newRuleset := &Ruleset_t{
-		Id:       dbResponseRuleSet.ID,
-		Class:    dbResponseRuleSet.Class,
-		SetName:  dbResponseRuleSet.Setname,
-		Rules:    rules,
+		Id:      dbResponseRuleSet.ID,
+		Class:   dbResponseRuleSet.Class,
+		SetName: dbResponseRuleSet.Setname,
+		Rules:   rules,
 	}
 	if dbResponseRuleSet.Brwf == BRE {
 		perApp[sliceKey].BRRulesets[classNameKey] = append(perApp[sliceKey].BRRulesets[classNameKey], newRuleset)
@@ -236,7 +234,7 @@ func (c Cache) loadInternalRuleSet(dbResponseRuleSet sqlc.Ruleset) error {
 	return nil
 }
 
-func (c Cache) Purge(brwf, app, realm, class ,rulesetName ,field string, slice int32) {
+func (c Cache) Purge(brwf, app, realm, class, rulesetName, field string, slice int32) {
 	lockCache()
 	defer unlockCache()
 
@@ -250,13 +248,13 @@ func (c Cache) Purge(brwf, app, realm, class ,rulesetName ,field string, slice i
 		c.RulesetCache[Realm_t(realm)][App_t(app)][Slice_t(slice)].Workflows[ClassName_t(class)] = nil
 	} else if brwf == "W" && field == "rule" {
 		c.RulesetCache[Realm_t(realm)][App_t(app)][Slice_t(slice)].Workflows[ClassName_t(class)] = nil
-	}else if brwf == "B" && field == "ruleset"{
+	} else if brwf == "B" && field == "ruleset" {
 		ruleset := c.RulesetCache[Realm_t(realm)][App_t(app)][Slice_t(slice)].BRRulesets[ClassName_t(class)]
-		 for _,r := range ruleset{
+		for _, r := range ruleset {
 			r.SetName = rulesetName
-			c.RulesetCache[Realm_t(realm)][App_t(app)][Slice_t(slice)].BRRulesets[ClassName_t(class)]= nil
-		 }
-	} 
+			c.RulesetCache[Realm_t(realm)][App_t(app)][Slice_t(slice)].BRRulesets[ClassName_t(class)] = nil
+		}
+	}
 }
 
 // func Reload(ctx context.Context, query sqlc.Querier, slice int32, app, class, realm, workflowName string) error {
@@ -441,4 +439,3 @@ func (c Cache) getRulesetsFromCacheWithName(brwf, app, realm, class, ruleSetName
 	}
 	return nil, false
 }
-
