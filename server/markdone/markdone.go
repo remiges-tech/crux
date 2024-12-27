@@ -349,8 +349,8 @@ func DoMarkDone(c *gin.Context, s *service.Service, qtx *sqlc.Queries, instanceI
 		} else {
 			if len(actionset.Tasks) > 0 {
 				step = actionset.Tasks[0]
+				UpdateWFInstanceStep(qtx, instanceID, entity_t, actionset.Tasks[0], ruleset.SetName)
 			}
-			UpdateWFInstanceStep(qtx, instanceID, entity_t, actionset.Tasks[0], ruleset.SetName)
 			response = wfinstance.WFInstanceNewResponse{
 				Tasks:  []map[string]int32{{step: instanceID}},
 				Doneat: &wfinst.Doneat.Time,
