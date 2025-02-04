@@ -225,7 +225,7 @@ func DoMarkDone(c *gin.Context, s *service.Service, qtx *sqlc.Queries, instanceI
 				return wfinstance.WFInstanceNewResponse{}, err
 			}
 			return response, nil
-		} else {
+		} else if len(actionset.Tasks) == 1 {
 			entity["step"] = actionset.Tasks[0]
 			err = UpdateWFInstanceStep(qtx, instanceID, entity_t, actionset.Tasks[0], ruleset.SetName)
 			if err != nil {
