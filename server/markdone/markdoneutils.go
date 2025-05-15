@@ -44,6 +44,7 @@ func UpdateWFInstanceStep(queries *sqlc.Queries, instanceID int32, entity crux.E
 		ID:       int32(instanceID),
 		Step:     step,
 		Workflow: workflowname,
+		Doneat:   pgtype.Timestamp{Time: time.Now(), Valid: true},
 	}
 
 	return queries.UpdateWFInstanceStep(context.Background(), params)

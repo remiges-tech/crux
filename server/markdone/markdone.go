@@ -233,7 +233,7 @@ func DoMarkDone(c *gin.Context, s *service.Service, qtx *sqlc.Queries, instanceI
 				return wfinstance.WFInstanceNewResponse{}, err
 			}
 			response = wfinstance.WFInstanceNewResponse{
-				Tasks:    []map[string]int32{{step: instanceID}},
+				Tasks:    []map[string]int32{{actionset.Tasks[0]: instanceID}}, // in step it is adding step which is current not future
 				Loggedat: &pgtype.Timestamp{Time: wfinst.Loggedat.Time, Valid: true},
 			}
 			return response, nil
@@ -270,7 +270,7 @@ func DoMarkDone(c *gin.Context, s *service.Service, qtx *sqlc.Queries, instanceI
 			return res, nil
 		}
 
-		if len(actionset.Tasks) > 1 {
+		if len(actionset.Tasks) >= 1 {
 			// Has more than one task then delete the old record from wfinstance and create fresh records, one per task
 			// Return the full set of tasks and their record IDs
 

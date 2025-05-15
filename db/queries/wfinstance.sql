@@ -19,7 +19,8 @@ RETURNING *;
 
 -- name: UpdateWFInstanceStep :exec
 UPDATE public.wfinstance
-SET step = $1
+SET step = $1,
+doneat = @doneat
 WHERE
     id = $2
     AND slice = $3
