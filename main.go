@@ -27,20 +27,50 @@ import (
 )
 
 type AppConfig struct {
-	DBHost        string `json:"db_host"`
-	DBPort        int    `json:"db_port"`
-	DBUser        string `json:"db_user"`
-	DBPassword    string `json:"db_password"`
-	DBName        string `json:"db_name"`
-	AppServerPort string `json:"app_server_port"`
+	DBHost        string      `json:"db_host"`
+	DBPort        int         `json:"db_port"`
+	DBUser        string      `json:"db_user"`
+	DBPassword    string      `json:"db_password"`
+	DBName        string      `json:"db_name"`
+	AppServerPort string      `json:"app_server_port"`
+	KafkaConfig   KafkaConfig `json:"kafka_config"`
+}
+
+type KafkaConfig struct {
+	IsKafkaOn    bool     `json:"is_kafka_on"`
+	KafkaBrokers []string `json:"kafka_broker"`
+	KafkaTopic   string   `json:"kafka_topic"`
+	KafkaIndex   string   `json:"kafka_index"`
 }
 
 func main() {
-	var appConfig AppConfig
-	//logger setup
-	fallbackWriter := logharbour.NewFallbackWriter(os.Stdout, os.Stdout)
-	lctx := logharbour.NewLoggerContext(logharbour.Debug0)
-	l := logharbour.NewLogger(lctx, "crux", fallbackWriter)
+
+	var (
+		appConfig AppConfig
+		l         *logharbour.Logger
+	)
+	err := config.LoadConfigFromFile("./config.json", &appConfig)
+	if err != nil {
+		log.Fatalf("Error loading config: %v", err)
+	}
+	if appConfig.KafkaConfig.IsKafkaOn {
+		//logger setup
+		kafkaWriter, err := logharbour.NewKafkaWriter(logharbour.KafkaConfig{
+			Brokers: appConfig.KafkaConfig.KafkaBrokers,
+			Topic:   appConfig.KafkaConfig.KafkaTopic,
+		}, logharbour.WithPoolSize(10))
+		if err != nil {
+			log.Fatalf("Failed to create Kafka writer: %v", err)
+		}
+		fallbackWriter := logharbour.NewFallbackWriter(kafkaWriter, os.Stdout)
+		lctx := logharbour.NewLoggerContext(logharbour.Debug0)
+		l = logharbour.NewLogger(lctx, "crux", fallbackWriter)
+	} else {
+		//logger setup
+		fallbackWriter := logharbour.NewFallbackWriter(os.Stdout, os.Stdout)
+		lctx := logharbour.NewLoggerContext(logharbour.Info)
+		l = logharbour.NewLogger(lctx, "crux", fallbackWriter)
+	}
 
 	// rigelAppName := flag.String("appName", "crux", "The name of the application")
 	// rigelModuleName := flag.String("moduleName", "WFE", "The name of the module")
@@ -98,10 +128,6 @@ func main() {
 	// l.Log("Retrieves the configuration data from rigel")
 
 	// Database connection
-	err := config.LoadConfigFromFile("./config.json", &appConfig)
-	if err != nil {
-		log.Fatalf("Error loading config: %v", err)
-	}
 
 	connURL := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", appConfig.DBHost, appConfig.DBPort, appConfig.DBUser, appConfig.DBPassword, appConfig.DBName)
 	fmt.Println("Connection URL:", connURL)
@@ -206,7 +232,6 @@ func main() {
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/brerulesetactivate", breruleset.BRERuleSetActivate)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/brerulesetdeactivate", breruleset.BRERuleSetDeActivate)
 	s.RegisterRouteWithGroup(apiV1Group, http.MethodPost, "/breapplyrules", breruleset.BREapplyRules)
-
 
 	err = r.Run(":" + appConfig.AppServerPort)
 	if err != nil {

@@ -2,7 +2,15 @@
     "db_host": "localhost",
     "db_port": 5432,
     "app_server_port": "8085",
-    "db_user": "cruxtest",
-    "db_password": "cruxtest",
-    "db_name":"cruxtest"
+    "db_user": "postgres",
+    "db_password": "postgres",
+    "db_name":"crux",
+    "kafka_config": {
+		"is_kafka_on": false,
+		"kafka_broker": [
+			"kafka:9094"
+		],
+		"kafka_topic": "remiges-crux",
+		"kafka_index": "crux_logger"
+	}
 }
